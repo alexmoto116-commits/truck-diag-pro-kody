@@ -255,6 +255,13 @@ body.critical .lamp{
 @media(max-width:560px){
   .print-btn span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
   .print-btn{padding:10px}
+  /* На узком экране плашки языка и печати по высоте не помещаются
+     над строкой бренда - опускаем сцену ниже, чтобы не наезжало. */
+  .scene{padding-top:64px}
+  /* Два select в ряд на телефоне не влезают - текст обрезается
+     стрелкой. Ставим их друг под другом на всю ширину. */
+  .filters{flex-direction:column}
+  .filters select{flex:1 1 auto}
 }
 
 /* Переключатель языка - зеркало кнопки печати, только слева и
@@ -341,6 +348,10 @@ body.critical .lamp{
     <option value="en">EN</option>
     <option value="de">DE</option>
     <option value="fr">FR</option>
+    <option value="es">ES</option>
+    <option value="pt">PT</option>
+    <option value="pl">PL</option>
+    <option value="tr">TR</option>
     <option value="hi">HI</option>
   </select>
 </div>
@@ -361,7 +372,6 @@ body.critical .lamp{
 
     <h1 data-i18n="h1">Загорелась лампа <em>Check&nbsp;Engine</em> — что означает код?</h1>
     <div class="purpose">
-      <p class="what" data-i18n="purposeWhat">Справочник кодов неисправностей грузовиков: стандарт <b>J1939 (SPN/FMI)</b> и заводские таблицы <b>12 марок</b>.</p>
       <p class="do" data-i18n="purposeDo">Введите код со сканера или с приборной панели — покажем, что сломалось и можно ли ехать.</p>
     </div>
 
@@ -388,7 +398,6 @@ body.critical .lamp{
       </select>
     </div>
 
-    <p class="hint" data-i18n="hint">Регистр и пробелы не важны. Понимает <code>SPN 100 FMI 1</code>, <code>97 FMI 3</code>, <code>100/1</code>, <code>03043-00</code>, один <code>SPN 97</code> и дилерские коды вроде <code>P2BA7</code>.</p>
     <p class="datanote" id="pf-datanote" data-i18n="dataLangNote"></p>
 
     <div class="out" id="pf-out"></div>
@@ -553,6 +562,142 @@ body.critical .lamp{
       loadError: 'La base n’a pas pu être chargée — vérifiez que le dossier <b>32-sait-assets</b> se trouve à côté de cette page.',
       sourceLabel: 'source : {src}', fmiNonstandard: 'FMI {fmi} (valeur non standard)'
     },
+    es: {
+      pageTitle: 'Código de avería de camión — decodificación SPN/FMI y códigos de concesionario | codetruck.ru',
+      metaDescription: 'Decodificación gratuita de códigos de avería de camiones: norma J1939 (SPN/FMI) y tablas de fábrica de 12 marcas. Introduce el código del escáner o del salpicadero.',
+      h1: 'Se ha encendido el testigo <em>Check&nbsp;Engine</em> — ¿qué significa el código?',
+      purposeWhat: 'Referencia de códigos de avería de camiones: la norma <b>J1939 (SPN/FMI)</b> y tablas de fábrica de <b>12 marcas</b>.',
+      purposeDo: 'Introduce el código del escáner o del salpicadero — te mostramos qué falla y si es seguro seguir conduciendo.',
+      goBtn: 'Decodificar',
+      brandDefault: '— cualquier marca —',
+      standardAuto: 'Detectar automáticamente',
+      standardSpnFmi: 'J1939 — SPN / FMI',
+      standardPcode: 'Código de concesionario / OBD',
+      hint: 'Mayúsculas y espacios no importan. Reconoce <code>SPN 100 FMI 1</code>, <code>97 FMI 3</code>, <code>100/1</code>, <code>03043-00</code>, un simple <code>SPN 97</code>, y códigos de concesionario como <code>P2BA7</code>.',
+      dataLangNote: 'Los nombres de averías y las tablas de fábrica de la base de datos están en ruso; la interfaz y los significados estándar de FMI de abajo están traducidos.',
+      printLabel: 'Imprimir',
+      printTitleDisabled: 'Primero decodifica un código',
+      printTitleEnabled: 'Imprimir este resultado',
+      footText: 'Esta referencia explica qué significa un código — no diagnostica el camión. La decisión final siempre corresponde a una persona con el equipo adecuado. Preguntas — <a href="mailto:alexdiag116@gmail.com" style="color:inherit">alexdiag116@gmail.com</a>.',
+      langAria: 'Idioma de la página',
+      emptyPrompt: 'Introduce un código — por ejemplo <b>SPN 100 FMI 1</b> o simplemente <b>100/1</b>.',
+      badCode: 'No se pudo interpretar este código en la norma seleccionada. Prueba "Detectar automáticamente" o el formato <b>SPN 100 FMI 1</b> / <b>100/1</b> / <b>P2BA7</b>.',
+      pcodeNotFound: 'Código de concesionario <b>{code}</b> no encontrado en la base de datos. Estos códigos varían según la marca — revisa la escritura.',
+      stepCode: 'código', stepDecoding: 'significado',
+      factorySource: 'tabla de fábrica — {brand}', standardSource: 'norma J1939',
+      spnNotFound: '<b>SPN {spn}</b> no encontrado en la base de datos — probablemente un código específico del fabricante. Prueba a elegir una marca arriba, o añade el FMI: p. ej. <b>{spn}/1</b>.',
+      stepParam: 'parámetro', knownFailures: 'averías conocidas — {brand}',
+      stepNeedFmi: 'falta el FMI',
+      needFmiText: 'El FMI es la segunda mitad del código — indica <b>exactamente qué</b> falla con este parámetro. Introdúcelo junto con el número: p. ej. <span class="mono">{spn}/1</span>.',
+      stepUrgency: 'urgencia',
+      urgentText: '<span class="crit">Crítico</span> — detente en cuanto sea seguro hacerlo, no sigas conduciendo.',
+      notUrgentText: '<span class="warn">Se puede seguir conduciendo</span> — pero revisa el código en el próximo mantenimiento.',
+      unknownSpnNote: 'Este SPN no está en la base de datos — probablemente un código específico del fabricante. Prueba a elegir una marca arriba.',
+      loadError: 'No se pudo cargar la base de datos — comprueba que la carpeta <b>32-sait-assets</b> esté junto a esta página.',
+      sourceLabel: 'fuente: {src}', fmiNonstandard: 'FMI {fmi} (valor no estándar)'
+    },
+    pt: {
+      pageTitle: 'Código de falha de caminhão — decodificação SPN/FMI e códigos de concessionária | codetruck.ru',
+      metaDescription: 'Decodificação gratuita de códigos de falha de caminhões: norma J1939 (SPN/FMI) e tabelas de fábrica de 12 marcas. Digite o código do scanner ou do painel.',
+      h1: 'A luz de <em>Check&nbsp;Engine</em> acendeu — o que significa o código?',
+      purposeWhat: 'Referência de códigos de falha de caminhões: a norma <b>J1939 (SPN/FMI)</b> e tabelas de fábrica de <b>12 marcas</b>.',
+      purposeDo: 'Digite o código do scanner ou do painel — mostramos o que está com defeito e se é seguro continuar dirigindo.',
+      goBtn: 'Decodificar',
+      brandDefault: '— qualquer marca —',
+      standardAuto: 'Detectar automaticamente',
+      standardSpnFmi: 'J1939 — SPN / FMI',
+      standardPcode: 'Código de concessionária / OBD',
+      hint: 'Maiúsculas e espaços não importam. Reconhece <code>SPN 100 FMI 1</code>, <code>97 FMI 3</code>, <code>100/1</code>, <code>03043-00</code>, um simples <code>SPN 97</code>, e códigos de concessionária como <code>P2BA7</code>.',
+      dataLangNote: 'Os nomes das falhas e as tabelas de fábrica no banco de dados estão em russo; a interface e os significados padrão de FMI abaixo estão traduzidos.',
+      printLabel: 'Imprimir',
+      printTitleDisabled: 'Decodifique um código primeiro',
+      printTitleEnabled: 'Imprimir este resultado',
+      footText: 'Esta referência explica o que um código significa — não faz diagnóstico do caminhão. A decisão final é sempre de uma pessoa com o equipamento adequado. Dúvidas — <a href="mailto:alexdiag116@gmail.com" style="color:inherit">alexdiag116@gmail.com</a>.',
+      langAria: 'Idioma da página',
+      emptyPrompt: 'Digite um código — por exemplo <b>SPN 100 FMI 1</b> ou apenas <b>100/1</b>.',
+      badCode: 'Não foi possível interpretar este código na norma selecionada. Tente "Detectar automaticamente" ou o formato <b>SPN 100 FMI 1</b> / <b>100/1</b> / <b>P2BA7</b>.',
+      pcodeNotFound: 'Código de concessionária <b>{code}</b> não encontrado no banco de dados. Esses códigos variam por marca — verifique a grafia.',
+      stepCode: 'código', stepDecoding: 'significado',
+      factorySource: 'tabela de fábrica — {brand}', standardSource: 'norma J1939',
+      spnNotFound: '<b>SPN {spn}</b> não encontrado no banco de dados — provavelmente um código específico do fabricante. Tente selecionar uma marca acima, ou adicione o FMI: ex. <b>{spn}/1</b>.',
+      stepParam: 'parâmetro', knownFailures: 'falhas conhecidas — {brand}',
+      stepNeedFmi: 'falta o FMI',
+      needFmiText: 'O FMI é a segunda metade do código — indica <b>exatamente o que</b> está errado com esse parâmetro. Digite-o junto com o número: ex. <span class="mono">{spn}/1</span>.',
+      stepUrgency: 'urgência',
+      urgentText: '<span class="crit">Crítico</span> — pare assim que for seguro fazê-lo, não continue dirigindo.',
+      notUrgentText: '<span class="warn">Pode continuar dirigindo</span> — mas verifique o código na próxima revisão.',
+      unknownSpnNote: 'Este SPN não está no banco de dados — provavelmente um código específico do fabricante. Tente selecionar uma marca acima.',
+      loadError: 'Não foi possível carregar o banco de dados — verifique se a pasta <b>32-sait-assets</b> está junto a esta página.',
+      sourceLabel: 'fonte: {src}', fmiNonstandard: 'FMI {fmi} (valor não padrão)'
+    },
+    pl: {
+      pageTitle: 'Kod usterki ciężarówki — rozszyfrowanie SPN/FMI i kodów dealerskich | codetruck.ru',
+      metaDescription: 'Darmowe rozszyfrowanie kodów usterek ciężarówek: norma J1939 (SPN/FMI) i tabele fabryczne 12 marek. Wpisz kod ze skanera lub z deski rozdzielczej.',
+      h1: 'Zapaliła się kontrolka <em>Check&nbsp;Engine</em> — co oznacza kod?',
+      purposeWhat: 'Baza kodów usterek ciężarówek: norma <b>J1939 (SPN/FMI)</b> i tabele fabryczne <b>12 marek</b>.',
+      purposeDo: 'Wpisz kod ze skanera lub z deski rozdzielczej — pokażemy, co się zepsuło i czy można jechać dalej.',
+      goBtn: 'Rozszyfruj',
+      brandDefault: '— dowolna marka —',
+      standardAuto: 'Wykryj automatycznie',
+      standardSpnFmi: 'J1939 — SPN / FMI',
+      standardPcode: 'Kod dealerski / OBD',
+      hint: 'Wielkość liter i spacje nie mają znaczenia. Rozpoznaje <code>SPN 100 FMI 1</code>, <code>97 FMI 3</code>, <code>100/1</code>, <code>03043-00</code>, samo <code>SPN 97</code> oraz kody dealerskie typu <code>P2BA7</code>.',
+      dataLangNote: 'Nazwy usterek i tabele fabryczne w bazie są po rosyjsku; interfejs oraz standardowe znaczenia FMI poniżej są przetłumaczone.',
+      printLabel: 'Drukuj',
+      printTitleDisabled: 'Najpierw rozszyfruj kod',
+      printTitleEnabled: 'Wydrukuj ten wynik',
+      footText: 'Ta baza wyjaśnia, co oznacza kod — nie stawia diagnozy. Ostateczna decyzja zawsze należy do osoby dysponującej odpowiednim sprzętem. Pytania — <a href="mailto:alexdiag116@gmail.com" style="color:inherit">alexdiag116@gmail.com</a>.',
+      langAria: 'Język strony',
+      emptyPrompt: 'Wpisz kod — na przykład <b>SPN 100 FMI 1</b> albo po prostu <b>100/1</b>.',
+      badCode: 'Nie udało się rozpoznać tego kodu w wybranym standardzie. Spróbuj „Wykryj automatycznie” lub formatu <b>SPN 100 FMI 1</b> / <b>100/1</b> / <b>P2BA7</b>.',
+      pcodeNotFound: 'Kod dealerski <b>{code}</b> nie znaleziony w bazie. Takie kody różnią się między markami — sprawdź zapis.',
+      stepCode: 'kod', stepDecoding: 'znaczenie',
+      factorySource: 'tabela fabryczna — {brand}', standardSource: 'norma J1939',
+      spnNotFound: '<b>SPN {spn}</b> nie znaleziony w bazie — prawdopodobnie kod producenta. Spróbuj wybrać markę powyżej albo dodaj FMI: np. <b>{spn}/1</b>.',
+      stepParam: 'parametr', knownFailures: 'znane usterki — {brand}',
+      stepNeedFmi: 'potrzebny FMI',
+      needFmiText: 'FMI to druga połowa kodu — mówi <b>dokładnie co</b> jest nie tak z tym parametrem. Wpisz go razem z numerem: np. <span class="mono">{spn}/1</span>.',
+      stepUrgency: 'pilność',
+      urgentText: '<span class="crit">Krytyczne</span> — zatrzymaj się przy najbliższej bezpiecznej okazji, nie jedź dalej.',
+      notUrgentText: '<span class="warn">Można jechać dalej</span> — ale pokaż kod przy najbliższym przeglądzie.',
+      unknownSpnNote: 'Tego SPN nie ma w bazie — prawdopodobnie kod producenta. Spróbuj wybrać markę powyżej.',
+      loadError: 'Baza się nie wczytała — sprawdź, czy folder <b>32-sait-assets</b> jest obok tej strony.',
+      sourceLabel: 'źródło: {src}', fmiNonstandard: 'FMI {fmi} (wartość niestandardowa)'
+    },
+    tr: {
+      pageTitle: 'Kamyon arıza kodu — SPN/FMI ve bayi kodu çözümleme | codetruck.ru',
+      metaDescription: 'Ücretsiz kamyon arıza kodu çözümleme: J1939 standardı (SPN/FMI) ve 12 markanın fabrika tabloları. Tarayıcıdan veya gösterge panelinden kodu girin.',
+      h1: '<em>Check&nbsp;Engine</em> lambası yandı — kod ne anlama geliyor?',
+      purposeWhat: 'Kamyon arıza kodu rehberi: <b>J1939 (SPN/FMI)</b> standardı ve <b>12 marka</b>nın fabrika tabloları.',
+      purposeDo: 'Tarayıcıdan veya gösterge panelinden kodu girin — neyin arızalı olduğunu ve yola devam edilip edilemeyeceğini gösterelim.',
+      goBtn: 'Çöz',
+      brandDefault: '— herhangi bir marka —',
+      standardAuto: 'Otomatik algıla',
+      standardSpnFmi: 'J1939 — SPN / FMI',
+      standardPcode: 'Bayi / OBD kodu',
+      hint: 'Büyük/küçük harf ve boşluklar önemli değil. <code>SPN 100 FMI 1</code>, <code>97 FMI 3</code>, <code>100/1</code>, <code>03043-00</code>, tek başına <code>SPN 97</code> ve <code>P2BA7</code> gibi bayi kodlarını tanır.',
+      dataLangNote: 'Veritabanındaki arıza adları ve fabrika tabloları Rusça; arayüz ve aşağıdaki standart FMI anlamları çevrildi.',
+      printLabel: 'Yazdır',
+      printTitleDisabled: 'Önce bir kodu çözün',
+      printTitleEnabled: 'Bu sonucu yazdır',
+      footText: 'Bu rehber kodun ne anlama geldiğini açıklar — teşhis koymaz. Nihai karar her zaman uygun ekipmana sahip bir kişiye aittir. Sorular — <a href="mailto:alexdiag116@gmail.com" style="color:inherit">alexdiag116@gmail.com</a>.',
+      langAria: 'Sayfa dili',
+      emptyPrompt: 'Bir kod girin — örneğin <b>SPN 100 FMI 1</b> veya sadece <b>100/1</b>.',
+      badCode: 'Bu kod seçilen standartta çözümlenemedi. "Otomatik algıla" seçeneğini veya <b>SPN 100 FMI 1</b> / <b>100/1</b> / <b>P2BA7</b> biçimini deneyin.',
+      pcodeNotFound: 'Bayi kodu <b>{code}</b> veritabanında bulunamadı. Bu kodlar markaya göre farklıdır — yazımı kontrol edin.',
+      stepCode: 'kod', stepDecoding: 'anlam',
+      factorySource: 'fabrika tablosu — {brand}', standardSource: 'J1939 standardı',
+      spnNotFound: '<b>SPN {spn}</b> veritabanında bulunamadı — muhtemelen üreticiye özel bir kod. Yukarıdan bir marka seçin veya FMI ekleyin: örn. <b>{spn}/1</b>.',
+      stepParam: 'parametre', knownFailures: 'bilinen arızalar — {brand}',
+      stepNeedFmi: 'FMI gerekli',
+      needFmiText: 'FMI, kodun ikinci yarısıdır — bu parametrede <b>tam olarak neyin</b> yanlış olduğunu söyler. Numarayla birlikte girin: örn. <span class="mono">{spn}/1</span>.',
+      stepUrgency: 'aciliyet',
+      urgentText: '<span class="crit">Kritik</span> — güvenli olan ilk fırsatta durun, sürmeye devam etmeyin.',
+      notUrgentText: '<span class="warn">Yola devam edilebilir</span> — ancak kodu bir sonraki serviste gösterin.',
+      unknownSpnNote: 'Bu SPN veritabanında yok — muhtemelen üreticiye özel bir kod. Yukarıdan bir marka seçmeyi deneyin.',
+      loadError: 'Veritabanı yüklenemedi — <b>32-sait-assets</b> klasörünün bu sayfanın yanında olduğundan emin olun.',
+      sourceLabel: 'kaynak: {src}', fmiNonstandard: 'FMI {fmi} (standart olmayan değer)'
+    },
     hi: {
       pageTitle: 'ट्रक फॉल्ट कोड — SPN/FMI और डीलर कोड डिकोडिंग | codetruck.ru',
       metaDescription: 'ट्रक फॉल्ट कोड की मुफ्त डिकोडिंग: J1939 मानक (SPN/FMI) और 12 ब्रांड की फैक्ट्री तालिकाएं। स्कैनर या डैशबोर्ड से कोड डालें।',
@@ -632,7 +777,47 @@ body.critical .lamp{
       14:'निर्माता के विशेष निर्देश',15:'सामान्य से अधिक — कम गंभीरता',
       16:'सामान्य से अधिक — मध्यम गंभीरता',17:'सामान्य से कम — कम गंभीरता',
       18:'सामान्य से कम — मध्यम गंभीरता',19:'प्राप्त नेटवर्क डेटा में त्रुटि',
-      20:'डेटा ऊपर की ओर खिसका',21:'डेटा नीचे की ओर खिसका',31:'स्थिति मौजूद है (निर्माता विवरण देखें)'}
+      20:'डेटा ऊपर की ओर खिसका',21:'डेटा नीचे की ओर खिसका',31:'स्थिति मौजूद है (निर्माता विवरण देखें)'},
+    es: {0:'valor por encima de lo normal (nivel más grave)',1:'valor por debajo de lo normal (nivel más grave)',
+      2:'valor inestable o erróneo',3:'voltaje por encima de lo normal o cortocircuito a positivo',
+      4:'voltaje por debajo de lo normal o cortocircuito a masa',5:'corriente por debajo de lo normal o circuito abierto',
+      6:'corriente por encima de lo normal o cortocircuito a masa',7:'el sistema mecánico no responde',
+      8:'frecuencia o ancho de pulso anómalo',9:'frecuencia de actualización anómala',10:'velocidad de cambio anómala',
+      11:'causa no determinada',12:'dispositivo o componente defectuoso',13:'calibración fuera de rango',
+      14:'instrucción específica del fabricante',15:'por encima de lo normal — gravedad baja',
+      16:'por encima de lo normal — gravedad media',17:'por debajo de lo normal — gravedad baja',
+      18:'por debajo de lo normal — gravedad media',19:'error en los datos de red recibidos',
+      20:'deriva de datos al alza',21:'deriva de datos a la baja',31:'condición presente (ver descripción del fabricante)'},
+    pt: {0:'valor acima do normal (nível mais grave)',1:'valor abaixo do normal (nível mais grave)',
+      2:'valor instável ou incorreto',3:'tensão acima do normal ou curto para o positivo',
+      4:'tensão abaixo do normal ou curto para a massa',5:'corrente abaixo do normal ou circuito aberto',
+      6:'corrente acima do normal ou curto para a massa',7:'sistema mecânico não responde',
+      8:'frequência ou largura de pulso anormal',9:'taxa de atualização anormal',10:'taxa de variação anormal',
+      11:'causa não determinada',12:'dispositivo ou componente com defeito',13:'calibração fora do intervalo',
+      14:'instrução específica do fabricante',15:'acima do normal — baixa gravidade',
+      16:'acima do normal — gravidade moderada',17:'abaixo do normal — baixa gravidade',
+      18:'abaixo do normal — gravidade moderada',19:'erro nos dados de rede recebidos',
+      20:'desvio de dados para cima',21:'desvio de dados para baixo',31:'condição presente (ver descrição do fabricante)'},
+    pl: {0:'wartość powyżej normy (najwyższy poziom istotności)',1:'wartość poniżej normy (najwyższy poziom istotności)',
+      2:'wartość niestabilna lub błędna',3:'napięcie powyżej normy lub zwarcie do plusa',
+      4:'napięcie poniżej normy lub zwarcie do masy',5:'prąd poniżej normy lub przerwany obwód',
+      6:'prąd powyżej normy lub zwarcie do masy',7:'układ mechaniczny nie reaguje',
+      8:'nieprawidłowa częstotliwość lub szerokość impulsu',9:'nieprawidłowa częstość aktualizacji',10:'nieprawidłowe tempo zmian',
+      11:'przyczyna nieznana',12:'uszkodzone urządzenie lub podzespół',13:'kalibracja poza zakresem',
+      14:'instrukcja specyficzna dla producenta',15:'powyżej normy — niska pilność',
+      16:'powyżej normy — średnia pilność',17:'poniżej normy — niska pilność',
+      18:'poniżej normy — średnia pilność',19:'błąd w odebranych danych sieciowych',
+      20:'dryf danych w górę',21:'dryf danych w dół',31:'warunek występuje (patrz opis producenta)'},
+    tr: {0:'değer normalin üzerinde (en ciddi seviye)',1:'değer normalin altında (en ciddi seviye)',
+      2:'değer kararsız veya hatalı',3:'gerilim normalin üzerinde veya artıya kısa devre',
+      4:'gerilim normalin altında veya şaseye kısa devre',5:'akım normalin altında veya devre açık',
+      6:'akım normalin üzerinde veya şaseye kısa devre',7:'mekanik sistem tepki vermiyor',
+      8:'anormal frekans veya darbe genişliği',9:'anormal güncelleme hızı',10:'anormal değişim hızı',
+      11:'kök neden bilinmiyor',12:'arızalı cihaz veya bileşen',13:'kalibrasyon aralık dışında',
+      14:'üreticiye özel talimat',15:'normalin üzerinde — düşük önem',
+      16:'normalin üzerinde — orta önem',17:'normalin altında — düşük önem',
+      18:'normalin altında — orta önem',19:'alınan ağ verisinde hata',
+      20:'veri yukarı kaydı',21:'veri aşağı kaydı',31:'durum mevcut (üretici açıklamasına bakın)'}
   };
 
   /* КамАЗ и ЯМЗ в базе записаны кириллицей - для остальных языков
