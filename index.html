@@ -89,11 +89,26 @@ h1{
   text-shadow:0 2px 30px rgba(7,11,18,.7);
 }
 h1 em{font-style:normal;color:var(--lamp)}
+/* Текст тот же, но разведён на два уровня: сначала - что это за
+   справочник (тише, мельче), потом - что сделать (крупнее, светлее).
+   Слева тонкая янтарная нить связывает оба предложения в один блок. */
 .purpose{
-  color:#C2D0DC;font-size:clamp(15px,2.4vw,17px);max-width:44ch;margin:0 0 clamp(26px,5vw,36px);
-  text-shadow:0 1px 16px rgba(7,11,18,.8);
+  position:relative;max-width:48ch;
+  margin:0 0 clamp(26px,5vw,36px);padding-left:clamp(14px,2.5vw,20px);
 }
-.purpose b{color:#fff;font-weight:600}
+.purpose::before{
+  content:"";position:absolute;left:0;top:5px;bottom:5px;width:2px;border-radius:2px;
+  background:linear-gradient(180deg, var(--lamp), rgba(255,155,61,.05));
+}
+.purpose p{margin:0;text-shadow:0 1px 16px rgba(7,11,18,.85)}
+.purpose .what{
+  font-size:clamp(13.5px,2vw,15px);color:#9FB2C4;line-height:1.5;
+}
+.purpose .what b{color:#E4EBF2;font-weight:600}
+.purpose .do{
+  margin-top:9px;font-size:clamp(16px,2.7vw,19px);line-height:1.45;
+  color:#F0F5FA;font-weight:450;letter-spacing:-.005em;
+}
 
 /* ---------- сканер: главный элемент страницы ----------
    Лампа Check Engine живёт внутри поля ввода. Пока код не
@@ -237,7 +252,10 @@ body.critical .lamp{
     <div class="brand"><i></i>codetruck.ru</div>
 
     <h1>Загорелась лампа — <em>что означает код?</em></h1>
-    <p class="purpose">Справочник кодов неисправностей грузовиков: стандарт <b>J1939 (SPN/FMI)</b> и заводские таблицы <b>12 марок</b>. Введите код со сканера или с приборной панели — покажем, что сломалось и можно ли ехать.</p>
+    <div class="purpose">
+      <p class="what">Справочник кодов неисправностей грузовиков: стандарт <b>J1939 (SPN/FMI)</b> и заводские таблицы <b>12 марок</b>.</p>
+      <p class="do">Введите код со сканера или с приборной панели — покажем, что сломалось и можно ли ехать.</p>
+    </div>
 
     <div class="scanner">
       <div class="lamp" aria-hidden="true">
