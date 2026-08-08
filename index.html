@@ -6,6 +6,7 @@
 <title>Код неисправности грузовика — расшифровка SPN/FMI и дилерских кодов | codetruck.ru</title>
 <meta name="description" content="Бесплатная расшифровка кодов неисправностей грузовиков: стандарт J1939 (SPN/FMI) и заводские таблицы 12 марок. Введите код со сканера или с приборной панели.">
 <meta name="theme-color" content="#070B12">
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
 <link rel="preload" as="image" href="assets/tyagach-noch.jpg">
 <style>
 /* ============================================================
@@ -74,7 +75,7 @@ body{
     radial-gradient(105% 52% at 20% 90%, rgba(232,137,74,.30), transparent 62%),
     radial-gradient(80% 46% at 84% 6%, rgba(18,74,102,.42), transparent 66%);
 }
-.w{max-width:660px;margin:0 auto;padding:0 clamp(18px,5vw,28px)}
+.w{max-width:800px;margin:0 auto;padding:0 clamp(18px,5vw,28px)}
 
 .brand{
   display:flex;align-items:center;gap:10px;
@@ -84,16 +85,16 @@ body{
 .brand i{width:22px;height:1px;background:var(--lamp);flex:none;opacity:.8}
 
 h1{
-  font-size:clamp(30px,7vw,46px);line-height:1.1;margin:0 0 14px;
-  letter-spacing:-.02em;font-weight:680;
+  font-size:clamp(26px,4.6vw,38px);line-height:1.16;margin:0 0 14px;
+  letter-spacing:-.018em;font-weight:670;max-width:22ch;
   text-shadow:0 2px 30px rgba(7,11,18,.7);
 }
-h1 em{font-style:normal;color:var(--lamp)}
+h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
 /* Текст тот же, но разведён на два уровня: сначала - что это за
    справочник (тише, мельче), потом - что сделать (крупнее, светлее).
    Слева тонкая янтарная нить связывает оба предложения в один блок. */
 .purpose{
-  position:relative;max-width:48ch;
+  position:relative;max-width:66ch;
   margin:0 0 clamp(26px,5vw,36px);padding-left:clamp(14px,2.5vw,20px);
 }
 .purpose::before{
@@ -106,7 +107,7 @@ h1 em{font-style:normal;color:var(--lamp)}
 }
 .purpose .what b{color:#E4EBF2;font-weight:600}
 .purpose .do{
-  margin-top:9px;font-size:clamp(16px,2.7vw,19px);line-height:1.45;
+  margin-top:8px;font-size:clamp(15.5px,2.3vw,18px);line-height:1.4;
   color:#F0F5FA;font-weight:450;letter-spacing:-.005em;
 }
 
@@ -183,13 +184,16 @@ body.critical .lamp{
   border-radius:5px;padding:1px 6px;white-space:nowrap;
 }
 
-/* ---------- результат ---------- */
-.out{max-width:660px;margin:0 auto;padding:0 clamp(18px,5vw,28px)}
-.out:not(:empty){padding-top:clamp(22px,4vw,30px);padding-bottom:60px}
+/* ---------- результат ----------
+   Ответ ложится прямо на кадр с тягачом, поэтому карточка почти
+   непрозрачная и с размытием под собой - иначе текст утонет в фото. */
+.out:not(:empty){margin-top:clamp(22px,4vw,30px)}
 .card{
   border:1px solid var(--line);border-radius:16px;
-  background:linear-gradient(180deg, rgba(20,29,40,.96), rgba(11,17,25,.96));
+  background:linear-gradient(180deg, rgba(16,24,34,.93), rgba(9,14,21,.95));
   padding:clamp(18px,4vw,26px);
+  box-shadow:0 30px 70px -34px rgba(0,0,0,.95);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
 }
 .chain{list-style:none;margin:0;padding:0}
 .chain li{
@@ -220,9 +224,61 @@ body.critical .lamp{
 .warn{color:var(--lamp);font-weight:700}
 .miss{
   padding:15px 17px;border-left:3px solid var(--lamp);border-radius:0 12px 12px 0;
-  background:rgba(255,155,61,.08);font-size:14.5px;color:#CBD7E3;line-height:1.55;
+  background:rgba(28,20,12,.88);font-size:14.5px;color:#DCE5EE;line-height:1.55;
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
 }
 .miss + .card,.card + .miss{margin-top:12px}
+
+/* Распечатать разбор - в мастерской бумажку кладут к машине.
+   Кнопка закреплена в правом верхнем углу страницы: её видно сразу,
+   не нужно искать под ответом. */
+.print-btn{
+  position:fixed;top:clamp(14px,2.5vw,22px);right:clamp(14px,2.5vw,22px);z-index:20;
+  display:inline-flex;align-items:center;gap:8px;cursor:pointer;
+  font-family:var(--sans);font-size:13.5px;color:var(--ink-2);
+  background:rgba(12,19,28,.72);border:1px solid var(--line);border-radius:11px;padding:9px 14px;
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  transition:border-color .18s ease,color .18s ease,background .18s ease,opacity .2s ease;
+}
+.print-btn:hover{color:var(--ink);border-color:rgba(255,155,61,.5);background:rgba(255,155,61,.14)}
+.print-btn:focus-visible{outline:2px solid var(--lamp);outline-offset:2px}
+.print-btn svg{width:16px;height:16px;flex:none}
+/* пока код не разобран - печатать нечего, поэтому кнопка приглушена */
+.print-btn[disabled]{opacity:.38;cursor:default}
+.print-btn[disabled]:hover{color:var(--ink-2);border-color:var(--line);background:rgba(12,19,28,.72)}
+@media(max-width:560px){
+  .print-btn span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+  .print-btn{padding:10px}
+}
+
+/* ---------- печать: чистый лист, без фона и без органов управления ---------- */
+@media print{
+  body{background:#fff;color:#000}
+  .scene .photo,.scene .veil,.filters,.hint,.print-btn,#pf-go{display:none}
+  .scene{padding:0 0 14px;background:#fff}
+  .brand{color:#000;margin-bottom:10px}
+  .brand i{background:#000}
+  h1{font-size:19px;color:#000;text-shadow:none;margin-bottom:6px}
+  h1 em{color:#000}
+  .purpose{display:none}
+  .scanner{
+    background:none;border:none;box-shadow:none;padding:0;backdrop-filter:none;
+  }
+  .lamp{display:none}
+  #pf-code{color:#000;font-size:16px;padding:0}
+  .out{padding-top:8px}
+  .card{background:#fff;border:1px solid #bbb;color:#000}
+  .chain li{opacity:1;transform:none;animation:none}
+  .chain li::before{background:#ccc}
+  .chain li i{background:#fff;border-color:#888}
+  .chain .st{color:#666}
+  .chain .tx{color:#000}
+  .chain .tx b{color:#000}
+  .mono{color:#000}
+  .crit,.warn{color:#000}
+  .miss{background:#f4f4f4;border-left-color:#888;color:#000}
+  .foot{color:#444;padding-top:12px}
+}
 
 .foot{
   max-width:660px;margin:0 auto;padding:26px clamp(18px,5vw,28px) 70px;
@@ -245,13 +301,21 @@ body.critical .lamp{
 </head>
 <body>
 
+<button type="button" id="pf-print" class="print-btn" disabled title="Сначала разберите код">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+       stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M7 8V3h10v5"/><rect x="3" y="8" width="18" height="8" rx="2"/>
+    <path d="M7 14h10v7H7z"/>
+  </svg><span>Распечатать</span>
+</button>
+
 <div class="scene">
   <div class="photo" aria-hidden="true"></div>
   <div class="veil" aria-hidden="true"></div>
   <div class="w">
     <div class="brand"><i></i>codetruck.ru</div>
 
-    <h1>Загорелась лампа — <em>что означает код?</em></h1>
+    <h1>Загорелась лампа <em>Check&nbsp;Engine</em> — что означает код?</h1>
     <div class="purpose">
       <p class="what">Справочник кодов неисправностей грузовиков: стандарт <b>J1939 (SPN/FMI)</b> и заводские таблицы <b>12 марок</b>.</p>
       <p class="do">Введите код со сканера или с приборной панели — покажем, что сломалось и можно ли ехать.</p>
@@ -280,11 +344,11 @@ body.critical .lamp{
       </select>
     </div>
 
-    <p class="hint">Регистр и пробелы не важны. Понимает <code>SPN 100 FMI 1</code>, <code>100/1</code>, <code>03043-00</code> и дилерские коды вроде <code>P2BA7</code>.</p>
+    <p class="hint">Регистр и пробелы не важны. Понимает <code>SPN 100 FMI 1</code>, <code>97 FMI 3</code>, <code>100/1</code>, <code>03043-00</code>, один <code>SPN 97</code> и дилерские коды вроде <code>P2BA7</code>.</p>
+
+    <div class="out" id="pf-out"></div>
   </div>
 </div>
-
-<div class="out" id="pf-out"></div>
 
 <p class="foot">Справочник показывает, что означает код, а не ставит диагноз — решение всегда за человеком с оборудованием.</p>
 
@@ -344,16 +408,20 @@ body.critical .lamp{
     var up = normCode(t);
     // Панель показывает код вместе с порядковым номером ошибки
     // ("2 03043-00"), поэтому ищем код с разделителем где угодно
-    // в строке, а не только когда это весь ввод целиком. \D* (а не
-    // \D+) между числом и словом FMI - потому что код иногда пишут
-    // вообще без пробелов и разделителей: "SPN100FMI1".
-    var m = up.match(/SPN\s*[:\-]?\s*(\d{1,6})\D*FMI\s*[:\-]?\s*(\d{1,2})/);
+    // в строке, а не только когда это весь ввод целиком. Слово SPN
+    // необязательно ("97 FMI 3" пишут чаще, чем полную форму), а
+    // между числом и словом FMI допускаем что угодно или ничего -
+    // код нередко вводят слитно: "97FMI3".
+    var m = up.match(/(?:SPN\s*[:\-]?\s*)?(\d{1,6})\D{0,20}FMI\s*[:\-]?\s*(\d{1,2})/);
     if(!m) m = up.match(/(\d{1,6})\s*[\/\-.,]\s*(\d{1,2})(?!\d)/);
     if(!m) m = up.match(/^(\d{1,6})\s+(\d{1,2})$/);
     if(m) return {spn:parseInt(m[1],10), fmi:parseInt(m[2],10)};
     var only = up.match(/^SPN\s*[:\-]?\s*(\d{1,6})$/) || up.match(/^(\d{1,6})$/);
     if(only) return {spn:parseInt(only[1],10), fmi:null};
-    if(/^[A-Z]{1,2}\s?\d{3,6}$/.test(up) || /^MR\s?\d{3,5}$/.test(up) || /^[0-9A-F]{6}$/.test(up)){
+    // Дилерские коды в справочнике очень разной формы: P2BA7, B000101,
+    // 00100, "AA 9999", 9A9A99. Общее у них одно - короткий буквенно-
+    // цифровой набор. Чисто цифровые сюда не берём: это SPN.
+    if(/^[A-Z0-9]{4,8}$/.test(up.replace(/\s+/g,'')) && /[A-Z]/.test(up)){
       return {pcode:up.replace(/\s+/g,' ')};
     }
     return {bad:true};
@@ -365,7 +433,7 @@ body.critical .lamp{
     if(standard === 'pcode') return {pcode:normCode(t)};
     if(standard === 'spnfmi'){
       var up = normCode(t);
-      var m = up.match(/SPN\s*[:\-]?\s*(\d{1,6})\D*FMI\s*[:\-]?\s*(\d{1,2})/)
+      var m = up.match(/(?:SPN\s*[:\-]?\s*)?(\d{1,6})\D{0,20}FMI\s*[:\-]?\s*(\d{1,2})/)
            || up.match(/(\d{1,6})\s*[\/\-.,]\s*(\d{1,2})(?!\d)/)
            || up.match(/^(\d{1,6})\s+(\d{1,2})$/);
       if(m) return {spn:parseInt(m[1],10), fmi:parseInt(m[2],10)};
@@ -403,6 +471,39 @@ body.critical .lamp{
     return {text:name + ' — ' + f, src:known ? 'стандарт J1939' : null, unknown:!known};
   }
 
+  /* Ключи дилерских таблиц встречаются и с пробелом ("AA 9999"), и без
+     него, поэтому сверяем оба написания. Индекс без пробелов строим
+     один раз на таблицу и прячем от Object.keys. */
+  function lookupPcode(brand, code){
+    var tbl = DB.pcode[brand];
+    if(!tbl) return null;
+    if(tbl[code]) return tbl[code];
+    var bare = code.replace(/\s+/g, '');
+    if(tbl[bare]) return tbl[bare];
+    if(!tbl.__bare){
+      var idx = {};
+      Object.keys(tbl).forEach(function(k){ idx[k.replace(/\s+/g,'')] = tbl[k]; });
+      try{ Object.defineProperty(tbl, '__bare', {value:idx, enumerable:false}); }
+      catch(e){ tbl.__bare = idx; }
+    }
+    return tbl.__bare[bare] || null;
+  }
+
+  /* Марку выбирать необязательно: если не выбрана - ищем код во всех
+     дилерских таблицах и сами говорим, чья это марка. */
+  function findPcode(brand, code){
+    if(brand){
+      var one = lookupPcode(brand, code);
+      return one ? [{brand:brand, text:one}] : [];
+    }
+    var hits = [];
+    Object.keys(DB.pcode).forEach(function(b){
+      var v = lookupPcode(b, code);
+      if(v) hits.push({brand:b, text:v});
+    });
+    return hits;
+  }
+
   function urgent(spn, fmi, brand){
     if(DB.urgentSpn.indexOf(spn) >= 0) return true;
     if(DB.urgentFmi.indexOf(fmi) >= 0) return true;
@@ -424,15 +525,24 @@ body.critical .lamp{
   }
   function note(t){ return '<div class="miss">' + t + '</div>'; }
 
+  var printBtn = document.getElementById('pf-print');
+  printBtn.addEventListener('click', function(){
+    if(!printBtn.disabled) window.print();
+  });
+
   /* Лампа в поле ввода - индикатор состояния: горит янтарным пока
      не разобрали, гаснет на понятном коде, краснеет на критичном. */
   function setLamp(state){
     document.body.classList.remove('solved', 'critical');
     if(state) document.body.classList.add(state);
   }
-  function render(html, lampState){
+  /* printable - только для разобранного кода: печатать сообщение
+     «код не найден» смысла нет, поэтому кнопка гаснет. */
+  function render(html, lampState, printable){
     out.innerHTML = html;
     setLamp(lampState);
+    printBtn.disabled = !printable;
+    printBtn.title = printable ? 'Распечатать разбор' : 'Сначала разберите код';
   }
 
   function run(){
@@ -449,23 +559,56 @@ body.critical .lamp{
         return;
       }
       if(p.pcode){
-        var pd = brand && DB.pcode[brand] ? DB.pcode[brand][p.pcode] : null;
-        if(!pd){
-          render(note('Дилерский код <b>' + esc(p.pcode) + '</b> в справочнике не найден' +
-            (brand ? '' : ' — попробуйте выбрать марку: такие коды у каждой свои') + '.'), null);
+        var hits = findPcode(brand, p.pcode);
+        if(!hits.length){
+          render(note('Дилерский код <b>' + esc(p.pcode) + '</b> в справочнике не найден. ' +
+            'Такие коды у каждой марки свои — проверьте написание.'), null);
           return;
         }
-        render(chain([
-          {st:'код', tx:'<span class="mono">' + esc(p.pcode) + '</span>', cls:'ok'},
-          {st:'расшифровка', tx:'<b>' + esc(pd) + '</b>', cls:'ok'}
-        ]), 'solved');
+        var pSteps = [{st:'код', tx:'<span class="mono">' + esc(p.pcode) + '</span>', cls:'ok'}];
+        hits.forEach(function(h){
+          pSteps.push({
+            st: hits.length > 1 || !brand ? DB.brandNames[h.brand] : 'расшифровка',
+            tx: '<b>' + esc(h.text) + '</b>', cls:'ok'
+          });
+        });
+        render(chain(pSteps), 'solved', true);
         return;
       }
+      /* SPN без FMI - тоже полноценный ответ: показываем, что это за
+         параметр, и разбор всех FMI по стандарту, чтобы человек нашёл
+         свой случай, даже если вторую половину кода он не разглядел. */
       if(p.fmi === null){
-        var nm = DB.spn[String(p.spn)] || DB.universal[String(p.spn)];
-        render(note(nm
-          ? '<b>SPN ' + p.spn + '</b> — это ' + esc(nm) + '. Добавьте FMI (характер отказа): например <b>' + p.spn + '/1</b>.'
-          : 'Нужен ещё FMI — вторая половина кода. Попробуйте <b>' + p.spn + '/1</b>.'), null);
+        var nm = DB.spn[String(p.spn)]
+              || (brand && DB.spnNameRu[brand] && DB.spnNameRu[brand][String(p.spn)])
+              || (brand && DB.spnNameEn[brand] && DB.spnNameEn[brand][String(p.spn)])
+              || DB.universal[String(p.spn)];
+        if(!nm){
+          render(note('<b>SPN ' + p.spn + '</b> в справочнике не найден — скорее всего, код фирменный. ' +
+            'Попробуйте выбрать марку выше или добавьте FMI: например <b>' + p.spn + '/1</b>.'), null);
+          return;
+        }
+        var known = [];
+        if(brand && DB.brands[brand]){
+          Object.keys(DB.brands[brand]).forEach(function(k){
+            var pair = k.split('.');
+            if(pair[0] === String(p.spn) && pair.length === 2) known.push(pair[1]);
+          });
+          known.sort(function(a,b){ return a - b; });
+        }
+        var sSteps = [
+          {st:'параметр', tx:'<span class="mono">SPN ' + p.spn + '</span> — <b>' + esc(nm) + '</b>', cls:'ok'}
+        ];
+        if(known.length){
+          sSteps.push({st:'известные отказы ' + DB.brandNames[brand],
+            tx: known.map(function(f){
+              return '<span class="mono">' + p.spn + '/' + f + '</span> — ' + esc(DB.brands[brand][p.spn + '.' + f]);
+            }).join('<br>'), cls:'ok'});
+        }
+        sSteps.push({st:'нужен FMI',
+          tx:'FMI — вторая половина кода, она говорит <b>что именно</b> с этим параметром не так. ' +
+             'Введите её вместе с номером: например <span class="mono">' + p.spn + '/1</span>.'});
+        render(chain(sSteps), 'solved', true);
         return;
       }
       var d = describe(p.spn, p.fmi, brand);
@@ -483,7 +626,7 @@ body.critical .lamp{
       if(d.unknown){
         html += note('Этого SPN нет в справочнике — скорее всего, код фирменный. Попробуйте выбрать марку выше.');
       }
-      render(html, u ? 'critical' : 'solved');
+      render(html, u ? 'critical' : 'solved', true);
     }).catch(function(){
       render(note('Справочник не загрузился — проверьте, что рядом со страницей лежит папка <b>32-sait-assets</b>.'), null);
     });
