@@ -235,26 +235,56 @@ body.critical .lamp{
 .print-btn{
   position:fixed;top:clamp(14px,2.5vw,22px);right:clamp(14px,2.5vw,22px);z-index:20;
   display:inline-flex;align-items:center;gap:8px;cursor:pointer;
-  font-family:var(--sans);font-size:13.5px;color:var(--ink-2);
-  background:rgba(12,19,28,.72);border:1px solid var(--line);border-radius:11px;padding:9px 14px;
-  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
-  transition:border-color .18s ease,color .18s ease,background .18s ease,opacity .2s ease;
+  font-family:var(--sans);font-size:14px;font-weight:650;color:#20120A;
+  background:linear-gradient(180deg, #FFAA55, #F2833C);
+  border:none;border-radius:12px;padding:11px 17px;
+  box-shadow:0 10px 26px -10px rgba(255,147,80,.65);
+  transition:transform .18s cubic-bezier(.22,1,.36,1), filter .18s ease, box-shadow .18s ease;
 }
-.print-btn:hover{color:var(--ink);border-color:rgba(255,155,61,.5);background:rgba(255,155,61,.14)}
-.print-btn:focus-visible{outline:2px solid var(--lamp);outline-offset:2px}
-.print-btn svg{width:16px;height:16px;flex:none}
-/* пока код не разобран - печатать нечего, поэтому кнопка приглушена */
-.print-btn[disabled]{opacity:.38;cursor:default}
-.print-btn[disabled]:hover{color:var(--ink-2);border-color:var(--line);background:rgba(12,19,28,.72)}
+.print-btn:hover{transform:translateY(-1px);filter:brightness(1.07);box-shadow:0 14px 32px -10px rgba(255,147,80,.8)}
+.print-btn:active{transform:translateY(0)}
+.print-btn:focus-visible{outline:2px solid #fff;outline-offset:3px}
+.print-btn svg{width:17px;height:17px;flex:none}
+/* пока код не разобран - печатать нечего: кнопка гаснет в тихий контур */
+.print-btn[disabled]{
+  cursor:default;background:rgba(12,19,28,.72);color:var(--ink-3);
+  border:1px solid var(--line);padding:10px 16px;box-shadow:none;
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+}
+.print-btn[disabled]:hover{transform:none;filter:none;box-shadow:none}
 @media(max-width:560px){
   .print-btn span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
   .print-btn{padding:10px}
 }
 
+/* Переключатель языка - зеркало кнопки печати, только слева и
+   тише: это не действие, а настройка, поэтому нейтральный тёмный
+   вид вместо янтарного. */
+.lang-switch{
+  position:fixed;top:clamp(14px,2.5vw,22px);left:clamp(14px,2.5vw,22px);z-index:20;
+  display:inline-flex;align-items:center;gap:6px;
+  background:rgba(12,19,28,.72);border:1px solid var(--line);border-radius:12px;
+  padding:9px 11px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+}
+.lang-switch svg{width:15px;height:15px;flex:none;color:var(--ink-3)}
+.lang-switch select{
+  appearance:none;-webkit-appearance:none;-moz-appearance:none;
+  background:transparent;border:none;outline:none;
+  color:var(--ink-2);font-family:var(--sans);font-size:13px;font-weight:650;
+  letter-spacing:.03em;cursor:pointer;
+}
+.lang-switch select:hover{color:var(--ink)}
+.lang-switch select:focus-visible{outline:2px solid var(--lamp);outline-offset:3px}
+.lang-switch select option{background:#0E1620;color:#EEF3F9}
+.datanote{
+  display:none;margin:10px 0 0;font-size:12px;color:#8FA2B4;line-height:1.5;
+  text-shadow:0 1px 12px rgba(7,11,18,.9);
+}
+
 /* ---------- печать: чистый лист, без фона и без органов управления ---------- */
 @media print{
   body{background:#fff;color:#000}
-  .scene .photo,.scene .veil,.filters,.hint,.print-btn,#pf-go{display:none}
+  .scene .photo,.scene .veil,.filters,.hint,.datanote,.print-btn,.lang-switch,#pf-go{display:none}
   .scene{padding:0 0 14px;background:#fff}
   .brand{color:#000;margin-bottom:10px}
   .brand i{background:#000}
@@ -301,12 +331,26 @@ body.critical .lamp{
 </head>
 <body>
 
+<div class="lang-switch">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+       stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.7 4 6 4 9s-1.5 6.3-4 9c-2.5-2.7-4-6-4-9s1.5-6.3 4-9Z"/>
+  </svg>
+  <select id="pf-lang" aria-label="Язык страницы">
+    <option value="ru">RU</option>
+    <option value="en">EN</option>
+    <option value="de">DE</option>
+    <option value="fr">FR</option>
+    <option value="hi">HI</option>
+  </select>
+</div>
+
 <button type="button" id="pf-print" class="print-btn" disabled title="Сначала разберите код">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
     <path d="M7 8V3h10v5"/><rect x="3" y="8" width="18" height="8" rx="2"/>
     <path d="M7 14h10v7H7z"/>
-  </svg><span>Распечатать</span>
+  </svg><span data-i18n="printLabel">Распечатать</span>
 </button>
 
 <div class="scene">
@@ -315,10 +359,10 @@ body.critical .lamp{
   <div class="w">
     <div class="brand"><i></i>codetruck.ru</div>
 
-    <h1>Загорелась лампа <em>Check&nbsp;Engine</em> — что означает код?</h1>
+    <h1 data-i18n="h1">Загорелась лампа <em>Check&nbsp;Engine</em> — что означает код?</h1>
     <div class="purpose">
-      <p class="what">Справочник кодов неисправностей грузовиков: стандарт <b>J1939 (SPN/FMI)</b> и заводские таблицы <b>12 марок</b>.</p>
-      <p class="do">Введите код со сканера или с приборной панели — покажем, что сломалось и можно ли ехать.</p>
+      <p class="what" data-i18n="purposeWhat">Справочник кодов неисправностей грузовиков: стандарт <b>J1939 (SPN/FMI)</b> и заводские таблицы <b>12 марок</b>.</p>
+      <p class="do" data-i18n="purposeDo">Введите код со сканера или с приборной панели — покажем, что сломалось и можно ли ехать.</p>
     </div>
 
     <div class="scanner">
@@ -332,25 +376,26 @@ body.critical .lamp{
       </div>
       <input id="pf-code" type="text" inputmode="text" autocomplete="off" autofocus
              placeholder="SPN 100 FMI 1" aria-label="Код неисправности">
-      <button id="pf-go" type="button">Разобрать</button>
+      <button id="pf-go" type="button" data-i18n="goBtn">Разобрать</button>
     </div>
 
     <div class="filters">
-      <select id="pf-brand" aria-label="Марка машины"><option value="">— любая марка —</option></select>
+      <select id="pf-brand" aria-label="Марка машины"><option value="" data-i18n="brandDefault">— любая марка —</option></select>
       <select id="pf-standard" aria-label="Стандарт кода">
-        <option value="auto">Определить автоматически</option>
-        <option value="spnfmi">J1939 — SPN / FMI</option>
-        <option value="pcode">Дилерский / OBD-код</option>
+        <option value="auto" data-i18n="standardAuto">Определить автоматически</option>
+        <option value="spnfmi" data-i18n="standardSpnFmi">J1939 — SPN / FMI</option>
+        <option value="pcode" data-i18n="standardPcode">Дилерский / OBD-код</option>
       </select>
     </div>
 
-    <p class="hint">Регистр и пробелы не важны. Понимает <code>SPN 100 FMI 1</code>, <code>97 FMI 3</code>, <code>100/1</code>, <code>03043-00</code>, один <code>SPN 97</code> и дилерские коды вроде <code>P2BA7</code>.</p>
+    <p class="hint" data-i18n="hint">Регистр и пробелы не важны. Понимает <code>SPN 100 FMI 1</code>, <code>97 FMI 3</code>, <code>100/1</code>, <code>03043-00</code>, один <code>SPN 97</code> и дилерские коды вроде <code>P2BA7</code>.</p>
+    <p class="datanote" id="pf-datanote" data-i18n="dataLangNote"></p>
 
     <div class="out" id="pf-out"></div>
   </div>
 </div>
 
-<p class="foot">Справочник показывает, что означает код, а не ставит диагноз — решение всегда за человеком с оборудованием.</p>
+<p class="foot" data-i18n="footText">Справочник показывает, что означает код, а не ставит диагноз — решение всегда за человеком с оборудованием. Вопросы — <a href="mailto:alexdiag116@gmail.com" style="color:inherit">alexdiag116@gmail.com</a>.</p>
 
 <script>
 (function(){
@@ -361,19 +406,297 @@ body.critical .lamp{
   var input = document.getElementById('pf-code');
   var go    = document.getElementById('pf-go');
   var out   = document.getElementById('pf-out');
+  var langSelect = document.getElementById('pf-lang');
+  var dataNote   = document.getElementById('pf-datanote');
 
   var DB = null, loading = null;
 
+  /* ---------- перевод интерфейса ----------
+     База (названия SPN, заводские таблицы) остаётся русской - там
+     тысячи строк, перевести их некому и незачем. А вот стандартные
+     расшифровки FMI по J1939 - фиксированный список из 23 значений,
+     их перевести можно и нужно: это половина каждого ответа. */
+  var I18N = {
+    ru: {
+      pageTitle: 'Код неисправности грузовика — расшифровка SPN/FMI и дилерских кодов | codetruck.ru',
+      metaDescription: 'Бесплатная расшифровка кодов неисправностей грузовиков: стандарт J1939 (SPN/FMI) и заводские таблицы 12 марок. Введите код со сканера или с приборной панели.',
+      h1: 'Загорелась лампа <em>Check&nbsp;Engine</em> — что означает код?',
+      purposeWhat: 'Справочник кодов неисправностей грузовиков: стандарт <b>J1939 (SPN/FMI)</b> и заводские таблицы <b>12 марок</b>.',
+      purposeDo: 'Введите код со сканера или с приборной панели — покажем, что сломалось и можно ли ехать.',
+      goBtn: 'Разобрать',
+      brandDefault: '— любая марка —',
+      standardAuto: 'Определить автоматически',
+      standardSpnFmi: 'J1939 — SPN / FMI',
+      standardPcode: 'Дилерский / OBD-код',
+      hint: 'Регистр и пробелы не важны. Понимает <code>SPN 100 FMI 1</code>, <code>97 FMI 3</code>, <code>100/1</code>, <code>03043-00</code>, один <code>SPN 97</code> и дилерские коды вроде <code>P2BA7</code>.',
+      dataLangNote: '',
+      printLabel: 'Распечатать',
+      printTitleDisabled: 'Сначала разберите код',
+      printTitleEnabled: 'Распечатать разбор',
+      footText: 'Справочник показывает, что означает код, а не ставит диагноз — решение всегда за человеком с оборудованием. Вопросы — <a href="mailto:alexdiag116@gmail.com" style="color:inherit">alexdiag116@gmail.com</a>.',
+      langAria: 'Язык страницы',
+      emptyPrompt: 'Введите код — например <b>SPN 100 FMI 1</b> или просто <b>100/1</b>.',
+      badCode: 'Не удалось разобрать этот код в выбранном стандарте. Попробуйте «Определить автоматически» или формат <b>SPN 100 FMI 1</b> / <b>100/1</b> / <b>P2BA7</b>.',
+      pcodeNotFound: 'Дилерский код <b>{code}</b> в справочнике не найден. Такие коды у каждой марки свои — проверьте написание.',
+      stepCode: 'код', stepDecoding: 'расшифровка',
+      factorySource: 'фирменная таблица {brand}', standardSource: 'стандарт J1939',
+      spnNotFound: '<b>SPN {spn}</b> в справочнике не найден — скорее всего, код фирменный. Попробуйте выбрать марку выше или добавьте FMI: например <b>{spn}/1</b>.',
+      stepParam: 'параметр', knownFailures: 'известные отказы {brand}',
+      stepNeedFmi: 'нужен FMI',
+      needFmiText: 'FMI — вторая половина кода, она говорит <b>что именно</b> с этим параметром не так. Введите её вместе с номером: например <span class="mono">{spn}/1</span>.',
+      stepUrgency: 'срочность',
+      urgentText: '<span class="crit">Критично</span> — остановиться при первой безопасной возможности, не тянуть.',
+      notUrgentText: '<span class="warn">Ехать можно</span> — но показать код на ближайшем ТО.',
+      unknownSpnNote: 'Этого SPN нет в справочнике — скорее всего, код фирменный. Попробуйте выбрать марку выше.',
+      loadError: 'Справочник не загрузился — проверьте, что рядом со страницей лежит папка <b>32-sait-assets</b>.',
+      sourceLabel: 'источник: {src}', fmiNonstandard: 'FMI {fmi} (нестандартное значение)'
+    },
+    en: {
+      pageTitle: 'Truck fault code — SPN/FMI and dealer code lookup | codetruck.ru',
+      metaDescription: 'Free truck fault code lookup: J1939 standard (SPN/FMI) and factory tables for 12 makes. Enter a code from your scanner or dashboard.',
+      h1: 'The <em>Check&nbsp;Engine</em> light is on — what does the code mean?',
+      purposeWhat: 'A truck fault code reference: the <b>J1939 (SPN/FMI)</b> standard and factory tables for <b>12 makes</b>.',
+      purposeDo: 'Enter the code from your scanner or dashboard — we’ll show what’s wrong and whether it’s safe to drive.',
+      goBtn: 'Decode',
+      brandDefault: '— any make —',
+      standardAuto: 'Detect automatically',
+      standardSpnFmi: 'J1939 — SPN / FMI',
+      standardPcode: 'Dealer / OBD code',
+      hint: 'Case and spacing don’t matter. Understands <code>SPN 100 FMI 1</code>, <code>97 FMI 3</code>, <code>100/1</code>, <code>03043-00</code>, a bare <code>SPN 97</code>, and dealer codes like <code>P2BA7</code>.',
+      dataLangNote: 'Fault names and factory tables in the database are in Russian; the interface and the standard FMI meanings below are translated.',
+      printLabel: 'Print',
+      printTitleDisabled: 'Decode a code first',
+      printTitleEnabled: 'Print this result',
+      footText: 'This reference explains what a code means — it doesn’t diagnose the truck. The final call is always with a person who has the equipment. Questions — <a href="mailto:alexdiag116@gmail.com" style="color:inherit">alexdiag116@gmail.com</a>.',
+      langAria: 'Page language',
+      emptyPrompt: 'Enter a code — for example <b>SPN 100 FMI 1</b> or just <b>100/1</b>.',
+      badCode: 'Couldn’t parse this code in the selected standard. Try “Detect automatically” or the format <b>SPN 100 FMI 1</b> / <b>100/1</b> / <b>P2BA7</b>.',
+      pcodeNotFound: 'Dealer code <b>{code}</b> not found in the database. These codes differ by make — double-check the spelling.',
+      stepCode: 'code', stepDecoding: 'meaning',
+      factorySource: 'factory table — {brand}', standardSource: 'J1939 standard',
+      spnNotFound: '<b>SPN {spn}</b> not found in the database — likely a manufacturer-specific code. Try selecting a make above, or add the FMI: e.g. <b>{spn}/1</b>.',
+      stepParam: 'parameter', knownFailures: 'known faults — {brand}',
+      stepNeedFmi: 'FMI needed',
+      needFmiText: 'FMI is the second half of the code — it says <b>exactly what</b> is wrong with this parameter. Enter it together with the number: e.g. <span class="mono">{spn}/1</span>.',
+      stepUrgency: 'urgency',
+      urgentText: '<span class="crit">Critical</span> — stop as soon as it’s safe to do so, don’t keep driving.',
+      notUrgentText: '<span class="warn">Safe to drive</span> — but have the code checked at the next service.',
+      unknownSpnNote: 'This SPN isn’t in the database — likely a manufacturer-specific code. Try selecting a make above.',
+      loadError: 'The database failed to load — make sure the <b>32-sait-assets</b> folder is next to this page.',
+      sourceLabel: 'source: {src}', fmiNonstandard: 'FMI {fmi} (non-standard value)'
+    },
+    de: {
+      pageTitle: 'LKW-Fehlercode — SPN/FMI und Händlercode entschlüsseln | codetruck.ru',
+      metaDescription: 'Kostenlose Entschlüsselung von LKW-Fehlercodes: J1939-Standard (SPN/FMI) und Werkstabellen für 12 Marken. Code vom Scanner oder Armaturenbrett eingeben.',
+      h1: 'Die <em>Check&nbsp;Engine</em>-Leuchte ist an — was bedeutet der Code?',
+      purposeWhat: 'Nachschlagewerk für LKW-Fehlercodes: der Standard <b>J1939 (SPN/FMI)</b> und Werkstabellen für <b>12 Marken</b>.',
+      purposeDo: 'Code vom Scanner oder Armaturenbrett eingeben — wir zeigen, was defekt ist und ob die Weiterfahrt sicher ist.',
+      goBtn: 'Entschlüsseln',
+      brandDefault: '— beliebige Marke —',
+      standardAuto: 'Automatisch erkennen',
+      standardSpnFmi: 'J1939 — SPN / FMI',
+      standardPcode: 'Händler-/OBD-Code',
+      hint: 'Groß-/Kleinschreibung und Leerzeichen spielen keine Rolle. Erkennt <code>SPN 100 FMI 1</code>, <code>97 FMI 3</code>, <code>100/1</code>, <code>03043-00</code>, ein einzelnes <code>SPN 97</code> sowie Händlercodes wie <code>P2BA7</code>.',
+      dataLangNote: 'Fehlerbezeichnungen und Werkstabellen in der Datenbank sind auf Russisch; die Oberfläche und die Standard-FMI-Bedeutungen unten sind übersetzt.',
+      printLabel: 'Drucken',
+      printTitleDisabled: 'Zuerst einen Code entschlüsseln',
+      printTitleEnabled: 'Ergebnis drucken',
+      footText: 'Dieses Nachschlagewerk erklärt, was ein Code bedeutet — es stellt keine Diagnose. Die Entscheidung trifft immer eine Person mit der passenden Ausrüstung. Fragen — <a href="mailto:alexdiag116@gmail.com" style="color:inherit">alexdiag116@gmail.com</a>.',
+      langAria: 'Seitensprache',
+      emptyPrompt: 'Code eingeben — zum Beispiel <b>SPN 100 FMI 1</b> oder einfach <b>100/1</b>.',
+      badCode: 'Dieser Code konnte im gewählten Standard nicht erkannt werden. Versuchen Sie „Automatisch erkennen“ oder das Format <b>SPN 100 FMI 1</b> / <b>100/1</b> / <b>P2BA7</b>.',
+      pcodeNotFound: 'Händlercode <b>{code}</b> nicht in der Datenbank gefunden. Diese Codes sind je Marke unterschiedlich — Schreibweise prüfen.',
+      stepCode: 'Code', stepDecoding: 'Bedeutung',
+      factorySource: 'Werkstabelle — {brand}', standardSource: 'J1939-Standard',
+      spnNotFound: '<b>SPN {spn}</b> nicht in der Datenbank gefunden — vermutlich ein herstellerspezifischer Code. Wählen Sie oben eine Marke, oder ergänzen Sie den FMI: z. B. <b>{spn}/1</b>.',
+      stepParam: 'Parameter', knownFailures: 'bekannte Fehler — {brand}',
+      stepNeedFmi: 'FMI erforderlich',
+      needFmiText: 'Der FMI ist die zweite Hälfte des Codes — er sagt <b>genau</b>, was mit diesem Parameter nicht stimmt. Geben Sie ihn zusammen mit der Nummer ein: z. B. <span class="mono">{spn}/1</span>.',
+      stepUrgency: 'Dringlichkeit',
+      urgentText: '<span class="crit">Kritisch</span> — bei nächster sicherer Gelegenheit anhalten, nicht weiterfahren.',
+      notUrgentText: '<span class="warn">Weiterfahrt möglich</span> — Code aber beim nächsten Service prüfen lassen.',
+      unknownSpnNote: 'Dieser SPN ist nicht in der Datenbank — vermutlich ein herstellerspezifischer Code. Wählen Sie oben eine Marke.',
+      loadError: 'Die Datenbank konnte nicht geladen werden — prüfen Sie, ob der Ordner <b>32-sait-assets</b> neben dieser Seite liegt.',
+      sourceLabel: 'Quelle: {src}', fmiNonstandard: 'FMI {fmi} (nicht standardisierter Wert)'
+    },
+    fr: {
+      pageTitle: 'Code défaut camion — décodage SPN/FMI et codes constructeur | codetruck.ru',
+      metaDescription: 'Décodage gratuit des codes défaut camion : norme J1939 (SPN/FMI) et tables constructeur pour 12 marques. Entrez le code du scanner ou du tableau de bord.',
+      h1: 'Le voyant <em>Check&nbsp;Engine</em> est allumé — que signifie le code ?',
+      purposeWhat: 'Répertoire des codes défaut camion : la norme <b>J1939 (SPN/FMI)</b> et les tables constructeur de <b>12 marques</b>.',
+      purposeDo: 'Entrez le code du scanner ou du tableau de bord — nous indiquons ce qui est en panne et si vous pouvez continuer à rouler.',
+      goBtn: 'Décoder',
+      brandDefault: '— toutes marques —',
+      standardAuto: 'Détecter automatiquement',
+      standardSpnFmi: 'J1939 — SPN / FMI',
+      standardPcode: 'Code constructeur / OBD',
+      hint: 'La casse et les espaces n’ont pas d’importance. Reconnaît <code>SPN 100 FMI 1</code>, <code>97 FMI 3</code>, <code>100/1</code>, <code>03043-00</code>, un simple <code>SPN 97</code>, ainsi que les codes constructeur comme <code>P2BA7</code>.',
+      dataLangNote: 'Les noms de pannes et les tables constructeur de la base sont en russe ; l’interface et les significations FMI standard ci-dessous sont traduites.',
+      printLabel: 'Imprimer',
+      printTitleDisabled: 'Décodez d’abord un code',
+      printTitleEnabled: 'Imprimer ce résultat',
+      footText: 'Ce répertoire explique ce que signifie un code — il ne pose pas de diagnostic. La décision revient toujours à une personne équipée du matériel nécessaire. Questions — <a href="mailto:alexdiag116@gmail.com" style="color:inherit">alexdiag116@gmail.com</a>.',
+      langAria: 'Langue de la page',
+      emptyPrompt: 'Entrez un code — par exemple <b>SPN 100 FMI 1</b> ou simplement <b>100/1</b>.',
+      badCode: 'Impossible d’analyser ce code dans la norme sélectionnée. Essayez « Détecter automatiquement » ou le format <b>SPN 100 FMI 1</b> / <b>100/1</b> / <b>P2BA7</b>.',
+      pcodeNotFound: 'Code constructeur <b>{code}</b> introuvable dans la base. Ces codes diffèrent selon la marque — vérifiez l’orthographe.',
+      stepCode: 'code', stepDecoding: 'signification',
+      factorySource: 'table constructeur — {brand}', standardSource: 'norme J1939',
+      spnNotFound: '<b>SPN {spn}</b> introuvable dans la base — probablement un code propre au constructeur. Essayez de choisir une marque ci-dessus, ou ajoutez le FMI : par ex. <b>{spn}/1</b>.',
+      stepParam: 'paramètre', knownFailures: 'pannes connues — {brand}',
+      stepNeedFmi: 'FMI requis',
+      needFmiText: 'Le FMI est la seconde moitié du code — il indique <b>précisément</b> ce qui ne va pas avec ce paramètre. Entrez-le avec le numéro : par ex. <span class="mono">{spn}/1</span>.',
+      stepUrgency: 'urgence',
+      urgentText: '<span class="crit">Critique</span> — arrêtez-vous dès que possible en sécurité, ne continuez pas à rouler.',
+      notUrgentText: '<span class="warn">Vous pouvez rouler</span> — mais faites vérifier le code lors du prochain entretien.',
+      unknownSpnNote: 'Ce SPN n’est pas dans la base — probablement un code propre au constructeur. Essayez de choisir une marque ci-dessus.',
+      loadError: 'La base n’a pas pu être chargée — vérifiez que le dossier <b>32-sait-assets</b> se trouve à côté de cette page.',
+      sourceLabel: 'source : {src}', fmiNonstandard: 'FMI {fmi} (valeur non standard)'
+    },
+    hi: {
+      pageTitle: 'ट्रक फॉल्ट कोड — SPN/FMI और डीलर कोड डिकोडिंग | codetruck.ru',
+      metaDescription: 'ट्रक फॉल्ट कोड की मुफ्त डिकोडिंग: J1939 मानक (SPN/FMI) और 12 ब्रांड की फैक्ट्री तालिकाएं। स्कैनर या डैशबोर्ड से कोड डालें।',
+      h1: '<em>Check&nbsp;Engine</em> लैंप जल गया है — कोड का मतलब क्या है?',
+      purposeWhat: 'ट्रक फॉल्ट कोड की संदर्भ पुस्तिका: <b>J1939 (SPN/FMI)</b> मानक और <b>12 ब्रांड</b> की फैक्ट्री तालिकाएं।',
+      purposeDo: 'स्कैनर या डैशबोर्ड से कोड डालें — हम बताएंगे क्या खराब है और गाड़ी चलाना सुरक्षित है या नहीं।',
+      goBtn: 'डिकोड करें',
+      brandDefault: '— कोई भी ब्रांड —',
+      standardAuto: 'स्वतः पहचानें',
+      standardSpnFmi: 'J1939 — SPN / FMI',
+      standardPcode: 'डीलर / OBD कोड',
+      hint: 'बड़े-छोटे अक्षर और स्पेस मायने नहीं रखते। यह <code>SPN 100 FMI 1</code>, <code>97 FMI 3</code>, <code>100/1</code>, <code>03043-00</code>, अकेला <code>SPN 97</code>, और <code>P2BA7</code> जैसे डीलर कोड पहचानता है।',
+      dataLangNote: 'डेटाबेस में दोष के नाम और फैक्ट्री तालिकाएं रूसी भाषा में हैं; इंटरफ़ेस और नीचे दिए गए मानक FMI अर्थ अनुवादित हैं।',
+      printLabel: 'प्रिंट करें',
+      printTitleDisabled: 'पहले कोड डिकोड करें',
+      printTitleEnabled: 'यह परिणाम प्रिंट करें',
+      footText: 'यह संदर्भ पुस्तिका बताती है कि कोड का मतलब क्या है — यह निदान नहीं करती। अंतिम निर्णय हमेशा उपकरण रखने वाले व्यक्ति का होता है। सवाल — <a href="mailto:alexdiag116@gmail.com" style="color:inherit">alexdiag116@gmail.com</a>.',
+      langAria: 'पृष्ठ की भाषा',
+      emptyPrompt: 'एक कोड डालें — उदाहरण के लिए <b>SPN 100 FMI 1</b> या सिर्फ <b>100/1</b>.',
+      badCode: 'चुने गए मानक में यह कोड समझ नहीं आया। "स्वतः पहचानें" आज़माएं या <b>SPN 100 FMI 1</b> / <b>100/1</b> / <b>P2BA7</b> प्रारूप का उपयोग करें।',
+      pcodeNotFound: 'डीलर कोड <b>{code}</b> डेटाबेस में नहीं मिला। ये कोड हर ब्रांड में अलग होते हैं — वर्तनी जांचें।',
+      stepCode: 'कोड', stepDecoding: 'अर्थ',
+      factorySource: 'फैक्ट्री तालिका — {brand}', standardSource: 'J1939 मानक',
+      spnNotFound: '<b>SPN {spn}</b> डेटाबेस में नहीं मिला — संभवतः यह निर्माता-विशिष्ट कोड है। ऊपर ब्रांड चुनें, या FMI जोड़ें: जैसे <b>{spn}/1</b>.',
+      stepParam: 'पैरामीटर', knownFailures: 'ज्ञात खराबियां — {brand}',
+      stepNeedFmi: 'FMI चाहिए',
+      needFmiText: 'FMI कोड का दूसरा हिस्सा है — यह बताता है कि इस पैरामीटर में <b>वास्तव में क्या</b> गड़बड़ है। इसे नंबर के साथ डालें: जैसे <span class="mono">{spn}/1</span>.',
+      stepUrgency: 'तात्कालिकता',
+      urgentText: '<span class="crit">गंभीर</span> — जैसे ही सुरक्षित हो, रुक जाएं, गाड़ी चलाना जारी न रखें।',
+      notUrgentText: '<span class="warn">गाड़ी चलाना सुरक्षित है</span> — लेकिन अगली सर्विस में कोड जरूर दिखाएं।',
+      unknownSpnNote: 'यह SPN डेटाबेस में नहीं है — संभवतः यह निर्माता-विशिष्ट कोड है। ऊपर ब्रांड चुनकर देखें।',
+      loadError: 'डेटाबेस लोड नहीं हो पाया — जांचें कि <b>32-sait-assets</b> फ़ोल्डर इस पेज के पास मौजूद है।',
+      sourceLabel: 'स्रोत: {src}', fmiNonstandard: 'FMI {fmi} (गैर-मानक मान)'
+    }
+  };
+
+  /* Стандартные расшифровки FMI по J1939 - фиксированные 23
+     значения, есть смысл перевести. Русский вариант берём прямо из
+     базы (DB.fmi), чтобы не дублировать текст. */
+  var FMI_I18N = {
+    en: {0:'data above normal range (most severe level)',1:'data below normal range (most severe level)',
+      2:'data erratic or intermittent',3:'voltage above normal or shorted high',
+      4:'voltage below normal or shorted to ground',5:'current below normal or open circuit',
+      6:'current above normal or grounded circuit',7:'mechanical system not responding',
+      8:'abnormal frequency or pulse width',9:'abnormal update rate',10:'abnormal rate of change',
+      11:'root cause not known',12:'faulty device or component',13:'calibration out of range',
+      14:'manufacturer-specific instructions',15:'above normal — low severity',
+      16:'above normal — moderate severity',17:'below normal — low severity',
+      18:'below normal — moderate severity',19:'error in received network data',
+      20:'data drifted high',21:'data drifted low',31:'condition exists (see manufacturer description)'},
+    de: {0:'Wert über Normalbereich (höchster Schweregrad)',1:'Wert unter Normalbereich (höchster Schweregrad)',
+      2:'Wert instabil oder fehlerhaft',3:'Spannung über Normalwert oder Kurzschluss nach Plus',
+      4:'Spannung unter Normalwert oder Kurzschluss nach Masse',5:'Strom unter Normalwert oder Leitungsunterbrechung',
+      6:'Strom über Normalwert oder Kurzschluss nach Masse',7:'mechanisches System reagiert nicht',
+      8:'anomale Frequenz oder Pulsbreite',9:'anomale Aktualisierungsrate',10:'anomale Änderungsrate',
+      11:'Ursache nicht bekannt',12:'defektes Gerät oder Bauteil',13:'Kalibrierung fehlerhaft',
+      14:'herstellerspezifische Anweisung',15:'über Normalbereich — geringe Dringlichkeit',
+      16:'über Normalbereich — mittlere Dringlichkeit',17:'unter Normalbereich — geringe Dringlichkeit',
+      18:'unter Normalbereich — mittlere Dringlichkeit',19:'Fehler in empfangenen Netzwerkdaten',
+      20:'Datendrift nach oben',21:'Datendrift nach unten',31:'Zustand liegt vor (siehe Herstellerbeschreibung)'},
+    fr: {0:'valeur au-dessus de la normale (niveau le plus sévère)',1:'valeur en dessous de la normale (niveau le plus sévère)',
+      2:'valeur instable ou erronée',3:'tension au-dessus de la normale ou court-circuit au plus',
+      4:'tension en dessous de la normale ou court-circuit à la masse',5:'courant en dessous de la normale ou circuit ouvert',
+      6:'courant au-dessus de la normale ou court-circuit à la masse',7:'système mécanique ne répond pas',
+      8:"fréquence ou largeur d'impulsion anormale",9:'taux de mise à jour anormal',10:'taux de variation anormal',
+      11:'cause non déterminée',12:'composant ou dispositif défectueux',13:'étalonnage incorrect',
+      14:'instruction spécifique du constructeur',15:'au-dessus de la normale — faible gravité',
+      16:'au-dessus de la normale — gravité moyenne',17:'en dessous de la normale — faible gravité',
+      18:'en dessous de la normale — gravité moyenne',19:'erreur dans les données réseau reçues',
+      20:'dérive des données vers le haut',21:'dérive des données vers le bas',31:'condition présente (voir description du constructeur)'},
+    hi: {0:'मान सामान्य से अधिक (सबसे गंभीर स्तर)',1:'मान सामान्य से कम (सबसे गंभीर स्तर)',
+      2:'मान अस्थिर या गलत',3:'वोल्टेज सामान्य से अधिक या पॉजिटिव से शॉर्ट',
+      4:'वोल्टेज सामान्य से कम या ग्राउंड से शॉर्ट',5:'करंट सामान्य से कम या सर्किट टूटा हुआ',
+      6:'करंट सामान्य से अधिक या ग्राउंड से शॉर्ट',7:'यांत्रिक प्रणाली प्रतिक्रिया नहीं दे रही',
+      8:'असामान्य आवृत्ति या पल्स चौड़ाई',9:'डेटा अपडेट दर असामान्य',10:'डेटा परिवर्तन दर असामान्य',
+      11:'कारण स्पष्ट नहीं',12:'खराब उपकरण या घटक',13:'कैलिब्रेशन गलत',
+      14:'निर्माता के विशेष निर्देश',15:'सामान्य से अधिक — कम गंभीरता',
+      16:'सामान्य से अधिक — मध्यम गंभीरता',17:'सामान्य से कम — कम गंभीरता',
+      18:'सामान्य से कम — मध्यम गंभीरता',19:'प्राप्त नेटवर्क डेटा में त्रुटि',
+      20:'डेटा ऊपर की ओर खिसका',21:'डेटा नीचे की ओर खिसका',31:'स्थिति मौजूद है (निर्माता विवरण देखें)'}
+  };
+
+  /* КамАЗ и ЯМЗ в базе записаны кириллицей - для остальных языков
+     переключаем на латинскую транслитерацию, так их узнают на
+     любом языке. Остальные марки (Volvo, MAN, DAF...) уже латиницей. */
+  var BRAND_OVERRIDE = {kamaz:'KAMAZ', yamz:'YAMZ'};
+
+  var LANG_KEY = 'pf-lang';
+  function getStoredLang(){
+    try{
+      var v = localStorage.getItem(LANG_KEY);
+      if(v && I18N[v]) return v;
+    }catch(e){}
+    return 'ru';
+  }
+  var currentLang = getStoredLang();
+
+  function t(key, vars){
+    var dict = I18N[currentLang] || I18N.ru;
+    var s = dict[key] != null ? dict[key] : I18N.ru[key];
+    if(vars) Object.keys(vars).forEach(function(k){ s = s.split('{' + k + '}').join(vars[k]); });
+    return s;
+  }
+  function brandName(key){
+    if(currentLang !== 'ru' && BRAND_OVERRIDE[key]) return BRAND_OVERRIDE[key];
+    return DB.brandNames[key];
+  }
+  function fmiText(fmi){
+    var tbl = FMI_I18N[currentLang];
+    if(tbl && tbl[fmi] != null) return tbl[fmi];
+    return DB.fmi[String(fmi)];
+  }
+
   function fillBrands(){
-    if(!DB || !DB.brandNames || sel.options.length > 1) return;
+    if(!DB || !DB.brandNames) return;
+    var prevValue = sel.value;
+    while(sel.options.length > 1) sel.removeChild(sel.lastChild);
     var names = DB.brandNames;
     Object.keys(names).sort(function(a, b){
-      return names[a].localeCompare(names[b], 'ru');
+      return brandName(a).localeCompare(brandName(b), currentLang === 'ru' ? 'ru' : currentLang);
     }).forEach(function(k){
       var o = document.createElement('option');
-      o.value = k; o.textContent = names[k];
+      o.value = k; o.textContent = brandName(k);
       sel.appendChild(o);
     });
+    sel.value = prevValue;
+  }
+
+  function applyLang(lang){
+    if(!I18N[lang]) lang = 'ru';
+    currentLang = lang;
+    try{ localStorage.setItem(LANG_KEY, lang); }catch(e){}
+    document.documentElement.lang = lang;
+    document.title = t('pageTitle');
+    var metaDesc = document.querySelector('meta[name="description"]');
+    if(metaDesc) metaDesc.setAttribute('content', t('metaDescription'));
+    document.querySelectorAll('[data-i18n]').forEach(function(el){
+      el.innerHTML = t(el.getAttribute('data-i18n'));
+    });
+    dataNote.style.display = lang === 'ru' ? 'none' : 'block';
+    langSelect.value = lang;
+    if(DB) fillBrands();
+    printBtn.title = printBtn.disabled ? t('printTitleDisabled') : t('printTitleEnabled');
+    if(input.value.trim()) run();
   }
 
   function load(){
@@ -449,7 +772,7 @@ body.critical .lamp{
                  'перегрев','малое','низк','высок','больше','меньше','утечк','заклин'];
 
   function withFmiHint(desc, fmi){
-    var f = DB.fmi[String(fmi)];
+    var f = fmiText(fmi);
     if(!f) return desc;
     var low = desc.toLowerCase();
     if(desc.length > 60 && MEANING.some(function(w){ return low.indexOf(w) >= 0; })) return desc;
@@ -459,7 +782,7 @@ body.critical .lamp{
   function describe(spn, fmi, brand){
     if(brand && DB.brands[brand]){
       var exact = DB.brands[brand][spn + '.' + fmi];
-      if(exact) return {text:withFmiHint(exact, fmi), src:'фирменная таблица ' + DB.brandNames[brand]};
+      if(exact) return {text:withFmiHint(exact, fmi), src:t('factorySource', {brand: brandName(brand)})};
     }
     var name = DB.spn[String(spn)]
             || (brand && DB.spnNameRu[brand] && DB.spnNameRu[brand][String(spn)])
@@ -467,8 +790,8 @@ body.critical .lamp{
             || DB.universal[String(spn)];
     var known = !!name;
     if(!name) name = 'SPN ' + spn;
-    var f = DB.fmi[String(fmi)] || ('FMI ' + fmi + ' (нестандартное значение)');
-    return {text:name + ' — ' + f, src:known ? 'стандарт J1939' : null, unknown:!known};
+    var f = fmiText(fmi) || t('fmiNonstandard', {fmi:fmi});
+    return {text:name + ' — ' + f, src:known ? t('standardSource') : null, unknown:!known};
   }
 
   /* Ключи дилерских таблиц встречаются и с пробелом ("AA 9999"), и без
@@ -529,6 +852,8 @@ body.critical .lamp{
   printBtn.addEventListener('click', function(){
     if(!printBtn.disabled) window.print();
   });
+  langSelect.addEventListener('change', function(){ applyLang(langSelect.value); });
+  applyLang(currentLang);
 
   /* Лампа в поле ввода - индикатор состояния: горит янтарным пока
      не разобрали, гаснет на понятном коде, краснеет на критичном. */
@@ -542,7 +867,7 @@ body.critical .lamp{
     out.innerHTML = html;
     setLamp(lampState);
     printBtn.disabled = !printable;
-    printBtn.title = printable ? 'Распечатать разбор' : 'Сначала разберите код';
+    printBtn.title = printable ? t('printTitleEnabled') : t('printTitleDisabled');
   }
 
   function run(){
@@ -550,25 +875,24 @@ body.critical .lamp{
     var p = parse(input.value, std.value);
 
     if(!p){
-      render(note('Введите код — например <b>SPN 100 FMI 1</b> или просто <b>100/1</b>.'), null);
+      render(note(t('emptyPrompt')), null);
       return;
     }
     load().then(function(){
       if(p.bad){
-        render(note('Не удалось разобрать этот код в выбранном стандарте. Попробуйте «Определить автоматически» или формат <b>SPN 100 FMI 1</b> / <b>100/1</b> / <b>P2BA7</b>.'), null);
+        render(note(t('badCode')), null);
         return;
       }
       if(p.pcode){
         var hits = findPcode(brand, p.pcode);
         if(!hits.length){
-          render(note('Дилерский код <b>' + esc(p.pcode) + '</b> в справочнике не найден. ' +
-            'Такие коды у каждой марки свои — проверьте написание.'), null);
+          render(note(t('pcodeNotFound', {code: esc(p.pcode)})), null);
           return;
         }
-        var pSteps = [{st:'код', tx:'<span class="mono">' + esc(p.pcode) + '</span>', cls:'ok'}];
+        var pSteps = [{st:t('stepCode'), tx:'<span class="mono">' + esc(p.pcode) + '</span>', cls:'ok'}];
         hits.forEach(function(h){
           pSteps.push({
-            st: hits.length > 1 || !brand ? DB.brandNames[h.brand] : 'расшифровка',
+            st: hits.length > 1 || !brand ? brandName(h.brand) : t('stepDecoding'),
             tx: '<b>' + esc(h.text) + '</b>', cls:'ok'
           });
         });
@@ -584,8 +908,7 @@ body.critical .lamp{
               || (brand && DB.spnNameEn[brand] && DB.spnNameEn[brand][String(p.spn)])
               || DB.universal[String(p.spn)];
         if(!nm){
-          render(note('<b>SPN ' + p.spn + '</b> в справочнике не найден — скорее всего, код фирменный. ' +
-            'Попробуйте выбрать марку выше или добавьте FMI: например <b>' + p.spn + '/1</b>.'), null);
+          render(note(t('spnNotFound', {spn: p.spn})), null);
           return;
         }
         var known = [];
@@ -597,17 +920,15 @@ body.critical .lamp{
           known.sort(function(a,b){ return a - b; });
         }
         var sSteps = [
-          {st:'параметр', tx:'<span class="mono">SPN ' + p.spn + '</span> — <b>' + esc(nm) + '</b>', cls:'ok'}
+          {st:t('stepParam'), tx:'<span class="mono">SPN ' + p.spn + '</span> — <b>' + esc(nm) + '</b>', cls:'ok'}
         ];
         if(known.length){
-          sSteps.push({st:'известные отказы ' + DB.brandNames[brand],
+          sSteps.push({st:t('knownFailures', {brand: brandName(brand)}),
             tx: known.map(function(f){
               return '<span class="mono">' + p.spn + '/' + f + '</span> — ' + esc(DB.brands[brand][p.spn + '.' + f]);
             }).join('<br>'), cls:'ok'});
         }
-        sSteps.push({st:'нужен FMI',
-          tx:'FMI — вторая половина кода, она говорит <b>что именно</b> с этим параметром не так. ' +
-             'Введите её вместе с номером: например <span class="mono">' + p.spn + '/1</span>.'});
+        sSteps.push({st:t('stepNeedFmi'), tx:t('needFmiText', {spn: p.spn})});
         render(chain(sSteps), 'solved', true);
         return;
       }
@@ -615,20 +936,20 @@ body.critical .lamp{
       var u = urgent(p.spn, p.fmi, brand);
       var code = 'SPN ' + p.spn + ' · FMI ' + p.fmi;
       var steps = [
-        {st:'код', tx:'<span class="mono">' + code + '</span>', cls:'ok'},
-        {st:'расшифровка', tx:'<b>' + esc(d.text) + '</b>' +
-           (d.src ? '<div class="st" style="margin-top:7px">источник: ' + esc(d.src) + '</div>' : ''), cls:'ok'},
+        {st:t('stepCode'), tx:'<span class="mono">' + code + '</span>', cls:'ok'},
+        {st:t('stepDecoding'), tx:'<b>' + esc(d.text) + '</b>' +
+           (d.src ? '<div class="st" style="margin-top:7px">' + esc(t('sourceLabel', {src:d.src})) + '</div>' : ''), cls:'ok'},
         u
-          ? {st:'срочность', tx:'<span class="crit">Критично</span> — остановиться при первой безопасной возможности, не тянуть.', cls:'hit'}
-          : {st:'срочность', tx:'<span class="warn">Ехать можно</span> — но показать код на ближайшем ТО.'}
+          ? {st:t('stepUrgency'), tx:t('urgentText'), cls:'hit'}
+          : {st:t('stepUrgency'), tx:t('notUrgentText')}
       ];
       var html = chain(steps);
       if(d.unknown){
-        html += note('Этого SPN нет в справочнике — скорее всего, код фирменный. Попробуйте выбрать марку выше.');
+        html += note(t('unknownSpnNote'));
       }
       render(html, u ? 'critical' : 'solved', true);
     }).catch(function(){
-      render(note('Справочник не загрузился — проверьте, что рядом со страницей лежит папка <b>32-sait-assets</b>.'), null);
+      render(note(t('loadError')), null);
     });
   }
 
