@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Что означает код неисправности — SPN/FMI и дилерские коды | TRUCK-DIAG-PRO</title>
+<meta name="description" content="Введите код неисправности в любом виде (SPN/FMI, дилерский код) — расшифровка по 12 маркам грузовиков и стандарту J1939.">
+<meta name="theme-color" content="#05070A">
+<style>
+.pf{
+  --ground:#05070A;--ground-2:#0A0F16;--ground-3:#020304;
+  --ink:#EAF0F7;--ink-2:#94A2B4;--ink-3:#5B6778;
+  --amber:#FF9350;--signal:#6FE3D3;--crit:#FF6B5A;
+  --line:rgba(255,255,255,.12);--line-2:rgba(255,255,255,.06);
+  --sans:"Segoe UI Variable Display","Segoe UI",Inter,system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
+  --mono:"Cascadia Mono",Consolas,"SF Mono",ui-monospace,"Roboto Mono",monospace;
+  background:var(--ground);color:var(--ink);font-family:var(--sans);font-size:17px;line-height:1.6;
+  -webkit-font-smoothing:antialiased;min-height:100vh;
+}
+.pf *{box-sizing:border-box}
+.pf .w{max-width:640px;margin:0 auto;padding:clamp(40px,8vw,84px) clamp(20px,4vw,30px) 90px}
+
+.pf .tick{
+  font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;
+  color:#8B9AAC;display:flex;align-items:center;gap:9px;margin-bottom:18px;
+}
+.pf .tick::before{content:"";width:16px;height:1px;background:var(--signal);flex:none}
+.pf h1{
+  font-size:clamp(27px,5vw,36px);line-height:1.16;margin:0 0 12px;letter-spacing:-.015em;
+  font-weight:650;
+}
+.pf .lede{color:var(--ink-2);font-size:15.5px;max-width:52ch;margin:0 0 30px}
+
+/* ---------- «дисплей сканера»: рамка вокруг ввода кода ----------
+   Единственный смысловой акцент страницы - место, куда смотрят.
+   Тёмная врезанная панель + тонкая линия снизу, загорающаяся при
+   фокусе, читается как экран диагностического прибора, а не как
+   очередное поле формы. Всё остальное на странице - тихо. */
+.pf .scanner{
+  background:var(--ground-3);border:1px solid var(--line);border-radius:16px;
+  padding:clamp(18px,4vw,24px);position:relative;overflow:hidden;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.03), 0 20px 50px -30px rgba(0,0,0,.8);
+}
+.pf .scanner::after{
+  content:"";position:absolute;left:0;right:0;bottom:0;height:2px;
+  background:linear-gradient(90deg, transparent, var(--amber), transparent);
+  opacity:.35;transition:opacity .25s ease;
+}
+.pf .scanner:focus-within::after{opacity:.9}
+.pf .scanner-label{
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--ink-3);margin-bottom:12px;display:flex;align-items:center;gap:8px;
+}
+.pf .scanner-label i{
+  width:6px;height:6px;border-radius:50%;background:var(--signal);flex:none;
+  box-shadow:0 0 0 3px rgba(111,227,211,.16);
+}
+.pf .code-row{display:flex}
+.pf .code-row input{
+  flex:1;min-width:0;background:transparent;border:none;color:var(--ink);
+  font-family:var(--mono);font-size:clamp(19px,4.4vw,23px);letter-spacing:.03em;
+  padding:6px 2px 12px;outline:none;
+}
+.pf .code-row input::placeholder{color:#3A4452}
+.pf .code-row input:focus{color:#fff}
+
+.pf .dec-form{display:flex;flex-wrap:wrap;gap:9px;margin-top:14px}
+.pf .dec-form select{
+  font-family:var(--sans);font-size:13.5px;color:var(--ink-2);
+  background:#0B1017;border:1px solid var(--line);border-radius:9px;
+  padding:10px 12px;cursor:pointer;flex:1 1 150px;min-width:0;
+  transition:border-color .18s ease,color .18s ease;
+}
+.pf .dec-form select:hover{color:var(--ink)}
+.pf .dec-form select:focus{outline:none;border-color:var(--signal);color:var(--ink)}
+.pf .dec-form button{
+  flex:1 1 100%;cursor:pointer;border:none;background:var(--amber);color:#120A05;
+  font-family:var(--sans);font-weight:700;font-size:15px;padding:13px 24px;border-radius:9px;
+  transition:transform .18s cubic-bezier(.22,1,.36,1),box-shadow .18s ease;
+  box-shadow:0 8px 24px -10px rgba(255,147,80,.5);
+}
+.pf .dec-form button:hover{transform:translateY(-1px);box-shadow:0 10px 28px -8px rgba(255,147,80,.6)}
+.pf .dec-form button:active{transform:translateY(0)}
+.pf .dec-form button:focus-visible,
+.pf .dec-form select:focus-visible,
+.pf .code-row input:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
+@media(min-width:480px){ .pf .dec-form button{flex:0 0 auto;margin-left:auto} }
+
+.pf .hint{
+  margin-top:12px;font-size:12.5px;color:var(--ink-3);line-height:1.5;
+}
+
+.pf .chain{list-style:none;margin:8px 0 0;padding:0}
+.pf .chain li{
+  position:relative;padding:0 0 18px 32px;
+  opacity:0;transform:translateY(6px);
+  animation:pf-rise .38s cubic-bezier(.22,1,.36,1) forwards;
+  animation-delay:calc(var(--s, 0) * 130ms);
+}
+@keyframes pf-rise{to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){ .pf .chain li{animation:none;opacity:1;transform:none} }
+.pf .chain li::before{content:"";position:absolute;left:8px;top:16px;bottom:-2px;width:1px;background:var(--line)}
+.pf .chain li:last-child::before{display:none}
+.pf .chain li i{
+  position:absolute;left:3px;top:4px;width:11px;height:11px;border-radius:50%;
+  background:var(--ground);border:2px solid var(--ink-3);
+}
+.pf .chain li.hit i{border-color:var(--crit);box-shadow:0 0 0 4px rgba(255,107,90,.16)}
+.pf .chain li.ok i{border-color:var(--signal);box-shadow:0 0 0 4px rgba(111,227,211,.14)}
+.pf .chain .st{
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--ink-3);margin-bottom:4px;
+}
+.pf .chain .tx{font-size:15px;color:#C9D4E1;line-height:1.5}
+.pf .chain .tx b{color:#fff;font-weight:600}
+.pf .mono{font-family:var(--mono);font-size:14px;color:var(--signal);letter-spacing:.03em}
+.pf .crit{color:var(--crit);font-weight:600}
+.pf .warn{color:var(--amber);font-weight:600}
+
+.pf .out-wrap{margin-top:22px}
+.pf .dec-miss{
+  padding:14px 16px;border-left:3px solid var(--amber);
+  background:rgba(255,147,80,.07);border-radius:0 10px 10px 0;
+  font-size:14px;color:#C9D4E1;line-height:1.55;
+}
+.pf .result-card{
+  border:1px solid var(--line);border-radius:14px;background:var(--ground-2);
+  padding:clamp(18px,4vw,24px);
+}
+</style>
+</head>
+<body class="pf">
+<div class="w">
+
+  <div class="tick">TRUCK-DIAG-PRO · справочник кодов</div>
+  <h1>Что означает этот код?</h1>
+  <p class="lede">Введите код так, как он есть на сканере или приборке — в любом виде, регистр и пробелы не важны.</p>
+
+  <div class="scanner">
+    <div class="scanner-label"><i></i>код неисправности</div>
+    <div class="code-row">
+      <input id="pf-code" type="text" inputmode="text" autocomplete="off" autofocus
+             placeholder="SPN 100 FMI 1">
+    </div>
+    <div class="dec-form">
+      <select id="pf-brand" aria-label="Марка машины"><option value="">— любая марка —</option></select>
+      <select id="pf-standard" aria-label="Стандарт кода">
+        <option value="auto">Определить автоматически</option>
+        <option value="spnfmi">J1939 — SPN / FMI</option>
+        <option value="pcode">Дилерский / OBD-код</option>
+      </select>
+      <button id="pf-go" type="button">Разобрать</button>
+    </div>
+  </div>
+  <p class="hint">Не уверены в формате — оставьте «Определить автоматически»: он понимает <span class="mono" style="font-size:12.5px">SPN 100 FMI 1</span>, <span class="mono" style="font-size:12.5px">100/1</span> и дилерские коды вроде <span class="mono" style="font-size:12.5px">P2BA7</span>.</p>
+
+  <div class="out-wrap" id="pf-out"></div>
+
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  var sel   = document.getElementById('pf-brand');
+  var std   = document.getElementById('pf-standard');
+  var input = document.getElementById('pf-code');
+  var go    = document.getElementById('pf-go');
+  var out   = document.getElementById('pf-out');
+
+  var DB = null, loading = null;
+
+  function fillBrands(){
+    if(!DB || !DB.brandNames || sel.options.length > 1) return;
+    var names = DB.brandNames;
+    Object.keys(names).sort(function(a, b){
+      return names[a].localeCompare(names[b], 'ru');
+    }).forEach(function(k){
+      var o = document.createElement('option');
+      o.value = k; o.textContent = names[k];
+      sel.appendChild(o);
+    });
+  }
+
+  function load(){
+    if(DB) return Promise.resolve(DB);
+    if(window.__TDP_DTC){
+      DB = window.__TDP_DTC; fillBrands();
+      return Promise.resolve(DB);
+    }
+    if(loading) return loading;
+    loading = new Promise(function(resolve, reject){
+      var t = document.createElement('script');
+      t.src = 'assets/dtc.enc.js'; t.async = true;
+      t.onload = function(){
+        DB = window.__TDP_DTC;
+        if(!DB) return reject(new Error('пустой справочник'));
+        fillBrands(); resolve(DB);
+      };
+      t.onerror = function(){ reject(new Error('не загрузился')); };
+      document.head.appendChild(t);
+    });
+    return loading;
+  }
+  load();
+
+  /* Нормализация написания: регистр и пробелы (в т.ч. неразрывные,
+     двойные, табы) не должны влиять на распознавание кода. */
+  function normCode(t){
+    return t.toUpperCase().replace(/\s+/g, ' ').trim();
+  }
+
+  function parseAuto(t){
+    var up = normCode(t);
+    // Панель показывает код вместе с порядковым номером ошибки
+    // ("2 03043-00"), поэтому ищем код с разделителем где угодно
+    // в строке, а не только когда это весь ввод целиком. \D* (а не
+    // \D+) между числом и словом FMI - потому что код иногда пишут
+    // вообще без пробелов и разделителей: "SPN100FMI1".
+    var m = up.match(/SPN\s*[:\-]?\s*(\d{1,6})\D*FMI\s*[:\-]?\s*(\d{1,2})/);
+    if(!m) m = up.match(/(\d{1,6})\s*[\/\-.,]\s*(\d{1,2})(?!\d)/);
+    if(!m) m = up.match(/^(\d{1,6})\s+(\d{1,2})$/);
+    if(m) return {spn:parseInt(m[1],10), fmi:parseInt(m[2],10)};
+    var only = up.match(/^SPN\s*[:\-]?\s*(\d{1,6})$/) || up.match(/^(\d{1,6})$/);
+    if(only) return {spn:parseInt(only[1],10), fmi:null};
+    if(/^[A-Z]{1,2}\s?\d{3,6}$/.test(up) || /^MR\s?\d{3,5}$/.test(up) || /^[0-9A-F]{6}$/.test(up)){
+      return {pcode:up.replace(/\s+/g,' ')};
+    }
+    return {bad:true};
+  }
+
+  function parse(raw, standard){
+    var t = (raw || '').trim();
+    if(!t) return null;
+    if(standard === 'pcode') return {pcode:normCode(t)};
+    if(standard === 'spnfmi'){
+      var up = normCode(t);
+      var m = up.match(/SPN\s*[:\-]?\s*(\d{1,6})\D*FMI\s*[:\-]?\s*(\d{1,2})/)
+           || up.match(/(\d{1,6})\s*[\/\-.,]\s*(\d{1,2})(?!\d)/)
+           || up.match(/^(\d{1,6})\s+(\d{1,2})$/);
+      if(m) return {spn:parseInt(m[1],10), fmi:parseInt(m[2],10)};
+      var only = up.match(/^SPN\s*[:\-]?\s*(\d{1,6})$/) || up.match(/^(\d{1,6})$/);
+      if(only) return {spn:parseInt(only[1],10), fmi:null};
+      return {bad:true};
+    }
+    return parseAuto(t);
+  }
+
+  var MEANING = ['выше','ниже','превыш','обрыв','замыкан','кз ','кз.','короткое',
+                 'недостовер','не поступ','отсутств','нет сигнал','неисправ',
+                 'перегрев','малое','низк','высок','больше','меньше','утечк','заклин'];
+
+  function withFmiHint(desc, fmi){
+    var f = DB.fmi[String(fmi)];
+    if(!f) return desc;
+    var low = desc.toLowerCase();
+    if(desc.length > 60 && MEANING.some(function(w){ return low.indexOf(w) >= 0; })) return desc;
+    return desc + ' — ' + f;
+  }
+
+  function describe(spn, fmi, brand){
+    if(brand && DB.brands[brand]){
+      var exact = DB.brands[brand][spn + '.' + fmi];
+      if(exact) return {text:withFmiHint(exact, fmi), src:'фирменная таблица ' + DB.brandNames[brand]};
+    }
+    var name = DB.spn[String(spn)]
+            || (brand && DB.spnNameRu[brand] && DB.spnNameRu[brand][String(spn)])
+            || (brand && DB.spnNameEn[brand] && DB.spnNameEn[brand][String(spn)])
+            || DB.universal[String(spn)];
+    var known = !!name;
+    if(!name) name = 'SPN ' + spn;
+    var f = DB.fmi[String(fmi)] || ('FMI ' + fmi + ' (нестандартное значение)');
+    return {text:name + ' — ' + f, src:known ? 'стандарт J1939' : null, unknown:!known};
+  }
+
+  function urgent(spn, fmi, brand){
+    if(DB.urgentSpn.indexOf(spn) >= 0) return true;
+    if(DB.urgentFmi.indexOf(fmi) >= 0) return true;
+    return brand === 'kamaz' && DB.kamazUrgent.indexOf(spn + '.' + fmi) >= 0;
+  }
+
+  function esc(t){
+    return String(t).replace(/[&<>"]/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];
+    });
+  }
+  function chain(steps){
+    var html = '<div class="result-card"><ol class="chain">';
+    steps.forEach(function(s, n){
+      html += '<li class="' + (s.cls||'') + '" style="--s:' + n + '"><i></i>' +
+              '<div class="st">' + esc(s.st) + '</div><div class="tx">' + s.tx + '</div></li>';
+    });
+    return html + '</ol></div>';
+  }
+  function note(t){ return '<div class="dec-miss">' + t + '</div>'; }
+  function render(html){
+    out.innerHTML = html;
+  }
+
+  function run(){
+    var brand = sel.value;
+    var p = parse(input.value, std.value);
+
+    if(!p){
+      render(note('Введите код — например <b>SPN 100 FMI 1</b> или просто <b>100/1</b>.'));
+      return;
+    }
+    load().then(function(){
+      if(p.bad){
+        render(note('Не удалось разобрать этот код в выбранном стандарте. Попробуйте «Определить автоматически» или формат <b>SPN 100 FMI 1</b> / <b>100/1</b> / <b>P2BA7</b>.'));
+        return;
+      }
+      if(p.pcode){
+        var pd = brand && DB.pcode[brand] ? DB.pcode[brand][p.pcode] : null;
+        if(!pd){
+          render(note('Дилерский код <b>' + esc(p.pcode) + '</b> в справочнике не найден' +
+            (brand ? '' : ' — попробуйте выбрать марку: такие коды у каждой свои') + '.'));
+          return;
+        }
+        render(chain([
+          {st:'код', tx:'<span class="mono">' + esc(p.pcode) + '</span>', cls:'ok'},
+          {st:'расшифровка', tx:'<b>' + esc(pd) + '</b>', cls:'ok'}
+        ]));
+        return;
+      }
+      if(p.fmi === null){
+        var nm = DB.spn[String(p.spn)] || DB.universal[String(p.spn)];
+        render(note(nm
+          ? '<b>SPN ' + p.spn + '</b> — это ' + esc(nm) + '. Добавьте FMI (характер отказа): например <b>' + p.spn + '/1</b>.'
+          : 'Нужен ещё FMI — вторая половина кода. Попробуйте <b>' + p.spn + '/1</b>.'));
+        return;
+      }
+      var d = describe(p.spn, p.fmi, brand);
+      var u = urgent(p.spn, p.fmi, brand);
+      var code = 'SPN ' + p.spn + ' · FMI ' + p.fmi;
+      var steps = [
+        {st:'код', tx:'<span class="mono">' + code + '</span>', cls:'ok'},
+        {st:'расшифровка', tx:'<b>' + esc(d.text) + '</b>' +
+           (d.src ? '<div class="st" style="margin-top:6px">источник: ' + esc(d.src) + '</div>' : ''), cls:'ok'},
+        u
+          ? {st:'срочность', tx:'<span class="crit">Критично</span> — остановиться при первой безопасной возможности, не тянуть.', cls:'hit'}
+          : {st:'срочность', tx:'<span class="warn">Ехать можно</span> — но показать код на ближайшем ТО.'}
+      ];
+      var html = chain(steps);
+      if(d.unknown){
+        html += note('Этого SPN нет в справочнике — скорее всего, код фирменный. Попробуйте выбрать марку выше.');
+      }
+      render(html);
+    }).catch(function(){
+      render(note('Справочник не загрузился — проверьте, что рядом со страницей лежит папка <b>32-sait-assets</b>.'));
+    });
+  }
+
+  go.addEventListener('click', run);
+  input.addEventListener('keydown', function(e){ if(e.key === 'Enter') run(); });
+
+})();
+</script>
+</body>
+</html>
