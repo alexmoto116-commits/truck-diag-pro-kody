@@ -587,6 +587,40 @@ body.critical .lamp{
 [data-preview] .scene{padding-top:clamp(34px,7vw,70px)}
 [data-preview] #pf-standard{display:none}
 [data-preview] .filters.raw #pf-standard{display:block}
+/* Вариант без выпадающих меню: всё нажимается пальцем с первого
+   раза. Выпадающий список на телефоне - это три действия (открыть,
+   пролистать, выбрать) и мелкие строки; ряд кнопок - одно действие
+   и крупная цель. */
+[data-preview="2"] .filters,
+[data-preview="2"] .lang-switch{display:none}
+/* Ряд в одну строку с горизонтальной прокруткой. Перенос по строкам
+   давал пять строк кнопок и уводил поле ввода на середину экрана -
+   ради быстроты всё должно помещаться выше сгиба. */
+.chips{
+  display:flex;flex-wrap:nowrap;gap:8px;margin:0;
+  overflow-x:auto;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;
+  scrollbar-width:none;padding-bottom:2px;
+}
+.chips::-webkit-scrollbar{display:none}
+/* Растворяющийся край - единственный намёк, что ряд продолжается.
+   Ставится только когда прокрутка действительно нужна. */
+.chips.sc{
+  -webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 30px),transparent);
+          mask-image:linear-gradient(90deg,#000 calc(100% - 30px),transparent);
+}
+.chips button{
+  flex:none;min-height:46px;padding:10px 14px;cursor:pointer;
+  font-family:var(--sans);font-size:14px;font-weight:600;color:var(--ink-2);
+  background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:11px;
+  transition:color .16s ease,border-color .16s ease,background .16s ease;
+}
+.chips button:hover{color:var(--ink);border-color:rgba(111,227,211,.4)}
+.chips button:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
+/* Выбранное видно с одного взгляда, без прищуривания на галочку. */
+.chips button[aria-pressed="true"]{
+  color:var(--night);background:var(--signal);border-color:var(--signal);
+}
+.chips.lang button{font-family:var(--mono);letter-spacing:.06em;min-width:54px}
 .altfmt{
   background:none;border:none;padding:0;margin-top:10px;cursor:pointer;
   font-family:var(--sans);font-size:12.5px;color:var(--ink-3);
@@ -894,8 +928,8 @@ body.critical .lamp{
   /* ?preview=1 - две правки дизайна на пробу: выдача в виде прибора
      и живой пример работы прямо на первом экране. Посетители сайта
      их пока не видят. */
-  if(/[?&]preview=1/.test(location.search))
-    document.documentElement.setAttribute('data-preview', '');
+  var p = /[?&]preview=([12])/.exec(location.search);
+  if(p) document.documentElement.setAttribute('data-preview', p[1]);
 })();
 </script>
 </head>
@@ -2435,6 +2469,16 @@ body.critical .lamp{
         more1:'More: what happens if you keep driving'}
   };
 
+  /* Порядок марок - по тому, как часто их спрашивают на нашем рынке,
+     а не по алфавиту: первые три кнопки должны закрывать большинство. */
+  var BRANDS = [
+    ['', ''], ['kamaz','КАМАЗ'], ['yamz','ЯМЗ'], ['man','MAN'], ['daf','DAF'],
+    ['volvo','Volvo'], ['mercedes','Mercedes-Benz'], ['iveco','Iveco'],
+    ['scania','Scania'], ['sitrak','SITRAK'], ['isuzu','Isuzu'],
+    ['renault','Renault Trucks'], ['deutz','Deutz']
+  ];
+  var ANY = {ru:'Любая', en:'Any'};
+
   var SHOW_CODES = ['1761/1','4095/31','3226/0','4094/31','1569/31','5841/2'];
   var SHOW_ARROW = '<svg class="scarrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
     'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
@@ -2468,6 +2512,67 @@ body.critical .lamp{
   /* Порядок на входе - тот, в каком человек думает: сначала машина,
      потом код. Выбор стандарта уезжает под ссылку: за него решает
      автомат, и лишний вопрос на обочине только мешает. */
+  var PV2 = document.documentElement.getAttribute('data-preview') === '2';
+
+  function chipRow(cls, items, cur, pick){
+    var box = document.createElement('div');
+    box.className = 'chips ' + cls;
+    items.forEach(function(it){
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = it[1];
+      b.setAttribute('data-v', it[0]);
+      b.setAttribute('aria-pressed', it[0] === cur ? 'true' : 'false');
+      b.addEventListener('click', function(){ pick(it[0], box); });
+      box.appendChild(b);
+    });
+    return box;
+  }
+
+  function buildChips(){
+    var L = currentLang === 'ru' ? 'ru' : 'en';
+    var w = document.querySelector('.scanner').parentNode;
+    Array.prototype.forEach.call(w.querySelectorAll('.chips'), function(n){
+      n.parentNode.removeChild(n);
+    });
+
+    var langs = Array.prototype.map.call(langSelect.options, function(o){
+      return [o.value, o.textContent];
+    });
+    var lrow = chipRow('lang', langs, currentLang, function(v){
+      langSelect.value = v;
+      applyLang(v);
+      showcase();
+      simplify();
+    });
+
+    var brands = BRANDS.map(function(b){ return [b[0], b[0] ? b[1] : ANY[L]]; });
+    var brow = chipRow('brand', brands, sel.value, function(v, box){
+      sel.value = v;
+      Array.prototype.forEach.call(box.children, function(x){
+        x.setAttribute('aria-pressed', x.getAttribute('data-v') === v ? 'true' : 'false');
+      });
+      /* Марку часто уточняют уже после разбора - пересчитываем сразу,
+         чтобы не заставлять жать «Разобрать» второй раз. */
+      if(input.value.trim()) run();
+    });
+
+    w.insertBefore(lrow, document.querySelector('.steplbl-car'));
+    w.insertBefore(brow, document.querySelector('.steplbl-code'));
+    [lrow, brow].forEach(fitRow);
+  }
+
+  /* Ставим подсказку о прокрутке только там, где ряд не поместился,
+     и подтягиваем выбранную кнопку в поле зрения - иначе выбранная
+     марка может оказаться за краем и человек решит, что её нет. */
+  function fitRow(box){
+    if(box.scrollWidth > box.clientWidth + 1){
+      box.classList.add('sc');
+      var on = box.querySelector('[aria-pressed="true"]');
+      if(on) box.scrollLeft = Math.max(0, on.offsetLeft - 12);
+    }
+  }
+
   function simplify(){
     if(!PREVIEW) return;
     var L = currentLang === 'ru' ? 'ru' : 'en', s = STEP[L];
@@ -2504,6 +2609,14 @@ body.critical .lamp{
     document.querySelector('.steplbl-code').textContent = s.code;
     var alt2 = document.querySelector('.altfmt');
     if(alt2) alt2.textContent = s.alt;
+
+    /* Во втором варианте выпадающих меню нет вовсе, а вместе с ними
+       уходит и ссылка на ручной выбор стандарта: лишнее слово на
+       экране, где всё должно решаться нажатием. */
+    if(PV2){
+      if(alt2) alt2.parentNode.removeChild(alt2);
+      buildChips();
+    }
   }
 
   var printBtn = document.getElementById('pf-print');
