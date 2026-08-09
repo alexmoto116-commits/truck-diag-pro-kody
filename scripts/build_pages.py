@@ -136,21 +136,22 @@ body{{margin:0;background:#05070A;color:#EAF0F7;font-family:"Segoe UI Variable D
 .w{{max-width:680px;margin:0 auto;padding:36px 20px 70px}}
 a{{color:#6FE3D3}}
 .tick{{font-family:"Cascadia Mono",Consolas,monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#8B9AAC;margin-bottom:16px}}
+.tick a{{display:inline-flex;align-items:center;min-height:44px}}
 .tick a{{color:#8B9AAC;text-decoration:none;border-bottom:1px solid rgba(139,154,172,.4)}}
 h1{{font-size:26px;line-height:1.25;margin:0 0 8px;letter-spacing:-.01em}}
 .sub{{color:#94A2B4;font-size:14.5px;margin:0 0 28px}}
 .mono{{font-family:"Cascadia Mono",Consolas,monospace}}
 table{{width:100%;border-collapse:collapse;margin:0 0 28px;font-size:14.5px}}
-th{{text-align:left;font-family:"Cascadia Mono",Consolas,monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#5B6778;padding:0 10px 8px 0;border-bottom:1px solid rgba(255,255,255,.12);font-weight:600}}
+th{{text-align:left;font-family:"Cascadia Mono",Consolas,monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#7A8998;padding:0 10px 8px 0;border-bottom:1px solid rgba(255,255,255,.12);font-weight:600}}
 td{{padding:9px 10px 9px 0;border-bottom:1px solid rgba(255,255,255,.06);vertical-align:top}}
 td.fmi{{font-family:"Cascadia Mono",Consolas,monospace;color:#6FE3D3;white-space:nowrap;width:1%}}
 tr.hit td.fmi{{color:#FF6B5A}}
-h2{{font-family:"Cascadia Mono",Consolas,monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#5B6778;margin:0 0 12px;font-weight:600}}
+h2{{font-family:"Cascadia Mono",Consolas,monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#7A8998;margin:0 0 12px;font-weight:600}}
 section{{margin-bottom:32px}}
 .near{{margin:0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:8px}}
 .near li{{margin:0}}
-.near a{{display:inline-block;text-decoration:none;color:#AFBECD;font-size:13.5px;
-  border:1px solid rgba(255,255,255,.13);border-radius:9px;padding:6px 11px;background:rgba(255,255,255,.03)}}
+.near a{{display:inline-flex;align-items:center;min-height:44px;text-decoration:none;color:#AFBECD;font-size:13.5px;
+  border:1px solid rgba(255,255,255,.13);border-radius:9px;padding:6px 13px;background:rgba(255,255,255,.03)}}
 .near a:hover{{color:#EAF0F7;border-color:rgba(111,227,211,.45)}}
 .near a .mono{{color:#6FE3D3}}
 .cta{{margin-top:44px;padding-top:24px;border-top:1px solid rgba(255,255,255,.06);font-size:14px;color:#94A2B4}}

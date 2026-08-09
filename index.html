@@ -33,7 +33,10 @@
   --steel:#16202C;
   --ink:#EEF3F9;
   --ink-2:#9FB0C2;
-  --ink-3:#61707F;
+  /* Подписи набраны мелко и в разрядку, а читают их ночью на обочине
+     с грязного экрана. Прежний #61707F давал 3.88:1 - ниже нормы;
+     этот держит 5.5:1 на фоне и 5.0:1 на карточке. */
+  --ink-3:#7A8998;
   --lamp:#FF9B3D;      /* контрольная лампа */
   --horizon:#E8894A;   /* закат за горами */
   --marker:#FF5A4E;    /* габариты прицепа - критично */
@@ -181,7 +184,7 @@ body.critical .lamp{
   flex:1 1 150px;min-width:0;cursor:pointer;
   font-family:var(--sans);font-size:13.5px;color:var(--ink-2);
   background:rgba(12,19,28,.8);border:1px solid var(--line);border-radius:11px;
-  padding:11px 12px;
+  padding:11px 12px;min-height:44px;
   transition:border-color .18s ease,color .18s ease;
 }
 .filters select:hover{color:var(--ink)}
@@ -249,7 +252,7 @@ body.critical .lamp{
   display:inline-flex;align-items:center;gap:8px;cursor:pointer;
   font-family:var(--sans);font-size:14px;font-weight:650;color:#20120A;
   background:linear-gradient(180deg, #FFAA55, #F2833C);
-  border:none;border-radius:12px;padding:11px 17px;
+  border:none;border-radius:12px;padding:11px 17px;min-height:44px;
   box-shadow:0 10px 26px -10px rgba(255,147,80,.65);
   transition:transform .18s cubic-bezier(.22,1,.36,1), filter .18s ease, box-shadow .18s ease;
 }
@@ -283,7 +286,7 @@ body.critical .lamp{
   position:fixed;top:clamp(14px,2.5vw,22px);left:clamp(14px,2.5vw,22px);z-index:20;
   display:inline-flex;align-items:center;gap:6px;
   background:rgba(12,19,28,.72);border:1px solid var(--line);border-radius:12px;
-  padding:9px 11px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  padding:9px 11px;min-height:44px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
 }
 .lang-switch svg{width:15px;height:15px;flex:none;color:var(--ink-3)}
 .lang-switch select{
@@ -397,6 +400,7 @@ body.critical .lamp{
 
 .demo{
   margin-top:11px;display:inline-flex;align-items:center;gap:7px;cursor:pointer;
+  min-height:44px;
   background:rgba(111,227,211,.07);border:1px solid rgba(111,227,211,.22);
   border-radius:9px;padding:7px 11px;
   font-family:var(--sans);font-size:12.5px;color:var(--signal);
@@ -467,7 +471,8 @@ body.critical .lamp{
   display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:7px;
 }
 .common a{
-  display:block;text-decoration:none;color:var(--ink-2);font-size:13.5px;
+  display:flex;align-items:center;min-height:44px;
+  text-decoration:none;color:var(--ink-2);font-size:13.5px;
   border:1px solid var(--line-2);border-radius:9px;padding:8px 11px;
   transition:color .18s ease,border-color .18s ease;
 }
