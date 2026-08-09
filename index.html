@@ -479,6 +479,19 @@ body.critical .lamp{
 .common a:hover{color:var(--ink);border-color:rgba(111,227,211,.4)}
 .common a:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
 .common a .mono{color:var(--signal);font-size:12.5px;margin-right:7px}
+.common h2 + ul{margin-bottom:22px}
+/* Ситуации и марки - без номеров, поэтому плитки уже и текут строкой. */
+.lines{
+  list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:7px;
+}
+.lines a{
+  display:flex;align-items:center;min-height:44px;
+  text-decoration:none;color:var(--ink-2);font-size:13.5px;
+  border:1px solid var(--line-2);border-radius:9px;padding:8px 13px;
+  transition:color .18s ease,border-color .18s ease;
+}
+.lines a:hover{color:var(--ink);border-color:rgba(111,227,211,.4)}
+.lines a:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
 @media print{ .common{display:none} }
 
 .foot{
@@ -600,6 +613,31 @@ body.critical .lamp{
     <li><a href="kody/spn-639.html"><span class="mono">SPN 639</span> CAN-шина</a></li>
     <li><a href="kody/spn-1110.html"><span class="mono">SPN 1110</span> Остановка по защите</a></li>
   </ul>
+
+  <h2 data-i18n="bySituation">Если номера кода нет</h2>
+  <ul class="lines">
+    <li><a href="problemy/gorit-check-engine.html">Загорелся Check Engine</a></li>
+    <li><a href="problemy/oshibka-adblue.html">Ошибка AdBlue</a></li>
+    <li><a href="problemy/upala-moshchnost.html">Упала мощность</a></li>
+    <li><a href="problemy/nizkoe-davlenie-masla.html">Низкое давление масла</a></li>
+    <li><a href="problemy/peregrev-dvigatelya.html">Перегрев двигателя</a></li>
+    <li><a href="problemy/zabit-sazhevyy-filtr.html">Забит сажевый фильтр</a></li>
+    <li><a href="problemy/problemy-s-toplivom.html">Вода в топливе</a></li>
+    <li><a href="problemy/propalo-pitanie.html">Ошибки по всей машине</a></li>
+  </ul>
+
+  <h2 data-i18n="byBrand">По маркам</h2>
+  <ul class="lines">
+    <li><a href="marki/kamaz.html">КамАЗ</a></li>
+    <li><a href="marki/yamz.html">ЯМЗ</a></li>
+    <li><a href="marki/man.html">MAN</a></li>
+    <li><a href="marki/daf.html">DAF</a></li>
+    <li><a href="marki/iveco.html">Iveco</a></li>
+    <li><a href="marki/volvo.html">Volvo</a></li>
+    <li><a href="marki/mercedes.html">Mercedes-Benz</a></li>
+    <li><a href="marki/sitrak.html">SITRAK</a></li>
+    <li><a href="marki/isuzu.html">Isuzu</a></li>
+  </ul>
 </nav>
 
 <p class="foot" data-i18n="footText">Справочник показывает, что означает код, а не ставит диагноз — решение всегда за человеком с оборудованием. Вопросы — <a href="mailto:alexdiag116@gmail.com" style="color:inherit">alexdiag116@gmail.com</a>.</p>
@@ -658,6 +696,8 @@ body.critical .lamp{
       loadError: 'Справочник не загрузился — проверьте, что рядом со страницей лежит папка <b>32-sait-assets</b>.',
       sourceLabel: 'источник: {src}', fmiNonstandard: 'FMI {fmi} (нестандартное значение)',
       commonTitle: 'Частые коды неисправностей',
+      bySituation: 'Если номера кода нет',
+      byBrand: 'По маркам',
       casCount: 'кодов в разборе: {n}',
       casRoot: 'вероятная первопричина',
       casCons: 'следствия — отдельно не чинятся',
@@ -719,6 +759,8 @@ body.critical .lamp{
       loadError: 'The database failed to load — make sure the <b>32-sait-assets</b> folder is next to this page.',
       sourceLabel: 'source: {src}', fmiNonstandard: 'FMI {fmi} (non-standard value)',
       commonTitle: 'Common fault codes',
+      bySituation: 'If you don’t have a code number',
+      byBrand: 'By make',
       casCount: 'codes analysed: {n}',
       casRoot: 'likely root cause',
       casCons: 'knock-on codes — not fixed separately',
@@ -780,6 +822,8 @@ body.critical .lamp{
       loadError: 'Die Datenbank konnte nicht geladen werden — prüfen Sie, ob der Ordner <b>32-sait-assets</b> neben dieser Seite liegt.',
       sourceLabel: 'Quelle: {src}', fmiNonstandard: 'FMI {fmi} (nicht standardisierter Wert)',
       commonTitle: 'Häufige Fehlercodes',
+      bySituation: 'Wenn Sie keine Codenummer haben',
+      byBrand: 'Nach Marke',
       casCount: 'Codes im Befund: {n}',
       casRoot: 'wahrscheinliche Ursache',
       casCons: 'Folgefehler — nicht einzeln reparieren',
@@ -841,6 +885,8 @@ body.critical .lamp{
       loadError: 'La base n’a pas pu être chargée — vérifiez que le dossier <b>32-sait-assets</b> se trouve à côté de cette page.',
       sourceLabel: 'source : {src}', fmiNonstandard: 'FMI {fmi} (valeur non standard)',
       commonTitle: 'Codes défaut fréquents',
+      bySituation: 'Si vous n’avez pas de numéro de code',
+      byBrand: 'Par marque',
       casCount: 'codes analysés : {n}',
       casRoot: 'cause probable',
       casCons: 'conséquences — ne se réparent pas séparément',
@@ -902,6 +948,8 @@ body.critical .lamp{
       loadError: 'No se pudo cargar la base de datos — comprueba que la carpeta <b>32-sait-assets</b> esté junto a esta página.',
       sourceLabel: 'fuente: {src}', fmiNonstandard: 'FMI {fmi} (valor no estándar)',
       commonTitle: 'Códigos de avería frecuentes',
+      bySituation: 'Si no tiene el número del código',
+      byBrand: 'Por marca',
       casCount: 'códigos analizados: {n}',
       casRoot: 'causa probable',
       casCons: 'consecuencias — no se reparan por separado',
@@ -963,6 +1011,8 @@ body.critical .lamp{
       loadError: 'Não foi possível carregar o banco de dados — verifique se a pasta <b>32-sait-assets</b> está junto a esta página.',
       sourceLabel: 'fonte: {src}', fmiNonstandard: 'FMI {fmi} (valor não padrão)',
       commonTitle: 'Códigos de falha frequentes',
+      bySituation: 'Se não tiver o número do código',
+      byBrand: 'Por marca',
       casCount: 'códigos analisados: {n}',
       casRoot: 'causa provável',
       casCons: 'consequências — não se reparam separadamente',
@@ -1024,6 +1074,8 @@ body.critical .lamp{
       loadError: 'Baza się nie wczytała — sprawdź, czy folder <b>32-sait-assets</b> jest obok tej strony.',
       sourceLabel: 'źródło: {src}', fmiNonstandard: 'FMI {fmi} (wartość niestandardowa)',
       commonTitle: 'Częste kody usterek',
+      bySituation: 'Jeśli nie masz numeru kodu',
+      byBrand: 'Według marki',
       casCount: 'przeanalizowanych kodów: {n}',
       casRoot: 'prawdopodobna przyczyna',
       casCons: 'skutki — nie naprawia się ich osobno',
@@ -1085,6 +1137,8 @@ body.critical .lamp{
       loadError: 'Veritabanı yüklenemedi — <b>32-sait-assets</b> klasörünün bu sayfanın yanında olduğundan emin olun.',
       sourceLabel: 'kaynak: {src}', fmiNonstandard: 'FMI {fmi} (standart olmayan değer)',
       commonTitle: 'Sık görülen arıza kodları',
+      bySituation: 'Kod numarası yoksa',
+      byBrand: 'Markaya göre',
       casCount: 'incelenen kod: {n}',
       casRoot: 'olası kök neden',
       casCons: 'sonuç kodları — ayrı ayrı onarılmaz',
@@ -1146,6 +1200,8 @@ body.critical .lamp{
       loadError: 'डेटाबेस लोड नहीं हो पाया — जांचें कि <b>32-sait-assets</b> फ़ोल्डर इस पेज के पास मौजूद है।',
       sourceLabel: 'स्रोत: {src}', fmiNonstandard: 'FMI {fmi} (गैर-मानक मान)',
       commonTitle: 'आम फॉल्ट कोड',
+      bySituation: 'अगर कोड नंबर नहीं है',
+      byBrand: 'ब्रांड के अनुसार',
       casCount: 'जांचे गए कोड: {n}',
       casRoot: 'संभावित मूल कारण',
       casCons: 'परिणामी कोड — अलग से ठीक नहीं होते',

@@ -150,7 +150,7 @@ h2{{font-family:"Cascadia Mono",Consolas,monospace;font-size:11px;letter-spacing
 section{{margin-bottom:32px}}
 .near{{margin:0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:8px}}
 .near li{{margin:0}}
-.near a{{display:inline-flex;align-items:center;min-height:44px;text-decoration:none;color:#AFBECD;font-size:13.5px;
+.near a{{display:inline-flex;align-items:center;gap:6px;min-height:44px;text-decoration:none;color:#AFBECD;font-size:13.5px;
   border:1px solid rgba(255,255,255,.13);border-radius:9px;padding:6px 13px;background:rgba(255,255,255,.03)}}
 .near a:hover{{color:#EAF0F7;border-color:rgba(111,227,211,.45)}}
 .near a .mono{{color:#6FE3D3}}
@@ -282,8 +282,179 @@ def build():
         io.open(os.path.join(out_dir, 'spn-%d.html' % spn), 'w', encoding='utf-8').write(''.join(body))
         written.append(spn)
 
+    # ---------------------------------------------------------------
+    # Страницы под живые запросы. Страницы кодов отвечают тому, кто уже
+    # знает номер со сканера. Но большинство ищет словами - «загорелся
+    # чек на камазе», «ошибка адблю» - и на такие запросы у справочника
+    # ответа не было. Эти страницы ловят вопрос и уводят к разбору.
+    # ---------------------------------------------------------------
+    def is_stop(spn, makes):
+        fmis = {f for rows in makes.values() for f, _ in rows}
+        return spn in set(db['urgentSpn']) or bool(fmis & urgent_fmi)
+
+    def code_links(spns, prefix='../kody/'):
+        return ''.join(
+            u'<li><a href="%sspn-%d.html"><span class="mono">SPN %d</span> — %s</a></li>'
+            % (prefix, s, s, esc(name_of(s))) for s in spns)
+
+    def page(path, title, desc, h1, sub, sections, extra_head=''):
+        canon = '%s/%s' % (SITE, path)
+        ld = json.dumps({'@context': 'https://schema.org', '@type': 'TechArticle',
+                         'headline': title, 'description': desc, 'url': canon},
+                        ensure_ascii=False)
+        body = [HEAD.format(title=esc(title), desc=esc(desc), canon=canon,
+                            mid=METRIKA_ID, ld=ld)]
+        body.append(u'<h1>%s</h1>' % esc(h1))
+        body.append(u'<p class="sub">%s</p>' % sub)
+        body.extend(sections)
+        body.append(u'<p class="cta">Знаете номер кода? '
+                    u'<a href="../">Введите его в поиск</a> — или вставьте сразу весь '
+                    u'список со сканера, покажем, какая поломка настоящая.</p>')
+        body.append(u'</div>\n</body>\n</html>\n')
+        full = os.path.join(ROOT, path)
+        d = os.path.dirname(full)
+        if not os.path.isdir(d):
+            os.makedirs(d)
+        io.open(full, 'w', encoding='utf-8').write(''.join(body))
+        return path
+
+    extra = []
+
+    # --- по маркам -------------------------------------------------
+    brand_dir = os.path.join(ROOT, 'marki')
+    if os.path.isdir(brand_dir):
+        for f in glob.glob(os.path.join(brand_dir, '*.html')):
+            os.remove(f)
+
+    for b in sorted(brands, key=lambda x: brand_names.get(x, x)):
+        bn = brand_names.get(b, b)
+        mine = sorted({int(k.split('.')[0]) for k in brands[b]
+                       if k.split('.')[0].isdigit()})
+        mine = [s for s in mine if s in set(written)]
+        if not mine:
+            continue
+        stop_codes = [s for s in mine if is_stop(s, per_spn.get(s, {}))][:12]
+        rest = [s for s in mine if s not in stop_codes][:14]
+
+        secs = []
+        if stop_codes:
+            secs.append(u'<section><h2>С этими кодами ехать нельзя</h2>'
+                        u'<ul class="near">%s</ul></section>' % code_links(stop_codes))
+        if rest:
+            secs.append(u'<section><h2>Другие частые коды %s</h2>'
+                        u'<ul class="near">%s</ul></section>' % (esc(bn), code_links(rest)))
+        secs.append(
+            u'<section><h2>Как читать код</h2><p>Код состоит из двух половин. '
+            u'<b>SPN</b> — что именно барахлит: датчик, узел, параметр. '
+            u'<b>FMI</b> — что с ним не так: значение вне нормы, обрыв, замыкание, '
+            u'недостоверные данные. Поэтому «SPN 100» без FMI — это ещё не диагноз, '
+            u'а «100/1» уже говорит, что давление масла упало ниже нормы.</p></section>')
+        secs.append(
+            u'<section><h2>Если кодов сразу несколько</h2><p>Так почти всегда и бывает: '
+            u'одна поломка тянет за собой пять-шесть кодов. Пустой бак AdBlue сначала '
+            u'даёт ошибку уровня, потом прерванное дозирование, следом превышение NOx '
+            u'и ограничение момента. Чинить нужно первопричину, остальное погаснет само. '
+            u'<a href="../">Вставьте весь список</a> — покажем, какой код корневой.</p></section>')
+
+        path = 'marki/%s.html' % b
+        title = u'Коды ошибок %s — расшифровка неисправностей | codetruck.ru' % bn
+        desc = (u'Расшифровка кодов неисправностей %s: %d разобранных кода, '
+                u'какие требуют немедленной остановки и что проверить на месте.'
+                % (bn, len(mine)))
+        sub = (u'В справочнике разобрано <b>%d кодов %s</b> по заводским таблицам. '
+               u'Ниже — те, что встречаются чаще всего.' % (len(mine), esc(bn)))
+        extra.append(page(path, title, desc,
+                          u'Коды ошибок %s' % bn, sub, secs))
+
+    # --- по симптомам ----------------------------------------------
+    sym_dir = os.path.join(ROOT, 'problemy')
+    if os.path.isdir(sym_dir):
+        for f in glob.glob(os.path.join(sym_dir, '*.html')):
+            os.remove(f)
+
+    SYMPTOMS = [
+        ('gorit-check-engine', u'Загорелся Check Engine на грузовике — что делать',
+         u'Загорелась лампа Check Engine',
+         u'Янтарная лампа означает, что электроника нашла неисправность и записала код. '
+         u'Сама по себе она не говорит, насколько всё плохо: под ней может быть и '
+         u'забитый фильтр, и упавшее давление масла. Смотреть надо код.',
+         None, None),
+        ('oshibka-adblue', u'Ошибка AdBlue на грузовике — причины и что делать',
+         u'Ошибка AdBlue (мочевины)',
+         u'Больше половины ошибок по AdBlue — это пустой или заправленный не тем бак. '
+         u'Система SCR быстро переходит к ограничению мощности, поэтому тянуть нельзя.',
+         'scr', 'scr'),
+        ('upala-moshchnost', u'Упала мощность на грузовике — ограничение момента',
+         u'Упала мощность, машина не тянет',
+         u'Ограничение момента — это не поломка сама по себе, а защита: электроника '
+         u'срезает мощность, потому что нашла проблему. Искать надо код, который '
+         u'привёл к ограничению.',
+         'prot', None),
+        ('nizkoe-davlenie-masla', u'Низкое давление масла на грузовике — что делать',
+         u'Низкое давление масла',
+         u'Это самая срочная из частых неисправностей. На низком давлении двигатель '
+         u'выхаживает считаные минуты, поэтому останавливаться нужно сразу, а не '
+         u'«до базы».',
+         'oil', 'oil'),
+        ('peregrev-dvigatelya', u'Перегрев двигателя грузовика — коды и причины',
+         u'Перегрев двигателя',
+         u'Перегрев редко приходит один: следом идут ограничение мощности и остановка '
+         u'по защите. Важно отличать реальный перегрев от отказавшего датчика — по FMI.',
+         'cool', 'cool'),
+        ('zabit-sazhevyy-filtr', u'Забит сажевый фильтр DPF — признаки и коды',
+         u'Забит сажевый фильтр (DPF)',
+         u'Фильтр забивается, когда машина много ходит на холостых и по городу: '
+         u'регенерация не запускается. Сначала растёт противодавление, потом падает '
+         u'мощность.',
+         'scr', 'scr'),
+        ('problemy-s-toplivom', u'Вода в топливе и засор фильтра — коды грузовика',
+         u'Вода в топливе, засор фильтра',
+         u'Зимой к этому добавляется парафинизация солярки. Коды по топливной системе '
+         u'часто идут вместе с потерей мощности и тяжёлым запуском.',
+         'fuel', 'fuel'),
+        ('propalo-pitanie', u'Ошибки по питанию и CAN-шине на грузовике',
+         u'Пропало питание, ошибки по всей машине',
+         u'Если сканер выдал десяток кодов из разных систем разом — почти наверняка '
+         u'дело не в десяти поломках, а в питании или шине. Просевшее напряжение и '
+         u'оборванная витая пара CAN сыплют ложные коды по всему автомобилю.',
+         'power', 'power'),
+    ]
+
+    for slug, title_h, h1, intro, sys_key, adv in SYMPTOMS:
+        if sys_key:
+            pool = [s for s in by_sys.get(sys_key, [])]
+        else:
+            pool = [s for s in written if is_stop(s, per_spn.get(s, {}))]
+        stop_codes = [s for s in pool if is_stop(s, per_spn.get(s, {}))][:12]
+        rest = [s for s in pool if s not in stop_codes][:12]
+
+        secs = []
+        if stop_codes:
+            secs.append(u'<section><h2>Коды, при которых нужно встать</h2>'
+                        u'<ul class="near">%s</ul></section>' % code_links(stop_codes))
+        if rest:
+            secs.append(u'<section><h2>Другие коды по этой части</h2>'
+                        u'<ul class="near">%s</ul></section>' % code_links(rest))
+        if adv and ADVICE.get(adv):
+            secs.append(u'<section><h2>Что проверить на месте</h2><p>%s</p></section>'
+                        % ADVICE[adv])
+        secs.append(
+            u'<section><h2>Можно ли ехать</h2><p>Ответ зависит от кода, а не от лампы. '
+            u'Янтарная лампа — предупреждение, красная означает, что двигаться нельзя. '
+            u'Но и под янтарной попадаются неисправности, при которых остановиться нужно '
+            u'сразу: низкое давление масла, перегрев, потеря тормозного давления. '
+            u'<a href="../">Введите код</a> — справочник скажет прямо, ехать или '
+            u'вставать.</p></section>')
+
+        path = 'problemy/%s.html' % slug
+        desc = intro[:155]
+        extra.append(page(path, title_h + u' | codetruck.ru', desc, h1,
+                          esc(intro), secs))
+
     # sitemap: главная плюс только те страницы, что реально существуют
-    urls = [SITE + '/'] + ['%s/kody/spn-%d.html' % (SITE, s) for s in written]
+    urls = ([SITE + '/']
+            + ['%s/%s' % (SITE, p) for p in extra]
+            + ['%s/kody/spn-%d.html' % (SITE, s) for s in written])
     sm = ['<?xml version="1.0" encoding="UTF-8"?>',
           '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
     for i, u in enumerate(urls):
