@@ -275,7 +275,7 @@ body.critical .lamp{
      его при прокрутке: «RU» садится на код, кнопка печати - на заголовок.
      Уводим их в поток страницы: наверху они на месте, дальше уезжают
      вместе с контентом. */
-  .lang-switch,.print-btn{position:absolute}
+  .print-btn{position:absolute}
   .scene{padding-top:76px}
   /* Два select в ряд на телефоне не влезают - текст обрезается
      стрелкой. Ставим их друг под другом на всю ширину. */
@@ -314,7 +314,13 @@ body.critical .lamp{
 }
 .lang-switch select:hover{color:#fff}
 .lang-switch select:focus-visible{outline:2px solid var(--lamp);outline-offset:3px}
-.lang-switch select option{background:#0E1620;color:#EEF3F9}
+/* Мобильный уход из фикса стоит здесь, а не в общем медиазапросе
+   выше: тот идёт до этого блока, специфичность одинаковая, и
+   position:fixed отсюда его переигрывал - плашка «RU» продолжала
+   висеть поверх текста при прокрутке. */
+@media(max-width:560px){
+  .lang-switch{position:absolute}
+}
 .datanote{
   display:none;margin:10px 0 0;font-size:12px;color:#8FA2B4;line-height:1.5;
   text-shadow:0 1px 12px rgba(7,11,18,.9);
@@ -405,6 +411,31 @@ body.critical .lamp{
 .todo li{padding:4px 0}
 .todo li::marker{color:var(--lamp);font-family:var(--mono);font-size:12px}
 
+/* Горизонт риска. Цветом здесь кодируется только запас времени,
+   поэтому шкала и бейдж берут currentColor блока, а сам текст
+   остаётся нейтральным: читать его придётся целиком, а не
+   выхватывать взглядом. */
+.risk{
+  border:1px solid var(--line);border-radius:14px;
+  background:rgba(255,255,255,.022);padding:14px 16px;
+}
+.risk .rkh{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:11px}
+.risk .rkb{
+  flex:none;font-family:var(--mono);font-size:10.5px;letter-spacing:.13em;
+  text-transform:uppercase;border:1px solid;border-radius:6px;padding:3px 8px;
+}
+/* Четыре деления - это запас времени, а не тяжесть поломки:
+   одно горящее означает «минуты», четыре - «до планового ТО». */
+.risk .rkl{display:flex;gap:3px;margin-left:auto}
+.risk .rkl i{width:17px;height:4px;border-radius:2px;background:var(--line-2)}
+.risk .rkl i.on{background:currentColor}
+.risk p{margin:0;font-size:14.5px;line-height:1.6;color:#CBD7E3}
+.risk p + p{margin-top:9px;color:#AFBECD}
+.risk.t-now{color:var(--marker);border-color:rgba(255,90,78,.3)}
+.risk.t-warn{color:var(--lamp);border-color:rgba(255,155,61,.28)}
+.risk.t-calm{color:var(--signal);border-color:rgba(111,227,211,.24)}
+.card > .grp:first-child{margin-top:0}
+
 /* Поле принимает список, но по нему одному это не прочитать.
    Одна строка объясняет зачем, кнопка рядом - сразу показывает как. */
 .listnote{margin-top:14px}
@@ -463,6 +494,9 @@ body.critical .lamp{
   /* Разбор гирлянды кладут к машине в мастерской - на бумаге
      иерархия держится рамкой и жирностью, а не цветом. */
   .demo{display:none}
+  .risk{background:none;border:1px solid #999;color:#000}
+  .risk p,.risk p + p{color:#000}
+  .risk .rkl{display:none}
   .verdict{background:none;border:1.5px solid #000;color:#000}
   .verdict .vsub{color:#000}
   .verdict .vcount{color:#444}
@@ -725,7 +759,7 @@ body.critical .lamp{
       vStop: 'Ехать нельзя',
       vStopSub: 'Остановиться при первой безопасной возможности, дальше не тянуть.',
       vWarn: 'Ехать можно',
-      vWarnSub: 'Показать коды на ближайшем ТО.',
+      vWarnSub: 'Ниже — сколько есть времени и что будет, если тянуть.',
       demoLabel: 'Показать на примере',
       listNote: '<b>Коды можно вставить как есть</b> — через запятую, пробел или столбиком. Одна поломка тянет за собой пять-шесть кодов: покажем, какой из них причина, а какие пришли следом.',
       sysScr: 'AdBlue / выхлоп', sysOil: 'смазка', sysCool: 'охлаждение',
@@ -788,7 +822,7 @@ body.critical .lamp{
       vStop: 'Do not drive',
       vStopSub: 'Stop as soon as it’s safe to do so — don’t keep going.',
       vWarn: 'Safe to drive',
-      vWarnSub: 'Have the codes checked at the next service.',
+      vWarnSub: 'Below — how much time you have and what happens if you keep going.',
       demoLabel: 'See an example',
       listNote: '<b>Paste the codes exactly as they are</b> — separated by commas, spaces or line breaks. One fault drags five or six codes along: we show which one is the cause and which just followed.',
       sysScr: 'AdBlue / exhaust', sysOil: 'lubrication', sysCool: 'cooling',
@@ -851,7 +885,7 @@ body.critical .lamp{
       vStop: 'Weiterfahrt nicht möglich',
       vStopSub: 'Anhalten, sobald es sicher möglich ist — nicht weiterfahren.',
       vWarn: 'Weiterfahrt möglich',
-      vWarnSub: 'Codes bei der nächsten Wartung zeigen.',
+      vWarnSub: 'Unten — wie viel Zeit bleibt und was passiert, wenn Sie weiterfahren.',
       demoLabel: 'Beispiel ansehen',
       listNote: '<b>Codes einfach so einfügen</b> — getrennt durch Komma, Leerzeichen oder Zeilenumbruch. Ein Defekt zieht fünf bis sechs Codes nach sich: wir zeigen, welcher die Ursache ist und welche nur gefolgt sind.',
       sysScr: 'AdBlue / Abgas', sysOil: 'Schmierung', sysCool: 'Kühlung',
@@ -914,7 +948,7 @@ body.critical .lamp{
       vStop: 'Ne pas rouler',
       vStopSub: 'Arrêtez-vous dès que c’est possible en sécurité — ne continuez pas.',
       vWarn: 'Vous pouvez rouler',
-      vWarnSub: 'Montrez les codes au prochain entretien.',
+      vWarnSub: 'Ci-dessous — combien de temps il vous reste et ce qui arrive si vous continuez.',
       demoLabel: 'Voir un exemple',
       listNote: '<b>Collez les codes tels quels</b> — séparés par des virgules, des espaces ou des retours à la ligne. Une panne entraîne cinq ou six codes : nous montrons lequel est la cause et lesquels ont suivi.',
       sysScr: 'AdBlue / échappement', sysOil: 'lubrification', sysCool: 'refroidissement',
@@ -977,7 +1011,7 @@ body.critical .lamp{
       vStop: 'No circule',
       vStopSub: 'Deténgase en cuanto sea seguro — no siga conduciendo.',
       vWarn: 'Puede circular',
-      vWarnSub: 'Muestre los códigos en la próxima revisión.',
+      vWarnSub: 'Abajo — cuánto tiempo tiene y qué pasa si sigue circulando.',
       demoLabel: 'Ver un ejemplo',
       listNote: '<b>Pegue los códigos tal cual</b> — separados por comas, espacios o saltos de línea. Una avería arrastra cinco o seis códigos: le mostramos cuál es la causa y cuáles vinieron detrás.',
       sysScr: 'AdBlue / escape', sysOil: 'lubricación', sysCool: 'refrigeración',
@@ -1040,7 +1074,7 @@ body.critical .lamp{
       vStop: 'Não circule',
       vStopSub: 'Pare assim que for seguro — não continue a conduzir.',
       vWarn: 'Pode circular',
-      vWarnSub: 'Mostre os códigos na próxima revisão.',
+      vWarnSub: 'Abaixo — quanto tempo tem e o que acontece se continuar.',
       demoLabel: 'Ver um exemplo',
       listNote: '<b>Cole os códigos tal como estão</b> — separados por vírgulas, espaços ou quebras de linha. Uma avaria arrasta cinco ou seis códigos: mostramos qual é a causa e quais vieram a seguir.',
       sysScr: 'AdBlue / escape', sysOil: 'lubrificação', sysCool: 'arrefecimento',
@@ -1103,7 +1137,7 @@ body.critical .lamp{
       vStop: 'Nie jedź dalej',
       vStopSub: 'Zatrzymaj się, gdy tylko będzie to bezpieczne — nie kontynuuj jazdy.',
       vWarn: 'Można jechać',
-      vWarnSub: 'Pokaż kody przy najbliższym przeglądzie.',
+      vWarnSub: 'Poniżej — ile masz czasu i co się stanie, jeśli pojedziesz dalej.',
       demoLabel: 'Zobacz przykład',
       listNote: '<b>Wklej kody tak jak są</b> — oddzielone przecinkami, spacjami lub nowymi wierszami. Jedna usterka ciągnie za sobą pięć-sześć kodów: pokażemy, który jest przyczyną, a które pojawiły się po nim.',
       sysScr: 'AdBlue / wydech', sysOil: 'smarowanie', sysCool: 'układ chłodzenia',
@@ -1166,7 +1200,7 @@ body.critical .lamp{
       vStop: 'Yola devam etmeyin',
       vStopSub: 'Güvenli olur olmaz durun — yola devam etmeyin.',
       vWarn: 'Yola devam edilebilir',
-      vWarnSub: 'Kodları ilk bakımda gösterin.',
+      vWarnSub: 'Aşağıda — ne kadar zamanınız var ve devam ederseniz ne olur.',
       demoLabel: 'Örneğe bakın',
       listNote: '<b>Kodları olduğu gibi yapıştırın</b> — virgül, boşluk veya alt satır fark etmez. Tek bir arıza beş-altı kodu peşinden sürükler: hangisinin neden olduğunu, hangilerinin ardından geldiğini gösteririz.',
       sysScr: 'AdBlue / egzoz', sysOil: 'yağlama', sysCool: 'soğutma',
@@ -1229,7 +1263,7 @@ body.critical .lamp{
       vStop: 'गाड़ी न चलाएं',
       vStopSub: 'जैसे ही सुरक्षित हो, रुक जाएं — आगे न बढ़ें।',
       vWarn: 'गाड़ी चलाना सुरक्षित है',
-      vWarnSub: 'अगली सर्विस में कोड दिखाएं।',
+      vWarnSub: 'नीचे — आपके पास कितना समय है और आगे चलाते रहने पर क्या होगा।',
       demoLabel: 'उदाहरण देखें',
       listNote: '<b>कोड जैसे हैं वैसे ही पेस्ट करें</b> — कॉमा, स्पेस या नई लाइन से अलग। एक खराबी पांच-छह कोड अपने साथ लाती है: हम बताएंगे कि कौन सा कारण है और कौन से उसके बाद आए।',
       sysScr: 'AdBlue / निकास', sysOil: 'स्नेहन', sysCool: 'शीतलन',
@@ -1745,8 +1779,22 @@ body.critical .lamp{
     best.cons.forEach(function(c){ used[id(c)] = 1; });
     var solo = list.filter(function(c){ return !used[id(c)]; });
 
-    return {root:best.root, cons:best.cons, solo:solo,
-            stop:list.some(function(c){ return c.urgent; }), total:list.length};
+    /* Приговор считаем по горизонту риска, а не по голой метке
+       «критический». Пустой бак AdBlue помечен серьёзным - и он
+       серьёзный, но машина от него не встанет посреди трассы, и
+       говорить водителю «ехать нельзя» здесь просто неправда.
+
+       Смягчаем только там, где знаем систему и знаем почему.
+       Помеченный критическим код, для которого модели нет, так и
+       остаётся запретом: чего мы не понимаем, тем не рискуем. */
+    var risks = list.map(function(c){ return {c:c, r:riskOf(c)}; });
+    var worst = risks.slice().sort(function(a, b){
+      return RISK_RANK[a.r.lvl] - RISK_RANK[b.r.lvl];
+    })[0];
+    var blind = risks.some(function(x){ return x.r.key === 'genUrgent'; });
+
+    return {root:best.root, cons:best.cons, solo:solo, worst:worst.c,
+            stop:worst.r.lvl === 'now' || blind, total:list.length};
   }
 
   function codeLine(c){
@@ -1760,6 +1808,158 @@ body.critical .lamp{
       items.map(function(c){
         return '<li class="' + (c.urgent ? 'hit' : '') + '">' + codeLine(c) + '</li>';
       }).join('') + '</ul></div>';
+  }
+
+  /* ============================================================
+     ГОРИЗОНТ РИСКА
+
+     «Ехать нельзя» - это ещё не ответ. На обочине человек решает
+     не да/нет, а другое: дотяну до базы или встаю здесь, и что мне
+     будет, если всё-таки поеду. Разница между «масло ушло» и
+     «оборван провод датчика масла» - это разница между капремонтом
+     и спокойным рейсом до ТО, хотя код в обоих случаях про давление
+     масла, и оба помечены как серьёзные.
+
+     Поэтому здесь не оценка тяжести, а три вещи: сколько есть
+     времени, что произойдёт дальше и чем это кончится.
+
+     Текст держим на русском и английском, как и описания кодов:
+     это содержательная часть справочника, а не подписи интерфейса.
+     ============================================================ */
+
+  var RISK_RANK = {now:0, short:1, base:2, watch:3, plan:4};
+  var RISK_LVL = {
+    now  :{tier:'now',  fill:1},
+    short:{tier:'warn', fill:2},
+    base :{tier:'warn', fill:3},
+    watch:{tier:'calm', fill:3},
+    plan :{tier:'calm', fill:4}
+  };
+
+  /* Куда какой код попадает. elec отделяем только там, где это
+     правда меняет решение: оборванный провод датчика масла и
+     ушедшее масло - разные поездки. Во всём остальном по умолчанию
+     считаем величину настоящей: ошибиться в сторону осторожности
+     дешевле, чем наоборот. */
+  var RISK_MAP = {
+    oil  :{elec:['oilElec','watch'],  any:['oilPhys','now']},
+    cool :{elec:['coolElec','watch'], any:['coolPhys','now']},
+    brake:{                           any:['brake','now']},
+    scr  :{                           any:['scr','base']},
+    power:{                           any:['power','short']},
+    can  :{                           any:['can','base']},
+    fuel :{elec:['elecGen','watch'],  any:['fuelPhys','short']},
+    air  :{elec:['elecGen','watch'],  any:['airPhys','base']},
+    trans:{                           any:['trans','short']},
+    prot :{                           any:['prot','base']}
+  };
+
+  var RISK_TITLE = {ru:'Что будет, если ехать дальше',
+                    en:'What happens if you keep driving'};
+  var RISK_H = {
+    ru:{now:'Минуты', short:'До ближайшей остановки', base:'Хватит доехать до базы',
+        watch:'Ехать можно, следить самому', plan:'До ближайшего ТО'},
+    en:{now:'Minutes', short:'To the nearest safe stop', base:'Enough to reach the yard',
+        watch:'Drivable, but watch it yourself', plan:'Until the next service'}
+  };
+  /* Приписка на случай, когда наш спокойный вывод расходится
+     с меткой производителя. Молчать об этом расхождении нельзя. */
+  var RISK_FLAG = {
+    ru:'При этом производитель пометил код как критический — если сомневаешься, надёжнее остановиться и посмотреть на месте.',
+    en:'That said, the manufacturer flags this code as critical — if in doubt, it is safer to stop and check on the spot.'
+  };
+
+  var RISK_TX = {
+    ru:{
+      oilPhys:['Масляная плёнка в подшипниках уже рвётся. Каждая минута под нагрузкой — это металл по металлу на шейках коленвала.',
+               'Дальше — провёрнутые вкладыши и капитальный ремонт двигателя. Глушить сразу, к обочине катиться накатом, не подгазовывая.'],
+      oilElec:['Само давление, скорее всего, в норме: код электрический — обрыв или замыкание в цепи датчика, а не потеря масла.',
+               'Ехать можно, но настоящее падение давления приборка теперь не покажет. До ремонта цепи проверяй уровень щупом на каждой остановке.'],
+      coolPhys:['Двигатель уже за пределом по температуре. Алюминиевая головка ведёт себя быстро: сначала уходит геометрия, потом прогорает прокладка.',
+                'Дальше — пробитая прокладка ГБЦ, повреждённая головка, в худшем случае трещина в блоке. Заглушить и дать остыть; крышку расширительного бачка на горячую не открывать.'],
+      coolElec:['Код электрический: врёт датчик или его проводка, а не система охлаждения.',
+                'Стрелка температуры теперь ненадёжна, а вентилятор может не включиться вовремя. Следи за уровнем ОЖ и не держи двигатель в нагрузке на затяжном подъёме.'],
+      brake:['Часть тормозного контура или ABS/EBS вышла из работы. Педаль при этом может ощущаться нормально — до первого экстренного торможения или спуска.',
+             'Дальше — увеличенный тормозной путь, занос на скользком, отказ на затяжном спуске. Это тот случай, когда «доеду потихоньку» не работает.'],
+      scr:['Дозирование мочевины прервано, и блок это считает. Сначала лампа, потом срез момента, потом принудительное ограничение до скорости пешехода — ступени включаются по наработке, а не разом.',
+           'Посреди трассы машина не заглохнет, но запас времени тает с каждым часом работы. Планировать ремонт нужно сейчас, а не когда мощности уже не останется: эмулятор и «отключить мочевину» проблему не убирают, коды копятся дальше.'],
+      power:['Бортовая сеть не держит напряжение. Пока двигатель работает, всё тянет генератор; заглушишь — можешь не завестись.',
+             'Дальше сядет свет, начнут отваливаться блоки и сыпаться ложные коды по всей машине. До места, где есть помощь, лучше доехать не глуша двигатель.'],
+      can:['Блоки перестали слышать друг друга по шине. Часть показаний на панели теперь берётся из воздуха, часть функций просто выключена.',
+           'Физически ехать можно, но приборке верить нельзя, и остальные коды в списке вполне могут быть ложными: сначала лечится шина, потом всё остальное.'],
+      fuelPhys:['Топливо приходит не в том количестве или не под тем давлением. На подъёме и под нагрузкой это вылезет первым.',
+                'Скорее всего, заглохнешь на трассе, и не факт, что заведёшься с обочины. Если причина в фильтре или воде в баке — до сервиса дотянуть реально; если в ТНВД — нет.'],
+      airPhys:['Наддув не выходит на расчётные значения: турбина, интеркулер или впуск. Двигатель компенсирует это составом смеси и греется сильнее обычного.',
+               'Тяги не будет, расход вырастет, на затяжном подъёме добавится перегрев. Если со стороны турбины слышен вой или свист — не тянуть: там разрушается крыльчатка.'],
+      trans:['Коробка или сцепление ушли в аварийный режим: часть передач может стать недоступна, робот — перестать переключаться под нагрузкой.',
+             'Главный риск — остаться на подъёме без передачи и покатиться назад. Гружёным в горы не идти; до ровного места и сервиса — можно.'],
+      prot:['Это не поломка, а реакция на неё: блок сам режет мощность, чтобы защитить двигатель или выхлоп.',
+            'Ограничение будут ужесточать, пока причину не устранят. Искать надо не этот код, а тот, из-за которого он появился.'],
+      elecGen:['Код электрический: обрыв, замыкание или плохой контакт в цепи датчика. Сама величина, которую он меряет, скорее всего в норме.',
+               'Ехать можно. Но пока цепь не восстановят, эта система едет вслепую и о настоящей неисправности предупредить не сможет.'],
+      genUrgent:['Код помечен как критический: производитель считает, что продолжать движение без разбора нельзя.',
+                 'Что именно откажет дальше, по одному этому коду сказать нельзя — поэтому останавливаться стоит при первой безопасной возможности и смотреть на месте.'],
+      gen:['Отдельная неисправность без немедленных последствий для движения.',
+           'Показать коды на ближайшем ТО. Если появится второй код по этой же системе — откладывать уже не стоит.']
+    },
+    en:{
+      oilPhys:['The oil film in the bearings is already breaking down. Every minute under load is metal on metal on the crank journals.',
+               'Next comes spun bearings and a full engine rebuild. Shut it down now and coast to the shoulder without revving.'],
+      oilElec:['The pressure itself is most likely fine: this is an electrical fault — an open or a short in the sensor circuit, not lost oil.',
+               'You can drive, but the dash will no longer warn you about a real pressure drop. Until the circuit is repaired, check the level with the dipstick at every stop.'],
+      coolPhys:['The engine is already past its temperature limit. An aluminium head goes fast: first the geometry warps, then the gasket burns through.',
+                'Next comes a blown head gasket, a damaged head and, at worst, a cracked block. Shut it down and let it cool — never open the expansion tank cap while hot.'],
+      coolElec:['This is an electrical fault: the sensor or its wiring is lying, not the cooling system.',
+                'The temperature gauge is unreliable now and the fan may not kick in on time. Watch the coolant level and keep the engine off load on long climbs.'],
+      brake:['Part of the brake circuit or ABS/EBS is out of service. The pedal may still feel normal — until the first emergency stop or descent.',
+             'Next comes longer stopping distance, a skid on a slick surface, failure on a long downgrade. This is the case where "I will take it slow" does not work.'],
+      scr:['Urea dosing is interrupted and the ECU is counting. First the lamp, then a torque cut, then a forced crawl speed — the stages come in by engine hours, not all at once.',
+           'The truck will not die mid-highway, but the window shrinks with every running hour. Plan the repair now, not when the power is gone: an emulator or "deleting AdBlue" does not remove the problem, the codes keep stacking.'],
+      power:['The electrical system is not holding voltage. While the engine runs the alternator carries it; shut it off and you may not restart.',
+             'Next the lights go, then modules start dropping out and false codes appear all over the truck. Get to somewhere with help without shutting the engine down.'],
+      can:['The modules have stopped hearing each other on the bus. Some dash readings are now made up and some functions are simply off.',
+           'You can physically drive, but do not trust the instruments, and the other codes in the list may well be false: fix the bus first, then look at the rest.'],
+      fuelPhys:['Fuel is not arriving in the right amount or at the right pressure. It shows up first on climbs and under load.',
+                'You will most likely stall out on the road, and may not restart on the shoulder. A clogged filter or water in the tank you can nurse to a shop; a failing injection pump you cannot.'],
+      airPhys:['Boost is not reaching its target: turbo, intercooler or intake. The engine compensates with mixture and runs hotter than usual.',
+               'You will lose pull, burn more fuel and add overheating on long climbs. If you hear a whine or a whistle from the turbo, stop — the wheel is breaking up.'],
+      trans:['The gearbox or clutch has gone into limp mode: some gears may be unavailable and an automated box may stop shifting under load.',
+             'The main risk is being left on a climb with no gear and rolling back. Do not take a loaded truck into the hills; reaching level ground and a shop is fine.'],
+      prot:['This is not the fault, it is the reaction to it: the ECU is cutting power to protect the engine or the aftertreatment.',
+            'The limit will keep tightening until the cause is fixed. The code to chase is the one that triggered this, not this one.'],
+      elecGen:['This is an electrical fault: an open, a short or a bad contact in the sensor circuit. The value it measures is most likely fine.',
+               'You can drive. But until the circuit is repaired this system runs blind and cannot warn you about a real failure.'],
+      genUrgent:['The code is flagged critical: the manufacturer considers it unsafe to keep driving without checking.',
+                 'This code alone cannot say what will fail next, so stop at the first safe opportunity and look at it on the spot.'],
+      gen:['A standalone fault with no immediate consequences for driving.',
+           'Show the codes at the next service. If a second code from the same system appears, stop putting it off.']
+    }
+  };
+
+  function riskOf(c){
+    var m = RISK_MAP[c.sys], pick;
+    if(m) pick = (m.elec && FMI_ELEC.indexOf(c.fmi) >= 0) ? m.elec : m.any;
+    else if(FMI_ELEC.indexOf(c.fmi) >= 0) pick = ['elecGen','watch'];
+    else pick = c.urgent ? ['genUrgent','short'] : ['gen','plan'];
+
+    var lvl = pick[1], flag = false;
+    /* Метка производителя перевешивает наш спокойный вывод: поднимаем
+       горизонт и говорим о расхождении вслух, а не втихую. */
+    if(c.urgent && (lvl === 'plan' || lvl === 'watch')){ lvl = 'short'; flag = true; }
+    return {key:pick[0], lvl:lvl, flag:flag};
+  }
+
+  function riskBlock(c, tag){
+    var L = currentLang === 'ru' ? 'ru' : 'en';
+    var r = riskOf(c), meta = RISK_LVL[r.lvl], tx = RISK_TX[L][r.key], bars = '';
+    for(var i = 0; i < 4; i++) bars += '<i class="' + (i < meta.fill ? 'on' : '') + '"></i>';
+    return '<div class="grp"><div class="st">' + esc(RISK_TITLE[L] + (tag || '')) + '</div>' +
+      '<div class="risk t-' + meta.tier + '">' +
+        '<div class="rkh"><span class="rkb">' + esc(RISK_H[L][r.lvl]) + '</span>' +
+          '<span class="rkl" aria-hidden="true">' + bars + '</span></div>' +
+        '<p>' + esc(tx[0]) + '</p>' +
+        '<p>' + esc(tx[1]) + (r.flag ? ' ' + esc(RISK_FLAG[L]) : '') + '</p>' +
+      '</div></div>';
   }
 
   var MARK_STOP = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.2 2h7.6L22 8.2v7.6L15.8 22H8.2L2 15.8V8.2L8.2 2Zm2.8 5v7h2V7h-2Zm0 9v2h2v-2h-2Z"/></svg>';
@@ -1785,6 +1985,13 @@ body.critical .lamp{
 
     html += group(t('casCons'), a.cons);
     html += group(t('casSolo'), a.solo, 'solo');
+
+    /* Обычно срок задаёт первопричина, но не всегда: рядом с грозью
+       от пустого бака может лежать одинокий тормозной код, и жёстче
+       именно он. Тогда показываем его и подписываем номером, чтобы
+       не выглядело, будто это про корень. */
+    html += riskBlock(a.worst, a.worst === a.root ? '' :
+                      ' · SPN ' + a.worst.spn + '/' + a.worst.fmi);
 
     html += '<div class="grp"><div class="st">' + esc(t('casTodo')) + '</div>' +
               '<ol class="todo"><li>' + esc(t(ACT[a.root.sys] || 'actDefault')) + '</li></ol></div>';
@@ -1915,6 +2122,13 @@ body.critical .lamp{
           : {st:t('stepUrgency'), tx:t('notUrgentText')}
       ];
       var html = chain(steps);
+      /* Для нерасшифрованного кода горизонт не строим: срок можно
+         назвать, только зная, что именно сломалось. */
+      if(!d.unknown){
+        html += '<div class="card">' + riskBlock({
+          spn:p.spn, fmi:p.fmi, sys:systemOf(p.spn, d.text), urgent:u
+        }) + '</div>';
+      }
       if(d.unknown){
         html += note(t('unknownSpnNote'));
       }
