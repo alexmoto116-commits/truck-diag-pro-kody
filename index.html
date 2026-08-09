@@ -135,7 +135,7 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
 .scanner{
   background:linear-gradient(180deg, rgba(22,32,44,.92), rgba(10,16,24,.94));
   border:1px solid var(--line);border-radius:18px;
-  padding:6px 6px 6px 8px;
+  padding:6px 6px 6px 16px;
   display:flex;align-items:center;gap:10px;
   box-shadow:0 24px 60px -28px rgba(0,0,0,.95), inset 0 1px 0 rgba(255,255,255,.05);
   backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
@@ -145,24 +145,6 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
   border-color:rgba(255,155,61,.55);
   box-shadow:0 24px 60px -28px rgba(0,0,0,.95), 0 0 0 4px rgba(255,155,61,.12);
 }
-.lamp{
-  flex:none;width:42px;height:32px;margin-left:6px;
-  color:var(--lamp);filter:drop-shadow(0 0 10px rgba(255,155,61,.55));
-  animation:lamp-breathe 2.6s ease-in-out infinite;
-}
-.lamp svg{width:100%;height:100%;display:block;fill:currentColor}
-@keyframes lamp-breathe{0%,100%{opacity:.72}50%{opacity:1}}
-/* лампа погасла - код разобран и он не критичный */
-body.solved .lamp{
-  color:#3E4B59;filter:none;animation:none;
-}
-/* лампа красная - ехать нельзя */
-body.critical .lamp{
-  color:var(--marker);filter:drop-shadow(0 0 12px rgba(255,90,78,.6));
-  animation:lamp-breathe 1s ease-in-out infinite;
-}
-@media(prefers-reduced-motion:reduce){ .lamp{animation:none;opacity:1} }
-
 #pf-code{
   flex:1;min-width:0;background:transparent;border:none;outline:none;color:#fff;
   font-family:var(--mono);font-size:clamp(17px,4.2vw,21px);letter-spacing:.04em;
@@ -248,34 +230,33 @@ body.critical .lamp{
 /* Распечатать разбор - в мастерской бумажку кладут к машине.
    Кнопка закреплена в правом верхнем углу страницы: её видно сразу,
    не нужно искать под ответом. */
-.print-btn{
+/* Дневная и ночная тема. Это такая же настройка вида, как язык,
+   поэтому кнопка выглядит так же и стоит зеркально - в правом углу.
+   Показываем не текущее состояние, а то, куда переключит: ночью
+   горит солнце, днём - луна. */
+.theme-btn{
   position:fixed;top:clamp(14px,2.5vw,22px);right:clamp(14px,2.5vw,22px);z-index:20;
-  display:inline-flex;align-items:center;gap:8px;cursor:pointer;
-  font-family:var(--sans);font-size:14px;font-weight:650;color:#20120A;
-  background:linear-gradient(180deg, #FFAA55, #F2833C);
-  border:none;border-radius:12px;padding:11px 17px;min-height:44px;
-  box-shadow:0 10px 26px -10px rgba(255,147,80,.65);
-  transition:transform .18s cubic-bezier(.22,1,.36,1), filter .18s ease, box-shadow .18s ease;
-}
-.print-btn:hover{transform:translateY(-1px);filter:brightness(1.07);box-shadow:0 14px 32px -10px rgba(255,147,80,.8)}
-.print-btn:active{transform:translateY(0)}
-.print-btn:focus-visible{outline:2px solid #fff;outline-offset:3px}
-.print-btn svg{width:17px;height:17px;flex:none}
-/* пока код не разобран - печатать нечего: кнопка гаснет в тихий контур */
-.print-btn[disabled]{
-  cursor:default;background:rgba(12,19,28,.72);color:var(--ink-3);
-  border:1px solid var(--line);padding:10px 16px;box-shadow:none;
+  display:inline-flex;align-items:center;justify-content:center;
+  width:44px;height:44px;cursor:pointer;color:var(--signal);
+  background:rgba(12,19,28,.78);border:1px solid rgba(111,227,211,.32);border-radius:12px;
   backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  transition:border-color .18s ease,background .18s ease;
 }
-.print-btn[disabled]:hover{transform:none;filter:none;box-shadow:none}
+.theme-btn:hover{border-color:rgba(111,227,211,.55);background:rgba(12,19,28,.9)}
+.theme-btn:focus-visible{outline:2px solid var(--lamp);outline-offset:3px}
+.theme-btn svg{width:19px;height:19px;display:block}
+.theme-btn .ic-moon{display:none}
+[data-theme="light"] .theme-btn{background:rgba(255,255,255,.9);border-color:rgba(11,122,106,.4)}
+[data-theme="light"] .theme-btn:hover{background:#fff;border-color:rgba(11,122,106,.65)}
+[data-theme="light"] .theme-btn .ic-moon{display:block}
+[data-theme="light"] .theme-btn .ic-sun{display:none}
+
 @media(max-width:560px){
-  .print-btn span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
-  .print-btn{padding:10px}
   /* На телефоне закреплённые плашки висят поверх текста и перекрывают
      его при прокрутке: «RU» садится на код, кнопка печати - на заголовок.
      Уводим их в поток страницы: наверху они на месте, дальше уезжают
      вместе с контентом. */
-  .print-btn{position:absolute}
+  .theme-btn{position:absolute}
   .scene{padding-top:76px}
   /* Два select в ряд на телефоне не влезают - текст обрезается
      стрелкой. Ставим их друг под другом на всю ширину. */
@@ -285,7 +266,6 @@ body.critical .lamp{
      уходит под поле, ввод получает всю ширину. */
   .scanner{flex-wrap:wrap}
   #pf-code{flex:1 1 100%;order:1}
-  .lamp{order:0}
   #pf-go{order:2;flex:1 1 100%;margin-top:8px}
 }
 
@@ -475,288 +455,6 @@ body.critical .lamp{
 }
 
 /* ============================================================
-   ПРОБНЫЕ ПРАВКИ ДИЗАЙНА  (?preview=1)
-
-   Первая. Выдача сейчас - пять блоков примерно одного веса, и глаз
-   не понимает, что здесь главное. А смотрят в телефон одной рукой,
-   в тряске, иногда с вытянутой руки. Настоящие приборы устроены
-   иначе: одно крупное показание и мелкая обвязка вокруг. Поэтому
-   вердикт со шкалой запаса времени становится прибором во всю
-   ширину, номер первопричины - крупным, остальное уходит вниз
-   по иерархии.
-
-   Вторая. Разбор гирлянды - наше единственное настоящее отличие,
-   и оно невидимо, пока человек сам не догадается вставить список.
-   Живой пример на первом экране показывает это до первого ввода.
-   ============================================================ */
-
-/* --- прибор вместо карточки-вердикта --- */
-.gauge{
-  border:1px solid;border-radius:16px;padding:16px 18px 14px;margin-bottom:14px;
-}
-.gauge .gtop{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.gauge .gmark{flex:none;width:26px;height:26px}
-.gauge .gmark svg{width:100%;height:100%;display:block;fill:currentColor}
-/* Крупно настолько, чтобы читалось с вытянутой руки - это единственная
-   строка на странице, которую человек обязан увидеть сразу. */
-.gauge .gtitle{
-  font-size:clamp(22px,5.5vw,28px);font-weight:700;letter-spacing:-.02em;line-height:1.1;
-}
-.gauge .gcount{
-  margin-left:auto;flex:none;
-  font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;
-  color:var(--ink-3);
-}
-.gauge .ghz{
-  margin-top:11px;font-size:13.5px;line-height:1.4;color:#C3D0DD;
-}
-.gauge .ghz b{color:currentColor;font-weight:700}
-/* Шкала во всю ширину: сколько делений горит - столько запаса. */
-.gauge .gscale{display:flex;gap:4px;margin-top:9px}
-.gauge .gscale i{flex:1;height:9px;border-radius:3px;background:var(--line-2)}
-.gauge .gscale i.on{background:currentColor}
-.gauge.stop{
-  color:var(--marker);border-color:rgba(255,90,78,.42);
-  background:linear-gradient(180deg, rgba(48,17,15,.92), rgba(24,11,12,.94));
-}
-.gauge.warn{
-  color:var(--lamp);border-color:rgba(255,155,61,.38);
-  background:linear-gradient(180deg, rgba(44,29,13,.92), rgba(22,15,9,.94));
-}
-/* Номер первопричины крупным моноширинным - как на табло. Его
-   сверяют глазами со сканером, поэтому крупно тут не украшение. */
-[data-preview] .root .rcode .mono{font-size:clamp(22px,6vw,30px);letter-spacing:-.02em}
-[data-preview] .root{padding:16px 18px}
-/* Бейдж и мелкая шкала уехали наверх, в прибор - здесь остаётся текст. */
-[data-preview] .risk .rkh{display:none}
-[data-preview] .risk{border-color:var(--line)}
-/* Следствия и советы - обвязка вокруг показания, поэтому тише. */
-[data-preview] .cons li{font-size:13.5px}
-[data-preview] .todo{font-size:13.5px}
-
-/* --- живой пример на первом экране --- */
-.showcase{
-  margin-top:14px;border:1px solid var(--line-2);border-radius:14px;
-  background:rgba(255,255,255,.022);padding:14px 16px;
-}
-.showcase .schead{
-  font-family:var(--mono);font-size:10.5px;letter-spacing:.15em;text-transform:uppercase;
-  color:var(--ink-3);margin-bottom:12px;
-}
-.showcase .scgrid{display:flex;gap:18px;align-items:flex-start}
-.showcase .sccol{flex:1 1 0;min-width:0}
-.showcase .sclbl{font-size:12px;color:var(--ink-3);margin-bottom:8px;line-height:1.4}
-/* Слева - как приходит со сканера: шесть равнозначных строк, в
-   которых непонятно, за что хвататься. Ровно то, что видит человек. */
-.showcase .sccodes{list-style:none;margin:0;padding:0}
-.showcase .sccodes li{
-  font-family:var(--mono);font-size:12.5px;color:var(--ink-3);
-  padding:3px 0;line-height:1.4;
-}
-.showcase .sccodes li.rt{color:var(--root);font-weight:600}
-.showcase .scroot{
-  border:1px solid rgba(255,210,74,.4);border-radius:10px;
-  background:linear-gradient(180deg, rgba(38,31,12,.9), rgba(20,17,10,.92));
-  padding:10px 12px;
-}
-.showcase .scroot .mono{display:block;color:var(--root);font-size:14px;font-weight:600;margin-bottom:4px}
-.showcase .scroot .sctx{font-size:13.5px;line-height:1.45;color:#EEF3F9}
-.showcase .scnote{margin-top:9px;font-size:12.5px;line-height:1.45;color:var(--ink-2)}
-/* Стрелка между колонками - только на широком экране: на телефоне
-   колонки становятся строками, и стрелка вбок начинает врать. */
-.showcase .scarrow{flex:none;align-self:center;color:var(--ink-3);width:18px;height:18px}
-@media(max-width:560px){
-  .showcase .scgrid{flex-direction:column;gap:12px}
-  .showcase .scarrow{display:none}
-  .gauge{padding:14px}
-  .gauge .gcount{margin-left:0;width:100%}
-}
-/* Абзац словами больше не нужен - его показывает сам пример. */
-[data-preview] .listnote p{display:none}
-[data-preview] .listnote{margin-top:12px}
-
-/* --- короткий путь: машина, код, что делать ---
-   Водитель не должен ничего додумывать. Поэтому порядок на входе
-   ровно такой, в каком он думает: какая машина, потом код. Выбор
-   стандарта убран с глаз - это решение за него принимает автомат,
-   а ручной режим остаётся ссылкой для тех редких, кому он нужен.
-
-   На выходе первым идёт действие, а не разбор. Причина - одной
-   строкой. Всё аналитическое - следствия, посторонние коды,
-   последствия поездки - спрятано под «подробнее»: оно нужно
-   механику, а не человеку на обочине. */
-.steplbl{
-  font-family:var(--mono);font-size:10.5px;letter-spacing:.15em;text-transform:uppercase;
-  color:var(--ink-3);margin:0 0 8px;
-}
-.steplbl:not(:first-child){margin-top:16px}
-[data-preview] .filters{margin-top:0}
-/* Переключатель языка встаёт в поток первым шагом, а не висит
-   плашкой поверх страницы. */
-[data-preview] .lang-switch{position:static;backdrop-filter:none;-webkit-backdrop-filter:none}
-[data-preview] .scene{padding-top:clamp(34px,7vw,70px)}
-[data-preview] #pf-standard{display:none}
-[data-preview] .filters.raw #pf-standard{display:block}
-/* Вариант без выпадающих меню: всё нажимается пальцем с первого
-   раза. Выпадающий список на телефоне - это три действия (открыть,
-   пролистать, выбрать) и мелкие строки; ряд кнопок - одно действие
-   и крупная цель. */
-[data-preview="2"] .filters, [data-preview="3"] .filters,
-[data-preview="2"] .lang-switch, [data-preview="3"] .lang-switch{display:none}
-/* Ряд в одну строку с горизонтальной прокруткой. Перенос по строкам
-   давал пять строк кнопок и уводил поле ввода на середину экрана -
-   ради быстроты всё должно помещаться выше сгиба. */
-.chips{
-  display:flex;flex-wrap:nowrap;gap:8px;margin:0;
-  overflow-x:auto;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;
-  scrollbar-width:none;padding-bottom:2px;
-}
-.chips::-webkit-scrollbar{display:none}
-/* Растворяющийся край - единственный намёк, что ряд продолжается.
-   Ставится только когда прокрутка действительно нужна. */
-.chips.sc{
-  -webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 30px),transparent);
-          mask-image:linear-gradient(90deg,#000 calc(100% - 30px),transparent);
-}
-.chips button{
-  flex:none;min-height:46px;padding:10px 14px;cursor:pointer;
-  font-family:var(--sans);font-size:14px;font-weight:600;color:var(--ink-2);
-  background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:11px;
-  transition:color .16s ease,border-color .16s ease,background .16s ease;
-}
-.chips button:hover{color:var(--ink);border-color:rgba(111,227,211,.4)}
-.chips button:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
-/* Выбранное видно с одного взгляда, без прищуривания на галочку. */
-.chips button[aria-pressed="true"]{
-  color:var(--night);background:var(--signal);border-color:var(--signal);
-}
-.chips.lang button{font-family:var(--mono);letter-spacing:.06em;min-width:54px}
-.altfmt{
-  background:none;border:none;padding:0;margin-top:10px;cursor:pointer;
-  font-family:var(--sans);font-size:12.5px;color:var(--ink-3);
-  text-decoration:underline;text-underline-offset:3px;
-}
-.altfmt:hover{color:var(--ink-2)}
-.more{margin-top:18px;border-top:1px solid var(--line-2);padding-top:6px}
-.more summary{
-  cursor:pointer;list-style:none;display:inline-flex;align-items:center;gap:8px;
-  min-height:44px;font-size:13.5px;color:var(--signal);
-}
-.more summary::-webkit-details-marker{display:none}
-.more summary::before{
-  content:"";flex:none;width:0;height:0;
-  border-left:5px solid currentColor;border-top:4px solid transparent;
-  border-bottom:4px solid transparent;transition:transform .18s ease;
-}
-.more[open] summary::before{transform:rotate(90deg)}
-.more .grp:first-of-type{margin-top:4px}
-/* Пример нужен ровно до первого ответа: он объясняет, зачем вставлять
-   список. После ответа он только отодвигает результат вниз. */
-[data-preview] body.solved .showcase,
-[data-preview] body.critical .showcase,
-[data-preview] body.solved .listnote,
-[data-preview] body.critical .listnote{display:none}
-/* Действие - главное, что человек должен унести с экрана. */
-[data-preview] .todo{font-size:15.5px;line-height:1.55;color:var(--ink)}
-[data-preview] .todo li::marker{color:var(--lamp)}
-
-/* --- режим отчёта ---
-   Когда ответ готов, он занимает страницу целиком. Ввод сворачивается
-   в одну строку сверху: что за машина и какой код - этого достаточно,
-   чтобы понимать, к чему относится отчёт, и вернуться к правке одним
-   нажатием. Всё остальное с экрана уходит: человек читает ответ, а не
-   форму, которую уже заполнил. */
-.recap{
-  display:none;align-items:center;gap:12px;width:100%;
-  min-height:52px;padding:10px 14px;margin-bottom:14px;cursor:pointer;
-  background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:12px;
-  font-family:var(--sans);text-align:left;
-  transition:border-color .16s ease;
-}
-.recap:hover{border-color:rgba(111,227,211,.4)}
-.recap:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
-.recap .rcv{
-  flex:1;min-width:0;font-size:14px;color:var(--ink);font-weight:600;
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-}
-.recap .rce{flex:none;font-size:12.5px;color:var(--signal)}
-[data-preview="3"] body.report .recap{display:flex}
-[data-preview="3"] body.report h1,
-[data-preview="3"] body.report .purpose,
-[data-preview="3"] body.report .steplbl,
-[data-preview="3"] body.report .chips,
-[data-preview="3"] body.report .scanner,
-[data-preview="3"] body.report .showcase,
-[data-preview="3"] body.report .listnote,
-[data-preview="3"] body.report .datanote,
-[data-preview="3"] body.report .print-btn{display:none}
-[data-preview="3"] body.report .out{margin-top:0}
-
-[data-theme="light"] .recap{background:#fff}
-@media print{ .recap{display:none !important} }
-
-/* --- движение объясняет связь ---
-   Смысл гирлянды в том, что причина одна, а остальное к ней
-   прицепилось. Статичным списком эту мысль приходится вычитывать.
-   Поэтому сначала появляется корень, затем от него прорастает линия,
-   и уже по ней подтягиваются следствия - идея доходит без слов.
-   Всё на CSS, ничего не грузится, при системной настройке
-   «меньше движения» выключается целиком. */
-[data-preview] .root{
-  opacity:0;transform:translateY(6px);
-  animation:rise .42s cubic-bezier(.22,1,.36,1) .05s forwards;
-}
-[data-preview] .cons{position:relative;border-left-color:transparent}
-[data-preview] .cons::before{
-  content:"";position:absolute;left:-1px;top:0;bottom:0;width:1px;
-  background:var(--line-2);transform-origin:top;transform:scaleY(0);
-  animation:growline .45s cubic-bezier(.22,1,.36,1) .34s forwards;
-}
-[data-preview] .cons.solo{border-left-color:transparent}
-[data-preview] .cons.solo::before{display:none}
-[data-preview] .cons li{
-  opacity:0;transform:translateX(-7px);
-  animation:attach .34s cubic-bezier(.22,1,.36,1) forwards;
-  animation-delay:calc(420ms + var(--i,0) * 80ms);
-}
-@keyframes growline{to{transform:scaleY(1)}}
-@keyframes attach{to{opacity:1;transform:none}}
-/* Внутри «подробнее» анимации нет. Она объясняет связь в момент
-   появления ответа, а не в момент раскрытия спойлера, и там от неё
-   один вред: пока идёт задержка, раскрытый блок стоит пустым. */
-[data-preview] .more .cons li{animation:none;opacity:1;transform:none}
-[data-preview] .more .cons::before{animation:none;transform:none}
-@media(prefers-reduced-motion:reduce){
-  [data-preview] .root,
-  [data-preview] .cons li{animation:none;opacity:1;transform:none}
-  [data-preview] .cons::before{animation:none;transform:none}
-}
-
-/* --- широкий экран: ответ рядом с полем, а не под ним ---
-   На десктопе у нас узкая колонка по центру и пустота в половину
-   монитора по бокам, хотя механик в мастерской сидит именно за
-   ноутбуком. Когда ответ есть, он уходит во вторую колонку: ввёл
-   слева - прочитал справа, без прокрутки. Пока ответа нет, макет
-   обычный, иначе первый экран выглядел бы наполовину пустым. */
-@media(min-width:1040px){
-  [data-preview] body.solved .scene .w,
-  [data-preview] body.critical .scene .w{
-    /* Левая колонка чуть шире правой: в неё уходит поле ввода, а
-       вставленный список кодов длинный и его лучше видеть. */
-    max-width:1280px;
-    display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);
-    column-gap:clamp(28px,4vw,48px);align-items:start;
-  }
-  [data-preview] body.solved .scene .w > *,
-  [data-preview] body.critical .scene .w > *{grid-column:1}
-  [data-preview] body.solved .scene .w > .out,
-  [data-preview] body.critical .scene .w > .out{
-    grid-column:2;grid-row:1 / span 99;margin-top:0;
-    position:sticky;top:clamp(14px,2.5vw,22px);
-  }
-}
-
-/* ============================================================
    ДНЕВНАЯ ТЕМА
 
    Тёмный экран хорош ночью на обочине, но половина обращений
@@ -817,7 +515,6 @@ body.critical .lamp{
 }
 [data-theme="light"] #pf-code{color:var(--ink)}
 [data-theme="light"] #pf-code::placeholder{color:#8494A4}
-[data-theme="light"] body.solved .lamp{color:#A3AEBA}
 [data-theme="light"] .card{background:#fff}
 [data-theme="light"] .chain .tx{color:#1F2C38}
 [data-theme="light"] .chain .tx b{color:var(--ink)}
@@ -828,7 +525,6 @@ body.critical .lamp{
 }
 [data-theme="light"] .lang-switch:hover{border-color:rgba(11,122,106,.65);background:#fff}
 [data-theme="light"] .lang-switch select:hover{color:#000}
-[data-theme="light"] .print-btn:focus-visible{outline-color:var(--ink)}
 [data-theme="light"] .verdict .vsub{color:#33424F}
 [data-theme="light"] .verdict.stop{background:#FDECEA;border-color:rgba(193,39,26,.45)}
 [data-theme="light"] .verdict.warn{background:#FDF1E3;border-color:rgba(169,73,10,.42)}
@@ -847,21 +543,13 @@ body.critical .lamp{
 /* Специфичность здесь равна правилу выше, и без этой строки погашенные
    деления перекрывают горящие: шкала запаса времени пропадает целиком. */
 [data-theme="light"] .risk .rkl i.on{background:currentColor}
-[data-theme="light"] .gauge.stop{background:#FDECEA;border-color:rgba(193,39,26,.45)}
-[data-theme="light"] .gauge.warn{background:#FDF1E3;border-color:rgba(169,73,10,.42)}
-[data-theme="light"] .gauge .ghz{color:#33424F}
-[data-theme="light"] .gauge .gscale i{background:rgba(15,23,32,.12)}
-[data-theme="light"] .gauge .gscale i.on{background:currentColor}
-[data-theme="light"] .showcase{background:#fff}
-[data-theme="light"] .showcase .scroot{background:#FDF6DF;border-color:rgba(138,99,0,.45)}
-[data-theme="light"] .showcase .scroot .sctx{color:var(--ink)}
 [data-theme="light"] .common a:hover,
 [data-theme="light"] .common .lines a:hover{border-color:rgba(11,122,106,.5)}
 
 /* ---------- печать: чистый лист, без фона и без органов управления ---------- */
 @media print{
   body{background:#fff;color:#000}
-  .scene .photo,.scene .veil,.filters,.hint,.datanote,.print-btn,.lang-switch,#pf-go{display:none}
+  .scene .photo,.scene .veil,.filters,.hint,.datanote,.theme-btn,.lang-switch,#pf-go{display:none}
   .scene{padding:0 0 14px;background:#fff}
   .brand{color:#000;margin-bottom:10px}
   .brand i{background:#000}
@@ -871,7 +559,6 @@ body.critical .lamp{
   .scanner{
     background:none;border:none;box-shadow:none;padding:0;backdrop-filter:none;
   }
-  .lamp{display:none}
   #pf-code{color:#000;font-size:16px;padding:0}
   .out{padding-top:8px}
   .card{background:#fff;border:1px solid #bbb;color:#000}
@@ -963,13 +650,11 @@ body.critical .lamp{
    тёмным. Постоянного переключателя пока нет, это только чтобы
    посмотреть тему на живом телефоне при дневном свете. */
 (function(){
+  var v = null;
+  try{ v = localStorage.getItem('ct-theme'); }catch(e){}
   var m = /[?&]theme=(light|dark)/.exec(location.search);
-  if(m) document.documentElement.setAttribute('data-theme', m[1]);
-  /* ?preview=1 - две правки дизайна на пробу: выдача в виде прибора
-     и живой пример работы прямо на первом экране. Посетители сайта
-     их пока не видят. */
-  var p = /[?&]preview=([123])/.exec(location.search);
-  if(p) document.documentElement.setAttribute('data-preview', p[1]);
+  if(m) v = m[1];
+  if(v === 'light') document.documentElement.setAttribute('data-theme', 'light');
 })();
 </script>
 </head>
@@ -997,12 +682,16 @@ body.critical .lamp{
   </svg>
 </div>
 
-<button type="button" id="pf-print" class="print-btn" disabled title="Сначала разберите код">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+<button type="button" id="pf-theme" class="theme-btn" title="Дневная тема" aria-label="Дневная тема">
+  <svg class="ic-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-    <path d="M7 8V3h10v5"/><rect x="3" y="8" width="18" height="8" rx="2"/>
-    <path d="M7 14h10v7H7z"/>
-  </svg><span data-i18n="printLabel">Распечатать</span>
+    <circle cx="12" cy="12" r="4.2"/>
+    <path d="M12 2v2.4M12 19.6V22M4.2 4.2l1.7 1.7M18.1 18.1l1.7 1.7M2 12h2.4M19.6 12H22M4.2 19.8l1.7-1.7M18.1 5.9l1.7-1.7"/>
+  </svg>
+  <svg class="ic-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+       stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5Z"/>
+  </svg>
 </button>
 
 <div class="scene">
@@ -1015,14 +704,6 @@ body.critical .lamp{
     </div>
 
     <div class="scanner">
-      <div class="lamp" aria-hidden="true">
-        <svg viewBox="0 0 42 30" role="img">
-          <rect x="2" y="11" width="4" height="10" rx="2"/>
-          <rect x="14" y="1.5" width="10" height="3.6" rx="1.8"/>
-          <rect x="17" y="4" width="4.4" height="3"/>
-          <path d="M9 10 13 6h11l4 4h5V7h6v18h-6v-3h-5l-4 4H13l-4-4z"/>
-        </svg>
-      </div>
       <input id="pf-code" type="text" inputmode="text" autocomplete="off" autofocus
              placeholder="SPN 100 FMI 1" aria-label="Код неисправности">
       <button id="pf-go" type="button" data-i18n="goBtn">Разобрать</button>
@@ -1127,8 +808,8 @@ body.critical .lamp{
       hint: 'Регистр и пробелы не важны. Понимает <code>SPN 100 FMI 1</code>, <code>97 FMI 3</code>, <code>100/1</code>, <code>03043-00</code>, один <code>SPN 97</code> и дилерские коды вроде <code>P2BA7</code>.',
       dataLangNote: '',
       printLabel: 'Распечатать',
-      printTitleDisabled: 'Сначала разберите код',
-      printTitleEnabled: 'Распечатать разбор',
+      themeDay: 'Дневная тема',
+      themeNight: 'Ночная тема',
       footText: 'Справочник показывает, что означает код, а не ставит диагноз — решение всегда за человеком с оборудованием. Вопросы — <a href="mailto:alexdiag116@gmail.com" style="color:inherit">alexdiag116@gmail.com</a>.',
       langAria: 'Язык страницы',
       emptyPrompt: 'Введите код — например <b>SPN 100 FMI 1</b> или просто <b>100/1</b>.',
@@ -1191,8 +872,8 @@ body.critical .lamp{
       hint: 'Case and spacing don’t matter. Understands <code>SPN 100 FMI 1</code>, <code>97 FMI 3</code>, <code>100/1</code>, <code>03043-00</code>, a bare <code>SPN 97</code>, and dealer codes like <code>P2BA7</code>.',
       dataLangNote: 'Fault names and factory tables in the database are in Russian; the interface and the standard FMI meanings below are translated.',
       printLabel: 'Print',
-      printTitleDisabled: 'Decode a code first',
-      printTitleEnabled: 'Print this result',
+      themeDay: 'Day theme',
+      themeNight: 'Night theme',
       footText: 'This reference explains what a code means — it doesn’t diagnose the truck. The final call is always with a person who has the equipment. Questions — <a href="mailto:alexdiag116@gmail.com" style="color:inherit">alexdiag116@gmail.com</a>.',
       langAria: 'Page language',
       emptyPrompt: 'Enter a code — for example <b>SPN 100 FMI 1</b> or just <b>100/1</b>.',
@@ -1255,8 +936,8 @@ body.critical .lamp{
       hint: 'Groß-/Kleinschreibung und Leerzeichen spielen keine Rolle. Erkennt <code>SPN 100 FMI 1</code>, <code>97 FMI 3</code>, <code>100/1</code>, <code>03043-00</code>, ein einzelnes <code>SPN 97</code> sowie Händlercodes wie <code>P2BA7</code>.',
       dataLangNote: 'Fehlerbeschreibungen werden auf Englisch angezeigt.',
       printLabel: 'Drucken',
-      printTitleDisabled: 'Zuerst einen Code entschlüsseln',
-      printTitleEnabled: 'Ergebnis drucken',
+      themeDay: 'Tagmodus',
+      themeNight: 'Nachtmodus',
       footText: 'Dieses Nachschlagewerk erklärt, was ein Code bedeutet — es stellt keine Diagnose. Die Entscheidung trifft immer eine Person mit der passenden Ausrüstung. Fragen — <a href="mailto:alexdiag116@gmail.com" style="color:inherit">alexdiag116@gmail.com</a>.',
       langAria: 'Seitensprache',
       emptyPrompt: 'Code eingeben — zum Beispiel <b>SPN 100 FMI 1</b> oder einfach <b>100/1</b>.',
@@ -1319,8 +1000,8 @@ body.critical .lamp{
       hint: 'La casse et les espaces n’ont pas d’importance. Reconnaît <code>SPN 100 FMI 1</code>, <code>97 FMI 3</code>, <code>100/1</code>, <code>03043-00</code>, un simple <code>SPN 97</code>, ainsi que les codes constructeur comme <code>P2BA7</code>.',
       dataLangNote: 'Les descriptions des défauts sont affichées en anglais.',
       printLabel: 'Imprimer',
-      printTitleDisabled: 'Décodez d’abord un code',
-      printTitleEnabled: 'Imprimer ce résultat',
+      themeDay: 'Thème clair',
+      themeNight: 'Thème sombre',
       footText: 'Ce répertoire explique ce que signifie un code — il ne pose pas de diagnostic. La décision revient toujours à une personne équipée du matériel nécessaire. Questions — <a href="mailto:alexdiag116@gmail.com" style="color:inherit">alexdiag116@gmail.com</a>.',
       langAria: 'Langue de la page',
       emptyPrompt: 'Entrez un code — par exemple <b>SPN 100 FMI 1</b> ou simplement <b>100/1</b>.',
@@ -1383,8 +1064,8 @@ body.critical .lamp{
       hint: 'Mayúsculas y espacios no importan. Reconoce <code>SPN 100 FMI 1</code>, <code>97 FMI 3</code>, <code>100/1</code>, <code>03043-00</code>, un simple <code>SPN 97</code>, y códigos de concesionario como <code>P2BA7</code>.',
       dataLangNote: 'Las descripciones de las averías se muestran en inglés.',
       printLabel: 'Imprimir',
-      printTitleDisabled: 'Primero decodifica un código',
-      printTitleEnabled: 'Imprimir este resultado',
+      themeDay: 'Tema claro',
+      themeNight: 'Tema oscuro',
       footText: 'Esta referencia explica qué significa un código — no diagnostica el camión. La decisión final siempre corresponde a una persona con el equipo adecuado. Preguntas — <a href="mailto:alexdiag116@gmail.com" style="color:inherit">alexdiag116@gmail.com</a>.',
       langAria: 'Idioma de la página',
       emptyPrompt: 'Introduce un código — por ejemplo <b>SPN 100 FMI 1</b> o simplemente <b>100/1</b>.',
@@ -1447,8 +1128,8 @@ body.critical .lamp{
       hint: 'Maiúsculas e espaços não importam. Reconhece <code>SPN 100 FMI 1</code>, <code>97 FMI 3</code>, <code>100/1</code>, <code>03043-00</code>, um simples <code>SPN 97</code>, e códigos de concessionária como <code>P2BA7</code>.',
       dataLangNote: 'As descrições das falhas são apresentadas em inglês.',
       printLabel: 'Imprimir',
-      printTitleDisabled: 'Decodifique um código primeiro',
-      printTitleEnabled: 'Imprimir este resultado',
+      themeDay: 'Tema claro',
+      themeNight: 'Tema escuro',
       footText: 'Esta referência explica o que um código significa — não faz diagnóstico do caminhão. A decisão final é sempre de uma pessoa com o equipamento adequado. Dúvidas — <a href="mailto:alexdiag116@gmail.com" style="color:inherit">alexdiag116@gmail.com</a>.',
       langAria: 'Idioma da página',
       emptyPrompt: 'Digite um código — por exemplo <b>SPN 100 FMI 1</b> ou apenas <b>100/1</b>.',
@@ -1511,8 +1192,8 @@ body.critical .lamp{
       hint: 'Wielkość liter i spacje nie mają znaczenia. Rozpoznaje <code>SPN 100 FMI 1</code>, <code>97 FMI 3</code>, <code>100/1</code>, <code>03043-00</code>, samo <code>SPN 97</code> oraz kody dealerskie typu <code>P2BA7</code>.',
       dataLangNote: 'Opisy usterek są wyświetlane w języku angielskim.',
       printLabel: 'Drukuj',
-      printTitleDisabled: 'Najpierw rozszyfruj kod',
-      printTitleEnabled: 'Wydrukuj ten wynik',
+      themeDay: 'Motyw dzienny',
+      themeNight: 'Motyw nocny',
       footText: 'Ta baza wyjaśnia, co oznacza kod — nie stawia diagnozy. Ostateczna decyzja zawsze należy do osoby dysponującej odpowiednim sprzętem. Pytania — <a href="mailto:alexdiag116@gmail.com" style="color:inherit">alexdiag116@gmail.com</a>.',
       langAria: 'Język strony',
       emptyPrompt: 'Wpisz kod — na przykład <b>SPN 100 FMI 1</b> albo po prostu <b>100/1</b>.',
@@ -1575,8 +1256,8 @@ body.critical .lamp{
       hint: 'Büyük/küçük harf ve boşluklar önemli değil. <code>SPN 100 FMI 1</code>, <code>97 FMI 3</code>, <code>100/1</code>, <code>03043-00</code>, tek başına <code>SPN 97</code> ve <code>P2BA7</code> gibi bayi kodlarını tanır.',
       dataLangNote: 'Arıza açıklamaları İngilizce olarak gösterilir.',
       printLabel: 'Yazdır',
-      printTitleDisabled: 'Önce bir kodu çözün',
-      printTitleEnabled: 'Bu sonucu yazdır',
+      themeDay: 'Gündüz teması',
+      themeNight: 'Gece teması',
       footText: 'Bu rehber kodun ne anlama geldiğini açıklar — teşhis koymaz. Nihai karar her zaman uygun ekipmana sahip bir kişiye aittir. Sorular — <a href="mailto:alexdiag116@gmail.com" style="color:inherit">alexdiag116@gmail.com</a>.',
       langAria: 'Sayfa dili',
       emptyPrompt: 'Bir kod girin — örneğin <b>SPN 100 FMI 1</b> veya sadece <b>100/1</b>.',
@@ -1639,8 +1320,8 @@ body.critical .lamp{
       hint: 'बड़े-छोटे अक्षर और स्पेस मायने नहीं रखते। यह <code>SPN 100 FMI 1</code>, <code>97 FMI 3</code>, <code>100/1</code>, <code>03043-00</code>, अकेला <code>SPN 97</code>, और <code>P2BA7</code> जैसे डीलर कोड पहचानता है।',
       dataLangNote: 'खराबी के विवरण अंग्रेज़ी में दिखाए गए हैं।',
       printLabel: 'प्रिंट करें',
-      printTitleDisabled: 'पहले कोड डिकोड करें',
-      printTitleEnabled: 'यह परिणाम प्रिंट करें',
+      themeDay: 'दिन वाली थीम',
+      themeNight: 'रात वाली थीम',
       footText: 'यह संदर्भ पुस्तिका बताती है कि कोड का मतलब क्या है — यह निदान नहीं करती। अंतिम निर्णय हमेशा उपकरण रखने वाले व्यक्ति का होता है। सवाल — <a href="mailto:alexdiag116@gmail.com" style="color:inherit">alexdiag116@gmail.com</a>.',
       langAria: 'पृष्ठ की भाषा',
       emptyPrompt: 'एक कोड डालें — उदाहरण के लिए <b>SPN 100 FMI 1</b> या सिर्फ <b>100/1</b>.',
@@ -1839,7 +1520,6 @@ body.critical .lamp{
     dataNote.style.display = (lang === 'ru' || lang === 'en') ? 'none' : 'block';
     langSelect.value = lang;
     if(DB) fillBrands();
-    printBtn.title = printBtn.disabled ? t('printTitleDisabled') : t('printTitleEnabled');
     if(input.value.trim()) run();
   }
 
@@ -2214,11 +1894,8 @@ body.critical .lamp{
     if(!items.length) return '';
     return '<div class="grp"><div class="st">' + esc(label) + '</div>' +
       '<ul class="cons ' + (cls || '') + '">' +
-      items.map(function(c, i){
-        /* --i задаёт очередь появления: следствия подтягиваются
-           к корню по одному, а не выпадают все разом. */
-        return '<li class="' + (c.urgent ? 'hit' : '') + '" style="--i:' + i + '">' +
-               codeLine(c) + '</li>';
+      items.map(function(c){
+        return '<li class="' + (c.urgent ? 'hit' : '') + '">' + codeLine(c) + '</li>';
       }).join('') + '</ul></div>';
   }
 
@@ -2362,8 +2039,6 @@ body.critical .lamp{
     return {key:pick[0], lvl:lvl, flag:flag};
   }
 
-  var PREVIEW = document.documentElement.hasAttribute('data-preview');
-
   function riskBlock(c, tag){
     var L = currentLang === 'ru' ? 'ru' : 'en';
     var r = riskOf(c), meta = RISK_LVL[r.lvl], tx = RISK_TX[L][r.key], bars = '';
@@ -2380,56 +2055,14 @@ body.critical .lamp{
   var MARK_STOP = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.2 2h7.6L22 8.2v7.6L15.8 22H8.2L2 15.8V8.2L8.2 2Zm2.8 5v7h2V7h-2Zm0 9v2h2v-2h-2Z"/></svg>';
   var MARK_WARN = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 23 21H1L12 2Zm-1 7v6h2V9h-2Zm0 8v2h2v-2h-2Z"/></svg>';
 
-  /* Прибор: приговор, запас времени и шкала одним блоком во всю
-     ширину. Шкала берётся у того же кода, по которому считался
-     приговор, - иначе они разъедутся. */
-  function gauge(a){
-    var L = currentLang === 'ru' ? 'ru' : 'en';
-    var r = riskOf(a.worst), meta = RISK_LVL[r.lvl], bars = '';
-    for(var i = 0; i < 4; i++) bars += '<i class="' + (i < meta.fill ? 'on' : '') + '"></i>';
-    return '<div class="gauge ' + (a.stop ? 'stop' : 'warn') + '">' +
-      '<div class="gtop"><span class="gmark">' + (a.stop ? MARK_STOP : MARK_WARN) + '</span>' +
-        '<span class="gtitle">' + esc(t(a.stop ? 'vStop' : 'vWarn')) + '</span>' +
-        (a.total > 1 ? '<span class="gcount">' + esc(t('casCount', {n:a.total})) + '</span>' : '') +
-      '</div>' +
-      '<div class="ghz">' + esc(RISK_HZ[L]) + ' <b>' + esc(RISK_H[L][r.lvl]) + '</b></div>' +
-      '<div class="gscale" aria-hidden="true">' + bars + '</div>' +
-    '</div>';
-  }
-
   function cascade(a){
     var html = '';
-    html += PREVIEW ? gauge(a) :
-            '<div class="verdict ' + (a.stop ? 'stop' : 'warn') + '">' +
+    html += '<div class="verdict ' + (a.stop ? 'stop' : 'warn') + '">' +
               '<span class="vmark">' + (a.stop ? MARK_STOP : MARK_WARN) + '</span>' +
               '<span><span class="vtitle">' + esc(t(a.stop ? 'vStop' : 'vWarn')) + '</span>' +
               '<span class="vsub">' + esc(t(a.stop ? 'vStopSub' : 'vWarnSub')) + '</span></span>' +
               '<span class="vcount">' + esc(t('casCount', {n:a.total})) + '</span>' +
             '</div>';
-
-    var wtag = a.worst === a.root ? '' : ' · SPN ' + a.worst.spn + '/' + a.worst.fmi;
-
-    /* Короткая выдача: действие, причина одной строкой, остальное
-       под «подробнее». Разбор следствий нужен механику, а человеку
-       на обочине нужно знать, что делать руками прямо сейчас. */
-    if(PREVIEW){
-      var LS = currentLang === 'ru' ? 'ru' : 'en', st = STEP[LS];
-      html += '<div class="card">';
-      html += '<div class="grp" style="margin-top:0"><div class="st">' + esc(st.todo) + '</div>' +
-                '<ol class="todo"><li>' + esc(t(ACT[a.root.sys] || 'actDefault')) + '</li></ol></div>';
-      html += '<div class="grp"><div class="st">' + esc(st.cause) + '</div>' +
-                '<div class="root">' +
-                  '<div class="rcode"><span class="mono">SPN ' + a.root.spn + '/' + a.root.fmi + '</span>' +
-                    '<span class="sys">' + esc(t('sys' + a.root.sys.charAt(0).toUpperCase() + a.root.sys.slice(1))) + '</span></div>' +
-                  '<div class="rtext">' + esc(a.root.text) + '</div>' +
-                '</div></div>';
-      html += '<details class="more"><summary>' + esc(st.more) + '</summary>' +
-                group(t('casCons'), a.cons) +
-                group(t('casSolo'), a.solo, 'solo') +
-                riskBlock(a.worst, wtag) +
-              '</details>';
-      return html + '</div>';
-    }
 
     html += '<div class="card">';
     html += '<div class="grp" style="margin-top:0"><div class="st">' + esc(t('casRoot')) + '</div>' +
@@ -2443,7 +2076,7 @@ body.critical .lamp{
     html += group(t('casCons'), a.cons);
     html += group(t('casSolo'), a.solo, 'solo');
 
-    /* Обычно срок задаёт первопричина, но не всегда: рядом с грозью
+    /* Обычно срок задаёт первопричина, но не всегда: рядом с гроздью
        от пустого бака может лежать одинокий тормозной код, и жёстче
        именно он. Тогда показываем его и подписываем номером, чтобы
        не выглядело, будто это про корень. */
@@ -2456,215 +2089,6 @@ body.critical .lamp{
     return html + '</div>';
   }
 
-  /* Один код отвечает по той же форме, что и список: можно ли ехать,
-     сколько есть времени, что делать, из-за чего. Раньше здесь была
-     цепочка «код - расшифровка - срочность», которая на главный
-     вопрос «что делать» не отвечала вовсе. */
-  function singleShort(c, d, stop){
-    var LS = currentLang === 'ru' ? 'ru' : 'en', st = STEP[LS];
-    var html = gauge({worst:c, stop:stop, total:1});
-    html += '<div class="card">';
-    html += '<div class="grp" style="margin-top:0"><div class="st">' + esc(st.todo) + '</div>' +
-              '<ol class="todo"><li>' + esc(t(ACT[c.sys] || 'actDefault')) + '</li></ol></div>';
-    html += '<div class="grp"><div class="st">' + esc(st.cause) + '</div>' +
-              '<div class="root">' +
-                '<div class="rcode"><span class="mono">SPN ' + c.spn + '/' + c.fmi + '</span>' +
-                  '<span class="sys">' + esc(t('sys' + c.sys.charAt(0).toUpperCase() + c.sys.slice(1))) + '</span></div>' +
-                '<div class="rtext">' + esc(c.text) + '</div>' +
-              '</div></div>';
-    html += '<details class="more"><summary>' + esc(st.more1) + '</summary>' +
-              riskBlock(c) +
-              (d.src ? '<div class="grp"><div class="st">' +
-                       esc(t('sourceLabel', {src:d.src})) + '</div></div>' : '') +
-            '</details>';
-    return html + '</div>';
-  }
-
-  /* Живой пример на первом экране: слева то, что человек видит на
-     сканере - шесть равнозначных строк, в которых непонятно, за что
-     хвататься; справа то, что мы из этого делаем. Тексты зашиты
-     прямо здесь: блок стоит выше всего остального и должен рисоваться
-     мгновенно, не дожидаясь загрузки справочника. */
-  var SHOW = {
-    ru:{head:'Так это работает',
-        inp:'Вставили весь список ошибок',
-        out:'Получили одну причину',
-        root:'Уровень AdBlue в баке ниже нормы',
-        note:'Остальные пять — следствия. Долили реагент, ушли все шесть.'},
-    en:{head:'How it works',
-        inp:'Pasted the whole fault list',
-        out:'Got a single cause',
-        root:'AdBlue level in the tank below normal',
-        note:'The other five are consequences. Top up the fluid and all six go away.'}
-  };
-  /* Подписи короткого пути. Как и тексты риска - русский и
-     английский: это содержание, а не подписи интерфейса. */
-  var STEP = {
-    ru:{lang:'Язык', car:'Какая машина', code:'Код со сканера или с панели',
-        alt:'Ввести код в другом формате',
-        todo:'Что делать', cause:'Из-за чего',
-        more:'Подробнее: следствия и что будет, если ехать',
-        more1:'Подробнее: что будет, если ехать',
-        edit:'Изменить', andMore:'и ещё {n}'},
-    en:{lang:'Language', car:'Which truck', code:'Code from the scanner or the dash',
-        alt:'Enter the code in another format',
-        todo:'What to do', cause:'What caused it',
-        more:'More: consequences and what happens if you keep driving',
-        more1:'More: what happens if you keep driving',
-        edit:'Change', andMore:'and {n} more'}
-  };
-
-  /* Порядок марок - по тому, как часто их спрашивают на нашем рынке,
-     а не по алфавиту: первые три кнопки должны закрывать большинство. */
-  var BRANDS = [
-    ['', ''], ['kamaz','КАМАЗ'], ['yamz','ЯМЗ'], ['man','MAN'], ['daf','DAF'],
-    ['volvo','Volvo'], ['mercedes','Mercedes-Benz'], ['iveco','Iveco'],
-    ['scania','Scania'], ['sitrak','SITRAK'], ['isuzu','Isuzu'],
-    ['renault','Renault Trucks'], ['deutz','Deutz']
-  ];
-  var ANY = {ru:'Любая', en:'Any'};
-
-  var SHOW_CODES = ['1761/1','4095/31','3226/0','4094/31','1569/31','5841/2'];
-  var SHOW_ARROW = '<svg class="scarrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
-    'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
-    '<path d="M5 12h14M13 6l6 6-6 6"/></svg>';
-
-  function showcase(){
-    if(!PREVIEW) return;
-    var L = currentLang === 'ru' ? 'ru' : 'en', s = SHOW[L];
-    var box = document.querySelector('.showcase');
-    if(!box){
-      box = document.createElement('div');
-      box.className = 'showcase';
-      var ln = document.querySelector('.listnote');
-      ln.parentNode.insertBefore(box, ln);
-    }
-    box.innerHTML =
-      '<div class="schead">' + esc(s.head) + '</div>' +
-      '<div class="scgrid">' +
-        '<div class="sccol"><div class="sclbl">' + esc(s.inp) + '</div>' +
-          '<ul class="sccodes">' + SHOW_CODES.map(function(c, i){
-            return '<li class="' + (i === 0 ? 'rt' : '') + '">SPN ' + c + '</li>';
-          }).join('') + '</ul></div>' +
-        SHOW_ARROW +
-        '<div class="sccol"><div class="sclbl">' + esc(s.out) + '</div>' +
-          '<div class="scroot"><span class="mono">SPN 1761/1</span>' +
-            '<span class="sctx">' + esc(s.root) + '</span></div>' +
-          '<div class="scnote">' + esc(s.note) + '</div></div>' +
-      '</div>';
-  }
-
-  /* Порядок на входе - тот, в каком человек думает: сначала машина,
-     потом код. Выбор стандарта уезжает под ссылку: за него решает
-     автомат, и лишний вопрос на обочине только мешает. */
-  var PVN = document.documentElement.getAttribute('data-preview');
-  var PV2 = PVN === '2' || PVN === '3';
-  var PV3 = PVN === '3';
-
-  function chipRow(cls, items, cur, pick){
-    var box = document.createElement('div');
-    box.className = 'chips ' + cls;
-    items.forEach(function(it){
-      var b = document.createElement('button');
-      b.type = 'button';
-      b.textContent = it[1];
-      b.setAttribute('data-v', it[0]);
-      b.setAttribute('aria-pressed', it[0] === cur ? 'true' : 'false');
-      b.addEventListener('click', function(){ pick(it[0], box); });
-      box.appendChild(b);
-    });
-    return box;
-  }
-
-  function buildChips(){
-    var L = currentLang === 'ru' ? 'ru' : 'en';
-    var w = document.querySelector('.scanner').parentNode;
-    Array.prototype.forEach.call(w.querySelectorAll('.chips'), function(n){
-      n.parentNode.removeChild(n);
-    });
-
-    var langs = Array.prototype.map.call(langSelect.options, function(o){
-      return [o.value, o.textContent];
-    });
-    var lrow = chipRow('lang', langs, currentLang, function(v){
-      langSelect.value = v;
-      applyLang(v);
-      showcase();
-      simplify();
-    });
-
-    var brands = BRANDS.map(function(b){ return [b[0], b[0] ? b[1] : ANY[L]]; });
-    var brow = chipRow('brand', brands, sel.value, function(v, box){
-      sel.value = v;
-      Array.prototype.forEach.call(box.children, function(x){
-        x.setAttribute('aria-pressed', x.getAttribute('data-v') === v ? 'true' : 'false');
-      });
-      /* Марку часто уточняют уже после разбора - пересчитываем сразу,
-         чтобы не заставлять жать «Разобрать» второй раз. */
-      if(input.value.trim()) run();
-    });
-
-    w.insertBefore(lrow, document.querySelector('.steplbl-car'));
-    w.insertBefore(brow, document.querySelector('.steplbl-code'));
-    [lrow, brow].forEach(fitRow);
-  }
-
-  /* Ставим подсказку о прокрутке только там, где ряд не поместился,
-     и подтягиваем выбранную кнопку в поле зрения - иначе выбранная
-     марка может оказаться за краем и человек решит, что её нет. */
-  function fitRow(box){
-    if(box.scrollWidth > box.clientWidth + 1){
-      box.classList.add('sc');
-      var on = box.querySelector('[aria-pressed="true"]');
-      if(on) box.scrollLeft = Math.max(0, on.offsetLeft - 12);
-    }
-  }
-
-  function simplify(){
-    if(!PREVIEW) return;
-    var L = currentLang === 'ru' ? 'ru' : 'en', s = STEP[L];
-    var scanner = document.querySelector('.scanner');
-    var filters = document.querySelector('.filters');
-    var lblCar = document.querySelector('.steplbl-car');
-
-    if(!lblCar){
-      var w = scanner.parentNode;
-      /* Язык уходит первым шагом в поток страницы. Заодно исчезает
-         плавающая плашка «RU», которая на телефоне наезжала на текст
-         при прокрутке. */
-      var lblLang = document.createElement('p');
-      lblLang.className = 'steplbl steplbl-lang';
-      w.insertBefore(lblLang, scanner);
-      w.insertBefore(document.querySelector('.lang-switch'), scanner);
-      lblCar = document.createElement('p');
-      lblCar.className = 'steplbl steplbl-car';
-      var lblCode = document.createElement('p');
-      lblCode.className = 'steplbl steplbl-code';
-      var alt = document.createElement('button');
-      alt.type = 'button'; alt.className = 'altfmt';
-      alt.addEventListener('click', function(){
-        filters.classList.add('raw');
-        alt.remove();
-      });
-      w.insertBefore(lblCar, scanner);
-      w.insertBefore(filters, scanner);
-      w.insertBefore(lblCode, scanner);
-      scanner.parentNode.insertBefore(alt, scanner.nextSibling);
-    }
-    document.querySelector('.steplbl-lang').textContent = s.lang;
-    document.querySelector('.steplbl-car').textContent  = s.car;
-    document.querySelector('.steplbl-code').textContent = s.code;
-    var alt2 = document.querySelector('.altfmt');
-    if(alt2) alt2.textContent = s.alt;
-
-    /* Во втором варианте выпадающих меню нет вовсе, а вместе с ними
-       уходит и ссылка на ручной выбор стандарта: лишнее слово на
-       экране, где всё должно решаться нажатием. */
-    if(PV2){
-      if(alt2) alt2.parentNode.removeChild(alt2);
-      buildChips();
-    }
-  }
 
   /* Ссылка на разбор. Водитель всё равно звонит механику и диктует
      коды голосом - пусть лучше отправит ссылку, по которой тот увидит
@@ -2685,49 +2109,15 @@ body.critical .lamp{
     'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
     '<path d="M21 3 10.5 13.5M21 3l-6.5 18-4-8-8-4L21 3Z"/></svg>';
 
-  /* Строка-напоминание вместо заполненной формы: машина и код. */
-  function recap(){
-    var LS = currentLang === 'ru' ? 'ru' : 'en', st = STEP[LS];
-    var codes = parseAll(input.value);
-    var head = codes.length
-      ? 'SPN ' + codes[0].spn + '/' + codes[0].fmi +
-        (codes.length > 1 ? ' ' + t2(st.andMore, codes.length - 1) : '')
-      : input.value.trim();
-    if(sel.value) head = brandName(sel.value) + ' · ' + head;
-
-    var box = document.querySelector('.recap');
-    if(!box){
-      box = document.createElement('button');
-      box.type = 'button'; box.className = 'recap';
-      box.addEventListener('click', function(){
-        document.body.classList.remove('report');
-        input.focus();
-      });
-      out.parentNode.insertBefore(box, out);
-    }
-    box.innerHTML = '<span class="rcv"></span><span class="rce"></span>';
-    box.querySelector('.rcv').textContent = head;
-    box.querySelector('.rce').textContent = st.edit;
-  }
-  function t2(s, n){ return s.replace('{n}', n); }
-
-  /* Действия в конце разбора. Печать нужна только в режиме отчёта -
-     на обычной странице она и так висит кнопкой в углу. */
-  function actions(withPrint){
+  /* Чем разбор заканчивается: ссылку кидают механику, лист кладут
+     к машине. Обе кнопки стоят здесь, в конце ответа, а не иконкой
+     в углу - там их на телефоне просто не замечают. */
+  function actions(){
     var box = document.createElement('div');
     box.className = 'acts';
 
-    if(withPrint){
-      var pr = document.createElement('button');
-      pr.type = 'button'; pr.className = 'act act-main';
-      pr.innerHTML = ICON_PRINT + '<span></span>';
-      pr.querySelector('span').textContent = t('printLabel');
-      pr.addEventListener('click', function(){ window.print(); });
-      box.appendChild(pr);
-    }
-
     var sh = document.createElement('button');
-    sh.type = 'button'; sh.className = 'act' + (withPrint ? '' : ' act-main');
+    sh.type = 'button'; sh.className = 'act act-main';
     sh.innerHTML = ICON_SEND + '<span></span>';
     var lbl = sh.querySelector('span');
     lbl.textContent = t('shareLabel');
@@ -2746,41 +2136,47 @@ body.critical .lamp{
     });
 
     box.appendChild(sh);
+
+    var pr = document.createElement('button');
+    pr.type = 'button'; pr.className = 'act';
+    pr.innerHTML = ICON_PRINT + '<span></span>';
+    pr.querySelector('span').textContent = t('printLabel');
+    pr.addEventListener('click', function(){ window.print(); });
+    box.appendChild(pr);
+
     out.appendChild(box);
   }
 
-  var printBtn = document.getElementById('pf-print');
-  printBtn.addEventListener('click', function(){
-    if(!printBtn.disabled) window.print();
+  /* Тема запоминается: человек выставляет её один раз под свой свет
+     в кабине, и переспрашивать при каждом заходе незачем. На кнопке
+     всегда то, куда она переключит, а не то, что сейчас. */
+  var themeBtn = document.getElementById('pf-theme');
+  function labelTheme(){
+    var lt = document.documentElement.getAttribute('data-theme') === 'light';
+    var s = t(lt ? 'themeNight' : 'themeDay');
+    themeBtn.title = s;
+    themeBtn.setAttribute('aria-label', s);
+  }
+  themeBtn.addEventListener('click', function(){
+    var lt = document.documentElement.getAttribute('data-theme') !== 'light';
+    if(lt) document.documentElement.setAttribute('data-theme', 'light');
+    else document.documentElement.removeAttribute('data-theme');
+    try{ localStorage.setItem('ct-theme', lt ? 'light' : 'dark'); }catch(e){}
+    labelTheme();
   });
+
   langSelect.addEventListener('change', function(){
     applyLang(langSelect.value);
-    showcase();
-    simplify();
+    labelTheme();
   });
   applyLang(currentLang);
-  showcase();
-  simplify();
+  labelTheme();
 
-  /* Лампа в поле ввода - индикатор состояния: горит янтарным пока
-     не разобрали, гаснет на понятном коде, краснеет на критичном. */
-  function setLamp(state){
-    document.body.classList.remove('solved', 'critical');
-    if(state) document.body.classList.add(state);
-  }
   /* printable - только для разобранного кода: печатать сообщение
      «код не найден» смысла нет, поэтому кнопка гаснет. */
-  function render(html, lampState, printable){
+  function render(html, printable){
     out.innerHTML = html;
-    setLamp(lampState);
-    printBtn.disabled = !printable;
-    printBtn.title = printable ? t('printTitleEnabled') : t('printTitleDisabled');
-    if(PV3){
-      document.body.classList.toggle('report', !!printable);
-      if(printable){ recap(); actions(true); }
-    } else if(printable){
-      actions(false);
-    }
+    if(printable) actions();
   }
 
   /* Перед разбором нужны обе базы: основная и, для нерусского
@@ -2796,9 +2192,9 @@ body.critical .lamp{
     if(many.length >= 2){
       ready().then(function(){
         var a = analyze(many, brand);
-        render(cascade(a), a.stop ? 'critical' : 'solved', true);
+        render(cascade(a), true);
       }).catch(function(){
-        render(note(t('loadError')), null);
+        render(note(t('loadError')));
       });
       return;
     }
@@ -2806,18 +2202,18 @@ body.critical .lamp{
     var p = parse(input.value, std.value);
 
     if(!p){
-      render(note(t('emptyPrompt')), null);
+      render(note(t('emptyPrompt')));
       return;
     }
     ready().then(function(){
       if(p.bad){
-        render(note(t('badCode')), null);
+        render(note(t('badCode')));
         return;
       }
       if(p.pcode){
         var hits = findPcode(brand, p.pcode);
         if(!hits.length){
-          render(note(t('pcodeNotFound', {code: esc(p.pcode)})), null);
+          render(note(t('pcodeNotFound', {code: esc(p.pcode)})));
           return;
         }
         var pSteps = [{st:t('stepCode'), tx:'<span class="mono">' + esc(p.pcode) + '</span>', cls:'ok'}];
@@ -2827,7 +2223,7 @@ body.critical .lamp{
             tx: '<b>' + esc(h.text) + '</b>', cls:'ok'
           });
         });
-        render(chain(pSteps), 'solved', true);
+        render(chain(pSteps), true);
         return;
       }
       /* SPN без FMI - тоже полноценный ответ: показываем, что это за
@@ -2836,7 +2232,7 @@ body.critical .lamp{
       if(p.fmi === null){
         var nm = spnName(p.spn, brand);
         if(!nm){
-          render(note(t('spnNotFound', {spn: p.spn})), null);
+          render(note(t('spnNotFound', {spn: p.spn})));
           return;
         }
         var known = [];
@@ -2859,21 +2255,11 @@ body.critical .lamp{
             }).join('<br>'), cls:'ok'});
         }
         sSteps.push({st:t('stepNeedFmi'), tx:t('needFmiText', {spn: p.spn})});
-        render(chain(sSteps), 'solved', true);
+        render(chain(sSteps), true);
         return;
       }
       var d = describe(p.spn, p.fmi, brand);
       var u = urgent(p.spn, p.fmi, brand);
-      if(PREVIEW && !d.unknown){
-        var c1 = {spn:p.spn, fmi:p.fmi, text:d.text,
-                  sys:systemOf(p.spn, d.text), urgent:u};
-        var r1 = riskOf(c1);
-        /* Приговор здесь считается так же, как для списка: по
-           горизонту риска, а не по одной метке «критический». */
-        var stop1 = r1.lvl === 'now' || r1.key === 'genUrgent';
-        render(singleShort(c1, d, stop1), stop1 ? 'critical' : 'solved', true);
-        return;
-      }
       var code = 'SPN ' + p.spn + ' · FMI ' + p.fmi;
       var steps = [
         {st:t('stepCode'), tx:'<span class="mono">' + code + '</span>', cls:'ok'},
@@ -2894,9 +2280,9 @@ body.critical .lamp{
       if(d.unknown){
         html += note(t('unknownSpnNote'));
       }
-      render(html, u ? 'critical' : 'solved', true);
+      render(html, true);
     }).catch(function(){
-      render(note(t('loadError')), null);
+      render(note(t('loadError')));
     });
   }
 
@@ -2917,7 +2303,6 @@ body.critical .lamp{
           var pr = x.split('-');
           return 'SPN ' + pr[0] + ' FMI ' + pr[1];
         }).join(', ');
-        if(PV2) buildChips();
         run();
       }).catch(function(){});
     }
@@ -2925,8 +2310,6 @@ body.critical .lamp{
 
   go.addEventListener('click', run);
   input.addEventListener('keydown', function(e){ if(e.key === 'Enter') run(); });
-  // начали править код - лампа снова загорается: прошлый ответ уже не про этот код
-  input.addEventListener('input', function(){ setLamp(null); });
 
 })();
 </script>
