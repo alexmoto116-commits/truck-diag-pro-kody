@@ -71,7 +71,7 @@ body{
   position:absolute;left:0;right:0;bottom:0;height:52%;z-index:-2;
   background:url("assets/tyagach-noch.jpg") center 76%/cover no-repeat;
   /* цвет заката и синь неба на фотографии приглушены - поднимаем */
-  filter:saturate(1.35) contrast(1.08) brightness(1.1);
+  filter:saturate(1.35) contrast(1.06) brightness(1.22);
   /* края растворяем, чтобы полоса не читалась приклеенным прямоугольником */
   -webkit-mask-image:linear-gradient(180deg, transparent 0%, #000 26%, #000 78%, transparent 100%);
           mask-image:linear-gradient(180deg, transparent 0%, #000 26%, #000 78%, transparent 100%);
@@ -509,7 +509,7 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
 }
 /* Фотография остаётся: тягач - это лицо справочника. Но вуаль над
    ней теперь светлая, и кадр из фона превращается в полосу внизу. */
-[data-theme="light"] .scene .photo{filter:saturate(1.1) contrast(1.02) brightness(1.04)}
+[data-theme="light"] .scene .photo{filter:saturate(1.1) contrast(1) brightness(1.14)}
 [data-theme="light"] .scene .veil{
   background:linear-gradient(180deg,
     rgba(238,242,247,.97) 0%, rgba(238,242,247,.94) 32%,
