@@ -142,8 +142,8 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
   transition:border-color .2s ease, box-shadow .2s ease;
 }
 .scanner:focus-within{
-  border-color:rgba(255,155,61,.55);
-  box-shadow:0 24px 60px -28px rgba(0,0,0,.95), 0 0 0 4px rgba(255,155,61,.12);
+  border-color:rgba(255,155,61,.7);
+  box-shadow:0 24px 60px -28px rgba(0,0,0,.95), 0 0 0 3px rgba(255,155,61,.15);
 }
 #pf-code{
   flex:1;min-width:0;background:transparent;border:none;outline:none;color:#fff;
@@ -152,7 +152,7 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
 }
 #pf-code::placeholder{color:#4A5765}
 #pf-go{
-  flex:none;cursor:pointer;border:none;border-radius:13px;
+  flex:none;cursor:pointer;border:none;border-radius:12px;
   background:linear-gradient(180deg, #FFAA55, #F2833C);
   color:#20120A;font-family:var(--sans);font-weight:700;font-size:15px;
   padding:14px 22px;
@@ -160,13 +160,16 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
 }
 #pf-go:hover{transform:translateY(-1px);filter:brightness(1.07)}
 #pf-go:active{transform:translateY(0)}
-#pf-go:focus-visible,#pf-code:focus-visible{outline:2px solid var(--lamp);outline-offset:3px}
+/* Фокус показывает карточка целиком: поле лежит внутри неё, и свой
+   контур у него давал вторую рамку поверх первой, а с ореолом - третью.
+   Одна подсветка на весь блок читается лучше и остаётся заметной. */
+#pf-go:focus-visible{outline:2px solid var(--lamp);outline-offset:3px}
 
 .filters{display:flex;flex-wrap:wrap;gap:9px;margin-top:12px}
 .filters select{
   flex:1 1 150px;min-width:0;cursor:pointer;
   font-family:var(--sans);font-size:13.5px;color:var(--ink-2);
-  background:rgba(12,19,28,.8);border:1px solid var(--line);border-radius:11px;
+  background:rgba(12,19,28,.8);border:1px solid var(--line);border-radius:12px;
   padding:11px 12px;min-height:44px;
   transition:border-color .18s ease,color .18s ease;
 }
@@ -262,11 +265,26 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
      стрелкой. Ставим их друг под другом на всю ширину. */
   .filters{flex-direction:column}
   .filters select{flex:1 1 auto}
-  /* Placeholder «SPN 100 FMI 1» не помещался рядом с кнопкой - кнопка
-     уходит под поле, ввод получает всю ширину. */
-  .scanner{flex-wrap:wrap}
-  #pf-code{flex:1 1 100%;order:1}
-  #pf-go{order:2;flex:1 1 100%;margin-top:8px}
+  /* На телефоне кнопка не помещается рядом с полем и уходит под него.
+     Карточка при этом теряет смысл: она обводит поле и кнопку во всю
+     ширину, то есть просто рисует ещё одну рамку вокруг кнопки.
+     Поэтому карточка растворяется, а рамку берёт на себя само поле. */
+  .scanner{
+    flex-wrap:wrap;background:none;border:none;box-shadow:none;
+    padding:0;gap:0;backdrop-filter:none;-webkit-backdrop-filter:none;
+  }
+  .scanner:focus-within{border:none;box-shadow:none}
+  #pf-code{
+    flex:1 1 100%;order:1;
+    background:linear-gradient(180deg, rgba(22,32,44,.92), rgba(10,16,24,.94));
+    border:1px solid var(--line);border-radius:14px;padding:15px 16px;
+    transition:border-color .18s ease, box-shadow .18s ease;
+  }
+  #pf-code:focus{
+    border-color:rgba(255,155,61,.7);
+    box-shadow:0 0 0 3px rgba(255,155,61,.15);
+  }
+  #pf-go{order:2;flex:1 1 100%;margin-top:9px;padding:16px 22px}
 }
 
 /* Переключатель языка - зеркало кнопки печати, только слева и
@@ -506,6 +524,9 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
   box-shadow:0 18px 40px -26px rgba(15,23,32,.45), 0 0 0 4px rgba(169,73,10,.14);
 }
 [data-theme="light"] #pf-code{color:var(--ink)}
+@media(max-width:560px){
+  [data-theme="light"] #pf-code{background:#fff}
+}
 [data-theme="light"] #pf-code::placeholder{color:#8494A4}
 [data-theme="light"] .card{background:#fff}
 [data-theme="light"] .chain .tx{color:#1F2C38}
