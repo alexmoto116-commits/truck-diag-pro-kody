@@ -49,6 +49,7 @@
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
+body{position:relative}
 body{
   background:var(--night);color:var(--ink);
   font-family:var(--sans);font-size:17px;line-height:1.6;
@@ -270,13 +271,22 @@ body.critical .lamp{
 @media(max-width:560px){
   .print-btn span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
   .print-btn{padding:10px}
-  /* На узком экране плашки языка и печати по высоте не помещаются
-     над строкой бренда - опускаем сцену ниже, чтобы не наезжало. */
-  .scene{padding-top:64px}
+  /* На телефоне закреплённые плашки висят поверх текста и перекрывают
+     его при прокрутке: «RU» садится на код, кнопка печати - на заголовок.
+     Уводим их в поток страницы: наверху они на месте, дальше уезжают
+     вместе с контентом. */
+  .lang-switch,.print-btn{position:absolute}
+  .scene{padding-top:76px}
   /* Два select в ряд на телефоне не влезают - текст обрезается
      стрелкой. Ставим их друг под другом на всю ширину. */
   .filters{flex-direction:column}
   .filters select{flex:1 1 auto}
+  /* Placeholder «SPN 100 FMI 1» не помещался рядом с кнопкой - кнопка
+     уходит под поле, ввод получает всю ширину. */
+  .scanner{flex-wrap:wrap}
+  #pf-code{flex:1 1 100%;order:1}
+  .lamp{order:0}
+  #pf-go{order:2;flex:1 1 100%;margin-top:8px}
 }
 
 /* Переключатель языка - зеркало кнопки печати, только слева и
