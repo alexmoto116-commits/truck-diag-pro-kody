@@ -662,6 +662,16 @@ body.critical .lamp{
 </script>
 <noscript><div><img src="https://mc.yandex.ru/watch/111407659" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
 <!-- /Yandex.Metrika counter -->
+<script>
+/* Предпросмотр дневной темы: codetruck.ru/?theme=light
+   Стоит в <head> и до отрисовки - иначе страница успевает мигнуть
+   тёмным. Постоянного переключателя пока нет, это только чтобы
+   посмотреть тему на живом телефоне при дневном свете. */
+(function(){
+  var m = /[?&]theme=(light|dark)/.exec(location.search);
+  if(m) document.documentElement.setAttribute('data-theme', m[1]);
+})();
+</script>
 </head>
 <body>
 
