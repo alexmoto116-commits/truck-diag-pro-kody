@@ -26,6 +26,7 @@
   --lamp:#FF9B3D;      /* контрольная лампа */
   --horizon:#E8894A;   /* закат за горами */
   --marker:#FF5A4E;    /* габариты прицепа - критично */
+  --root:#FFD24A;      /* первопричина - только для неё */
   --signal:#6FE3D3;
   --line:rgba(255,255,255,.13);
   --line-2:rgba(255,255,255,.06);
@@ -288,6 +289,118 @@ body.critical .lamp{
   text-shadow:0 1px 12px rgba(7,11,18,.9);
 }
 
+/* ---------- разбор гирлянды ----------
+   Машина отдаёт не код, а гроздь кодов: одна поломка тянет за собой
+   пять следствий. Поэтому ответ на список строится сверху вниз -
+   сначала приговор (ехать/не ехать), потом первопричина, и только
+   потом всё остальное, помеченное как производное. */
+
+/* Приговор - это тот же сигнал, что и лампа на панели: янтарный
+   предупреждает, красный запрещает движение. Держим цвета ISO. */
+.verdict{
+  display:flex;align-items:flex-start;gap:14px;
+  border-radius:16px;padding:16px 18px;margin-bottom:14px;
+  border:1px solid;
+}
+.verdict .vmark{flex:none;width:26px;height:26px;margin-top:1px}
+.verdict .vmark svg{width:100%;height:100%;display:block;fill:currentColor}
+.verdict .vtitle{
+  display:block;font-size:17px;font-weight:700;letter-spacing:-.01em;line-height:1.25;
+}
+.verdict .vsub{display:block;margin-top:3px;font-size:13.5px;line-height:1.5;color:#C3D0DD}
+.verdict .vcount{
+  margin-left:auto;flex:none;align-self:center;
+  font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--ink-3);text-align:right;
+}
+.verdict.stop{
+  color:var(--marker);
+  border-color:rgba(255,90,78,.42);
+  background:linear-gradient(180deg, rgba(48,17,15,.92), rgba(24,11,12,.94));
+}
+.verdict.warn{
+  color:var(--lamp);
+  border-color:rgba(255,155,61,.38);
+  background:linear-gradient(180deg, rgba(44,29,13,.92), rgba(22,15,9,.94));
+}
+
+/* Первопричина - единственное место на странице с этим жёлтым.
+   Если он встретится ещё где-то, взгляд перестанет за него цепляться. */
+.root{
+  position:relative;border:1px solid rgba(255,210,74,.4);border-radius:14px;
+  background:linear-gradient(180deg, rgba(38,31,12,.9), rgba(20,17,10,.92));
+  padding:14px 16px;
+}
+.root .rcode{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:7px;
+}
+.root .rcode .mono{color:var(--root);font-size:15.5px;font-weight:600}
+.root .rtext{font-size:15.5px;line-height:1.5;color:#fff;font-weight:600}
+.root .rwhy{margin-top:9px;font-size:13px;line-height:1.5;color:var(--ink-2)}
+
+/* Система - не украшение, а способ понять, всё ли из одного узла.
+   Поэтому это ярлык с именем системы, а не абстрактная точка. */
+.sys{
+  flex:none;font-family:var(--mono);font-size:10px;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--ink-2);
+  border:1px solid var(--line);border-radius:6px;padding:2px 7px;
+  background:rgba(255,255,255,.03);
+}
+
+.grp{margin-top:16px}
+.grp > .st{
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--ink-3);margin-bottom:9px;
+}
+/* Следствия набраны тише первопричины и с отступом: по вертикали
+   сразу видно, что это ветка от корня, а не равноправные поломки. */
+.cons{list-style:none;margin:0;padding:0 0 0 15px;border-left:1px solid var(--line-2)}
+/* Код и расшифровка идут в две колонки: глаз бежит по столбику
+   номеров, не спотыкаясь о разную длину описаний. */
+.cons li{
+  display:flex;gap:12px;align-items:baseline;
+  padding:7px 0;font-size:14.5px;line-height:1.5;color:#AFBECD;
+}
+.cons li + li{border-top:1px solid var(--line-2)}
+.cons li span:last-child{flex:1;min-width:0}
+.cons .mono{font-size:13.5px;color:var(--ink-2);flex:none;min-width:11ch}
+.cons li.hit .mono{color:var(--marker)}
+.solo{padding-left:0;border-left:none}
+.solo li .mono{color:var(--signal)}
+
+/* Что сделать сейчас - это шаги по порядку, поэтому нумерация здесь
+   несёт смысл, а не оформляет список. */
+.todo{margin:0;padding:0 0 0 20px;font-size:14.5px;line-height:1.6;color:#CBD7E3}
+.todo li{padding:4px 0}
+.todo li::marker{color:var(--lamp);font-family:var(--mono);font-size:12px}
+
+/* Поле принимает список, но по нему одному это не прочитать.
+   Одна строка объясняет зачем, кнопка рядом - сразу показывает как. */
+.listnote{margin-top:14px}
+.listnote p{
+  margin:0 0 10px;font-size:13.5px;line-height:1.55;color:#9DB0C2;
+  max-width:56ch;text-shadow:0 1px 12px rgba(7,11,18,.9);
+}
+.listnote p b{color:var(--ink);font-weight:650}
+.listnote .demo{margin-top:0}
+
+.demo{
+  margin-top:11px;display:inline-flex;align-items:center;gap:7px;cursor:pointer;
+  background:rgba(111,227,211,.07);border:1px solid rgba(111,227,211,.22);
+  border-radius:9px;padding:7px 11px;
+  font-family:var(--sans);font-size:12.5px;color:var(--signal);
+  transition:background .18s ease,border-color .18s ease;
+}
+.demo:hover{background:rgba(111,227,211,.13);border-color:rgba(111,227,211,.4)}
+.demo:focus-visible{outline:2px solid var(--signal);outline-offset:3px}
+.demo svg{width:13px;height:13px;flex:none}
+
+@media(max-width:560px){
+  .verdict{flex-wrap:wrap;gap:11px;padding:14px}
+  .verdict .vcount{margin-left:0;width:100%;text-align:left;align-self:auto}
+  .cons li{gap:6px}
+}
+
 /* ---------- печать: чистый лист, без фона и без органов управления ---------- */
 @media print{
   body{background:#fff;color:#000}
@@ -315,6 +428,20 @@ body.critical .lamp{
   .crit,.warn{color:#000}
   .miss{background:#f4f4f4;border-left-color:#888;color:#000}
   .foot{color:#444;padding-top:12px}
+  /* Разбор гирлянды кладут к машине в мастерской - на бумаге
+     иерархия держится рамкой и жирностью, а не цветом. */
+  .demo{display:none}
+  .verdict{background:none;border:1.5px solid #000;color:#000}
+  .verdict .vsub{color:#000}
+  .verdict .vcount{color:#444}
+  .root{background:none;border:1.5px solid #000}
+  .root .rcode .mono,.root .rtext{color:#000}
+  .root .rwhy{color:#333}
+  .sys{color:#333;border-color:#999;background:none}
+  .cons li,.cons .mono,.todo{color:#000}
+  .cons{border-left-color:#bbb}
+  .cons li + li{border-top-color:#ddd}
+  .grp > .st{color:#666}
 }
 
 .foot{
@@ -396,6 +523,16 @@ body.critical .lamp{
       </select>
     </div>
 
+    <div class="listnote">
+      <p data-i18n="listNote"><b>Кодов сразу несколько?</b> Вставьте весь список со сканера. Одна поломка тянет за собой пять-шесть кодов — покажем, какой из них причина, а какие пришли следом.</p>
+      <button type="button" class="demo" id="pf-demo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M4 6h16M4 12h11M4 18h7"/>
+        </svg><span data-i18n="demoLabel">Показать на примере</span>
+      </button>
+    </div>
+
     <p class="datanote" id="pf-datanote" data-i18n="dataLangNote"></p>
 
     <div class="out" id="pf-out"></div>
@@ -456,7 +593,33 @@ body.critical .lamp{
       notUrgentText: '<span class="warn">Ехать можно</span> — но показать код на ближайшем ТО.',
       unknownSpnNote: 'Этого SPN нет в справочнике — скорее всего, код фирменный. Попробуйте выбрать марку выше.',
       loadError: 'Справочник не загрузился — проверьте, что рядом со страницей лежит папка <b>32-sait-assets</b>.',
-      sourceLabel: 'источник: {src}', fmiNonstandard: 'FMI {fmi} (нестандартное значение)'
+      sourceLabel: 'источник: {src}', fmiNonstandard: 'FMI {fmi} (нестандартное значение)',
+      casCount: 'кодов в разборе: {n}',
+      casRoot: 'вероятная первопричина',
+      casCons: 'следствия — отдельно не чинятся',
+      casSolo: 'не связано с первопричиной',
+      casTodo: 'что сделать сейчас',
+      casWhyChain: 'Остальные коды в списке обычно приходят следом за этим — сначала устраняют его.',
+      casWhySingle: 'Остальное в списке с этим кодом напрямую не связано.',
+      vStop: 'Ехать нельзя',
+      vStopSub: 'Остановиться при первой безопасной возможности, дальше не тянуть.',
+      vWarn: 'Ехать можно',
+      vWarnSub: 'Показать коды на ближайшем ТО.',
+      demoLabel: 'Показать на примере',
+      listNote: '<b>Кодов сразу несколько?</b> Вставьте весь список со сканера. Одна поломка тянет за собой пять-шесть кодов — покажем, какой из них причина, а какие пришли следом.',
+      sysScr: 'AdBlue / выхлоп', sysOil: 'смазка', sysCool: 'охлаждение',
+      sysFuel: 'топливо', sysAir: 'впуск / наддув', sysPower: 'питание',
+      sysCan: 'CAN-шина', sysBrake: 'тормоза', sysTrans: 'трансмиссия',
+      sysProt: 'защита двигателя', sysOther: 'прочее',
+      actScr: 'Долей AdBlue до полного бака. Если бак полный — дело в дозировании или качестве реагента, нужен сканер.',
+      actOil: 'Заглуши двигатель. Проверь уровень масла щупом и осмотри низ на течи. Не заводи, пока давление не восстановится.',
+      actCool: 'Дай двигателю остыть — пробку расширительного бачка на горячем не открывай. Потом проверь уровень и патрубки.',
+      actFuel: 'Проверь топливный фильтр и отстойник, слей воду. На морозе — парафинизация солярки.',
+      actAir: 'Осмотри воздушный фильтр и патрубки наддува: подсос и трещины дают именно такие коды.',
+      actPower: 'Проверь клеммы АКБ и массу — окисление и слабая затяжка сыплют ложные коды по всей машине. На заведённом норма 27–29 В.',
+      actCan: 'Смотри разъёмы и жгут: обрыв витой пары CAN валит связь у всех блоков разом.',
+      actBrake: 'Дай накачать пневмосистему до рабочего давления, послушай утечки. С неисправными тормозами не едешь.',
+      actDefault: 'Запиши коды и покажи их на сервисе — по этому набору нужен сканер и осмотр на месте.'
     },
     en: {
       pageTitle: 'Truck fault code — SPN/FMI and dealer code lookup',
@@ -490,7 +653,33 @@ body.critical .lamp{
       notUrgentText: '<span class="warn">Safe to drive</span> — but have the code checked at the next service.',
       unknownSpnNote: 'This SPN isn’t in the database — likely a manufacturer-specific code. Try selecting a make above.',
       loadError: 'The database failed to load — make sure the <b>32-sait-assets</b> folder is next to this page.',
-      sourceLabel: 'source: {src}', fmiNonstandard: 'FMI {fmi} (non-standard value)'
+      sourceLabel: 'source: {src}', fmiNonstandard: 'FMI {fmi} (non-standard value)',
+      casCount: 'codes analysed: {n}',
+      casRoot: 'likely root cause',
+      casCons: 'knock-on codes — not fixed separately',
+      casSolo: 'unrelated to the root cause',
+      casTodo: 'what to do now',
+      casWhyChain: 'The other codes in the list normally follow this one — fix this first.',
+      casWhySingle: 'The rest of the list isn’t directly related to this code.',
+      vStop: 'Do not drive',
+      vStopSub: 'Stop as soon as it’s safe to do so — don’t keep going.',
+      vWarn: 'Safe to drive',
+      vWarnSub: 'Have the codes checked at the next service.',
+      demoLabel: 'See an example',
+      listNote: '<b>More than one code?</b> Paste the whole list from your scanner. One fault drags five or six codes along with it — we’ll show which one is the cause and which just followed.',
+      sysScr: 'AdBlue / exhaust', sysOil: 'lubrication', sysCool: 'cooling',
+      sysFuel: 'fuel', sysAir: 'intake / boost', sysPower: 'power supply',
+      sysCan: 'CAN bus', sysBrake: 'brakes', sysTrans: 'transmission',
+      sysProt: 'engine protection', sysOther: 'other',
+      actScr: 'Fill the AdBlue tank. If it’s already full, the problem is dosing or reductant quality — you need a scanner.',
+      actOil: 'Shut the engine down. Check the oil level with the dipstick and look underneath for leaks. Don’t restart until pressure is back.',
+      actCool: 'Let the engine cool — never open the expansion tank cap while hot. Then check the level and the hoses.',
+      actFuel: 'Check the fuel filter and water trap, drain the water. In cold weather, suspect fuel waxing.',
+      actAir: 'Inspect the air filter and charge-air hoses: leaks and cracks produce exactly these codes.',
+      actPower: 'Check the battery terminals and earth strap — corrosion and loose clamps throw false codes all over the truck. Running voltage should be 27–29 V.',
+      actCan: 'Check connectors and the harness: a broken CAN twisted pair takes out communication for every ECU at once.',
+      actBrake: 'Let the air system build to working pressure and listen for leaks. Don’t drive with faulty brakes.',
+      actDefault: 'Write the codes down and show them at a workshop — this set needs a scanner and an on-site inspection.'
     },
     de: {
       pageTitle: 'LKW-Fehlercode — SPN/FMI und Händlercode entschlüsseln',
@@ -504,7 +693,7 @@ body.critical .lamp{
       standardSpnFmi: 'J1939 — SPN / FMI',
       standardPcode: 'Händler-/OBD-Code',
       hint: 'Groß-/Kleinschreibung und Leerzeichen spielen keine Rolle. Erkennt <code>SPN 100 FMI 1</code>, <code>97 FMI 3</code>, <code>100/1</code>, <code>03043-00</code>, ein einzelnes <code>SPN 97</code> sowie Händlercodes wie <code>P2BA7</code>.',
-      dataLangNote: 'Fehlerbezeichnungen und Werkstabellen in der Datenbank sind auf Russisch; die Oberfläche und die Standard-FMI-Bedeutungen unten sind übersetzt.',
+      dataLangNote: 'Fehlerbeschreibungen werden auf Englisch angezeigt.',
       printLabel: 'Drucken',
       printTitleDisabled: 'Zuerst einen Code entschlüsseln',
       printTitleEnabled: 'Ergebnis drucken',
@@ -524,7 +713,33 @@ body.critical .lamp{
       notUrgentText: '<span class="warn">Weiterfahrt möglich</span> — Code aber beim nächsten Service prüfen lassen.',
       unknownSpnNote: 'Dieser SPN ist nicht in der Datenbank — vermutlich ein herstellerspezifischer Code. Wählen Sie oben eine Marke.',
       loadError: 'Die Datenbank konnte nicht geladen werden — prüfen Sie, ob der Ordner <b>32-sait-assets</b> neben dieser Seite liegt.',
-      sourceLabel: 'Quelle: {src}', fmiNonstandard: 'FMI {fmi} (nicht standardisierter Wert)'
+      sourceLabel: 'Quelle: {src}', fmiNonstandard: 'FMI {fmi} (nicht standardisierter Wert)',
+      casCount: 'Codes im Befund: {n}',
+      casRoot: 'wahrscheinliche Ursache',
+      casCons: 'Folgefehler — nicht einzeln reparieren',
+      casSolo: 'nicht mit der Ursache verbunden',
+      casTodo: 'was jetzt zu tun ist',
+      casWhyChain: 'Die übrigen Codes folgen üblicherweise diesem — zuerst diesen beheben.',
+      casWhySingle: 'Der Rest der Liste hängt mit diesem Code nicht direkt zusammen.',
+      vStop: 'Weiterfahrt nicht möglich',
+      vStopSub: 'Anhalten, sobald es sicher möglich ist — nicht weiterfahren.',
+      vWarn: 'Weiterfahrt möglich',
+      vWarnSub: 'Codes bei der nächsten Wartung zeigen.',
+      demoLabel: 'Beispiel ansehen',
+      listNote: '<b>Mehrere Codes auf einmal?</b> Fügen Sie die ganze Liste aus dem Diagnosegerät ein. Ein Defekt zieht fünf bis sechs Codes nach sich — wir zeigen, welcher die Ursache ist und welche nur gefolgt sind.',
+      sysScr: 'AdBlue / Abgas', sysOil: 'Schmierung', sysCool: 'Kühlung',
+      sysFuel: 'Kraftstoff', sysAir: 'Ansaugung / Ladedruck', sysPower: 'Bordnetz',
+      sysCan: 'CAN-Bus', sysBrake: 'Bremsen', sysTrans: 'Getriebe',
+      sysProt: 'Motorschutz', sysOther: 'Sonstiges',
+      actScr: 'AdBlue-Tank auffüllen. Ist er bereits voll, liegt es an der Dosierung oder der Reagenzqualität — dafür ist ein Diagnosegerät nötig.',
+      actOil: 'Motor abstellen. Ölstand mit dem Messstab prüfen und von unten auf Leckagen kontrollieren. Nicht starten, bis der Druck wieder steht.',
+      actCool: 'Motor abkühlen lassen — den Deckel des Ausgleichsbehälters niemals im heißen Zustand öffnen. Danach Stand und Schläuche prüfen.',
+      actFuel: 'Kraftstofffilter und Wasserabscheider prüfen, Wasser ablassen. Bei Frost an Paraffinausscheidung denken.',
+      actAir: 'Luftfilter und Ladeluftschläuche prüfen: Falschluft und Risse erzeugen genau solche Codes.',
+      actPower: 'Batteriepole und Masseband prüfen — Korrosion und lose Klemmen erzeugen Fehlercodes im ganzen Fahrzeug. Im Betrieb sind 27–29 V normal.',
+      actCan: 'Stecker und Kabelbaum prüfen: eine unterbrochene CAN-Zweidrahtleitung legt die Kommunikation aller Steuergeräte gleichzeitig lahm.',
+      actBrake: 'Druckluftanlage auf Betriebsdruck aufbauen lassen und auf Undichtigkeiten hören. Mit defekten Bremsen wird nicht gefahren.',
+      actDefault: 'Codes notieren und in der Werkstatt zeigen — dieser Satz erfordert ein Diagnosegerät und eine Sichtprüfung vor Ort.'
     },
     fr: {
       pageTitle: 'Code défaut camion — décodage SPN/FMI et codes constructeur',
@@ -538,7 +753,7 @@ body.critical .lamp{
       standardSpnFmi: 'J1939 — SPN / FMI',
       standardPcode: 'Code constructeur / OBD',
       hint: 'La casse et les espaces n’ont pas d’importance. Reconnaît <code>SPN 100 FMI 1</code>, <code>97 FMI 3</code>, <code>100/1</code>, <code>03043-00</code>, un simple <code>SPN 97</code>, ainsi que les codes constructeur comme <code>P2BA7</code>.',
-      dataLangNote: 'Les noms de pannes et les tables constructeur de la base sont en russe ; l’interface et les significations FMI standard ci-dessous sont traduites.',
+      dataLangNote: 'Les descriptions des défauts sont affichées en anglais.',
       printLabel: 'Imprimer',
       printTitleDisabled: 'Décodez d’abord un code',
       printTitleEnabled: 'Imprimer ce résultat',
@@ -558,7 +773,33 @@ body.critical .lamp{
       notUrgentText: '<span class="warn">Vous pouvez rouler</span> — mais faites vérifier le code lors du prochain entretien.',
       unknownSpnNote: 'Ce SPN n’est pas dans la base — probablement un code propre au constructeur. Essayez de choisir une marque ci-dessus.',
       loadError: 'La base n’a pas pu être chargée — vérifiez que le dossier <b>32-sait-assets</b> se trouve à côté de cette page.',
-      sourceLabel: 'source : {src}', fmiNonstandard: 'FMI {fmi} (valeur non standard)'
+      sourceLabel: 'source : {src}', fmiNonstandard: 'FMI {fmi} (valeur non standard)',
+      casCount: 'codes analysés : {n}',
+      casRoot: 'cause probable',
+      casCons: 'conséquences — ne se réparent pas séparément',
+      casSolo: 'sans lien avec la cause',
+      casTodo: 'que faire maintenant',
+      casWhyChain: 'Les autres codes suivent habituellement celui-ci — traitez-le en premier.',
+      casWhySingle: 'Le reste de la liste n’est pas directement lié à ce code.',
+      vStop: 'Ne pas rouler',
+      vStopSub: 'Arrêtez-vous dès que c’est possible en sécurité — ne continuez pas.',
+      vWarn: 'Vous pouvez rouler',
+      vWarnSub: 'Montrez les codes au prochain entretien.',
+      demoLabel: 'Voir un exemple',
+      listNote: '<b>Plusieurs codes à la fois ?</b> Collez toute la liste de votre valise de diagnostic. Une seule panne entraîne cinq ou six codes — nous montrons lequel est la cause et lesquels ont suivi.',
+      sysScr: 'AdBlue / échappement', sysOil: 'lubrification', sysCool: 'refroidissement',
+      sysFuel: 'carburant', sysAir: 'admission / suralimentation', sysPower: 'alimentation',
+      sysCan: 'bus CAN', sysBrake: 'freins', sysTrans: 'transmission',
+      sysProt: 'protection moteur', sysOther: 'divers',
+      actScr: 'Faites le plein d’AdBlue. Si le réservoir est déjà plein, le problème vient du dosage ou de la qualité du réactif — une valise est nécessaire.',
+      actOil: 'Coupez le moteur. Vérifiez le niveau d’huile à la jauge et inspectez le dessous pour des fuites. Ne redémarrez pas tant que la pression n’est pas rétablie.',
+      actCool: 'Laissez refroidir le moteur — n’ouvrez jamais le bouchon du vase d’expansion à chaud. Vérifiez ensuite le niveau et les durites.',
+      actFuel: 'Vérifiez le filtre à carburant et le décanteur, purgez l’eau. Par temps froid, pensez à la paraffine dans le gazole.',
+      actAir: 'Contrôlez le filtre à air et les durites de suralimentation : les prises d’air et les fissures donnent exactement ces codes.',
+      actPower: 'Vérifiez les cosses de batterie et la tresse de masse — la corrosion et un serrage faible génèrent de faux codes dans tout le camion. Moteur tournant, 27–29 V est la norme.',
+      actCan: 'Inspectez les connecteurs et le faisceau : une paire torsadée CAN coupée met hors service la communication de tous les calculateurs à la fois.',
+      actBrake: 'Laissez le circuit d’air monter à la pression de service et écoutez les fuites. On ne roule pas avec des freins défectueux.',
+      actDefault: 'Notez les codes et montrez-les à un atelier — cet ensemble demande une valise et une inspection sur place.'
     },
     es: {
       pageTitle: 'Código de avería de camión — decodificación SPN/FMI y códigos de concesionario',
@@ -572,7 +813,7 @@ body.critical .lamp{
       standardSpnFmi: 'J1939 — SPN / FMI',
       standardPcode: 'Código de concesionario / OBD',
       hint: 'Mayúsculas y espacios no importan. Reconoce <code>SPN 100 FMI 1</code>, <code>97 FMI 3</code>, <code>100/1</code>, <code>03043-00</code>, un simple <code>SPN 97</code>, y códigos de concesionario como <code>P2BA7</code>.',
-      dataLangNote: 'Los nombres de averías y las tablas de fábrica de la base de datos están en ruso; la interfaz y los significados estándar de FMI de abajo están traducidos.',
+      dataLangNote: 'Las descripciones de las averías se muestran en inglés.',
       printLabel: 'Imprimir',
       printTitleDisabled: 'Primero decodifica un código',
       printTitleEnabled: 'Imprimir este resultado',
@@ -592,7 +833,33 @@ body.critical .lamp{
       notUrgentText: '<span class="warn">Se puede seguir conduciendo</span> — pero revisa el código en el próximo mantenimiento.',
       unknownSpnNote: 'Este SPN no está en la base de datos — probablemente un código específico del fabricante. Prueba a elegir una marca arriba.',
       loadError: 'No se pudo cargar la base de datos — comprueba que la carpeta <b>32-sait-assets</b> esté junto a esta página.',
-      sourceLabel: 'fuente: {src}', fmiNonstandard: 'FMI {fmi} (valor no estándar)'
+      sourceLabel: 'fuente: {src}', fmiNonstandard: 'FMI {fmi} (valor no estándar)',
+      casCount: 'códigos analizados: {n}',
+      casRoot: 'causa probable',
+      casCons: 'consecuencias — no se reparan por separado',
+      casSolo: 'sin relación con la causa',
+      casTodo: 'qué hacer ahora',
+      casWhyChain: 'Los demás códigos suelen aparecer después de este — resúelvalo primero.',
+      casWhySingle: 'El resto de la lista no está directamente relacionado con este código.',
+      vStop: 'No circule',
+      vStopSub: 'Deténgase en cuanto sea seguro — no siga conduciendo.',
+      vWarn: 'Puede circular',
+      vWarnSub: 'Muestre los códigos en la próxima revisión.',
+      demoLabel: 'Ver un ejemplo',
+      listNote: '<b>¿Varios códigos a la vez?</b> Pegue la lista completa del escáner. Una sola avería arrastra cinco o seis códigos — le mostramos cuál es la causa y cuáles vinieron detrás.',
+      sysScr: 'AdBlue / escape', sysOil: 'lubricación', sysCool: 'refrigeración',
+      sysFuel: 'combustible', sysAir: 'admisión / sobrealimentación', sysPower: 'alimentación',
+      sysCan: 'bus CAN', sysBrake: 'frenos', sysTrans: 'transmisión',
+      sysProt: 'protección del motor', sysOther: 'otros',
+      actScr: 'Llene el depósito de AdBlue. Si ya está lleno, el problema es la dosificación o la calidad del reactivo — hace falta un escáner.',
+      actOil: 'Pare el motor. Compruebe el nivel de aceite con la varilla y revise los bajos en busca de fugas. No lo arranque hasta que se recupere la presión.',
+      actCool: 'Deje enfriar el motor — nunca abra el tapón del depósito de expansión en caliente. Después compruebe el nivel y los manguitos.',
+      actFuel: 'Revise el filtro de combustible y el decantador, purgue el agua. Con frío, sospeche de la parafina del gasóleo.',
+      actAir: 'Inspeccione el filtro de aire y los manguitos de sobrealimentación: las entradas de aire y las grietas dan exactamente estos códigos.',
+      actPower: 'Revise los bornes de la batería y la masa — la corrosión y el apriete flojo generan códigos falsos por todo el camión. Con el motor en marcha, 27–29 V es lo normal.',
+      actCan: 'Revise conectores y mazo: un par trenzado CAN cortado deja sin comunicación a todas las centralitas a la vez.',
+      actBrake: 'Deje que el circuito neumático alcance la presión de trabajo y escuche si hay fugas. Con los frenos averiados no se circula.',
+      actDefault: 'Anote los códigos y muéstrelos en un taller — este conjunto requiere escáner e inspección presencial.'
     },
     pt: {
       pageTitle: 'Código de falha de caminhão — decodificação SPN/FMI e códigos de concessionária',
@@ -606,7 +873,7 @@ body.critical .lamp{
       standardSpnFmi: 'J1939 — SPN / FMI',
       standardPcode: 'Código de concessionária / OBD',
       hint: 'Maiúsculas e espaços não importam. Reconhece <code>SPN 100 FMI 1</code>, <code>97 FMI 3</code>, <code>100/1</code>, <code>03043-00</code>, um simples <code>SPN 97</code>, e códigos de concessionária como <code>P2BA7</code>.',
-      dataLangNote: 'Os nomes das falhas e as tabelas de fábrica no banco de dados estão em russo; a interface e os significados padrão de FMI abaixo estão traduzidos.',
+      dataLangNote: 'As descrições das falhas são apresentadas em inglês.',
       printLabel: 'Imprimir',
       printTitleDisabled: 'Decodifique um código primeiro',
       printTitleEnabled: 'Imprimir este resultado',
@@ -626,7 +893,33 @@ body.critical .lamp{
       notUrgentText: '<span class="warn">Pode continuar dirigindo</span> — mas verifique o código na próxima revisão.',
       unknownSpnNote: 'Este SPN não está no banco de dados — provavelmente um código específico do fabricante. Tente selecionar uma marca acima.',
       loadError: 'Não foi possível carregar o banco de dados — verifique se a pasta <b>32-sait-assets</b> está junto a esta página.',
-      sourceLabel: 'fonte: {src}', fmiNonstandard: 'FMI {fmi} (valor não padrão)'
+      sourceLabel: 'fonte: {src}', fmiNonstandard: 'FMI {fmi} (valor não padrão)',
+      casCount: 'códigos analisados: {n}',
+      casRoot: 'causa provável',
+      casCons: 'consequências — não se reparam separadamente',
+      casSolo: 'sem relação com a causa',
+      casTodo: 'o que fazer agora',
+      casWhyChain: 'Os outros códigos costumam vir depois deste — resolva-o primeiro.',
+      casWhySingle: 'O resto da lista não está diretamente relacionado com este código.',
+      vStop: 'Não circule',
+      vStopSub: 'Pare assim que for seguro — não continue a conduzir.',
+      vWarn: 'Pode circular',
+      vWarnSub: 'Mostre os códigos na próxima revisão.',
+      demoLabel: 'Ver um exemplo',
+      listNote: '<b>Vários códigos de uma vez?</b> Cole a lista completa do scanner. Uma única avaria arrasta cinco ou seis códigos — mostramos qual é a causa e quais vieram a seguir.',
+      sysScr: 'AdBlue / escape', sysOil: 'lubrificação', sysCool: 'arrefecimento',
+      sysFuel: 'combustível', sysAir: 'admissão / sobrealimentação', sysPower: 'alimentação',
+      sysCan: 'barramento CAN', sysBrake: 'travões', sysTrans: 'transmissão',
+      sysProt: 'proteção do motor', sysOther: 'outros',
+      actScr: 'Ateşte o depósito de AdBlue. Se já estiver cheio, o problema é a dosagem ou a qualidade do reagente — é preciso um scanner.',
+      actOil: 'Desligue o motor. Verifique o nível de óleo com a vareta e inspecione por baixo à procura de fugas. Não arranque até a pressão voltar.',
+      actCool: 'Deixe o motor arrefecer — nunca abra o tampão do depósito de expansão a quente. Depois verifique o nível e os tubos.',
+      actFuel: 'Verifique o filtro de combustível e o decantador, purgue a água. Com frio, suspeite de parafina no gasóleo.',
+      actAir: 'Inspecione o filtro de ar e os tubos de sobrealimentação: entradas de ar e fissuras dão exatamente estes códigos.',
+      actPower: 'Verifique os bornes da bateria e a massa — corrosão e aperto fraco geram códigos falsos por todo o camião. Com o motor a trabalhar, 27–29 V é o normal.',
+      actCan: 'Verifique conectores e cablagem: um par entrançado CAN partido deixa todas as centralinas sem comunicação ao mesmo tempo.',
+      actBrake: 'Deixe o circuito pneumático atingir a pressão de trabalho e ouça se há fugas. Com travões avariados não se circula.',
+      actDefault: 'Anote os códigos e mostre-os numa oficina — este conjunto exige scanner e inspeção no local.'
     },
     pl: {
       pageTitle: 'Kod usterki ciężarówki — rozszyfrowanie SPN/FMI i kodów dealerskich',
@@ -640,7 +933,7 @@ body.critical .lamp{
       standardSpnFmi: 'J1939 — SPN / FMI',
       standardPcode: 'Kod dealerski / OBD',
       hint: 'Wielkość liter i spacje nie mają znaczenia. Rozpoznaje <code>SPN 100 FMI 1</code>, <code>97 FMI 3</code>, <code>100/1</code>, <code>03043-00</code>, samo <code>SPN 97</code> oraz kody dealerskie typu <code>P2BA7</code>.',
-      dataLangNote: 'Nazwy usterek i tabele fabryczne w bazie są po rosyjsku; interfejs oraz standardowe znaczenia FMI poniżej są przetłumaczone.',
+      dataLangNote: 'Opisy usterek są wyświetlane w języku angielskim.',
       printLabel: 'Drukuj',
       printTitleDisabled: 'Najpierw rozszyfruj kod',
       printTitleEnabled: 'Wydrukuj ten wynik',
@@ -660,7 +953,33 @@ body.critical .lamp{
       notUrgentText: '<span class="warn">Można jechać dalej</span> — ale pokaż kod przy najbliższym przeglądzie.',
       unknownSpnNote: 'Tego SPN nie ma w bazie — prawdopodobnie kod producenta. Spróbuj wybrać markę powyżej.',
       loadError: 'Baza się nie wczytała — sprawdź, czy folder <b>32-sait-assets</b> jest obok tej strony.',
-      sourceLabel: 'źródło: {src}', fmiNonstandard: 'FMI {fmi} (wartość niestandardowa)'
+      sourceLabel: 'źródło: {src}', fmiNonstandard: 'FMI {fmi} (wartość niestandardowa)',
+      casCount: 'przeanalizowanych kodów: {n}',
+      casRoot: 'prawdopodobna przyczyna',
+      casCons: 'skutki — nie naprawia się ich osobno',
+      casSolo: 'bez związku z przyczyną',
+      casTodo: 'co zrobić teraz',
+      casWhyChain: 'Pozostałe kody zwykle pojawiają się po tym — najpierw usuń ten.',
+      casWhySingle: 'Reszta listy nie jest bezpośrednio powiązana z tym kodem.',
+      vStop: 'Nie jedź dalej',
+      vStopSub: 'Zatrzymaj się, gdy tylko będzie to bezpieczne — nie kontynuuj jazdy.',
+      vWarn: 'Można jechać',
+      vWarnSub: 'Pokaż kody przy najbliższym przeglądzie.',
+      demoLabel: 'Zobacz przykład',
+      listNote: '<b>Kilka kodów naraz?</b> Wklej całą listę ze skanera. Jedna usterka ciągnie za sobą pięć-sześć kodów — pokażemy, który jest przyczyną, a które pojawiły się po nim.',
+      sysScr: 'AdBlue / wydech', sysOil: 'smarowanie', sysCool: 'układ chłodzenia',
+      sysFuel: 'paliwo', sysAir: 'dolot / doładowanie', sysPower: 'zasilanie',
+      sysCan: 'magistrala CAN', sysBrake: 'hamulce', sysTrans: 'skrzynia biegów',
+      sysProt: 'ochrona silnika', sysOther: 'inne',
+      actScr: 'Uzupełnij AdBlue do pełna. Jeśli zbiornik jest pełny, problem leży w dozowaniu lub jakości reagenta — potrzebny jest skaner.',
+      actOil: 'Zgaś silnik. Sprawdź poziom oleju bagnetem i obejrzyj spód pod kątem wycieków. Nie uruchamiaj, dopóki ciśnienie nie wróci.',
+      actCool: 'Poczekaj, aż silnik ostygnie — nigdy nie otwieraj korka zbiornika wyrównawczego na gorąco. Potem sprawdź poziom i przewody.',
+      actFuel: 'Sprawdź filtr paliwa i odstojnik, spuść wodę. Na mrozie podejrzewaj parafinowanie oleju napędowego.',
+      actAir: 'Obejrzyj filtr powietrza i przewody doładowania: nieszczelności i pęknięcia dają dokładnie takie kody.',
+      actPower: 'Sprawdź klemy akumulatora i masę — korozja i luźne zaciski sypią fałszywymi kodami po całym pojeździe. Na pracującym silniku norma to 27–29 V.',
+      actCan: 'Sprawdź złącza i wiązkę: przerwana skrętka CAN pozbawia łączności wszystkie sterowniki naraz.',
+      actBrake: 'Pozwól układowi pneumatycznemu nabić ciśnienie robocze i posłuchaj, czy nie ma nieszczelności. Z niesprawnymi hamulcami się nie jedzie.',
+      actDefault: 'Zapisz kody i pokaż je w warsztacie — ten zestaw wymaga skanera i oględzin na miejscu.'
     },
     tr: {
       pageTitle: 'Kamyon arıza kodu — SPN/FMI ve bayi kodu çözümleme',
@@ -674,7 +993,7 @@ body.critical .lamp{
       standardSpnFmi: 'J1939 — SPN / FMI',
       standardPcode: 'Bayi / OBD kodu',
       hint: 'Büyük/küçük harf ve boşluklar önemli değil. <code>SPN 100 FMI 1</code>, <code>97 FMI 3</code>, <code>100/1</code>, <code>03043-00</code>, tek başına <code>SPN 97</code> ve <code>P2BA7</code> gibi bayi kodlarını tanır.',
-      dataLangNote: 'Veritabanındaki arıza adları ve fabrika tabloları Rusça; arayüz ve aşağıdaki standart FMI anlamları çevrildi.',
+      dataLangNote: 'Arıza açıklamaları İngilizce olarak gösterilir.',
       printLabel: 'Yazdır',
       printTitleDisabled: 'Önce bir kodu çözün',
       printTitleEnabled: 'Bu sonucu yazdır',
@@ -694,7 +1013,33 @@ body.critical .lamp{
       notUrgentText: '<span class="warn">Yola devam edilebilir</span> — ancak kodu bir sonraki serviste gösterin.',
       unknownSpnNote: 'Bu SPN veritabanında yok — muhtemelen üreticiye özel bir kod. Yukarıdan bir marka seçmeyi deneyin.',
       loadError: 'Veritabanı yüklenemedi — <b>32-sait-assets</b> klasörünün bu sayfanın yanında olduğundan emin olun.',
-      sourceLabel: 'kaynak: {src}', fmiNonstandard: 'FMI {fmi} (standart olmayan değer)'
+      sourceLabel: 'kaynak: {src}', fmiNonstandard: 'FMI {fmi} (standart olmayan değer)',
+      casCount: 'incelenen kod: {n}',
+      casRoot: 'olası kök neden',
+      casCons: 'sonuç kodları — ayrı ayrı onarılmaz',
+      casSolo: 'kök nedenle ilgisiz',
+      casTodo: 'şimdi ne yapmalı',
+      casWhyChain: 'Diğer kodlar genellikle bunun ardından gelir — önce bunu giderin.',
+      casWhySingle: 'Listenin geri kalanı bu kodla doğrudan ilgili değil.',
+      vStop: 'Yola devam etmeyin',
+      vStopSub: 'Güvenli olur olmaz durun — yola devam etmeyin.',
+      vWarn: 'Yola devam edilebilir',
+      vWarnSub: 'Kodları ilk bakımda gösterin.',
+      demoLabel: 'Örneğe bakın',
+      listNote: '<b>Aynı anda birden fazla kod mu?</b> Cihazdaki listenin tamamını yapıştırın. Tek bir arıza beş-altı kodu peşinden sürükler — hangisinin neden olduğunu, hangilerinin ardından geldiğini gösteririz.',
+      sysScr: 'AdBlue / egzoz', sysOil: 'yağlama', sysCool: 'soğutma',
+      sysFuel: 'yakıt', sysAir: 'emme / turbo basıncı', sysPower: 'besleme',
+      sysCan: 'CAN hattı', sysBrake: 'frenler', sysTrans: 'şanzıman',
+      sysProt: 'motor koruma', sysOther: 'diğer',
+      actScr: 'AdBlue deposunu doldurun. Depo zaten doluysa sorun dozajlama veya reaktif kalitesindedir — cihaz gerekir.',
+      actOil: 'Motoru durdurun. Yağ seviyesini çubukla kontrol edin ve altını kaçak için gözden geçirin. Basınç geri gelmeden çalıştırmayın.',
+      actCool: 'Motorun soğumasını bekleyin — genleşme deposunun kapağını sıcakken asla açmayın. Sonra seviyeyi ve hortumları kontrol edin.',
+      actFuel: 'Yakıt filtresini ve su tutucuyu kontrol edin, suyu boşaltın. Soğukta motorinin parafinlenmesinden şüphelenin.',
+      actAir: 'Hava filtresini ve turbo hortumlarını inceleyin: kaçaklar ve çatlaklar tam olarak bu kodları verir.',
+      actPower: 'Akü kutup başlarını ve şasi bağlantısını kontrol edin — oksitlenme ve gevşek sıkma tüm araçta sahte kod üretir. Motor çalışırken 27–29 V normaldir.',
+      actCan: 'Soketleri ve tesisatı kontrol edin: kopmuş bir CAN burgulu çifti tüm beyinlerin haberleşmesini aynı anda keser.',
+      actBrake: 'Hava sisteminin çalışma basıncına ulaşmasını bekleyin ve kaçak sesi dinleyin. Arızalı frenle yola çıkılmaz.',
+      actDefault: 'Kodları not edin ve serviste gösterin — bu grup için cihaz ve yerinde inceleme gerekir.'
     },
     hi: {
       pageTitle: 'ट्रक फॉल्ट कोड — SPN/FMI और डीलर कोड डिकोडिंग',
@@ -708,7 +1053,7 @@ body.critical .lamp{
       standardSpnFmi: 'J1939 — SPN / FMI',
       standardPcode: 'डीलर / OBD कोड',
       hint: 'बड़े-छोटे अक्षर और स्पेस मायने नहीं रखते। यह <code>SPN 100 FMI 1</code>, <code>97 FMI 3</code>, <code>100/1</code>, <code>03043-00</code>, अकेला <code>SPN 97</code>, और <code>P2BA7</code> जैसे डीलर कोड पहचानता है।',
-      dataLangNote: 'डेटाबेस में दोष के नाम और फैक्ट्री तालिकाएं रूसी भाषा में हैं; इंटरफ़ेस और नीचे दिए गए मानक FMI अर्थ अनुवादित हैं।',
+      dataLangNote: 'खराबी के विवरण अंग्रेज़ी में दिखाए गए हैं।',
       printLabel: 'प्रिंट करें',
       printTitleDisabled: 'पहले कोड डिकोड करें',
       printTitleEnabled: 'यह परिणाम प्रिंट करें',
@@ -728,7 +1073,33 @@ body.critical .lamp{
       notUrgentText: '<span class="warn">गाड़ी चलाना सुरक्षित है</span> — लेकिन अगली सर्विस में कोड जरूर दिखाएं।',
       unknownSpnNote: 'यह SPN डेटाबेस में नहीं है — संभवतः यह निर्माता-विशिष्ट कोड है। ऊपर ब्रांड चुनकर देखें।',
       loadError: 'डेटाबेस लोड नहीं हो पाया — जांचें कि <b>32-sait-assets</b> फ़ोल्डर इस पेज के पास मौजूद है।',
-      sourceLabel: 'स्रोत: {src}', fmiNonstandard: 'FMI {fmi} (गैर-मानक मान)'
+      sourceLabel: 'स्रोत: {src}', fmiNonstandard: 'FMI {fmi} (गैर-मानक मान)',
+      casCount: 'जांचे गए कोड: {n}',
+      casRoot: 'संभावित मूल कारण',
+      casCons: 'परिणामी कोड — अलग से ठीक नहीं होते',
+      casSolo: 'मूल कारण से असंबंधित',
+      casTodo: 'अभी क्या करें',
+      casWhyChain: 'बाकी कोड आमतौर पर इसी के बाद आते हैं — पहले इसे ठीक करें।',
+      casWhySingle: 'सूची के बाकी कोड इससे सीधे जुड़े नहीं हैं।',
+      vStop: 'गाड़ी न चलाएं',
+      vStopSub: 'जैसे ही सुरक्षित हो, रुक जाएं — आगे न बढ़ें।',
+      vWarn: 'गाड़ी चलाना सुरक्षित है',
+      vWarnSub: 'अगली सर्विस में कोड दिखाएं।',
+      demoLabel: 'उदाहरण देखें',
+      listNote: '<b>एक साथ कई कोड?</b> स्कैनर की पूरी सूची यहां पेस्ट करें। एक ही खराबी पांच-छह कोड अपने साथ ले आती है — हम बताएंगे कि कौन सा कारण है और कौन से उसके बाद आए।',
+      sysScr: 'AdBlue / निकास', sysOil: 'स्नेहन', sysCool: 'शीतलन',
+      sysFuel: 'ईंधन', sysAir: 'इनटेक / बूस्ट', sysPower: 'विद्युत आपूर्ति',
+      sysCan: 'CAN बस', sysBrake: 'ब्रेक', sysTrans: 'ट्रांसमिशन',
+      sysProt: 'इंजन सुरक्षा', sysOther: 'अन्य',
+      actScr: 'AdBlue टैंक भरें। अगर टैंक पहले से भरा है तो समस्या डोज़िंग या रीएजेंट की गुणवत्ता में है — स्कैनर चाहिए।',
+      actOil: 'इंजन बंद करें। डिपस्टिक से तेल का स्तर जांचें और नीचे रिसाव देखें। दबाव लौटने तक इंजन चालू न करें।',
+      actCool: 'इंजन को ठंडा होने दें — गर्म में एक्सपेंशन टैंक का ढक्कन कभी न खोलें। फिर स्तर और पाइप जांचें।',
+      actFuel: 'ईंधन फिल्टर और वॉटर ट्रैप जांचें, पानी निकालें। ठंड में डीज़ल के जमने का संदेह करें।',
+      actAir: 'एयर फिल्टर और बूस्ट पाइप देखें: रिसाव और दरारें ठीक ऐसे ही कोड देती हैं।',
+      actPower: 'बैटरी टर्मिनल और अर्थ जांचें — जंग और ढीली कसावट पूरी गाड़ी में झूठे कोड पैदा करती है। इंजन चालू पर 27–29 V सामान्य है।',
+      actCan: 'कनेक्टर और वायरिंग जांचें: टूटी CAN जोड़ी सभी ECU का संपर्क एक साथ खत्म कर देती है।',
+      actBrake: 'न्यूमैटिक सिस्टम को काम करने के दबाव तक भरने दें और रिसाव सुनें। खराब ब्रेक के साथ गाड़ी नहीं चलाते।',
+      actDefault: 'कोड लिख लें और वर्कशॉप में दिखाएं — इस सेट के लिए स्कैनर और मौके पर जांच चाहिए।'
     }
   };
 
@@ -875,7 +1246,9 @@ body.critical .lamp{
     document.querySelectorAll('[data-i18n]').forEach(function(el){
       el.innerHTML = t(el.getAttribute('data-i18n'));
     });
-    dataNote.style.display = lang === 'ru' ? 'none' : 'block';
+    /* Плашка нужна только там, где описания придут не на языке
+       интерфейса: русскому и английскому объяснять нечего. */
+    dataNote.style.display = (lang === 'ru' || lang === 'en') ? 'none' : 'block';
     langSelect.value = lang;
     if(DB) fillBrands();
     printBtn.title = printBtn.disabled ? t('printTitleDisabled') : t('printTitleEnabled');
@@ -903,6 +1276,30 @@ body.critical .lamp{
     return loading;
   }
   load();
+
+  /* Английские описания лежат отдельным файлом и грузятся только
+     когда язык не русский. Основная аудитория русская - незачем
+     заставлять её тянуть лишние полмегабайта на обочине с одной
+     палкой связи. Не загрузился - молча остаёмся на русском. */
+  var DB_EN = null, loadingEn = null;
+  function loadEn(){
+    if(currentLang === 'ru') return Promise.resolve(null);
+    if(DB_EN) return Promise.resolve(DB_EN);
+    if(window.__TDP_DTC_EN){ DB_EN = window.__TDP_DTC_EN; return Promise.resolve(DB_EN); }
+    if(loadingEn) return loadingEn;
+    loadingEn = new Promise(function(resolve){
+      var s = document.createElement('script');
+      s.src = 'assets/dtc.en.js'; s.async = true;
+      s.onload  = function(){ DB_EN = window.__TDP_DTC_EN || null; resolve(DB_EN); };
+      s.onerror = function(){ resolve(null); };
+      document.head.appendChild(s);
+    });
+    return loadingEn;
+  }
+  /* Русский - язык базы и значение по умолчанию. Для всех остальных
+     языков сначала смотрим английскую таблицу, а где перевода ещё
+     нет - показываем русское описание: неполный ответ лучше пустого. */
+  function en(){ return currentLang === 'ru' ? null : DB_EN; }
 
   /* Нормализация написания: регистр и пробелы (в т.ч. неразрывные,
      двойные, табы) не должны влиять на распознавание кода. */
@@ -962,15 +1359,28 @@ body.critical .lamp{
     return desc + ' — ' + f;
   }
 
+  /* Имя параметра по SPN - одна лестница источников: заводская
+     таблица марки, стандарт J1939, общий справочник. На каждой
+     ступени сначала английский (если язык не русский), потом русский. */
+  function spnName(spn, brand){
+    var E = en(), s = String(spn);
+    return (E && E.spn[s])
+        || (E && brand && E.spnName[brand] && E.spnName[brand][s])
+        || (E && E.universal[s])
+        || DB.spn[s]
+        || (brand && DB.spnNameRu[brand] && DB.spnNameRu[brand][s])
+        || (brand && DB.spnNameEn[brand] && DB.spnNameEn[brand][s])
+        || DB.universal[s];
+  }
+
   function describe(spn, fmi, brand){
-    if(brand && DB.brands[brand]){
-      var exact = DB.brands[brand][spn + '.' + fmi];
+    if(brand){
+      var E = en(), key = spn + '.' + fmi;
+      var exact = (E && E.brands[brand] && E.brands[brand][key])
+               || (DB.brands[brand] && DB.brands[brand][key]);
       if(exact) return {text:withFmiHint(exact, fmi), src:t('factorySource', {brand: brandName(brand)})};
     }
-    var name = DB.spn[String(spn)]
-            || (brand && DB.spnNameRu[brand] && DB.spnNameRu[brand][String(spn)])
-            || (brand && DB.spnNameEn[brand] && DB.spnNameEn[brand][String(spn)])
-            || DB.universal[String(spn)];
+    var name = spnName(spn, brand);
     var known = !!name;
     if(!name) name = 'SPN ' + spn;
     var f = fmiText(fmi) || t('fmiNonstandard', {fmi:fmi});
@@ -981,7 +1391,10 @@ body.critical .lamp{
      него, поэтому сверяем оба написания. Индекс без пробелов строим
      один раз на таблицу и прячем от Object.keys. */
   function lookupPcode(brand, code){
-    var tbl = DB.pcode[brand];
+    var E = en();
+    return (E && E.pcode && pcodeIn(E.pcode[brand], code)) || pcodeIn(DB.pcode[brand], code);
+  }
+  function pcodeIn(tbl, code){
     if(!tbl) return null;
     if(tbl[code]) return tbl[code];
     var bare = code.replace(/\s+/g, '');
@@ -1031,10 +1444,223 @@ body.critical .lamp{
   }
   function note(t){ return '<div class="miss">' + t + '</div>'; }
 
+  /* ============================================================
+     РАЗБОР ГИРЛЯНДЫ
+
+     Машина почти никогда не отдаёт один код. Сканер вываливает
+     6-12 штук, но поломка при этом одна, а остальное - её следствия:
+     пустой бак AdBlue -> прервано дозирование -> NOx выше нормы ->
+     ограничение момента. Человек проверяет коды по одному и получает
+     четыре разных страшных ответа вместо одного «долей мочевину».
+
+     Поэтому здесь мы не расшифровываем список построчно, а ищем в нём
+     корень. Ниже - то, чем это делается: принадлежность кода к системе
+     и известные цепочки «причина -> следствия».
+     ============================================================ */
+
+  var SYS_SPN = {
+    scr  :[1761,3216,3226,3242,3246,3250,3251,3361,3363,3364,3480,3609,3610,3719,3936,
+           4090,4094,4095,4096,4225,4334,4364,4809,5394,5841],
+    oil  :[98,100,175,1208],
+    cool :[110,111,975,1134,4076,4193],
+    fuel :[94,95,97,157,164,174,651,652,653,654,655,656,657,658,1076,1077,1239,1347,1348,1349],
+    air  :[102,103,105,106,107,132,411,412,1127,1172,1176,2630,2659,2789,2791,5401,5541],
+    power:[158,167,168,620,627,628,629,1079,1080,3509,3510,3511],
+    can  :[520,639,1231,1235,1237,2003,2005,2011,523212,523216],
+    brake:[46,70,563,597,598,1086,520192],
+    trans:[191,522,523,524,560,561,573,574,787],
+    prot :[1108,1110,1569,2629,3607,5246]
+  };
+  /* Если SPN нет в списках - определяем систему по названию: база
+     русская и слова в ней устойчивые. */
+  var SYS_WORD = {
+    scr  :['adblue','мочевин','реаген','nox','scr','сажев','катализат','dpf','выхлоп','отработавш','сажи'],
+    oil  :['масл','смазк'],
+    cool :['охлажд','антифриз','радиатор','вентилятор',' ож'],
+    fuel :['топлив','форсунк','рампе','рампы','рампа','тнвд','впрыск','солярк'],
+    air  :['наддув','турбо','воздуш','впуск','интеркул','дроссел'],
+    power:['напряж','аккумул','генерат','питани','бортов','реле'],
+    can  :['can','шина','сообщени','связ'],
+    brake:['тормоз','abs','ebs','пневмо','ресивер'],
+    trans:['коробк','сцеплен','передач','кпп','трансмисс'],
+    prot :['ограничен','защит','останов двигател','дерейт']
+  };
+  function systemOf(spn, name){
+    var k;
+    for(k in SYS_SPN){ if(SYS_SPN[k].indexOf(spn) >= 0) return k; }
+    var low = (name || '').toLowerCase();
+    for(k in SYS_WORD){
+      if(SYS_WORD[k].some(function(w){ return low.indexOf(w) >= 0; })) return k;
+    }
+    return 'other';
+  }
+
+  /* Известные цепочки. Читать так: если в списке есть код из root,
+     то встреченные коды из cons - его следствия, а не отдельные
+     поломки. Список неполный и намеренно консервативный: лучше
+     не связать два кода, чем связать неверно. */
+  var CAUSAL = [
+    {root:[1761,4096],        cons:[3216,3226,3361,3363,3364,4090,4094,4095,4225,5841,1569,5246], phys:1},
+    {root:[5841,3364],        cons:[3226,4090,4094,4225,1569,5246]},
+    {root:[3251,3719],        cons:[131,1569,3609,3610,3936,5246], phys:1},
+    {root:[100],              cons:[1108,1110,1569,3607], phys:1},
+    {root:[110,111],          cons:[975,1108,1110,1569,3607], phys:1},
+    {root:[639,1231,1235],    cons:[520,2003,2005,2011]},
+    {root:[102,103,1127,5401],cons:[131,1569,2791,3251], phys:1},
+    {root:[94,157,1239],      cons:[190,651,652,653,654,655,656,657,658,1569], phys:1},
+    {root:[46,1086],          cons:[563,597,598,520192], phys:1}
+  ];
+
+  /* Когда явной цепочки нет, порядок всё равно не случаен: просадка
+     питания или оборванная шина сыплют ложные коды по всей машине,
+     а ограничение момента - это всегда чей-то итог, а не причина.
+     Меньше число - ближе к корню. */
+  var FMI_RANGE   = [0,1,15,16,17,18];   // величина реально вне нормы
+  var FMI_ELEC    = [3,4,5,6];           // электрика самого датчика
+  var FMI_DERIVED = [2,9,10,11,19,20,21,31]; // расчётное, производное
+  function rootScore(c){
+    if(c.sys === 'prot')  return 90;
+    if(c.sys === 'power') return 10;
+    if(c.sys === 'can')   return 15;
+    if(FMI_RANGE.indexOf(c.fmi)   >= 0) return 30;
+    if(FMI_ELEC.indexOf(c.fmi)    >= 0) return 50;
+    if(FMI_DERIVED.indexOf(c.fmi) >= 0) return 70;
+    return 60;
+  }
+
+  /* Из строки достаём все пары SPN/FMI подряд - список со сканера
+     приходит и через запятую, и в столбик, и с номерами строк. */
+  function parseAll(raw){
+    var up = normCode(raw), out = [], seen = {}, m;
+    var re = /(?:SPN\s*[:\-]?\s*)?(\d{1,6})\s*(?:\D{0,12}?FMI\s*[:\-]?\s*|[\/\-.,]\s*)(\d{1,2})(?!\d)/g;
+    while((m = re.exec(up))){
+      var spn = parseInt(m[1], 10), fmi = parseInt(m[2], 10), k = spn + '.' + fmi;
+      if(!seen[k]){ seen[k] = 1; out.push({spn:spn, fmi:fmi}); }
+    }
+    return out;
+  }
+
+  var ACT = {scr:'actScr', oil:'actOil', cool:'actCool', fuel:'actFuel',
+             air:'actAir', power:'actPower', can:'actCan', brake:'actBrake'};
+
+  function analyze(codes, brand){
+    var list = codes.map(function(c){
+      var d = describe(c.spn, c.fmi, brand);
+      return {spn:c.spn, fmi:c.fmi, text:d.text, sys:systemOf(c.spn, d.text),
+              urgent:urgent(c.spn, c.fmi, brand)};
+    });
+    var id = function(c){ return c.spn + '.' + c.fmi; };
+
+    var best = null;
+
+    /* Просевшая бортсеть и мёртвая шина идут вне очереди: они сыплют
+       ложные коды сразу по всем системам, поэтому любое другое
+       объяснение списка будет разбором этих самых ложных кодов.
+       Классика - «загорелось всё сразу» от плохой массы. */
+    var supply = list.filter(function(c){ return c.sys === 'power' || c.sys === 'can'; })
+                     .sort(function(a, b){ return rootScore(a) - rootScore(b); })[0];
+    if(supply){
+      best = {root:supply, cons:list.filter(function(c){
+        return c !== supply &&
+               (FMI_ELEC.indexOf(c.fmi) >= 0 || FMI_DERIVED.indexOf(c.fmi) >= 0);
+      })};
+    }
+
+    /* Иначе берём правило, объясняющее больше всего кодов: если подходят
+       и «пустой бак», и «плохое качество», выигрывает то, под которое
+       легла вся гроздь. */
+    if(!best){
+      CAUSAL.forEach(function(rule){
+        var root = null;
+        list.forEach(function(c){
+          /* Для физических цепочек причиной считаем только реально
+             вылезшую за норму величину. Перегрев тянет за собой дерейт,
+             а оборванный провод датчика перегрева - нет: это разные
+             неисправности, и путать их нельзя. */
+          if(root || rule.root.indexOf(c.spn) < 0) return;
+          if(rule.phys && FMI_RANGE.indexOf(c.fmi) < 0) return;
+          root = c;
+        });
+        if(!root) return;
+        var cons = list.filter(function(c){
+          return c !== root && rule.cons.indexOf(c.spn) >= 0;
+        });
+        if(!best || cons.length > best.cons.length) best = {root:root, cons:cons};
+      });
+    }
+
+    if(!best){
+      best = {root:list.slice().sort(function(a, b){
+        return rootScore(a) - rootScore(b);
+      })[0], cons:[]};
+    }
+
+    var used = {};
+    used[id(best.root)] = 1;
+    best.cons.forEach(function(c){ used[id(c)] = 1; });
+    var solo = list.filter(function(c){ return !used[id(c)]; });
+
+    return {root:best.root, cons:best.cons, solo:solo,
+            stop:list.some(function(c){ return c.urgent; }), total:list.length};
+  }
+
+  function codeLine(c){
+    return '<span class="mono">SPN ' + c.spn + '/' + c.fmi + '</span>' +
+           '<span>' + esc(c.text) + '</span>';
+  }
+  function group(label, items, cls){
+    if(!items.length) return '';
+    return '<div class="grp"><div class="st">' + esc(label) + '</div>' +
+      '<ul class="cons ' + (cls || '') + '">' +
+      items.map(function(c){
+        return '<li class="' + (c.urgent ? 'hit' : '') + '">' + codeLine(c) + '</li>';
+      }).join('') + '</ul></div>';
+  }
+
+  var MARK_STOP = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.2 2h7.6L22 8.2v7.6L15.8 22H8.2L2 15.8V8.2L8.2 2Zm2.8 5v7h2V7h-2Zm0 9v2h2v-2h-2Z"/></svg>';
+  var MARK_WARN = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 23 21H1L12 2Zm-1 7v6h2V9h-2Zm0 8v2h2v-2h-2Z"/></svg>';
+
+  function cascade(a){
+    var html = '';
+    html += '<div class="verdict ' + (a.stop ? 'stop' : 'warn') + '">' +
+              '<span class="vmark">' + (a.stop ? MARK_STOP : MARK_WARN) + '</span>' +
+              '<span><span class="vtitle">' + esc(t(a.stop ? 'vStop' : 'vWarn')) + '</span>' +
+              '<span class="vsub">' + esc(t(a.stop ? 'vStopSub' : 'vWarnSub')) + '</span></span>' +
+              '<span class="vcount">' + esc(t('casCount', {n:a.total})) + '</span>' +
+            '</div>';
+
+    html += '<div class="card">';
+    html += '<div class="grp" style="margin-top:0"><div class="st">' + esc(t('casRoot')) + '</div>' +
+              '<div class="root">' +
+                '<div class="rcode"><span class="mono">SPN ' + a.root.spn + '/' + a.root.fmi + '</span>' +
+                  '<span class="sys">' + esc(t('sys' + a.root.sys.charAt(0).toUpperCase() + a.root.sys.slice(1))) + '</span></div>' +
+                '<div class="rtext">' + esc(a.root.text) + '</div>' +
+                '<div class="rwhy">' + esc(a.cons.length ? t('casWhyChain') : t('casWhySingle')) + '</div>' +
+              '</div></div>';
+
+    html += group(t('casCons'), a.cons);
+    html += group(t('casSolo'), a.solo, 'solo');
+
+    html += '<div class="grp"><div class="st">' + esc(t('casTodo')) + '</div>' +
+              '<ol class="todo"><li>' + esc(t(ACT[a.root.sys] || 'actDefault')) + '</li></ol></div>';
+
+    return html + '</div>';
+  }
+
   var printBtn = document.getElementById('pf-print');
   printBtn.addEventListener('click', function(){
     if(!printBtn.disabled) window.print();
   });
+  /* Живой пример - гроздь от пустого бака AdBlue плюс один
+     посторонний код, чтобы было видно и разделение на «не связано». */
+  var DEMO = 'SPN 1761 FMI 1, SPN 4095 FMI 31, SPN 3226 FMI 0, SPN 4094 FMI 31, ' +
+             'SPN 1569 FMI 31, SPN 5841 FMI 2, SPN 84 FMI 2';
+  document.getElementById('pf-demo').addEventListener('click', function(){
+    input.value = DEMO;
+    run();
+    out.scrollIntoView({behavior:'smooth', block:'nearest'});
+  });
+
   langSelect.addEventListener('change', function(){ applyLang(langSelect.value); });
   applyLang(currentLang);
 
@@ -1053,15 +1679,33 @@ body.critical .lamp{
     printBtn.title = printable ? t('printTitleEnabled') : t('printTitleDisabled');
   }
 
+  /* Перед разбором нужны обе базы: основная и, для нерусского
+     интерфейса, английские описания. */
+  function ready(){ return Promise.all([load(), loadEn()]); }
+
   function run(){
     var brand = sel.value;
+
+    /* Два кода и больше - это выгрузка со сканера, а не один вопрос.
+       Такой список разбираем целиком: ищем первопричину. */
+    var many = std.value === 'pcode' ? [] : parseAll(input.value);
+    if(many.length >= 2){
+      ready().then(function(){
+        var a = analyze(many, brand);
+        render(cascade(a), a.stop ? 'critical' : 'solved', true);
+      }).catch(function(){
+        render(note(t('loadError')), null);
+      });
+      return;
+    }
+
     var p = parse(input.value, std.value);
 
     if(!p){
       render(note(t('emptyPrompt')), null);
       return;
     }
-    load().then(function(){
+    ready().then(function(){
       if(p.bad){
         render(note(t('badCode')), null);
         return;
@@ -1086,10 +1730,7 @@ body.critical .lamp{
          параметр, и разбор всех FMI по стандарту, чтобы человек нашёл
          свой случай, даже если вторую половину кода он не разглядел. */
       if(p.fmi === null){
-        var nm = DB.spn[String(p.spn)]
-              || (brand && DB.spnNameRu[brand] && DB.spnNameRu[brand][String(p.spn)])
-              || (brand && DB.spnNameEn[brand] && DB.spnNameEn[brand][String(p.spn)])
-              || DB.universal[String(p.spn)];
+        var nm = spnName(p.spn, brand);
         if(!nm){
           render(note(t('spnNotFound', {spn: p.spn})), null);
           return;
@@ -1108,7 +1749,9 @@ body.critical .lamp{
         if(known.length){
           sSteps.push({st:t('knownFailures', {brand: brandName(brand)}),
             tx: known.map(function(f){
-              return '<span class="mono">' + p.spn + '/' + f + '</span> — ' + esc(DB.brands[brand][p.spn + '.' + f]);
+              var E = en(), bk = p.spn + '.' + f;
+              var txt = (E && E.brands[brand] && E.brands[brand][bk]) || DB.brands[brand][bk];
+              return '<span class="mono">' + p.spn + '/' + f + '</span> — ' + esc(txt);
             }).join('<br>'), cls:'ok'});
         }
         sSteps.push({st:t('stepNeedFmi'), tx:t('needFmiText', {spn: p.spn})});
