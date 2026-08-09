@@ -591,8 +591,8 @@ body.critical .lamp{
    раза. Выпадающий список на телефоне - это три действия (открыть,
    пролистать, выбрать) и мелкие строки; ряд кнопок - одно действие
    и крупная цель. */
-[data-preview="2"] .filters,
-[data-preview="2"] .lang-switch{display:none}
+[data-preview="2"] .filters, [data-preview="3"] .filters,
+[data-preview="2"] .lang-switch, [data-preview="3"] .lang-switch{display:none}
 /* Ряд в одну строку с горизонтальной прокруткой. Перенос по строкам
    давал пять строк кнопок и уводил поле ввода на середину экрана -
    ради быстроты всё должно помещаться выше сгиба. */
@@ -649,6 +649,62 @@ body.critical .lamp{
 /* Действие - главное, что человек должен унести с экрана. */
 [data-preview] .todo{font-size:15.5px;line-height:1.55;color:var(--ink)}
 [data-preview] .todo li::marker{color:var(--lamp)}
+
+/* --- режим отчёта ---
+   Когда ответ готов, он занимает страницу целиком. Ввод сворачивается
+   в одну строку сверху: что за машина и какой код - этого достаточно,
+   чтобы понимать, к чему относится отчёт, и вернуться к правке одним
+   нажатием. Всё остальное с экрана уходит: человек читает ответ, а не
+   форму, которую уже заполнил. */
+.recap{
+  display:none;align-items:center;gap:12px;width:100%;
+  min-height:52px;padding:10px 14px;margin-bottom:14px;cursor:pointer;
+  background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:12px;
+  font-family:var(--sans);text-align:left;
+  transition:border-color .16s ease;
+}
+.recap:hover{border-color:rgba(111,227,211,.4)}
+.recap:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
+.recap .rcv{
+  flex:1;min-width:0;font-size:14px;color:var(--ink);font-weight:600;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.recap .rce{flex:none;font-size:12.5px;color:var(--signal)}
+[data-preview="3"] body.report .recap{display:flex}
+[data-preview="3"] body.report h1,
+[data-preview="3"] body.report .purpose,
+[data-preview="3"] body.report .steplbl,
+[data-preview="3"] body.report .chips,
+[data-preview="3"] body.report .scanner,
+[data-preview="3"] body.report .showcase,
+[data-preview="3"] body.report .listnote,
+[data-preview="3"] body.report .datanote,
+[data-preview="3"] body.report .print-btn{display:none}
+[data-preview="3"] body.report .out{margin-top:0}
+
+/* Действия под отчётом. Печать и ссылка механику - это то, чем
+   разбор заканчивается в жизни: лист кладут к машине, ссылку кидают
+   на базу. Поэтому они крупные и внизу, а не иконкой в углу. */
+.acts{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+.acts .act{
+  flex:1 1 200px;min-height:52px;padding:14px 16px;cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;gap:9px;
+  font-family:var(--sans);font-size:14.5px;font-weight:650;
+  border-radius:12px;border:1px solid var(--line);
+  background:rgba(255,255,255,.03);color:var(--ink);
+  transition:border-color .16s ease,background .16s ease;
+}
+.acts .act:hover{border-color:rgba(111,227,211,.45);background:rgba(255,255,255,.06)}
+.acts .act:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
+.acts .act-main{
+  border-color:transparent;color:#20120A;
+  background:linear-gradient(180deg,#FFAA55,#F2833C);
+}
+.acts .act svg{width:17px;height:17px;flex:none}
+[data-theme="light"] .recap{background:#fff}
+[data-theme="light"] .acts .act{background:#fff;color:var(--ink)}
+[data-theme="light"] .acts .act-main{color:#20120A}
+@media print{ .recap,.acts{display:none !important} }
 
 /* --- движение объясняет связь ---
    Смысл гирлянды в том, что причина одна, а остальное к ней
@@ -928,7 +984,7 @@ body.critical .lamp{
   /* ?preview=1 - две правки дизайна на пробу: выдача в виде прибора
      и живой пример работы прямо на первом экране. Посетители сайта
      их пока не видят. */
-  var p = /[?&]preview=([12])/.exec(location.search);
+  var p = /[?&]preview=([123])/.exec(location.search);
   if(p) document.documentElement.setAttribute('data-preview', p[1]);
 })();
 </script>
@@ -2461,12 +2517,16 @@ body.critical .lamp{
         alt:'Ввести код в другом формате',
         todo:'Что делать', cause:'Из-за чего',
         more:'Подробнее: следствия и что будет, если ехать',
-        more1:'Подробнее: что будет, если ехать'},
+        more1:'Подробнее: что будет, если ехать',
+        edit:'Изменить', andMore:'и ещё {n}',
+        share:'Отправить механику', shareOk:'Ссылка скопирована'},
     en:{lang:'Language', car:'Which truck', code:'Code from the scanner or the dash',
         alt:'Enter the code in another format',
         todo:'What to do', cause:'What caused it',
         more:'More: consequences and what happens if you keep driving',
-        more1:'More: what happens if you keep driving'}
+        more1:'More: what happens if you keep driving',
+        edit:'Change', andMore:'and {n} more',
+        share:'Send to your mechanic', shareOk:'Link copied'}
   };
 
   /* Порядок марок - по тому, как часто их спрашивают на нашем рынке,
@@ -2512,7 +2572,9 @@ body.critical .lamp{
   /* Порядок на входе - тот, в каком человек думает: сначала машина,
      потом код. Выбор стандарта уезжает под ссылку: за него решает
      автомат, и лишний вопрос на обочине только мешает. */
-  var PV2 = document.documentElement.getAttribute('data-preview') === '2';
+  var PVN = document.documentElement.getAttribute('data-preview');
+  var PV2 = PVN === '2' || PVN === '3';
+  var PV3 = PVN === '3';
 
   function chipRow(cls, items, cur, pick){
     var box = document.createElement('div');
@@ -2619,6 +2681,86 @@ body.critical .lamp{
     }
   }
 
+  /* Ссылка на разбор. Водитель всё равно звонит механику и диктует
+     коды голосом - пусть лучше отправит ссылку, по которой тот увидит
+     ровно тот же отчёт. Параметр предпросмотра в неё намеренно не
+     попадает: получателю уходит обычный адрес сайта. */
+  function shareUrl(){
+    var codes = parseAll(input.value).map(function(c){ return c.spn + '-' + c.fmi; });
+    if(!codes.length) return null;
+    var u = location.origin + location.pathname + '?c=' + codes.join(',');
+    if(sel.value) u += '&b=' + encodeURIComponent(sel.value);
+    return u;
+  }
+
+  var ICON_PRINT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" ' +
+    'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 8V3h10v5"/>' +
+    '<rect x="3" y="8" width="18" height="8" rx="2"/><path d="M7 14h10v7H7z"/></svg>';
+  var ICON_SEND = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" ' +
+    'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+    '<path d="M21 3 10.5 13.5M21 3l-6.5 18-4-8-8-4L21 3Z"/></svg>';
+
+  /* Строка-напоминание вместо заполненной формы: машина и код. */
+  function recap(){
+    var LS = currentLang === 'ru' ? 'ru' : 'en', st = STEP[LS];
+    var codes = parseAll(input.value);
+    var head = codes.length
+      ? 'SPN ' + codes[0].spn + '/' + codes[0].fmi +
+        (codes.length > 1 ? ' ' + t2(st.andMore, codes.length - 1) : '')
+      : input.value.trim();
+    if(sel.value) head = brandName(sel.value) + ' · ' + head;
+
+    var box = document.querySelector('.recap');
+    if(!box){
+      box = document.createElement('button');
+      box.type = 'button'; box.className = 'recap';
+      box.addEventListener('click', function(){
+        document.body.classList.remove('report');
+        input.focus();
+      });
+      out.parentNode.insertBefore(box, out);
+    }
+    box.innerHTML = '<span class="rcv"></span><span class="rce"></span>';
+    box.querySelector('.rcv').textContent = head;
+    box.querySelector('.rce').textContent = st.edit;
+  }
+  function t2(s, n){ return s.replace('{n}', n); }
+
+  /* Печать и ссылка - то, чем разбор заканчивается в жизни. */
+  function actions(){
+    var LS = currentLang === 'ru' ? 'ru' : 'en', st = STEP[LS];
+    var box = document.createElement('div');
+    box.className = 'acts';
+
+    var pr = document.createElement('button');
+    pr.type = 'button'; pr.className = 'act act-main';
+    pr.innerHTML = ICON_PRINT + '<span></span>';
+    pr.querySelector('span').textContent = t('printLabel');
+    pr.addEventListener('click', function(){ window.print(); });
+
+    var sh = document.createElement('button');
+    sh.type = 'button'; sh.className = 'act';
+    sh.innerHTML = ICON_SEND + '<span></span>';
+    var lbl = sh.querySelector('span');
+    lbl.textContent = st.share;
+    sh.addEventListener('click', function(){
+      var u = shareUrl();
+      if(!u) return;
+      if(navigator.share) return navigator.share({url:u}).catch(function(){});
+      /* Без системного «поделиться» кладём в буфер и говорим об этом
+         той же кнопкой - лишнее всплывающее окно тут ни к чему. */
+      var done = function(){
+        lbl.textContent = st.shareOk;
+        setTimeout(function(){ lbl.textContent = st.share; }, 2200);
+      };
+      if(navigator.clipboard) navigator.clipboard.writeText(u).then(done, function(){});
+      else done();
+    });
+
+    box.appendChild(pr); box.appendChild(sh);
+    out.appendChild(box);
+  }
+
   var printBtn = document.getElementById('pf-print');
   printBtn.addEventListener('click', function(){
     if(!printBtn.disabled) window.print();
@@ -2655,6 +2797,10 @@ body.critical .lamp{
     setLamp(lampState);
     printBtn.disabled = !printable;
     printBtn.title = printable ? t('printTitleEnabled') : t('printTitleDisabled');
+    if(PV3){
+      document.body.classList.toggle('report', !!printable);
+      if(printable){ recap(); actions(); }
+    }
   }
 
   /* Перед разбором нужны обе базы: основная и, для нерусского
@@ -2772,6 +2918,29 @@ body.critical .lamp{
     }).catch(function(){
       render(note(t('loadError')), null);
     });
+  }
+
+  /* Разбор по ссылке: ?c=100-1,110-3&b=kamaz - по ней механик
+     открывает ровно тот же отчёт, что видел водитель. Работает на
+     обычном сайте, а не только в предпросмотре: ссылку получает
+     человек со стороны, и никаких параметров вида он не ждёт.
+     Марку ставим после загрузки справочника - до неё в списке
+     марок ещё пусто. */
+  var qc = /[?&]c=([\d,\-]+)/.exec(location.search);
+  if(qc){
+    var pairs = qc[1].split(',').filter(function(x){ return /^\d{1,6}-\d{1,2}$/.test(x); });
+    if(pairs.length){
+      ready().then(function(){
+        var qb = /[?&]b=([a-z]+)/.exec(location.search);
+        if(qb && DB.brandNames[qb[1]]) sel.value = qb[1];
+        input.value = pairs.map(function(x){
+          var pr = x.split('-');
+          return 'SPN ' + pr[0] + ' FMI ' + pr[1];
+        }).join(', ');
+        if(PV2) buildChips();
+        run();
+      }).catch(function(){});
+    }
   }
 
   go.addEventListener('click', run);
