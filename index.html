@@ -76,15 +76,19 @@ body{
   -webkit-mask-image:linear-gradient(180deg, transparent 0%, #000 26%, #000 78%, transparent 100%);
           mask-image:linear-gradient(180deg, transparent 0%, #000 26%, #000 78%, transparent 100%);
 }
-/* Аварийка на фотографии. Слой лежит поверх кадра и кадрируется
+/* Аварийка на фотографии. Слой лежит поверх вуали, а не под ней:
+   вуаль сверху кадра плотная, и плафоны на крыше тонули в ней на
+   широких экранах, где полоса фото выше. Лампы - сами источник
+   света, гасить их затемнением неправильно.
+   Слой кадрируется
    ровно теми же правилами - тот же размер, та же точка, та же
    пропорция, - поэтому огни держатся на своих местах при любой
    ширине экрана, а не уезжают вместе с обрезкой. Мигают передний
    и задний указатели вместе, как и положено аварийке. */
 .scene .hazard{
-  position:absolute;left:0;right:0;bottom:0;height:52%;z-index:-2;
+  position:absolute;left:0;right:0;bottom:0;height:52%;z-index:-1;
   pointer-events:none;
-  background:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%221400%22 height=%221867%22 viewBox=%220 0 1400 1867%22%3E%3Cdefs%3E%3CradialGradient id=%22g%22%3E%3Cstop offset=%220%22 stop-color=%22%23FFD48A%22 stop-opacity=%221%22/%3E%3Cstop offset=%22.3%22 stop-color=%22%23FF9B3D%22 stop-opacity=%22.85%22/%3E%3Cstop offset=%221%22 stop-color=%22%23FF7A1A%22 stop-opacity=%220%22/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx=%22274%22 cy=%221368%22 r=%2219%22 fill=%22url(%23g)%22/%3E%3Ccircle cx=%22274%22 cy=%221368%22 r=%225.0%22 fill=%22%23FFF0D6%22/%3E%3Ccircle cx=%22393%22 cy=%221368%22 r=%2219%22 fill=%22url(%23g)%22/%3E%3Ccircle cx=%22393%22 cy=%221368%22 r=%225.0%22 fill=%22%23FFF0D6%22/%3E%3Ccircle cx=%22306%22 cy=%221160%22 r=%2214%22 fill=%22url(%23g)%22/%3E%3Ccircle cx=%22306%22 cy=%221160%22 r=%223.6%22 fill=%22%23FFF0D6%22/%3E%3Ccircle cx=%22374%22 cy=%221150%22 r=%2214%22 fill=%22url(%23g)%22/%3E%3Ccircle cx=%22374%22 cy=%221150%22 r=%223.6%22 fill=%22%23FFF0D6%22/%3E%3Ccircle cx=%221119%22 cy=%221312%22 r=%2217%22 fill=%22url(%23g)%22/%3E%3Ccircle cx=%221119%22 cy=%221312%22 r=%223.8%22 fill=%22%23FFF0D6%22/%3E%3C/svg%3E") center 76%/cover no-repeat;
+  background:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%221400%22 height=%221867%22 viewBox=%220 0 1400 1867%22%3E%3Cdefs%3E%3CradialGradient id=%22g%22%3E%3Cstop offset=%220%22 stop-color=%22%23FFD48A%22 stop-opacity=%221%22/%3E%3Cstop offset=%22.3%22 stop-color=%22%23FF9B3D%22 stop-opacity=%22.85%22/%3E%3Cstop offset=%221%22 stop-color=%22%23FF7A1A%22 stop-opacity=%220%22/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx=%22274%22 cy=%221368%22 r=%2219%22 fill=%22url(%23g)%22/%3E%3Ccircle cx=%22274%22 cy=%221368%22 r=%225.0%22 fill=%22%23FFF0D6%22/%3E%3Ccircle cx=%22393%22 cy=%221368%22 r=%2219%22 fill=%22url(%23g)%22/%3E%3Ccircle cx=%22393%22 cy=%221368%22 r=%225.0%22 fill=%22%23FFF0D6%22/%3E%3Ccircle cx=%22304%22 cy=%221162%22 r=%2216%22 fill=%22url(%23g)%22/%3E%3Ccircle cx=%22304%22 cy=%221162%22 r=%224.6%22 fill=%22%23FFF0D6%22/%3E%3Ccircle cx=%22375%22 cy=%221155%22 r=%2216%22 fill=%22url(%23g)%22/%3E%3Ccircle cx=%22375%22 cy=%221155%22 r=%224.6%22 fill=%22%23FFF0D6%22/%3E%3Ccircle cx=%221119%22 cy=%221312%22 r=%2217%22 fill=%22url(%23g)%22/%3E%3Ccircle cx=%221119%22 cy=%221312%22 r=%223.8%22 fill=%22%23FFF0D6%22/%3E%3C/svg%3E") center 76%/cover no-repeat;
   /* Маски на этом слое нет намеренно: на iOS анимация элемента с
      mask-image часто просто не проигрывается, а огни лежат в глубине
      кадра, далеко от растворяющихся краёв, и маска им не нужна.
@@ -731,8 +735,8 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
 
 <div class="scene">
   <div class="photo" aria-hidden="true"></div>
-  <div class="hazard" aria-hidden="true"></div>
   <div class="veil" aria-hidden="true"></div>
+  <div class="hazard" aria-hidden="true"></div>
   <div class="w">
     <h1 data-i18n="h1">Загорелась лампа <em>Check&nbsp;Engine</em> — что означает код?</h1>
     <div class="purpose">
