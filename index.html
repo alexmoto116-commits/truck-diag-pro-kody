@@ -464,6 +464,102 @@ body.critical .lamp{
   .cons li{gap:6px}
 }
 
+/* ============================================================
+   ДНЕВНАЯ ТЕМА
+
+   Тёмный экран хорош ночью на обочине, но половина обращений
+   приходится на день, в кабине, с солнцем в стекло - там тёмная
+   тема проваливается, а светлая читается.
+
+   Смысл цветов не меняется: янтарь остаётся предупреждением,
+   красный - запретом, бирюза - подсказкой, жёлтый - первопричиной.
+   Меняется только светлота, и каждый оттенок пересчитан заново:
+   на белом фоне те же янтарь и бирюза дают 2-3:1 и не читаются.
+   ============================================================ */
+[data-theme="light"]{
+  --night:#EEF2F7; --dusk:#DCE6EF; --steel:#E3EAF2;
+  --ink:#0F1720; --ink-2:#44586C; --ink-3:#5A6C7D;
+  --lamp:#A9490A; --horizon:#B45309; --marker:#C1271A;
+  --root:#8A6300; --signal:#0B7A6A;
+  --line:rgba(15,23,32,.16); --line-2:rgba(15,23,32,.08);
+}
+/* Фотография остаётся: тягач - это лицо справочника. Но вуаль над
+   ней теперь светлая, и кадр из фона превращается в полосу внизу. */
+[data-theme="light"] .scene .photo{filter:saturate(1.1) contrast(1.02) brightness(1.04)}
+[data-theme="light"] .scene .veil{
+  background:linear-gradient(180deg,
+    rgba(238,242,247,.97) 0%, rgba(238,242,247,.94) 32%,
+    rgba(238,242,247,.68) 58%, rgba(238,242,247,.30) 76%,
+    rgba(238,242,247,.58) 100%);
+}
+/* Тени под текстом были нужны, чтобы белые буквы не тонули в кадре.
+   На светлом фоне они превращаются в грязь - убираем. */
+[data-theme="light"] h1,
+[data-theme="light"] .purpose p,
+[data-theme="light"] .hint,
+[data-theme="light"] .datanote,
+[data-theme="light"] .listnote p{text-shadow:none}
+[data-theme="light"] .brand{color:var(--ink-3)}
+[data-theme="light"] .purpose{color:var(--ink)}
+[data-theme="light"] .purpose .what{color:var(--ink-2)}
+[data-theme="light"] .purpose .what b{color:var(--ink)}
+[data-theme="light"] .purpose .do{color:var(--ink)}
+[data-theme="light"] .filters select{background:#fff}
+[data-theme="light"] .filters select:focus{border-color:rgba(11,122,106,.6)}
+[data-theme="light"] .filters select option{background:#fff;color:#0F1720}
+[data-theme="light"] .hint,
+[data-theme="light"] .listnote p{color:var(--ink-2)}
+[data-theme="light"] .datanote{color:var(--ink-3)}
+[data-theme="light"] .hint code{
+  background:rgba(11,122,106,.09);border-color:rgba(11,122,106,.28);
+}
+/* Карточки на светлом держатся не заливкой, а белизной и тенью:
+   заливать их серым - значит получить кашу из близких оттенков. */
+[data-theme="light"] .scanner{
+  background:#fff;
+  box-shadow:0 18px 40px -26px rgba(15,23,32,.45), inset 0 1px 0 rgba(255,255,255,.9);
+}
+[data-theme="light"] .scanner:focus-within{
+  border-color:rgba(169,73,10,.6);
+  box-shadow:0 18px 40px -26px rgba(15,23,32,.45), 0 0 0 4px rgba(169,73,10,.14);
+}
+[data-theme="light"] #pf-code{color:var(--ink)}
+[data-theme="light"] #pf-code::placeholder{color:#8494A4}
+[data-theme="light"] body.solved .lamp{color:#A3AEBA}
+[data-theme="light"] .card{background:#fff}
+[data-theme="light"] .chain .tx{color:#1F2C38}
+[data-theme="light"] .chain .tx b{color:var(--ink)}
+[data-theme="light"] .chain li i{background:#fff}
+[data-theme="light"] .miss{background:#FFF4E4;color:#2A2118}
+[data-theme="light"] .lang-switch{
+  background:rgba(255,255,255,.9);border-color:rgba(11,122,106,.4);
+}
+[data-theme="light"] .lang-switch:hover{border-color:rgba(11,122,106,.65);background:#fff}
+[data-theme="light"] .lang-switch select:hover{color:#000}
+[data-theme="light"] .print-btn:focus-visible{outline-color:var(--ink)}
+[data-theme="light"] .verdict .vsub{color:#33424F}
+[data-theme="light"] .verdict.stop{background:#FDECEA;border-color:rgba(193,39,26,.45)}
+[data-theme="light"] .verdict.warn{background:#FDF1E3;border-color:rgba(169,73,10,.42)}
+[data-theme="light"] .root{background:#FDF6DF;border-color:rgba(138,99,0,.45)}
+[data-theme="light"] .root .rtext{color:var(--ink)}
+[data-theme="light"] .sys{background:rgba(15,23,32,.04)}
+[data-theme="light"] .cons li{color:#33424F}
+[data-theme="light"] .todo{color:#26333F}
+[data-theme="light"] .risk{background:#fff}
+[data-theme="light"] .risk p{color:#26333F}
+[data-theme="light"] .risk p + p{color:var(--ink-2)}
+[data-theme="light"] .risk.t-now{border-color:rgba(193,39,26,.35)}
+[data-theme="light"] .risk.t-warn{border-color:rgba(169,73,10,.35)}
+[data-theme="light"] .risk.t-calm{border-color:rgba(11,122,106,.32)}
+[data-theme="light"] .risk .rkl i{background:rgba(15,23,32,.12)}
+/* Специфичность здесь равна правилу выше, и без этой строки погашенные
+   деления перекрывают горящие: шкала запаса времени пропадает целиком. */
+[data-theme="light"] .risk .rkl i.on{background:currentColor}
+[data-theme="light"] .demo{background:rgba(11,122,106,.07);border-color:rgba(11,122,106,.28)}
+[data-theme="light"] .demo:hover{background:rgba(11,122,106,.13);border-color:rgba(11,122,106,.5)}
+[data-theme="light"] .common a:hover,
+[data-theme="light"] .common .lines a:hover{border-color:rgba(11,122,106,.5)}
+
 /* ---------- печать: чистый лист, без фона и без органов управления ---------- */
 @media print{
   body{background:#fff;color:#000}
