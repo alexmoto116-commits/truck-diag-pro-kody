@@ -565,6 +565,62 @@ body.critical .lamp{
 [data-preview] .listnote p{display:none}
 [data-preview] .listnote{margin-top:12px}
 
+/* --- движение объясняет связь ---
+   Смысл гирлянды в том, что причина одна, а остальное к ней
+   прицепилось. Статичным списком эту мысль приходится вычитывать.
+   Поэтому сначала появляется корень, затем от него прорастает линия,
+   и уже по ней подтягиваются следствия - идея доходит без слов.
+   Всё на CSS, ничего не грузится, при системной настройке
+   «меньше движения» выключается целиком. */
+[data-preview] .root{
+  opacity:0;transform:translateY(6px);
+  animation:rise .42s cubic-bezier(.22,1,.36,1) .05s forwards;
+}
+[data-preview] .cons{position:relative;border-left-color:transparent}
+[data-preview] .cons::before{
+  content:"";position:absolute;left:-1px;top:0;bottom:0;width:1px;
+  background:var(--line-2);transform-origin:top;transform:scaleY(0);
+  animation:growline .45s cubic-bezier(.22,1,.36,1) .34s forwards;
+}
+[data-preview] .cons.solo{border-left-color:transparent}
+[data-preview] .cons.solo::before{display:none}
+[data-preview] .cons li{
+  opacity:0;transform:translateX(-7px);
+  animation:attach .34s cubic-bezier(.22,1,.36,1) forwards;
+  animation-delay:calc(420ms + var(--i,0) * 80ms);
+}
+@keyframes growline{to{transform:scaleY(1)}}
+@keyframes attach{to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){
+  [data-preview] .root,
+  [data-preview] .cons li{animation:none;opacity:1;transform:none}
+  [data-preview] .cons::before{animation:none;transform:none}
+}
+
+/* --- широкий экран: ответ рядом с полем, а не под ним ---
+   На десктопе у нас узкая колонка по центру и пустота в половину
+   монитора по бокам, хотя механик в мастерской сидит именно за
+   ноутбуком. Когда ответ есть, он уходит во вторую колонку: ввёл
+   слева - прочитал справа, без прокрутки. Пока ответа нет, макет
+   обычный, иначе первый экран выглядел бы наполовину пустым. */
+@media(min-width:1040px){
+  [data-preview] body.solved .scene .w,
+  [data-preview] body.critical .scene .w{
+    /* Левая колонка чуть шире правой: в неё уходит поле ввода, а
+       вставленный список кодов длинный и его лучше видеть. */
+    max-width:1280px;
+    display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);
+    column-gap:clamp(28px,4vw,48px);align-items:start;
+  }
+  [data-preview] body.solved .scene .w > *,
+  [data-preview] body.critical .scene .w > *{grid-column:1}
+  [data-preview] body.solved .scene .w > .out,
+  [data-preview] body.critical .scene .w > .out{
+    grid-column:2;grid-row:1 / span 99;margin-top:0;
+    position:sticky;top:clamp(14px,2.5vw,22px);
+  }
+}
+
 /* ============================================================
    ДНЕВНАЯ ТЕМА
 
@@ -2025,8 +2081,11 @@ body.critical .lamp{
     if(!items.length) return '';
     return '<div class="grp"><div class="st">' + esc(label) + '</div>' +
       '<ul class="cons ' + (cls || '') + '">' +
-      items.map(function(c){
-        return '<li class="' + (c.urgent ? 'hit' : '') + '">' + codeLine(c) + '</li>';
+      items.map(function(c, i){
+        /* --i задаёт очередь появления: следствия подтягиваются
+           к корню по одному, а не выпадают все разом. */
+        return '<li class="' + (c.urgent ? 'hit' : '') + '" style="--i:' + i + '">' +
+               codeLine(c) + '</li>';
       }).join('') + '</ul></div>';
   }
 
