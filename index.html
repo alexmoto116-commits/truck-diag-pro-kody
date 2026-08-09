@@ -565,6 +565,57 @@ body.critical .lamp{
 [data-preview] .listnote p{display:none}
 [data-preview] .listnote{margin-top:12px}
 
+/* --- короткий путь: машина, код, что делать ---
+   Водитель не должен ничего додумывать. Поэтому порядок на входе
+   ровно такой, в каком он думает: какая машина, потом код. Выбор
+   стандарта убран с глаз - это решение за него принимает автомат,
+   а ручной режим остаётся ссылкой для тех редких, кому он нужен.
+
+   На выходе первым идёт действие, а не разбор. Причина - одной
+   строкой. Всё аналитическое - следствия, посторонние коды,
+   последствия поездки - спрятано под «подробнее»: оно нужно
+   механику, а не человеку на обочине. */
+.steplbl{
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--ink-3);margin:0 0 8px;
+}
+.steplbl:not(:first-child){margin-top:16px}
+[data-preview] .filters{margin-top:0}
+/* Переключатель языка встаёт в поток первым шагом, а не висит
+   плашкой поверх страницы. */
+[data-preview] .lang-switch{position:static;backdrop-filter:none;-webkit-backdrop-filter:none}
+[data-preview] .scene{padding-top:clamp(34px,7vw,70px)}
+[data-preview] #pf-standard{display:none}
+[data-preview] .filters.raw #pf-standard{display:block}
+.altfmt{
+  background:none;border:none;padding:0;margin-top:10px;cursor:pointer;
+  font-family:var(--sans);font-size:12.5px;color:var(--ink-3);
+  text-decoration:underline;text-underline-offset:3px;
+}
+.altfmt:hover{color:var(--ink-2)}
+.more{margin-top:18px;border-top:1px solid var(--line-2);padding-top:6px}
+.more summary{
+  cursor:pointer;list-style:none;display:inline-flex;align-items:center;gap:8px;
+  min-height:44px;font-size:13.5px;color:var(--signal);
+}
+.more summary::-webkit-details-marker{display:none}
+.more summary::before{
+  content:"";flex:none;width:0;height:0;
+  border-left:5px solid currentColor;border-top:4px solid transparent;
+  border-bottom:4px solid transparent;transition:transform .18s ease;
+}
+.more[open] summary::before{transform:rotate(90deg)}
+.more .grp:first-of-type{margin-top:4px}
+/* Пример нужен ровно до первого ответа: он объясняет, зачем вставлять
+   список. После ответа он только отодвигает результат вниз. */
+[data-preview] body.solved .showcase,
+[data-preview] body.critical .showcase,
+[data-preview] body.solved .listnote,
+[data-preview] body.critical .listnote{display:none}
+/* Действие - главное, что человек должен унести с экрана. */
+[data-preview] .todo{font-size:15.5px;line-height:1.55;color:var(--ink)}
+[data-preview] .todo li::marker{color:var(--lamp)}
+
 /* --- движение объясняет связь ---
    Смысл гирлянды в том, что причина одна, а остальное к ней
    прицепилось. Статичным списком эту мысль приходится вычитывать.
@@ -591,6 +642,11 @@ body.critical .lamp{
 }
 @keyframes growline{to{transform:scaleY(1)}}
 @keyframes attach{to{opacity:1;transform:none}}
+/* Внутри «подробнее» анимации нет. Она объясняет связь в момент
+   появления ответа, а не в момент раскрытия спойлера, и там от неё
+   один вред: пока идёт задержка, раскрытый блок стоит пустым. */
+[data-preview] .more .cons li{animation:none;opacity:1;transform:none}
+[data-preview] .more .cons::before{animation:none;transform:none}
 @media(prefers-reduced-motion:reduce){
   [data-preview] .root,
   [data-preview] .cons li{animation:none;opacity:1;transform:none}
@@ -2257,7 +2313,8 @@ body.critical .lamp{
     return '<div class="gauge ' + (a.stop ? 'stop' : 'warn') + '">' +
       '<div class="gtop"><span class="gmark">' + (a.stop ? MARK_STOP : MARK_WARN) + '</span>' +
         '<span class="gtitle">' + esc(t(a.stop ? 'vStop' : 'vWarn')) + '</span>' +
-        '<span class="gcount">' + esc(t('casCount', {n:a.total})) + '</span></div>' +
+        (a.total > 1 ? '<span class="gcount">' + esc(t('casCount', {n:a.total})) + '</span>' : '') +
+      '</div>' +
       '<div class="ghz">' + esc(RISK_HZ[L]) + ' <b>' + esc(RISK_H[L][r.lvl]) + '</b></div>' +
       '<div class="gscale" aria-hidden="true">' + bars + '</div>' +
     '</div>';
@@ -2272,6 +2329,30 @@ body.critical .lamp{
               '<span class="vsub">' + esc(t(a.stop ? 'vStopSub' : 'vWarnSub')) + '</span></span>' +
               '<span class="vcount">' + esc(t('casCount', {n:a.total})) + '</span>' +
             '</div>';
+
+    var wtag = a.worst === a.root ? '' : ' · SPN ' + a.worst.spn + '/' + a.worst.fmi;
+
+    /* Короткая выдача: действие, причина одной строкой, остальное
+       под «подробнее». Разбор следствий нужен механику, а человеку
+       на обочине нужно знать, что делать руками прямо сейчас. */
+    if(PREVIEW){
+      var LS = currentLang === 'ru' ? 'ru' : 'en', st = STEP[LS];
+      html += '<div class="card">';
+      html += '<div class="grp" style="margin-top:0"><div class="st">' + esc(st.todo) + '</div>' +
+                '<ol class="todo"><li>' + esc(t(ACT[a.root.sys] || 'actDefault')) + '</li></ol></div>';
+      html += '<div class="grp"><div class="st">' + esc(st.cause) + '</div>' +
+                '<div class="root">' +
+                  '<div class="rcode"><span class="mono">SPN ' + a.root.spn + '/' + a.root.fmi + '</span>' +
+                    '<span class="sys">' + esc(t('sys' + a.root.sys.charAt(0).toUpperCase() + a.root.sys.slice(1))) + '</span></div>' +
+                  '<div class="rtext">' + esc(a.root.text) + '</div>' +
+                '</div></div>';
+      html += '<details class="more"><summary>' + esc(st.more) + '</summary>' +
+                group(t('casCons'), a.cons) +
+                group(t('casSolo'), a.solo, 'solo') +
+                riskBlock(a.worst, wtag) +
+              '</details>';
+      return html + '</div>';
+    }
 
     html += '<div class="card">';
     html += '<div class="grp" style="margin-top:0"><div class="st">' + esc(t('casRoot')) + '</div>' +
@@ -2298,6 +2379,30 @@ body.critical .lamp{
     return html + '</div>';
   }
 
+  /* Один код отвечает по той же форме, что и список: можно ли ехать,
+     сколько есть времени, что делать, из-за чего. Раньше здесь была
+     цепочка «код - расшифровка - срочность», которая на главный
+     вопрос «что делать» не отвечала вовсе. */
+  function singleShort(c, d, stop){
+    var LS = currentLang === 'ru' ? 'ru' : 'en', st = STEP[LS];
+    var html = gauge({worst:c, stop:stop, total:1});
+    html += '<div class="card">';
+    html += '<div class="grp" style="margin-top:0"><div class="st">' + esc(st.todo) + '</div>' +
+              '<ol class="todo"><li>' + esc(t(ACT[c.sys] || 'actDefault')) + '</li></ol></div>';
+    html += '<div class="grp"><div class="st">' + esc(st.cause) + '</div>' +
+              '<div class="root">' +
+                '<div class="rcode"><span class="mono">SPN ' + c.spn + '/' + c.fmi + '</span>' +
+                  '<span class="sys">' + esc(t('sys' + c.sys.charAt(0).toUpperCase() + c.sys.slice(1))) + '</span></div>' +
+                '<div class="rtext">' + esc(c.text) + '</div>' +
+              '</div></div>';
+    html += '<details class="more"><summary>' + esc(st.more1) + '</summary>' +
+              riskBlock(c) +
+              (d.src ? '<div class="grp"><div class="st">' +
+                       esc(t('sourceLabel', {src:d.src})) + '</div></div>' : '') +
+            '</details>';
+    return html + '</div>';
+  }
+
   /* Живой пример на первом экране: слева то, что человек видит на
      сканере - шесть равнозначных строк, в которых непонятно, за что
      хвататься; справа то, что мы из этого делаем. Тексты зашиты
@@ -2315,6 +2420,21 @@ body.critical .lamp{
         root:'AdBlue level in the tank below normal',
         note:'The other five are consequences. Top up the fluid and all six go away.'}
   };
+  /* Подписи короткого пути. Как и тексты риска - русский и
+     английский: это содержание, а не подписи интерфейса. */
+  var STEP = {
+    ru:{lang:'Язык', car:'Какая машина', code:'Код со сканера или с панели',
+        alt:'Ввести код в другом формате',
+        todo:'Что делать', cause:'Из-за чего',
+        more:'Подробнее: следствия и что будет, если ехать',
+        more1:'Подробнее: что будет, если ехать'},
+    en:{lang:'Language', car:'Which truck', code:'Code from the scanner or the dash',
+        alt:'Enter the code in another format',
+        todo:'What to do', cause:'What caused it',
+        more:'More: consequences and what happens if you keep driving',
+        more1:'More: what happens if you keep driving'}
+  };
+
   var SHOW_CODES = ['1761/1','4095/31','3226/0','4094/31','1569/31','5841/2'];
   var SHOW_ARROW = '<svg class="scarrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
     'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
@@ -2345,6 +2465,47 @@ body.critical .lamp{
       '</div>';
   }
 
+  /* Порядок на входе - тот, в каком человек думает: сначала машина,
+     потом код. Выбор стандарта уезжает под ссылку: за него решает
+     автомат, и лишний вопрос на обочине только мешает. */
+  function simplify(){
+    if(!PREVIEW) return;
+    var L = currentLang === 'ru' ? 'ru' : 'en', s = STEP[L];
+    var scanner = document.querySelector('.scanner');
+    var filters = document.querySelector('.filters');
+    var lblCar = document.querySelector('.steplbl-car');
+
+    if(!lblCar){
+      var w = scanner.parentNode;
+      /* Язык уходит первым шагом в поток страницы. Заодно исчезает
+         плавающая плашка «RU», которая на телефоне наезжала на текст
+         при прокрутке. */
+      var lblLang = document.createElement('p');
+      lblLang.className = 'steplbl steplbl-lang';
+      w.insertBefore(lblLang, scanner);
+      w.insertBefore(document.querySelector('.lang-switch'), scanner);
+      lblCar = document.createElement('p');
+      lblCar.className = 'steplbl steplbl-car';
+      var lblCode = document.createElement('p');
+      lblCode.className = 'steplbl steplbl-code';
+      var alt = document.createElement('button');
+      alt.type = 'button'; alt.className = 'altfmt';
+      alt.addEventListener('click', function(){
+        filters.classList.add('raw');
+        alt.remove();
+      });
+      w.insertBefore(lblCar, scanner);
+      w.insertBefore(filters, scanner);
+      w.insertBefore(lblCode, scanner);
+      scanner.parentNode.insertBefore(alt, scanner.nextSibling);
+    }
+    document.querySelector('.steplbl-lang').textContent = s.lang;
+    document.querySelector('.steplbl-car').textContent  = s.car;
+    document.querySelector('.steplbl-code').textContent = s.code;
+    var alt2 = document.querySelector('.altfmt');
+    if(alt2) alt2.textContent = s.alt;
+  }
+
   var printBtn = document.getElementById('pf-print');
   printBtn.addEventListener('click', function(){
     if(!printBtn.disabled) window.print();
@@ -2362,9 +2523,11 @@ body.critical .lamp{
   langSelect.addEventListener('change', function(){
     applyLang(langSelect.value);
     showcase();
+    simplify();
   });
   applyLang(currentLang);
   showcase();
+  simplify();
 
   /* Лампа в поле ввода - индикатор состояния: горит янтарным пока
      не разобрали, гаснет на понятном коде, краснеет на критичном. */
@@ -2462,6 +2625,16 @@ body.critical .lamp{
       }
       var d = describe(p.spn, p.fmi, brand);
       var u = urgent(p.spn, p.fmi, brand);
+      if(PREVIEW && !d.unknown){
+        var c1 = {spn:p.spn, fmi:p.fmi, text:d.text,
+                  sys:systemOf(p.spn, d.text), urgent:u};
+        var r1 = riskOf(c1);
+        /* Приговор здесь считается так же, как для списка: по
+           горизонту риска, а не по одной метке «критический». */
+        var stop1 = r1.lvl === 'now' || r1.key === 'genUrgent';
+        render(singleShort(c1, d, stop1), stop1 ? 'critical' : 'solved', true);
+        return;
+      }
       var code = 'SPN ' + p.spn + ' · FMI ' + p.fmi;
       var steps = [
         {st:t('stepCode'), tx:'<span class="mono">' + code + '</span>', cls:'ok'},
