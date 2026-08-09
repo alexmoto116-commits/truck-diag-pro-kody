@@ -465,6 +465,107 @@ body.critical .lamp{
 }
 
 /* ============================================================
+   ПРОБНЫЕ ПРАВКИ ДИЗАЙНА  (?preview=1)
+
+   Первая. Выдача сейчас - пять блоков примерно одного веса, и глаз
+   не понимает, что здесь главное. А смотрят в телефон одной рукой,
+   в тряске, иногда с вытянутой руки. Настоящие приборы устроены
+   иначе: одно крупное показание и мелкая обвязка вокруг. Поэтому
+   вердикт со шкалой запаса времени становится прибором во всю
+   ширину, номер первопричины - крупным, остальное уходит вниз
+   по иерархии.
+
+   Вторая. Разбор гирлянды - наше единственное настоящее отличие,
+   и оно невидимо, пока человек сам не догадается вставить список.
+   Живой пример на первом экране показывает это до первого ввода.
+   ============================================================ */
+
+/* --- прибор вместо карточки-вердикта --- */
+.gauge{
+  border:1px solid;border-radius:16px;padding:16px 18px 14px;margin-bottom:14px;
+}
+.gauge .gtop{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.gauge .gmark{flex:none;width:26px;height:26px}
+.gauge .gmark svg{width:100%;height:100%;display:block;fill:currentColor}
+/* Крупно настолько, чтобы читалось с вытянутой руки - это единственная
+   строка на странице, которую человек обязан увидеть сразу. */
+.gauge .gtitle{
+  font-size:clamp(22px,5.5vw,28px);font-weight:700;letter-spacing:-.02em;line-height:1.1;
+}
+.gauge .gcount{
+  margin-left:auto;flex:none;
+  font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--ink-3);
+}
+.gauge .ghz{
+  margin-top:11px;font-size:13.5px;line-height:1.4;color:#C3D0DD;
+}
+.gauge .ghz b{color:currentColor;font-weight:700}
+/* Шкала во всю ширину: сколько делений горит - столько запаса. */
+.gauge .gscale{display:flex;gap:4px;margin-top:9px}
+.gauge .gscale i{flex:1;height:9px;border-radius:3px;background:var(--line-2)}
+.gauge .gscale i.on{background:currentColor}
+.gauge.stop{
+  color:var(--marker);border-color:rgba(255,90,78,.42);
+  background:linear-gradient(180deg, rgba(48,17,15,.92), rgba(24,11,12,.94));
+}
+.gauge.warn{
+  color:var(--lamp);border-color:rgba(255,155,61,.38);
+  background:linear-gradient(180deg, rgba(44,29,13,.92), rgba(22,15,9,.94));
+}
+/* Номер первопричины крупным моноширинным - как на табло. Его
+   сверяют глазами со сканером, поэтому крупно тут не украшение. */
+[data-preview] .root .rcode .mono{font-size:clamp(22px,6vw,30px);letter-spacing:-.02em}
+[data-preview] .root{padding:16px 18px}
+/* Бейдж и мелкая шкала уехали наверх, в прибор - здесь остаётся текст. */
+[data-preview] .risk .rkh{display:none}
+[data-preview] .risk{border-color:var(--line)}
+/* Следствия и советы - обвязка вокруг показания, поэтому тише. */
+[data-preview] .cons li{font-size:13.5px}
+[data-preview] .todo{font-size:13.5px}
+
+/* --- живой пример на первом экране --- */
+.showcase{
+  margin-top:14px;border:1px solid var(--line-2);border-radius:14px;
+  background:rgba(255,255,255,.022);padding:14px 16px;
+}
+.showcase .schead{
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--ink-3);margin-bottom:12px;
+}
+.showcase .scgrid{display:flex;gap:18px;align-items:flex-start}
+.showcase .sccol{flex:1 1 0;min-width:0}
+.showcase .sclbl{font-size:12px;color:var(--ink-3);margin-bottom:8px;line-height:1.4}
+/* Слева - как приходит со сканера: шесть равнозначных строк, в
+   которых непонятно, за что хвататься. Ровно то, что видит человек. */
+.showcase .sccodes{list-style:none;margin:0;padding:0}
+.showcase .sccodes li{
+  font-family:var(--mono);font-size:12.5px;color:var(--ink-3);
+  padding:3px 0;line-height:1.4;
+}
+.showcase .sccodes li.rt{color:var(--root);font-weight:600}
+.showcase .scroot{
+  border:1px solid rgba(255,210,74,.4);border-radius:10px;
+  background:linear-gradient(180deg, rgba(38,31,12,.9), rgba(20,17,10,.92));
+  padding:10px 12px;
+}
+.showcase .scroot .mono{display:block;color:var(--root);font-size:14px;font-weight:600;margin-bottom:4px}
+.showcase .scroot .sctx{font-size:13.5px;line-height:1.45;color:#EEF3F9}
+.showcase .scnote{margin-top:9px;font-size:12.5px;line-height:1.45;color:var(--ink-2)}
+/* Стрелка между колонками - только на широком экране: на телефоне
+   колонки становятся строками, и стрелка вбок начинает врать. */
+.showcase .scarrow{flex:none;align-self:center;color:var(--ink-3);width:18px;height:18px}
+@media(max-width:560px){
+  .showcase .scgrid{flex-direction:column;gap:12px}
+  .showcase .scarrow{display:none}
+  .gauge{padding:14px}
+  .gauge .gcount{margin-left:0;width:100%}
+}
+/* Абзац словами больше не нужен - его показывает сам пример. */
+[data-preview] .listnote p{display:none}
+[data-preview] .listnote{margin-top:12px}
+
+/* ============================================================
    ДНЕВНАЯ ТЕМА
 
    Тёмный экран хорош ночью на обочине, но половина обращений
@@ -555,6 +656,14 @@ body.critical .lamp{
 /* Специфичность здесь равна правилу выше, и без этой строки погашенные
    деления перекрывают горящие: шкала запаса времени пропадает целиком. */
 [data-theme="light"] .risk .rkl i.on{background:currentColor}
+[data-theme="light"] .gauge.stop{background:#FDECEA;border-color:rgba(193,39,26,.45)}
+[data-theme="light"] .gauge.warn{background:#FDF1E3;border-color:rgba(169,73,10,.42)}
+[data-theme="light"] .gauge .ghz{color:#33424F}
+[data-theme="light"] .gauge .gscale i{background:rgba(15,23,32,.12)}
+[data-theme="light"] .gauge .gscale i.on{background:currentColor}
+[data-theme="light"] .showcase{background:#fff}
+[data-theme="light"] .showcase .scroot{background:#FDF6DF;border-color:rgba(138,99,0,.45)}
+[data-theme="light"] .showcase .scroot .sctx{color:var(--ink)}
 [data-theme="light"] .demo{background:rgba(11,122,106,.07);border-color:rgba(11,122,106,.28)}
 [data-theme="light"] .demo:hover{background:rgba(11,122,106,.13);border-color:rgba(11,122,106,.5)}
 [data-theme="light"] .common a:hover,
@@ -670,6 +779,11 @@ body.critical .lamp{
 (function(){
   var m = /[?&]theme=(light|dark)/.exec(location.search);
   if(m) document.documentElement.setAttribute('data-theme', m[1]);
+  /* ?preview=1 - две правки дизайна на пробу: выдача в виде прибора
+     и живой пример работы прямо на первом экране. Посетители сайта
+     их пока не видят. */
+  if(/[?&]preview=1/.test(location.search))
+    document.documentElement.setAttribute('data-preview', '');
 })();
 </script>
 </head>
@@ -1962,6 +2076,7 @@ body.critical .lamp{
 
   var RISK_TITLE = {ru:'Что будет, если ехать дальше',
                     en:'What happens if you keep driving'};
+  var RISK_HZ = {ru:'Запас времени:', en:'Time you have:'};
   var RISK_H = {
     ru:{now:'Минуты', short:'До ближайшей остановки', base:'Хватит доехать до базы',
         watch:'Ехать можно, следить самому', plan:'До ближайшего ТО'},
@@ -2055,6 +2170,8 @@ body.critical .lamp{
     return {key:pick[0], lvl:lvl, flag:flag};
   }
 
+  var PREVIEW = document.documentElement.hasAttribute('data-preview');
+
   function riskBlock(c, tag){
     var L = currentLang === 'ru' ? 'ru' : 'en';
     var r = riskOf(c), meta = RISK_LVL[r.lvl], tx = RISK_TX[L][r.key], bars = '';
@@ -2071,9 +2188,26 @@ body.critical .lamp{
   var MARK_STOP = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.2 2h7.6L22 8.2v7.6L15.8 22H8.2L2 15.8V8.2L8.2 2Zm2.8 5v7h2V7h-2Zm0 9v2h2v-2h-2Z"/></svg>';
   var MARK_WARN = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 23 21H1L12 2Zm-1 7v6h2V9h-2Zm0 8v2h2v-2h-2Z"/></svg>';
 
+  /* Прибор: приговор, запас времени и шкала одним блоком во всю
+     ширину. Шкала берётся у того же кода, по которому считался
+     приговор, - иначе они разъедутся. */
+  function gauge(a){
+    var L = currentLang === 'ru' ? 'ru' : 'en';
+    var r = riskOf(a.worst), meta = RISK_LVL[r.lvl], bars = '';
+    for(var i = 0; i < 4; i++) bars += '<i class="' + (i < meta.fill ? 'on' : '') + '"></i>';
+    return '<div class="gauge ' + (a.stop ? 'stop' : 'warn') + '">' +
+      '<div class="gtop"><span class="gmark">' + (a.stop ? MARK_STOP : MARK_WARN) + '</span>' +
+        '<span class="gtitle">' + esc(t(a.stop ? 'vStop' : 'vWarn')) + '</span>' +
+        '<span class="gcount">' + esc(t('casCount', {n:a.total})) + '</span></div>' +
+      '<div class="ghz">' + esc(RISK_HZ[L]) + ' <b>' + esc(RISK_H[L][r.lvl]) + '</b></div>' +
+      '<div class="gscale" aria-hidden="true">' + bars + '</div>' +
+    '</div>';
+  }
+
   function cascade(a){
     var html = '';
-    html += '<div class="verdict ' + (a.stop ? 'stop' : 'warn') + '">' +
+    html += PREVIEW ? gauge(a) :
+            '<div class="verdict ' + (a.stop ? 'stop' : 'warn') + '">' +
               '<span class="vmark">' + (a.stop ? MARK_STOP : MARK_WARN) + '</span>' +
               '<span><span class="vtitle">' + esc(t(a.stop ? 'vStop' : 'vWarn')) + '</span>' +
               '<span class="vsub">' + esc(t(a.stop ? 'vStopSub' : 'vWarnSub')) + '</span></span>' +
@@ -2105,6 +2239,53 @@ body.critical .lamp{
     return html + '</div>';
   }
 
+  /* Живой пример на первом экране: слева то, что человек видит на
+     сканере - шесть равнозначных строк, в которых непонятно, за что
+     хвататься; справа то, что мы из этого делаем. Тексты зашиты
+     прямо здесь: блок стоит выше всего остального и должен рисоваться
+     мгновенно, не дожидаясь загрузки справочника. */
+  var SHOW = {
+    ru:{head:'Так это работает',
+        inp:'Вставили весь список со сканера',
+        out:'Получили одну причину',
+        root:'Уровень AdBlue в баке ниже нормы',
+        note:'Остальные пять — следствия. Долили реагент, ушли все шесть.'},
+    en:{head:'How it works',
+        inp:'Pasted the whole scanner list',
+        out:'Got a single cause',
+        root:'AdBlue level in the tank below normal',
+        note:'The other five are consequences. Top up the fluid and all six go away.'}
+  };
+  var SHOW_CODES = ['1761/1','4095/31','3226/0','4094/31','1569/31','5841/2'];
+  var SHOW_ARROW = '<svg class="scarrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
+    'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+    '<path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+
+  function showcase(){
+    if(!PREVIEW) return;
+    var L = currentLang === 'ru' ? 'ru' : 'en', s = SHOW[L];
+    var box = document.querySelector('.showcase');
+    if(!box){
+      box = document.createElement('div');
+      box.className = 'showcase';
+      var ln = document.querySelector('.listnote');
+      ln.parentNode.insertBefore(box, ln);
+    }
+    box.innerHTML =
+      '<div class="schead">' + esc(s.head) + '</div>' +
+      '<div class="scgrid">' +
+        '<div class="sccol"><div class="sclbl">' + esc(s.inp) + '</div>' +
+          '<ul class="sccodes">' + SHOW_CODES.map(function(c, i){
+            return '<li class="' + (i === 0 ? 'rt' : '') + '">SPN ' + c + '</li>';
+          }).join('') + '</ul></div>' +
+        SHOW_ARROW +
+        '<div class="sccol"><div class="sclbl">' + esc(s.out) + '</div>' +
+          '<div class="scroot"><span class="mono">SPN 1761/1</span>' +
+            '<span class="sctx">' + esc(s.root) + '</span></div>' +
+          '<div class="scnote">' + esc(s.note) + '</div></div>' +
+      '</div>';
+  }
+
   var printBtn = document.getElementById('pf-print');
   printBtn.addEventListener('click', function(){
     if(!printBtn.disabled) window.print();
@@ -2119,8 +2300,12 @@ body.critical .lamp{
     out.scrollIntoView({behavior:'smooth', block:'nearest'});
   });
 
-  langSelect.addEventListener('change', function(){ applyLang(langSelect.value); });
+  langSelect.addEventListener('change', function(){
+    applyLang(langSelect.value);
+    showcase();
+  });
   applyLang(currentLang);
+  showcase();
 
   /* Лампа в поле ввода - индикатор состояния: горит янтарным пока
      не разобрали, гаснет на понятном коде, краснеет на критичном. */
