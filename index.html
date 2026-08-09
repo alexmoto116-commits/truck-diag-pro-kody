@@ -76,31 +76,6 @@ body{
   -webkit-mask-image:linear-gradient(180deg, transparent 0%, #000 26%, #000 78%, transparent 100%);
           mask-image:linear-gradient(180deg, transparent 0%, #000 26%, #000 78%, transparent 100%);
 }
-/* Аварийка на фотографии. Слой лежит поверх вуали, а не под ней:
-   вуаль сверху кадра плотная, и плафоны на крыше тонули в ней на
-   широких экранах, где полоса фото выше. Лампы - сами источник
-   света, гасить их затемнением неправильно.
-   Слой кадрируется
-   ровно теми же правилами - тот же размер, та же точка, та же
-   пропорция, - поэтому огни держатся на своих местах при любой
-   ширине экрана, а не уезжают вместе с обрезкой. Мигают передний
-   и задний указатели вместе, как и положено аварийке. */
-.scene .hazard{
-  position:absolute;left:0;right:0;bottom:0;height:52%;z-index:-1;
-  pointer-events:none;
-  background:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%221400%22 height=%221867%22 viewBox=%220 0 1400 1867%22%3E%3Cdefs%3E%3CradialGradient id=%22g%22%3E%3Cstop offset=%220%22 stop-color=%22%23FFD48A%22 stop-opacity=%221%22/%3E%3Cstop offset=%22.3%22 stop-color=%22%23FF9B3D%22 stop-opacity=%22.85%22/%3E%3Cstop offset=%221%22 stop-color=%22%23FF7A1A%22 stop-opacity=%220%22/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx=%22275%22 cy=%221354%22 r=%2213%22 fill=%22url(%23g)%22/%3E%3Ccircle cx=%22275%22 cy=%221354%22 r=%223.6%22 fill=%22%23FFF0D6%22/%3E%3Ccircle cx=%22389%22 cy=%221350%22 r=%2213%22 fill=%22url(%23g)%22/%3E%3Ccircle cx=%22389%22 cy=%221350%22 r=%223.6%22 fill=%22%23FFF0D6%22/%3E%3Ccircle cx=%22293%22 cy=%221172%22 r=%2212%22 fill=%22url(%23g)%22/%3E%3Ccircle cx=%22293%22 cy=%221172%22 r=%223.2%22 fill=%22%23FFF0D6%22/%3E%3Ccircle cx=%22405%22 cy=%221159%22 r=%2212%22 fill=%22url(%23g)%22/%3E%3Ccircle cx=%22405%22 cy=%221159%22 r=%223.2%22 fill=%22%23FFF0D6%22/%3E%3Ccircle cx=%221119%22 cy=%221312%22 r=%2217%22 fill=%22url(%23g)%22/%3E%3Ccircle cx=%221119%22 cy=%221312%22 r=%223.8%22 fill=%22%23FFF0D6%22/%3E%3C/svg%3E") center 76%/cover no-repeat;
-  /* Маски на этом слое нет намеренно: на iOS анимация элемента с
-     mask-image часто просто не проигрывается, а огни лежат в глубине
-     кадра, далеко от растворяющихся краёв, и маска им не нужна.
-     translateZ выносит слой на отдельный композитный слой - без него
-     Safari умеет пропускать перерисовку под backdrop-filter формы. */
-  will-change:opacity;transform:translateZ(0);
-  animation:hazard 1.1s steps(1,end) infinite;
-}
-@keyframes hazard{0%,48%{opacity:1}48.01%,100%{opacity:0}}
-/* При «меньше движения» огни просто горят и не дёргаются. */
-@media(prefers-reduced-motion:reduce){ .scene .hazard{animation:none} }
-@media print{ .scene .hazard{display:none} }
 
 /* Вуаль только там, где лежит текст: верх плотный, низ почти
    открыт - там машина и небо показываются в цвете. */
@@ -144,10 +119,6 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
   background:linear-gradient(180deg, var(--lamp), rgba(255,155,61,.05));
 }
 .purpose p{margin:0;text-shadow:0 1px 16px rgba(7,11,18,.85)}
-.purpose .what{
-  font-size:clamp(13.5px,2vw,15px);color:#9FB2C4;line-height:1.5;
-}
-.purpose .what b{color:#E4EBF2;font-weight:600}
 .purpose .do{
   margin-top:8px;font-size:clamp(15.5px,2.3vw,18px);line-height:1.4;
   color:#F0F5FA;font-weight:450;letter-spacing:-.005em;
@@ -201,15 +172,6 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
 }
 .filters select:hover{color:var(--ink)}
 .filters select:focus{outline:none;border-color:rgba(111,227,211,.5);color:var(--ink)}
-.hint{
-  margin:12px 0 0;font-size:12.5px;color:#9DB0C2;line-height:1.55;
-  text-shadow:0 1px 12px rgba(7,11,18,.9);
-}
-.hint code{
-  font-family:var(--mono);font-size:12px;color:var(--signal);
-  background:rgba(111,227,211,.09);border:1px solid rgba(111,227,211,.2);
-  border-radius:5px;padding:1px 6px;white-space:nowrap;
-}
 
 /* ---------- результат ----------
    Ответ ложится прямо на кадр с тягачом, поэтому карточка почти
@@ -524,21 +486,14 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
    На светлом фоне они превращаются в грязь - убираем. */
 [data-theme="light"] h1,
 [data-theme="light"] .purpose p,
-[data-theme="light"] .hint,
 [data-theme="light"] .datanote{text-shadow:none}
 [data-theme="light"] .brand{color:var(--ink-3)}
 [data-theme="light"] .purpose{color:var(--ink)}
-[data-theme="light"] .purpose .what{color:var(--ink-2)}
-[data-theme="light"] .purpose .what b{color:var(--ink)}
 [data-theme="light"] .purpose .do{color:var(--ink)}
 [data-theme="light"] .filters select{background:#fff}
 [data-theme="light"] .filters select:focus{border-color:rgba(11,122,106,.6)}
 [data-theme="light"] .filters select option{background:#fff;color:#0F1720}
-[data-theme="light"] .hint{color:var(--ink-2)}
 [data-theme="light"] .datanote{color:var(--ink-3)}
-[data-theme="light"] .hint code{
-  background:rgba(11,122,106,.09);border-color:rgba(11,122,106,.28);
-}
 /* Карточки на светлом держатся не заливкой, а белизной и тенью:
    заливать их серым - значит получить кашу из близких оттенков. */
 [data-theme="light"] .scanner{
@@ -588,7 +543,7 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
 /* ---------- печать: чистый лист, без фона и без органов управления ---------- */
 @media print{
   body{background:#fff;color:#000}
-  .scene .photo,.scene .veil,.filters,.hint,.datanote,.theme-btn,.lang-switch,#pf-go{display:none}
+  .scene .photo,.scene .veil,.filters,.datanote,.theme-btn,.lang-switch,#pf-go{display:none}
   .scene{padding:0 0 14px;background:#fff}
   .brand{color:#000;margin-bottom:10px}
   .brand i{background:#000}
@@ -736,7 +691,6 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
 <div class="scene">
   <div class="photo" aria-hidden="true"></div>
   <div class="veil" aria-hidden="true"></div>
-  <div class="hazard" aria-hidden="true"></div>
   <div class="w">
     <h1 data-i18n="h1">Загорелась лампа <em>Check&nbsp;Engine</em> — что означает код?</h1>
     <div class="purpose">
@@ -835,14 +789,12 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
       pageTitle: 'Код неисправности грузовика — расшифровка SPN/FMI и дилерских кодов',
       metaDescription: 'Бесплатная расшифровка кодов неисправностей грузовиков: стандарт J1939 (SPN/FMI) и заводские таблицы 12 марок. Введите код со сканера или с приборной панели.',
       h1: 'Загорелась лампа <em>Check&nbsp;Engine</em> — что означает код?',
-      purposeWhat: 'Справочник кодов неисправностей грузовиков: стандарт <b>J1939 (SPN/FMI)</b> и заводские таблицы <b>12 марок</b>.',
       purposeDo: 'Введите код — или сразу весь список ошибок, как есть: через запятую, пробел или столбиком. Одна поломка тянет за собой пять-шесть кодов — покажем, какой из них причина, а какие пришли следом, и скажем, можно ли ехать.',
       goBtn: 'Разобрать',
       brandDefault: '— любая марка —',
       standardAuto: 'Определить автоматически',
       standardSpnFmi: 'J1939 — SPN / FMI',
       standardPcode: 'Дилерский / OBD-код',
-      hint: 'Регистр и пробелы не важны. Понимает <code>SPN 100 FMI 1</code>, <code>97 FMI 3</code>, <code>100/1</code>, <code>03043-00</code>, один <code>SPN 97</code> и дилерские коды вроде <code>P2BA7</code>.',
       dataLangNote: '',
       printLabel: 'Распечатать',
       themeDay: 'Дневная тема',
@@ -898,14 +850,12 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
       pageTitle: 'Truck fault code — SPN/FMI and dealer code lookup',
       metaDescription: 'Free truck fault code lookup: J1939 standard (SPN/FMI) and factory tables for 12 makes. Enter a code from your scanner or dashboard.',
       h1: 'The <em>Check&nbsp;Engine</em> light is on — what does the code mean?',
-      purposeWhat: 'A truck fault code reference: the <b>J1939 (SPN/FMI)</b> standard and factory tables for <b>12 makes</b>.',
       purposeDo: 'Enter one code — or the whole fault list exactly as it is: separated by commas, spaces or line breaks. One fault drags five or six codes along — we show which one is the cause and which just followed, and tell you whether it’s safe to drive.',
       goBtn: 'Decode',
       brandDefault: '— any make —',
       standardAuto: 'Detect automatically',
       standardSpnFmi: 'J1939 — SPN / FMI',
       standardPcode: 'Dealer / OBD code',
-      hint: 'Case and spacing don’t matter. Understands <code>SPN 100 FMI 1</code>, <code>97 FMI 3</code>, <code>100/1</code>, <code>03043-00</code>, a bare <code>SPN 97</code>, and dealer codes like <code>P2BA7</code>.',
       dataLangNote: 'Fault names and factory tables in the database are in Russian; the interface and the standard FMI meanings below are translated.',
       printLabel: 'Print',
       themeDay: 'Day theme',
@@ -961,14 +911,12 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
       pageTitle: 'LKW-Fehlercode — SPN/FMI und Händlercode entschlüsseln',
       metaDescription: 'Kostenlose Entschlüsselung von LKW-Fehlercodes: J1939-Standard (SPN/FMI) und Werkstabellen für 12 Marken. Code vom Scanner oder Armaturenbrett eingeben.',
       h1: 'Die <em>Check&nbsp;Engine</em>-Leuchte ist an — was bedeutet der Code?',
-      purposeWhat: 'Nachschlagewerk für LKW-Fehlercodes: der Standard <b>J1939 (SPN/FMI)</b> und Werkstabellen für <b>12 Marken</b>.',
       purposeDo: 'Geben Sie einen Code ein — oder gleich die ganze Fehlerliste, so wie sie ist: getrennt durch Komma, Leerzeichen oder Zeilenumbruch. Ein Defekt zieht fünf bis sechs Codes nach sich — wir zeigen, welcher die Ursache ist und welche nur gefolgt sind, und sagen, ob die Weiterfahrt sicher ist.',
       goBtn: 'Entschlüsseln',
       brandDefault: '— beliebige Marke —',
       standardAuto: 'Automatisch erkennen',
       standardSpnFmi: 'J1939 — SPN / FMI',
       standardPcode: 'Händler-/OBD-Code',
-      hint: 'Groß-/Kleinschreibung und Leerzeichen spielen keine Rolle. Erkennt <code>SPN 100 FMI 1</code>, <code>97 FMI 3</code>, <code>100/1</code>, <code>03043-00</code>, ein einzelnes <code>SPN 97</code> sowie Händlercodes wie <code>P2BA7</code>.',
       dataLangNote: 'Fehlerbeschreibungen werden auf Englisch angezeigt.',
       printLabel: 'Drucken',
       themeDay: 'Tagmodus',
@@ -1024,14 +972,12 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
       pageTitle: 'Code défaut camion — décodage SPN/FMI et codes constructeur',
       metaDescription: 'Décodage gratuit des codes défaut camion : norme J1939 (SPN/FMI) et tables constructeur pour 12 marques. Entrez le code du scanner ou du tableau de bord.',
       h1: 'Le voyant <em>Check&nbsp;Engine</em> est allumé — que signifie le code ?',
-      purposeWhat: 'Répertoire des codes défaut camion : la norme <b>J1939 (SPN/FMI)</b> et les tables constructeur de <b>12 marques</b>.',
       purposeDo: 'Saisissez un code — ou toute la liste des défauts, telle quelle : séparés par des virgules, des espaces ou des retours à la ligne. Une panne entraîne cinq ou six codes — nous montrons lequel est la cause et lesquels ont suivi, et vous disons si vous pouvez rouler.',
       goBtn: 'Décoder',
       brandDefault: '— toutes marques —',
       standardAuto: 'Détecter automatiquement',
       standardSpnFmi: 'J1939 — SPN / FMI',
       standardPcode: 'Code constructeur / OBD',
-      hint: 'La casse et les espaces n’ont pas d’importance. Reconnaît <code>SPN 100 FMI 1</code>, <code>97 FMI 3</code>, <code>100/1</code>, <code>03043-00</code>, un simple <code>SPN 97</code>, ainsi que les codes constructeur comme <code>P2BA7</code>.',
       dataLangNote: 'Les descriptions des défauts sont affichées en anglais.',
       printLabel: 'Imprimer',
       themeDay: 'Thème clair',
@@ -1087,14 +1033,12 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
       pageTitle: 'Código de avería de camión — decodificación SPN/FMI y códigos de concesionario',
       metaDescription: 'Decodificación gratuita de códigos de avería de camiones: norma J1939 (SPN/FMI) y tablas de fábrica de 12 marcas. Introduce el código del escáner o del salpicadero.',
       h1: 'Se ha encendido el testigo <em>Check&nbsp;Engine</em> — ¿qué significa el código?',
-      purposeWhat: 'Referencia de códigos de avería de camiones: la norma <b>J1939 (SPN/FMI)</b> y tablas de fábrica de <b>12 marcas</b>.',
       purposeDo: 'Introduzca un código — o la lista completa de averías, tal cual: separados por comas, espacios o saltos de línea. Una avería arrastra cinco o seis códigos — le mostramos cuál es la causa y cuáles vinieron detrás, y le decimos si puede circular.',
       goBtn: 'Decodificar',
       brandDefault: '— cualquier marca —',
       standardAuto: 'Detectar automáticamente',
       standardSpnFmi: 'J1939 — SPN / FMI',
       standardPcode: 'Código de concesionario / OBD',
-      hint: 'Mayúsculas y espacios no importan. Reconoce <code>SPN 100 FMI 1</code>, <code>97 FMI 3</code>, <code>100/1</code>, <code>03043-00</code>, un simple <code>SPN 97</code>, y códigos de concesionario como <code>P2BA7</code>.',
       dataLangNote: 'Las descripciones de las averías se muestran en inglés.',
       printLabel: 'Imprimir',
       themeDay: 'Tema claro',
@@ -1150,14 +1094,12 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
       pageTitle: 'Código de falha de caminhão — decodificação SPN/FMI e códigos de concessionária',
       metaDescription: 'Decodificação gratuita de códigos de falha de caminhões: norma J1939 (SPN/FMI) e tabelas de fábrica de 12 marcas. Digite o código do scanner ou do painel.',
       h1: 'A luz de <em>Check&nbsp;Engine</em> acendeu — o que significa o código?',
-      purposeWhat: 'Referência de códigos de falha de caminhões: a norma <b>J1939 (SPN/FMI)</b> e tabelas de fábrica de <b>12 marcas</b>.',
       purposeDo: 'Introduza um código — ou a lista completa de avarias, tal como está: separados por vírgulas, espaços ou quebras de linha. Uma avaria arrasta cinco ou seis códigos — mostramos qual é a causa e quais vieram a seguir, e dizemos se pode circular.',
       goBtn: 'Decodificar',
       brandDefault: '— qualquer marca —',
       standardAuto: 'Detectar automaticamente',
       standardSpnFmi: 'J1939 — SPN / FMI',
       standardPcode: 'Código de concessionária / OBD',
-      hint: 'Maiúsculas e espaços não importam. Reconhece <code>SPN 100 FMI 1</code>, <code>97 FMI 3</code>, <code>100/1</code>, <code>03043-00</code>, um simples <code>SPN 97</code>, e códigos de concessionária como <code>P2BA7</code>.',
       dataLangNote: 'As descrições das falhas são apresentadas em inglês.',
       printLabel: 'Imprimir',
       themeDay: 'Tema claro',
@@ -1213,14 +1155,12 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
       pageTitle: 'Kod usterki ciężarówki — rozszyfrowanie SPN/FMI i kodów dealerskich',
       metaDescription: 'Darmowe rozszyfrowanie kodów usterek ciężarówek: norma J1939 (SPN/FMI) i tabele fabryczne 12 marek. Wpisz kod ze skanera lub z deski rozdzielczej.',
       h1: 'Zapaliła się kontrolka <em>Check&nbsp;Engine</em> — co oznacza kod?',
-      purposeWhat: 'Baza kodów usterek ciężarówek: norma <b>J1939 (SPN/FMI)</b> i tabele fabryczne <b>12 marek</b>.',
       purposeDo: 'Wpisz kod — albo od razu całą listę usterek, tak jak jest: oddzielone przecinkami, spacjami lub nowymi wierszami. Jedna usterka ciągnie za sobą pięć-sześć kodów — pokażemy, który jest przyczyną, a które pojawiły się po nim, i powiemy, czy można jechać.',
       goBtn: 'Rozszyfruj',
       brandDefault: '— dowolna marka —',
       standardAuto: 'Wykryj automatycznie',
       standardSpnFmi: 'J1939 — SPN / FMI',
       standardPcode: 'Kod dealerski / OBD',
-      hint: 'Wielkość liter i spacje nie mają znaczenia. Rozpoznaje <code>SPN 100 FMI 1</code>, <code>97 FMI 3</code>, <code>100/1</code>, <code>03043-00</code>, samo <code>SPN 97</code> oraz kody dealerskie typu <code>P2BA7</code>.',
       dataLangNote: 'Opisy usterek są wyświetlane w języku angielskim.',
       printLabel: 'Drukuj',
       themeDay: 'Motyw dzienny',
@@ -1276,14 +1216,12 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
       pageTitle: 'Kamyon arıza kodu — SPN/FMI ve bayi kodu çözümleme',
       metaDescription: 'Ücretsiz kamyon arıza kodu çözümleme: J1939 standardı (SPN/FMI) ve 12 markanın fabrika tabloları. Tarayıcıdan veya gösterge panelinden kodu girin.',
       h1: '<em>Check&nbsp;Engine</em> lambası yandı — kod ne anlama geliyor?',
-      purposeWhat: 'Kamyon arıza kodu rehberi: <b>J1939 (SPN/FMI)</b> standardı ve <b>12 marka</b>nın fabrika tabloları.',
       purposeDo: 'Bir kod girin — ya da arıza listesinin tamamını olduğu gibi: virgül, boşluk veya alt satır fark etmez. Tek bir arıza beş-altı kodu peşinden sürükler — hangisinin neden olduğunu, hangilerinin ardından geldiğini gösterir ve yola devam edilip edilemeyeceğini söyleriz.',
       goBtn: 'Çöz',
       brandDefault: '— herhangi bir marka —',
       standardAuto: 'Otomatik algıla',
       standardSpnFmi: 'J1939 — SPN / FMI',
       standardPcode: 'Bayi / OBD kodu',
-      hint: 'Büyük/küçük harf ve boşluklar önemli değil. <code>SPN 100 FMI 1</code>, <code>97 FMI 3</code>, <code>100/1</code>, <code>03043-00</code>, tek başına <code>SPN 97</code> ve <code>P2BA7</code> gibi bayi kodlarını tanır.',
       dataLangNote: 'Arıza açıklamaları İngilizce olarak gösterilir.',
       printLabel: 'Yazdır',
       themeDay: 'Gündüz teması',
@@ -1339,14 +1277,12 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
       pageTitle: 'ट्रक फॉल्ट कोड — SPN/FMI और डीलर कोड डिकोडिंग',
       metaDescription: 'ट्रक फॉल्ट कोड की मुफ्त डिकोडिंग: J1939 मानक (SPN/FMI) और 12 ब्रांड की फैक्ट्री तालिकाएं। स्कैनर या डैशबोर्ड से कोड डालें।',
       h1: '<em>Check&nbsp;Engine</em> लैंप जल गया है — कोड का मतलब क्या है?',
-      purposeWhat: 'ट्रक फॉल्ट कोड की संदर्भ पुस्तिका: <b>J1939 (SPN/FMI)</b> मानक और <b>12 ब्रांड</b> की फैक्ट्री तालिकाएं।',
       purposeDo: 'एक कोड डालें — या खराबियों की पूरी सूची जैसी है वैसी ही: कॉमा, स्पेस या नई लाइन से अलग। एक खराबी पांच-छह कोड अपने साथ लाती है — हम बताएंगे कि कौन सा कारण है और कौन से उसके बाद आए, और यह भी कि गाड़ी चलाना सुरक्षित है या नहीं।',
       goBtn: 'डिकोड करें',
       brandDefault: '— कोई भी ब्रांड —',
       standardAuto: 'स्वतः पहचानें',
       standardSpnFmi: 'J1939 — SPN / FMI',
       standardPcode: 'डीलर / OBD कोड',
-      hint: 'बड़े-छोटे अक्षर और स्पेस मायने नहीं रखते। यह <code>SPN 100 FMI 1</code>, <code>97 FMI 3</code>, <code>100/1</code>, <code>03043-00</code>, अकेला <code>SPN 97</code>, और <code>P2BA7</code> जैसे डीलर कोड पहचानता है।',
       dataLangNote: 'खराबी के विवरण अंग्रेज़ी में दिखाए गए हैं।',
       printLabel: 'प्रिंट करें',
       themeDay: 'दिन वाली थीम',
@@ -1547,6 +1483,7 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
        интерфейса: русскому и английскому объяснять нечего. */
     dataNote.style.display = (lang === 'ru' || lang === 'en') ? 'none' : 'block';
     langSelect.value = lang;
+    langSelect.setAttribute('aria-label', t('langAria'));
     if(DB) fillBrands();
     if(input.value.trim()) run();
   }
@@ -1973,7 +1910,6 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
 
   var RISK_TITLE = {ru:'Что будет, если ехать дальше',
                     en:'What happens if you keep driving'};
-  var RISK_HZ = {ru:'Запас времени:', en:'Time you have:'};
   var RISK_H = {
     ru:{now:'Минуты', short:'До ближайшей остановки', base:'Хватит доехать до базы',
         watch:'Ехать можно, следить самому', plan:'До ближайшего ТО'},
