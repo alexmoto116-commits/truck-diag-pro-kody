@@ -16,7 +16,7 @@
 <meta property="og:site_name" content="codetruck.ru">
 <meta property="og:locale" content="ru_RU">
 <meta property="og:title" content="Код неисправности грузовика — расшифровка SPN/FMI">
-<meta property="og:description" content="Введите код или весь список со сканера: найдём, какая поломка настоящая, и скажем, можно ли ехать. J1939 и заводские таблицы 12 марок.">
+<meta property="og:description" content="Введите код или весь список ошибок: найдём, какая поломка настоящая, и скажем, можно ли ехать. J1939 и заводские таблицы 12 марок.">
 <meta property="og:image" content="https://codetruck.ru/assets/tyagach-noch.jpg">
 <meta name="twitter:card" content="summary_large_image">
 <style>
@@ -436,6 +436,29 @@ body.critical .lamp{
 .risk.t-calm{color:var(--signal);border-color:rgba(111,227,211,.24)}
 .card > .grp:first-child{margin-top:0}
 
+/* Чем разбор заканчивается в жизни: лист кладут к машине, ссылку
+   кидают механику или на базу. Поэтому действие крупное и в конце
+   отчёта, а не иконкой в углу, которую на телефоне не замечают. */
+.acts{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+.acts .act{
+  flex:1 1 200px;min-height:52px;padding:14px 16px;cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;gap:9px;
+  font-family:var(--sans);font-size:14.5px;font-weight:650;
+  border-radius:12px;border:1px solid var(--line);
+  background:rgba(255,255,255,.03);color:var(--ink);
+  transition:border-color .16s ease,background .16s ease;
+}
+.acts .act:hover{border-color:rgba(111,227,211,.45);background:rgba(255,255,255,.06)}
+.acts .act:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
+.acts .act-main{
+  border-color:transparent;color:#20120A;
+  background:linear-gradient(180deg,#FFAA55,#F2833C);
+}
+.acts .act svg{width:17px;height:17px;flex:none}
+[data-theme="light"] .acts .act{background:#fff;color:var(--ink)}
+[data-theme="light"] .acts .act-main{color:#20120A}
+@media print{ .acts{display:none !important} }
+
 /* Поле принимает список, но по нему одному это не прочитать.
    Одна строка объясняет зачем, кнопка рядом - сразу показывает как. */
 .listnote{margin-top:14px}
@@ -444,19 +467,6 @@ body.critical .lamp{
   max-width:56ch;text-shadow:0 1px 12px rgba(7,11,18,.9);
 }
 .listnote p b{color:var(--ink);font-weight:650}
-.listnote .demo{margin-top:0}
-
-.demo{
-  margin-top:11px;display:inline-flex;align-items:center;gap:7px;cursor:pointer;
-  min-height:44px;
-  background:rgba(111,227,211,.07);border:1px solid rgba(111,227,211,.22);
-  border-radius:9px;padding:7px 11px;
-  font-family:var(--sans);font-size:12.5px;color:var(--signal);
-  transition:background .18s ease,border-color .18s ease;
-}
-.demo:hover{background:rgba(111,227,211,.13);border-color:rgba(111,227,211,.4)}
-.demo:focus-visible{outline:2px solid var(--signal);outline-offset:3px}
-.demo svg{width:13px;height:13px;flex:none}
 
 @media(max-width:560px){
   .verdict{flex-wrap:wrap;gap:11px;padding:14px}
@@ -682,29 +692,8 @@ body.critical .lamp{
 [data-preview="3"] body.report .print-btn{display:none}
 [data-preview="3"] body.report .out{margin-top:0}
 
-/* Действия под отчётом. Печать и ссылка механику - это то, чем
-   разбор заканчивается в жизни: лист кладут к машине, ссылку кидают
-   на базу. Поэтому они крупные и внизу, а не иконкой в углу. */
-.acts{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
-.acts .act{
-  flex:1 1 200px;min-height:52px;padding:14px 16px;cursor:pointer;
-  display:inline-flex;align-items:center;justify-content:center;gap:9px;
-  font-family:var(--sans);font-size:14.5px;font-weight:650;
-  border-radius:12px;border:1px solid var(--line);
-  background:rgba(255,255,255,.03);color:var(--ink);
-  transition:border-color .16s ease,background .16s ease;
-}
-.acts .act:hover{border-color:rgba(111,227,211,.45);background:rgba(255,255,255,.06)}
-.acts .act:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
-.acts .act-main{
-  border-color:transparent;color:#20120A;
-  background:linear-gradient(180deg,#FFAA55,#F2833C);
-}
-.acts .act svg{width:17px;height:17px;flex:none}
 [data-theme="light"] .recap{background:#fff}
-[data-theme="light"] .acts .act{background:#fff;color:var(--ink)}
-[data-theme="light"] .acts .act-main{color:#20120A}
-@media print{ .recap,.acts{display:none !important} }
+@media print{ .recap{display:none !important} }
 
 /* --- движение объясняет связь ---
    Смысл гирлянды в том, что причина одна, а остальное к ней
@@ -866,8 +855,6 @@ body.critical .lamp{
 [data-theme="light"] .showcase{background:#fff}
 [data-theme="light"] .showcase .scroot{background:#FDF6DF;border-color:rgba(138,99,0,.45)}
 [data-theme="light"] .showcase .scroot .sctx{color:var(--ink)}
-[data-theme="light"] .demo{background:rgba(11,122,106,.07);border-color:rgba(11,122,106,.28)}
-[data-theme="light"] .demo:hover{background:rgba(11,122,106,.13);border-color:rgba(11,122,106,.5)}
 [data-theme="light"] .common a:hover,
 [data-theme="light"] .common .lines a:hover{border-color:rgba(11,122,106,.5)}
 
@@ -898,9 +885,6 @@ body.critical .lamp{
   .crit,.warn{color:#000}
   .miss{background:#f4f4f4;border-left-color:#888;color:#000}
   .foot{color:#444;padding-top:12px}
-  /* Разбор гирлянды кладут к машине в мастерской - на бумаге
-     иерархия держится рамкой и жирностью, а не цветом. */
-  .demo{display:none}
   .risk{background:none;border:1px solid #999;color:#000}
   .risk p,.risk p + p{color:#000}
   .risk .rkl{display:none}
@@ -1027,7 +1011,7 @@ body.critical .lamp{
   <div class="w">
     <h1 data-i18n="h1">Загорелась лампа <em>Check&nbsp;Engine</em> — что означает код?</h1>
     <div class="purpose">
-      <p class="do" data-i18n="purposeDo">Введите код — или сразу весь список со сканера. Найдём, какая поломка настоящая, и скажем, можно ли ехать.</p>
+      <p class="do" data-i18n="purposeDo">Введите код — или сразу весь список ошибок. Найдём, какая поломка настоящая, и скажем, можно ли ехать.</p>
     </div>
 
     <div class="scanner">
@@ -1055,12 +1039,6 @@ body.critical .lamp{
 
     <div class="listnote">
       <p data-i18n="listNote"><b>Коды можно вставить как есть</b> — через запятую, пробел или столбиком. Одна поломка тянет за собой пять-шесть кодов: покажем, какой из них причина, а какие пришли следом.</p>
-      <button type="button" class="demo" id="pf-demo">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M4 6h16M4 12h11M4 18h7"/>
-        </svg><span data-i18n="demoLabel">Показать на примере</span>
-      </button>
     </div>
 
     <p class="datanote" id="pf-datanote" data-i18n="dataLangNote"></p>
@@ -1140,7 +1118,7 @@ body.critical .lamp{
       metaDescription: 'Бесплатная расшифровка кодов неисправностей грузовиков: стандарт J1939 (SPN/FMI) и заводские таблицы 12 марок. Введите код со сканера или с приборной панели.',
       h1: 'Загорелась лампа <em>Check&nbsp;Engine</em> — что означает код?',
       purposeWhat: 'Справочник кодов неисправностей грузовиков: стандарт <b>J1939 (SPN/FMI)</b> и заводские таблицы <b>12 марок</b>.',
-      purposeDo: 'Введите код — или сразу весь список со сканера. Найдём, какая поломка настоящая, и скажем, можно ли ехать.',
+      purposeDo: 'Введите код — или сразу весь список ошибок. Найдём, какая поломка настоящая, и скажем, можно ли ехать.',
       goBtn: 'Разобрать',
       brandDefault: '— любая марка —',
       standardAuto: 'Определить автоматически',
@@ -1182,7 +1160,8 @@ body.critical .lamp{
       vStopSub: 'Остановиться при первой безопасной возможности, дальше не тянуть.',
       vWarn: 'Ехать можно',
       vWarnSub: 'Ниже — сколько есть времени и что будет, если тянуть.',
-      demoLabel: 'Показать на примере',
+      shareLabel: 'Отослать разбор',
+      shareDone: 'Ссылка скопирована',
       listNote: '<b>Коды можно вставить как есть</b> — через запятую, пробел или столбиком. Одна поломка тянет за собой пять-шесть кодов: покажем, какой из них причина, а какие пришли следом.',
       sysScr: 'AdBlue / выхлоп', sysOil: 'смазка', sysCool: 'охлаждение',
       sysFuel: 'топливо', sysAir: 'впуск / наддув', sysPower: 'питание',
@@ -1203,7 +1182,7 @@ body.critical .lamp{
       metaDescription: 'Free truck fault code lookup: J1939 standard (SPN/FMI) and factory tables for 12 makes. Enter a code from your scanner or dashboard.',
       h1: 'The <em>Check&nbsp;Engine</em> light is on — what does the code mean?',
       purposeWhat: 'A truck fault code reference: the <b>J1939 (SPN/FMI)</b> standard and factory tables for <b>12 makes</b>.',
-      purposeDo: 'Enter one code — or paste the whole list from your scanner. We find the real fault and tell you whether it’s safe to drive.',
+      purposeDo: 'Enter one code — or paste the whole fault list. We find the real fault and tell you whether it’s safe to drive.',
       goBtn: 'Decode',
       brandDefault: '— any make —',
       standardAuto: 'Detect automatically',
@@ -1245,7 +1224,8 @@ body.critical .lamp{
       vStopSub: 'Stop as soon as it’s safe to do so — don’t keep going.',
       vWarn: 'Safe to drive',
       vWarnSub: 'Below — how much time you have and what happens if you keep going.',
-      demoLabel: 'See an example',
+      shareLabel: 'Send this report',
+      shareDone: 'Link copied',
       listNote: '<b>Paste the codes exactly as they are</b> — separated by commas, spaces or line breaks. One fault drags five or six codes along: we show which one is the cause and which just followed.',
       sysScr: 'AdBlue / exhaust', sysOil: 'lubrication', sysCool: 'cooling',
       sysFuel: 'fuel', sysAir: 'intake / boost', sysPower: 'power supply',
@@ -1266,7 +1246,7 @@ body.critical .lamp{
       metaDescription: 'Kostenlose Entschlüsselung von LKW-Fehlercodes: J1939-Standard (SPN/FMI) und Werkstabellen für 12 Marken. Code vom Scanner oder Armaturenbrett eingeben.',
       h1: 'Die <em>Check&nbsp;Engine</em>-Leuchte ist an — was bedeutet der Code?',
       purposeWhat: 'Nachschlagewerk für LKW-Fehlercodes: der Standard <b>J1939 (SPN/FMI)</b> und Werkstabellen für <b>12 Marken</b>.',
-      purposeDo: 'Einen Code eingeben — oder die ganze Liste aus dem Diagnosegerät einfügen. Wir finden den echten Defekt und sagen, ob die Weiterfahrt sicher ist.',
+      purposeDo: 'Einen Code eingeben — oder die ganze Fehlerliste einfügen. Wir finden den echten Defekt und sagen, ob die Weiterfahrt sicher ist.',
       goBtn: 'Entschlüsseln',
       brandDefault: '— beliebige Marke —',
       standardAuto: 'Automatisch erkennen',
@@ -1308,7 +1288,8 @@ body.critical .lamp{
       vStopSub: 'Anhalten, sobald es sicher möglich ist — nicht weiterfahren.',
       vWarn: 'Weiterfahrt möglich',
       vWarnSub: 'Unten — wie viel Zeit bleibt und was passiert, wenn Sie weiterfahren.',
-      demoLabel: 'Beispiel ansehen',
+      shareLabel: 'Auswertung senden',
+      shareDone: 'Link kopiert',
       listNote: '<b>Codes einfach so einfügen</b> — getrennt durch Komma, Leerzeichen oder Zeilenumbruch. Ein Defekt zieht fünf bis sechs Codes nach sich: wir zeigen, welcher die Ursache ist und welche nur gefolgt sind.',
       sysScr: 'AdBlue / Abgas', sysOil: 'Schmierung', sysCool: 'Kühlung',
       sysFuel: 'Kraftstoff', sysAir: 'Ansaugung / Ladedruck', sysPower: 'Bordnetz',
@@ -1329,7 +1310,7 @@ body.critical .lamp{
       metaDescription: 'Décodage gratuit des codes défaut camion : norme J1939 (SPN/FMI) et tables constructeur pour 12 marques. Entrez le code du scanner ou du tableau de bord.',
       h1: 'Le voyant <em>Check&nbsp;Engine</em> est allumé — que signifie le code ?',
       purposeWhat: 'Répertoire des codes défaut camion : la norme <b>J1939 (SPN/FMI)</b> et les tables constructeur de <b>12 marques</b>.',
-      purposeDo: 'Saisissez un code — ou collez toute la liste de votre valise. Nous trouvons la vraie panne et vous disons si vous pouvez rouler.',
+      purposeDo: 'Saisissez un code — ou collez toute la liste des défauts. Nous trouvons la vraie panne et vous disons si vous pouvez rouler.',
       goBtn: 'Décoder',
       brandDefault: '— toutes marques —',
       standardAuto: 'Détecter automatiquement',
@@ -1371,7 +1352,8 @@ body.critical .lamp{
       vStopSub: 'Arrêtez-vous dès que c’est possible en sécurité — ne continuez pas.',
       vWarn: 'Vous pouvez rouler',
       vWarnSub: 'Ci-dessous — combien de temps il vous reste et ce qui arrive si vous continuez.',
-      demoLabel: 'Voir un exemple',
+      shareLabel: 'Envoyer l’analyse',
+      shareDone: 'Lien copié',
       listNote: '<b>Collez les codes tels quels</b> — séparés par des virgules, des espaces ou des retours à la ligne. Une panne entraîne cinq ou six codes : nous montrons lequel est la cause et lesquels ont suivi.',
       sysScr: 'AdBlue / échappement', sysOil: 'lubrification', sysCool: 'refroidissement',
       sysFuel: 'carburant', sysAir: 'admission / suralimentation', sysPower: 'alimentation',
@@ -1392,7 +1374,7 @@ body.critical .lamp{
       metaDescription: 'Decodificación gratuita de códigos de avería de camiones: norma J1939 (SPN/FMI) y tablas de fábrica de 12 marcas. Introduce el código del escáner o del salpicadero.',
       h1: 'Se ha encendido el testigo <em>Check&nbsp;Engine</em> — ¿qué significa el código?',
       purposeWhat: 'Referencia de códigos de avería de camiones: la norma <b>J1939 (SPN/FMI)</b> y tablas de fábrica de <b>12 marcas</b>.',
-      purposeDo: 'Introduzca un código — o pegue la lista completa del escáner. Encontramos la avería real y le decimos si puede circular.',
+      purposeDo: 'Introduzca un código — o pegue la lista completa de averías. Encontramos la avería real y le decimos si puede circular.',
       goBtn: 'Decodificar',
       brandDefault: '— cualquier marca —',
       standardAuto: 'Detectar automáticamente',
@@ -1434,7 +1416,8 @@ body.critical .lamp{
       vStopSub: 'Deténgase en cuanto sea seguro — no siga conduciendo.',
       vWarn: 'Puede circular',
       vWarnSub: 'Abajo — cuánto tiempo tiene y qué pasa si sigue circulando.',
-      demoLabel: 'Ver un ejemplo',
+      shareLabel: 'Enviar el informe',
+      shareDone: 'Enlace copiado',
       listNote: '<b>Pegue los códigos tal cual</b> — separados por comas, espacios o saltos de línea. Una avería arrastra cinco o seis códigos: le mostramos cuál es la causa y cuáles vinieron detrás.',
       sysScr: 'AdBlue / escape', sysOil: 'lubricación', sysCool: 'refrigeración',
       sysFuel: 'combustible', sysAir: 'admisión / sobrealimentación', sysPower: 'alimentación',
@@ -1455,7 +1438,7 @@ body.critical .lamp{
       metaDescription: 'Decodificação gratuita de códigos de falha de caminhões: norma J1939 (SPN/FMI) e tabelas de fábrica de 12 marcas. Digite o código do scanner ou do painel.',
       h1: 'A luz de <em>Check&nbsp;Engine</em> acendeu — o que significa o código?',
       purposeWhat: 'Referência de códigos de falha de caminhões: a norma <b>J1939 (SPN/FMI)</b> e tabelas de fábrica de <b>12 marcas</b>.',
-      purposeDo: 'Introduza um código — ou cole a lista completa do scanner. Encontramos a avaria real e dizemos se pode circular.',
+      purposeDo: 'Introduza um código — ou cole a lista completa de avarias. Encontramos a avaria real e dizemos se pode circular.',
       goBtn: 'Decodificar',
       brandDefault: '— qualquer marca —',
       standardAuto: 'Detectar automaticamente',
@@ -1497,7 +1480,8 @@ body.critical .lamp{
       vStopSub: 'Pare assim que for seguro — não continue a conduzir.',
       vWarn: 'Pode circular',
       vWarnSub: 'Abaixo — quanto tempo tem e o que acontece se continuar.',
-      demoLabel: 'Ver um exemplo',
+      shareLabel: 'Enviar a análise',
+      shareDone: 'Link copiado',
       listNote: '<b>Cole os códigos tal como estão</b> — separados por vírgulas, espaços ou quebras de linha. Uma avaria arrasta cinco ou seis códigos: mostramos qual é a causa e quais vieram a seguir.',
       sysScr: 'AdBlue / escape', sysOil: 'lubrificação', sysCool: 'arrefecimento',
       sysFuel: 'combustível', sysAir: 'admissão / sobrealimentação', sysPower: 'alimentação',
@@ -1518,7 +1502,7 @@ body.critical .lamp{
       metaDescription: 'Darmowe rozszyfrowanie kodów usterek ciężarówek: norma J1939 (SPN/FMI) i tabele fabryczne 12 marek. Wpisz kod ze skanera lub z deski rozdzielczej.',
       h1: 'Zapaliła się kontrolka <em>Check&nbsp;Engine</em> — co oznacza kod?',
       purposeWhat: 'Baza kodów usterek ciężarówek: norma <b>J1939 (SPN/FMI)</b> i tabele fabryczne <b>12 marek</b>.',
-      purposeDo: 'Wpisz kod — albo wklej całą listę ze skanera. Znajdziemy prawdziwą usterkę i powiemy, czy można jechać.',
+      purposeDo: 'Wpisz kod — albo wklej całą listę usterek. Znajdziemy prawdziwą usterkę i powiemy, czy można jechać.',
       goBtn: 'Rozszyfruj',
       brandDefault: '— dowolna marka —',
       standardAuto: 'Wykryj automatycznie',
@@ -1560,7 +1544,8 @@ body.critical .lamp{
       vStopSub: 'Zatrzymaj się, gdy tylko będzie to bezpieczne — nie kontynuuj jazdy.',
       vWarn: 'Można jechać',
       vWarnSub: 'Poniżej — ile masz czasu i co się stanie, jeśli pojedziesz dalej.',
-      demoLabel: 'Zobacz przykład',
+      shareLabel: 'Wyślij analizę',
+      shareDone: 'Link skopiowany',
       listNote: '<b>Wklej kody tak jak są</b> — oddzielone przecinkami, spacjami lub nowymi wierszami. Jedna usterka ciągnie za sobą pięć-sześć kodów: pokażemy, który jest przyczyną, a które pojawiły się po nim.',
       sysScr: 'AdBlue / wydech', sysOil: 'smarowanie', sysCool: 'układ chłodzenia',
       sysFuel: 'paliwo', sysAir: 'dolot / doładowanie', sysPower: 'zasilanie',
@@ -1581,7 +1566,7 @@ body.critical .lamp{
       metaDescription: 'Ücretsiz kamyon arıza kodu çözümleme: J1939 standardı (SPN/FMI) ve 12 markanın fabrika tabloları. Tarayıcıdan veya gösterge panelinden kodu girin.',
       h1: '<em>Check&nbsp;Engine</em> lambası yandı — kod ne anlama geliyor?',
       purposeWhat: 'Kamyon arıza kodu rehberi: <b>J1939 (SPN/FMI)</b> standardı ve <b>12 marka</b>nın fabrika tabloları.',
-      purposeDo: 'Bir kod girin — ya da cihazdaki listenin tamamını yapıştırın. Gerçek arızayı buluruz ve yola devam edilip edilemeyeceğini söyleriz.',
+      purposeDo: 'Bir kod girin — ya da arıza listesinin tamamını yapıştırın. Gerçek arızayı buluruz ve yola devam edilip edilemeyeceğini söyleriz.',
       goBtn: 'Çöz',
       brandDefault: '— herhangi bir marka —',
       standardAuto: 'Otomatik algıla',
@@ -1623,7 +1608,8 @@ body.critical .lamp{
       vStopSub: 'Güvenli olur olmaz durun — yola devam etmeyin.',
       vWarn: 'Yola devam edilebilir',
       vWarnSub: 'Aşağıda — ne kadar zamanınız var ve devam ederseniz ne olur.',
-      demoLabel: 'Örneğe bakın',
+      shareLabel: 'Raporu gönder',
+      shareDone: 'Bağlantı kopyalandı',
       listNote: '<b>Kodları olduğu gibi yapıştırın</b> — virgül, boşluk veya alt satır fark etmez. Tek bir arıza beş-altı kodu peşinden sürükler: hangisinin neden olduğunu, hangilerinin ardından geldiğini gösteririz.',
       sysScr: 'AdBlue / egzoz', sysOil: 'yağlama', sysCool: 'soğutma',
       sysFuel: 'yakıt', sysAir: 'emme / turbo basıncı', sysPower: 'besleme',
@@ -1644,7 +1630,7 @@ body.critical .lamp{
       metaDescription: 'ट्रक फॉल्ट कोड की मुफ्त डिकोडिंग: J1939 मानक (SPN/FMI) और 12 ब्रांड की फैक्ट्री तालिकाएं। स्कैनर या डैशबोर्ड से कोड डालें।',
       h1: '<em>Check&nbsp;Engine</em> लैंप जल गया है — कोड का मतलब क्या है?',
       purposeWhat: 'ट्रक फॉल्ट कोड की संदर्भ पुस्तिका: <b>J1939 (SPN/FMI)</b> मानक और <b>12 ब्रांड</b> की फैक्ट्री तालिकाएं।',
-      purposeDo: 'एक कोड डालें — या स्कैनर की पूरी सूची पेस्ट करें। हम असली खराबी ढूंढते हैं और बताते हैं कि गाड़ी चलाना सुरक्षित है या नहीं।',
+      purposeDo: 'एक कोड डालें — या खराबियों की पूरी सूची पेस्ट करें। हम असली खराबी ढूंढते हैं और बताते हैं कि गाड़ी चलाना सुरक्षित है या नहीं।',
       goBtn: 'डिकोड करें',
       brandDefault: '— कोई भी ब्रांड —',
       standardAuto: 'स्वतः पहचानें',
@@ -1686,7 +1672,8 @@ body.critical .lamp{
       vStopSub: 'जैसे ही सुरक्षित हो, रुक जाएं — आगे न बढ़ें।',
       vWarn: 'गाड़ी चलाना सुरक्षित है',
       vWarnSub: 'नीचे — आपके पास कितना समय है और आगे चलाते रहने पर क्या होगा।',
-      demoLabel: 'उदाहरण देखें',
+      shareLabel: 'रिपोर्ट भेजें',
+      shareDone: 'लिंक कॉपी हो गया',
       listNote: '<b>कोड जैसे हैं वैसे ही पेस्ट करें</b> — कॉमा, स्पेस या नई लाइन से अलग। एक खराबी पांच-छह कोड अपने साथ लाती है: हम बताएंगे कि कौन सा कारण है और कौन से उसके बाद आए।',
       sysScr: 'AdBlue / निकास', sysOil: 'स्नेहन', sysCool: 'शीतलन',
       sysFuel: 'ईंधन', sysAir: 'इनटेक / बूस्ट', sysPower: 'विद्युत आपूर्ति',
@@ -2500,12 +2487,12 @@ body.critical .lamp{
      мгновенно, не дожидаясь загрузки справочника. */
   var SHOW = {
     ru:{head:'Так это работает',
-        inp:'Вставили весь список со сканера',
+        inp:'Вставили весь список ошибок',
         out:'Получили одну причину',
         root:'Уровень AdBlue в баке ниже нормы',
         note:'Остальные пять — следствия. Долили реагент, ушли все шесть.'},
     en:{head:'How it works',
-        inp:'Pasted the whole scanner list',
+        inp:'Pasted the whole fault list',
         out:'Got a single cause',
         root:'AdBlue level in the tank below normal',
         note:'The other five are consequences. Top up the fluid and all six go away.'}
@@ -2518,15 +2505,13 @@ body.critical .lamp{
         todo:'Что делать', cause:'Из-за чего',
         more:'Подробнее: следствия и что будет, если ехать',
         more1:'Подробнее: что будет, если ехать',
-        edit:'Изменить', andMore:'и ещё {n}',
-        share:'Отправить механику', shareOk:'Ссылка скопирована'},
+        edit:'Изменить', andMore:'и ещё {n}'},
     en:{lang:'Language', car:'Which truck', code:'Code from the scanner or the dash',
         alt:'Enter the code in another format',
         todo:'What to do', cause:'What caused it',
         more:'More: consequences and what happens if you keep driving',
         more1:'More: what happens if you keep driving',
-        edit:'Change', andMore:'and {n} more',
-        share:'Send to your mechanic', shareOk:'Link copied'}
+        edit:'Change', andMore:'and {n} more'}
   };
 
   /* Порядок марок - по тому, как часто их спрашивают на нашем рынке,
@@ -2726,23 +2711,26 @@ body.critical .lamp{
   }
   function t2(s, n){ return s.replace('{n}', n); }
 
-  /* Печать и ссылка - то, чем разбор заканчивается в жизни. */
-  function actions(){
-    var LS = currentLang === 'ru' ? 'ru' : 'en', st = STEP[LS];
+  /* Действия в конце разбора. Печать нужна только в режиме отчёта -
+     на обычной странице она и так висит кнопкой в углу. */
+  function actions(withPrint){
     var box = document.createElement('div');
     box.className = 'acts';
 
-    var pr = document.createElement('button');
-    pr.type = 'button'; pr.className = 'act act-main';
-    pr.innerHTML = ICON_PRINT + '<span></span>';
-    pr.querySelector('span').textContent = t('printLabel');
-    pr.addEventListener('click', function(){ window.print(); });
+    if(withPrint){
+      var pr = document.createElement('button');
+      pr.type = 'button'; pr.className = 'act act-main';
+      pr.innerHTML = ICON_PRINT + '<span></span>';
+      pr.querySelector('span').textContent = t('printLabel');
+      pr.addEventListener('click', function(){ window.print(); });
+      box.appendChild(pr);
+    }
 
     var sh = document.createElement('button');
-    sh.type = 'button'; sh.className = 'act';
+    sh.type = 'button'; sh.className = 'act' + (withPrint ? '' : ' act-main');
     sh.innerHTML = ICON_SEND + '<span></span>';
     var lbl = sh.querySelector('span');
-    lbl.textContent = st.share;
+    lbl.textContent = t('shareLabel');
     sh.addEventListener('click', function(){
       var u = shareUrl();
       if(!u) return;
@@ -2750,14 +2738,14 @@ body.critical .lamp{
       /* Без системного «поделиться» кладём в буфер и говорим об этом
          той же кнопкой - лишнее всплывающее окно тут ни к чему. */
       var done = function(){
-        lbl.textContent = st.shareOk;
-        setTimeout(function(){ lbl.textContent = st.share; }, 2200);
+        lbl.textContent = t('shareDone');
+        setTimeout(function(){ lbl.textContent = t('shareLabel'); }, 2200);
       };
       if(navigator.clipboard) navigator.clipboard.writeText(u).then(done, function(){});
       else done();
     });
 
-    box.appendChild(pr); box.appendChild(sh);
+    box.appendChild(sh);
     out.appendChild(box);
   }
 
@@ -2765,16 +2753,6 @@ body.critical .lamp{
   printBtn.addEventListener('click', function(){
     if(!printBtn.disabled) window.print();
   });
-  /* Живой пример - гроздь от пустого бака AdBlue плюс один
-     посторонний код, чтобы было видно и разделение на «не связано». */
-  var DEMO = 'SPN 1761 FMI 1, SPN 4095 FMI 31, SPN 3226 FMI 0, SPN 4094 FMI 31, ' +
-             'SPN 1569 FMI 31, SPN 5841 FMI 2, SPN 84 FMI 2';
-  document.getElementById('pf-demo').addEventListener('click', function(){
-    input.value = DEMO;
-    run();
-    out.scrollIntoView({behavior:'smooth', block:'nearest'});
-  });
-
   langSelect.addEventListener('change', function(){
     applyLang(langSelect.value);
     showcase();
@@ -2799,7 +2777,9 @@ body.critical .lamp{
     printBtn.title = printable ? t('printTitleEnabled') : t('printTitleDisabled');
     if(PV3){
       document.body.classList.toggle('report', !!printable);
-      if(printable){ recap(); actions(); }
+      if(printable){ recap(); actions(true); }
+    } else if(printable){
+      actions(false);
     }
   }
 
