@@ -1,0 +1,300 @@
+# -*- coding: utf-8 -*-
+"""
+Сборка страниц по кодам (kody/spn-*.html) и sitemap.xml из базы assets/dtc.enc.js.
+
+Страница заводится только на тот SPN, по которому есть что сказать: либо он
+разобран в заводской таблице хотя бы одной марки, либо входит в кураторский
+список важнейших. На чистую телеметрию вроде «пробег за поездку» страницы не
+делаем - искать её никто не будет, а тысячи почти одинаковых страниц тянут
+за собой фильтр за малополезный контент.
+
+Стандартную таблицу FMI печатаем не целиком, а только по тем значениям,
+которые у этого SPN реально встречаются: иначе половина каждой страницы -
+один и тот же текст на весь сайт.
+
+Запуск из корня репозитория:  python scripts/build_pages.py
+"""
+import base64, glob, io, json, os, re
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+SITE = 'https://codetruck.ru'
+METRIKA_ID = '111407659'
+
+# ---------------------------------------------------------------- данные
+
+def load_db():
+    raw = io.open(os.path.join(ROOT, 'assets', 'dtc.enc.js'), encoding='utf-8').read()
+    b64 = re.search(r"b64='([^']+)'", raw).group(1)
+    return json.loads(base64.b64decode(b64).decode('utf-8'))
+
+# ------------------------------------------------------- система по SPN
+# Та же раскладка, что в index.html: она решает, какие коды показывать
+# в блоке «рядом» - человеку с горящей лампой полезны соседи по узлу,
+# а не соседи по номеру.
+SYS_SPN = {
+    'scr':   [1761,3216,3226,3242,3246,3250,3251,3361,3363,3364,3480,3609,3610,3719,3936,
+              4090,4094,4095,4096,4225,4334,4364,4809,5394,5841],
+    'oil':   [98,100,175,1208],
+    'cool':  [110,111,975,1134,4076,4193],
+    'fuel':  [94,95,97,157,164,174,651,652,653,654,655,656,657,658,1076,1077,1239,1347,1348,1349],
+    'air':   [102,103,105,106,107,132,411,412,1127,1172,1176,2630,2659,2789,2791,5401,5541],
+    'power': [158,167,168,620,627,628,629,1079,1080,3509,3510,3511],
+    'can':   [520,639,1231,1235,1237,2003,2005,2011,523212,523216],
+    'brake': [46,70,563,597,598,1086,520192],
+    'trans': [191,522,523,524,560,561,573,574,787],
+    'prot':  [1108,1110,1569,2629,3607,5246],
+}
+SYS_WORD = {
+    'scr':   ['adblue','мочевин','реаген','nox','scr','сажев','катализат','dpf','выхлоп','отработавш','сажи'],
+    'oil':   ['масл','смазк'],
+    'cool':  ['охлажд','антифриз','радиатор','вентилятор',' ож'],
+    'fuel':  ['топлив','форсунк','рампе','рампы','рампа','тнвд','впрыск','солярк'],
+    'air':   ['наддув','турбо','воздуш','впуск','интеркул','дроссел'],
+    'power': ['напряж','аккумул','генерат','питани','бортов','реле'],
+    'can':   ['can','шина','сообщени','связ'],
+    'brake': ['тормоз','abs','ebs','пневмо','ресивер'],
+    'trans': ['коробк','сцеплен','передач','кпп','трансмисс'],
+    'prot':  ['ограничен','защит','останов двигател'],
+}
+SYS_TITLE = {
+    'scr':'AdBlue и выпуск', 'oil':'Смазка', 'cool':'Охлаждение', 'fuel':'Топливная система',
+    'air':'Впуск и наддув', 'power':'Электропитание', 'can':'CAN-шина', 'brake':'Тормоза',
+    'trans':'Трансмиссия', 'prot':'Защита двигателя', 'other':'Прочие системы',
+}
+
+# Что человек может проверить сам, не снимая ничего с машины. Советы
+# намеренно осторожные: справочник не ставит диагноз.
+ADVICE = {
+    'scr':   u'Начните с уровня AdBlue — пустой бак даёт целую гроздь кодов по выпуску. '
+             u'Если бак полный, дело в дозировании или качестве реагента, и нужен сканер.',
+    'oil':   u'Заглушите двигатель и проверьте уровень масла щупом, осмотрите низ на течи. '
+             u'Не заводите, пока давление не восстановится: на низком давлении двигатель '
+             u'выхаживает считаные минуты.',
+    'cool':  u'Дайте двигателю остыть — пробку расширительного бачка на горячем не открывают. '
+             u'Потом проверьте уровень охлаждающей жидкости, патрубки и радиатор.',
+    'fuel':  u'Проверьте топливный фильтр и отстойник, слейте воду. Зимой добавьте к подозрениям '
+             u'парафинизацию солярки.',
+    'air':   u'Осмотрите воздушный фильтр и патрубки наддува: подсос воздуха и трещины дают '
+             u'именно такие коды.',
+    'power': u'Проверьте клеммы аккумулятора и массу — окисление и слабая затяжка сыплют ложные '
+             u'коды по всей машине. На заведённом двигателе норма 27–29 В.',
+    'can':   u'Смотрите разъёмы и жгут: обрыв витой пары CAN разом лишает связи все блоки, '
+             u'и коды посыпятся отовсюду.',
+    'brake': u'Дайте пневмосистеме накачать рабочее давление и послушайте утечки. '
+             u'С неисправными тормозами не выезжают.',
+}
+
+
+def system_of(spn, name):
+    for k, lst in SYS_SPN.items():
+        if spn in lst:
+            return k
+    low = (name or '').lower()
+    for k, words in SYS_WORD.items():
+        if any(w in low for w in words):
+            return k
+    return 'other'
+
+# ---------------------------------------------------------------- вывод
+
+def esc(t):
+    return (str(t).replace('&', '&amp;').replace('<', '&lt;')
+                  .replace('>', '&gt;').replace('"', '&quot;'))
+
+# В базе разметка markdown-стиля; на странице она должна стать HTML,
+# иначе пользователь видит звёздочки.
+def rich(t):
+    t = esc(t)
+    t = re.sub(r'\*\*(.+?)\*\*', r'<b>\1</b>', t)
+    return t
+
+HEAD = u"""<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{title}</title>
+<meta name="description" content="{desc}">
+<link rel="canonical" href="{canon}">
+<meta name="theme-color" content="#05070A">
+<!-- Yandex.Metrika counter -->
+<script type="text/javascript">
+    (function(m,e,t,r,i,k,a){{
+        m[i]=m[i]||function(){{(m[i].a=m[i].a||[]).push(arguments)}};
+        m[i].l=1*new Date();
+        for (var j = 0; j < document.scripts.length; j++) {{if (document.scripts[j].src === r) {{ return; }}}}
+        k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
+    }})(window, document,'script','https://mc.yandex.ru/metrika/tag.js?id={mid}', 'ym');
+
+    ym({mid}, 'init', {{ssr:true, webvisor:true, clickmap:true, ecommerce:"dataLayer", referrer: document.referrer, url: location.href, accurateTrackBounce:true, trackLinks:true}});
+</script>
+<noscript><div><img src="https://mc.yandex.ru/watch/{mid}" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+<!-- /Yandex.Metrika counter -->
+<script type="application/ld+json">{ld}</script>
+<style>
+body{{margin:0;background:#05070A;color:#EAF0F7;font-family:"Segoe UI Variable Display","Segoe UI",Inter,system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}}
+.w{{max-width:680px;margin:0 auto;padding:36px 20px 70px}}
+a{{color:#6FE3D3}}
+.tick{{font-family:"Cascadia Mono",Consolas,monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#8B9AAC;margin-bottom:16px}}
+.tick a{{color:#8B9AAC;text-decoration:none;border-bottom:1px solid rgba(139,154,172,.4)}}
+h1{{font-size:26px;line-height:1.25;margin:0 0 8px;letter-spacing:-.01em}}
+.sub{{color:#94A2B4;font-size:14.5px;margin:0 0 28px}}
+.mono{{font-family:"Cascadia Mono",Consolas,monospace}}
+table{{width:100%;border-collapse:collapse;margin:0 0 28px;font-size:14.5px}}
+th{{text-align:left;font-family:"Cascadia Mono",Consolas,monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#5B6778;padding:0 10px 8px 0;border-bottom:1px solid rgba(255,255,255,.12);font-weight:600}}
+td{{padding:9px 10px 9px 0;border-bottom:1px solid rgba(255,255,255,.06);vertical-align:top}}
+td.fmi{{font-family:"Cascadia Mono",Consolas,monospace;color:#6FE3D3;white-space:nowrap;width:1%}}
+tr.hit td.fmi{{color:#FF6B5A}}
+h2{{font-family:"Cascadia Mono",Consolas,monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#5B6778;margin:0 0 12px;font-weight:600}}
+section{{margin-bottom:32px}}
+.near{{margin:0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:8px}}
+.near li{{margin:0}}
+.near a{{display:inline-block;text-decoration:none;color:#AFBECD;font-size:13.5px;
+  border:1px solid rgba(255,255,255,.13);border-radius:9px;padding:6px 11px;background:rgba(255,255,255,.03)}}
+.near a:hover{{color:#EAF0F7;border-color:rgba(111,227,211,.45)}}
+.near a .mono{{color:#6FE3D3}}
+.cta{{margin-top:44px;padding-top:24px;border-top:1px solid rgba(255,255,255,.06);font-size:14px;color:#94A2B4}}
+</style>
+</head>
+<body>
+<div class="w">
+<div class="tick"><a href="../">&larr; поиск по коду</a></div>
+"""
+
+def fmi_table(rows, urgent_fmi):
+    out = ['<table><tr><th>Код</th><th>Расшифровка</th></tr>']
+    for f, text in rows:
+        cls = ' class="hit"' if f in urgent_fmi else ''
+        out.append('<tr%s><td class="fmi">FMI %s</td><td>%s</td></tr>' % (cls, f, rich(text)))
+    out.append('</table>')
+    return ''.join(out)
+
+
+def build():
+    db = load_db()
+    universal, spn_cur = db['universal'], db['spn']
+    brands, brand_names = db['brands'], db['brandNames']
+    urgent_fmi = set(db['urgentFmi'])
+
+    # какие FMI разобраны у каждого SPN и какими марками
+    per_spn = {}
+    for b, table in brands.items():
+        for key, text in table.items():
+            parts = key.split('.')
+            if len(parts) != 2 or not parts[0].isdigit() or not parts[1].isdigit():
+                continue
+            spn, fmi = int(parts[0]), int(parts[1])
+            per_spn.setdefault(spn, {}).setdefault(b, []).append((fmi, text))
+
+    # страница нужна там, где есть заводской разбор либо кураторская важность
+    keep = sorted(set(per_spn) | set(int(k) for k in spn_cur))
+
+    def name_of(spn):
+        s = str(spn)
+        return spn_cur.get(s) or universal.get(s) or ('SPN ' + s)
+
+    # соседи по системе - для перелинковки
+    by_sys = {}
+    for spn in keep:
+        by_sys.setdefault(system_of(spn, name_of(spn)), []).append(spn)
+
+    out_dir = os.path.join(ROOT, 'kody')
+    for f in glob.glob(os.path.join(out_dir, 'spn-*.html')):
+        os.remove(f)
+
+    written = []
+    for spn in keep:
+        name = name_of(spn)
+        sys_key = system_of(spn, name)
+        title = u'SPN %d — %s — что означает код неисправности | codetruck.ru' % (spn, name)
+        desc = (u'SPN %d (%s): расшифровка по стандарту J1939 и заводским таблицам марок. '
+                u'Что означает код и можно ли ехать.' % (spn, name))
+        canon = '%s/kody/spn-%d.html' % (SITE, spn)
+        ld = json.dumps({'@context': 'https://schema.org', '@type': 'TechArticle',
+                         'headline': title, 'description': desc,
+                         'url': canon}, ensure_ascii=False)
+
+        body = [HEAD.format(title=esc(title), desc=esc(desc), canon=canon,
+                            mid=METRIKA_ID, ld=ld)]
+        body.append(u'<h1>SPN %d — %s</h1>' % (spn, esc(name)))
+
+        makes = per_spn.get(spn, {})
+        if makes:
+            body.append(u'<p class="sub">Код J1939 SPN %d. Ниже — как эту неисправность '
+                        u'формулируют на заводе у %d %s, и что вторая половина кода (FMI) '
+                        u'означает по стандарту.</p>'
+                        % (spn, len(makes), u'марки' if len(makes) == 1 else u'марок'))
+        else:
+            body.append(u'<p class="sub">Код J1939 SPN %d. Заводской расшифровки по маркам '
+                        u'для него в справочнике нет — ниже стандартное значение FMI.</p>' % spn)
+
+        # заводские таблицы - это и есть уникальная часть страницы
+        for b in sorted(makes, key=lambda x: brand_names.get(x, x)):
+            rows = sorted(makes[b], key=lambda r: r[0])
+            body.append(u'<section><h2>%s</h2>%s</section>'
+                        % (esc(brand_names.get(b, b)), fmi_table(rows, urgent_fmi)))
+
+        # стандартную таблицу печатаем только по встреченным FMI
+        seen_fmi = sorted({f for rows in makes.values() for f, _ in rows})
+        if seen_fmi:
+            std_rows = [(f, db['fmi'][str(f)]) for f in seen_fmi if str(f) in db['fmi']]
+            if std_rows:
+                body.append(u'<section><h2>Что значит FMI по стандарту J1939</h2>%s</section>'
+                            % fmi_table(std_rows, urgent_fmi))
+        else:
+            common = [f for f in (0, 1, 2, 3, 4, 5) if str(f) in db['fmi']]
+            body.append(u'<section><h2>Частые значения FMI</h2>%s</section>'
+                        % fmi_table([(f, db['fmi'][str(f)]) for f in common], urgent_fmi))
+
+        # Главное, зачем код вообще ищут: ехать или вставать. Ответ свой
+        # для каждого SPN - берём его из тех же списков, что и поиск.
+        seen_all = sorted({f for rows in makes.values() for f, _ in rows})
+        stop = spn in set(db['urgentSpn']) or bool(set(seen_all) & urgent_fmi)
+        if stop:
+            verdict = (u'<b>По этому коду ехать нельзя.</b> Он относится к неисправностям, '
+                       u'при которых остановиться нужно при первой безопасной возможности: '
+                       u'дальше поедет дороже.')
+        else:
+            verdict = (u'<b>Обычно ехать можно</b>, но код нужно показать на ближайшем ТО. '
+                       u'Если вместе с ним горит красная лампа или падает мощность — '
+                       u'останавливайтесь.')
+        body.append(u'<section><h2>Можно ли ехать</h2><p>%s</p></section>' % verdict)
+
+        if ADVICE.get(sys_key):
+            body.append(u'<section><h2>Что проверить на месте</h2><p>%s</p></section>'
+                        % ADVICE[sys_key])
+
+        # соседи по узлу: и человеку полезно, и роботу есть куда идти
+        neigh = [s for s in by_sys.get(sys_key, []) if s != spn][:10]
+        if neigh:
+            links = ''.join(
+                u'<li><a href="spn-%d.html"><span class="mono">SPN %d</span> — %s</a></li>'
+                % (s, s, esc(name_of(s))) for s in neigh)
+            body.append(u'<section><h2>Рядом: %s</h2><ul class="near">%s</ul></section>'
+                        % (esc(SYS_TITLE.get(sys_key, SYS_TITLE['other'])), links))
+
+        body.append(u'<p class="cta">Сканер выдал несколько кодов сразу? '
+                    u'<a href="../">Вставьте весь список</a> — покажем, какой из них '
+                    u'первопричина, а какие пришли следом.</p>')
+        body.append(u'</div>\n</body>\n</html>\n')
+
+        io.open(os.path.join(out_dir, 'spn-%d.html' % spn), 'w', encoding='utf-8').write(''.join(body))
+        written.append(spn)
+
+    # sitemap: главная плюс только те страницы, что реально существуют
+    urls = [SITE + '/'] + ['%s/kody/spn-%d.html' % (SITE, s) for s in written]
+    sm = ['<?xml version="1.0" encoding="UTF-8"?>',
+          '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
+    for i, u in enumerate(urls):
+        sm.append('<url><loc>%s</loc><priority>%s</priority></url>'
+                  % (u, '1.0' if i == 0 else '0.7'))
+    sm.append('</urlset>')
+    io.open(os.path.join(ROOT, 'sitemap.xml'), 'w', encoding='utf-8').write('\n'.join(sm))
+
+    print('страниц собрано: %d' % len(written))
+    print('в sitemap URL:   %d' % len(urls))
+    return written
+
+
+if __name__ == '__main__':
+    build()
