@@ -444,6 +444,27 @@ body.critical .lamp{
   .grp > .st{color:#666}
 }
 
+/* Частые коды - тихий указатель вглубь справочника. Он стоит после
+   ответа, чтобы не спорить с формой за внимание. */
+.common{max-width:800px;margin:0 auto;padding:8px clamp(18px,5vw,28px) 0}
+.common h2{
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--ink-3);font-weight:600;margin:0 0 12px;
+}
+.common ul{
+  list-style:none;margin:0;padding:0;
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:7px;
+}
+.common a{
+  display:block;text-decoration:none;color:var(--ink-2);font-size:13.5px;
+  border:1px solid var(--line-2);border-radius:9px;padding:8px 11px;
+  transition:color .18s ease,border-color .18s ease;
+}
+.common a:hover{color:var(--ink);border-color:rgba(111,227,211,.4)}
+.common a:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
+.common a .mono{color:var(--signal);font-size:12.5px;margin-right:7px}
+@media print{ .common{display:none} }
+
 .foot{
   max-width:660px;margin:0 auto;padding:26px clamp(18px,5vw,28px) 70px;
   font-size:13px;color:var(--ink-3);line-height:1.6;
@@ -539,6 +560,32 @@ body.critical .lamp{
   </div>
 </div>
 
+<!-- Частые коды. Главная не ссылалась ни на одну из страниц справочника,
+     и они оставались сиротами: попасть на них можно было только из
+     sitemap. Здесь и человеку короткий путь к типичной поломке, и
+     роботу дорога вглубь сайта. -->
+<nav class="common">
+  <h2 data-i18n="commonTitle">Частые коды неисправностей</h2>
+  <ul>
+    <li><a href="kody/spn-100.html"><span class="mono">SPN 100</span> Давление масла</a></li>
+    <li><a href="kody/spn-110.html"><span class="mono">SPN 110</span> Температура ОЖ</a></li>
+    <li><a href="kody/spn-111.html"><span class="mono">SPN 111</span> Уровень ОЖ</a></li>
+    <li><a href="kody/spn-94.html"><span class="mono">SPN 94</span> Давление топлива</a></li>
+    <li><a href="kody/spn-97.html"><span class="mono">SPN 97</span> Вода в топливе</a></li>
+    <li><a href="kody/spn-102.html"><span class="mono">SPN 102</span> Давление наддува</a></li>
+    <li><a href="kody/spn-105.html"><span class="mono">SPN 105</span> Температура впуска</a></li>
+    <li><a href="kody/spn-157.html"><span class="mono">SPN 157</span> Давление в рампе</a></li>
+    <li><a href="kody/spn-168.html"><span class="mono">SPN 168</span> Напряжение АКБ</a></li>
+    <li><a href="kody/spn-190.html"><span class="mono">SPN 190</span> Обороты двигателя</a></li>
+    <li><a href="kody/spn-1761.html"><span class="mono">SPN 1761</span> Уровень AdBlue</a></li>
+    <li><a href="kody/spn-3251.html"><span class="mono">SPN 3251</span> Сажевый фильтр</a></li>
+    <li><a href="kody/spn-3226.html"><span class="mono">SPN 3226</span> NOx после SCR</a></li>
+    <li><a href="kody/spn-1569.html"><span class="mono">SPN 1569</span> Ограничение момента</a></li>
+    <li><a href="kody/spn-639.html"><span class="mono">SPN 639</span> CAN-шина</a></li>
+    <li><a href="kody/spn-1110.html"><span class="mono">SPN 1110</span> Остановка по защите</a></li>
+  </ul>
+</nav>
+
 <p class="foot" data-i18n="footText">Справочник показывает, что означает код, а не ставит диагноз — решение всегда за человеком с оборудованием. Вопросы — <a href="mailto:alexdiag116@gmail.com" style="color:inherit">alexdiag116@gmail.com</a>.</p>
 
 <script>
@@ -594,6 +641,7 @@ body.critical .lamp{
       unknownSpnNote: 'Этого SPN нет в справочнике — скорее всего, код фирменный. Попробуйте выбрать марку выше.',
       loadError: 'Справочник не загрузился — проверьте, что рядом со страницей лежит папка <b>32-sait-assets</b>.',
       sourceLabel: 'источник: {src}', fmiNonstandard: 'FMI {fmi} (нестандартное значение)',
+      commonTitle: 'Частые коды неисправностей',
       casCount: 'кодов в разборе: {n}',
       casRoot: 'вероятная первопричина',
       casCons: 'следствия — отдельно не чинятся',
@@ -654,6 +702,7 @@ body.critical .lamp{
       unknownSpnNote: 'This SPN isn’t in the database — likely a manufacturer-specific code. Try selecting a make above.',
       loadError: 'The database failed to load — make sure the <b>32-sait-assets</b> folder is next to this page.',
       sourceLabel: 'source: {src}', fmiNonstandard: 'FMI {fmi} (non-standard value)',
+      commonTitle: 'Common fault codes',
       casCount: 'codes analysed: {n}',
       casRoot: 'likely root cause',
       casCons: 'knock-on codes — not fixed separately',
@@ -714,6 +763,7 @@ body.critical .lamp{
       unknownSpnNote: 'Dieser SPN ist nicht in der Datenbank — vermutlich ein herstellerspezifischer Code. Wählen Sie oben eine Marke.',
       loadError: 'Die Datenbank konnte nicht geladen werden — prüfen Sie, ob der Ordner <b>32-sait-assets</b> neben dieser Seite liegt.',
       sourceLabel: 'Quelle: {src}', fmiNonstandard: 'FMI {fmi} (nicht standardisierter Wert)',
+      commonTitle: 'Häufige Fehlercodes',
       casCount: 'Codes im Befund: {n}',
       casRoot: 'wahrscheinliche Ursache',
       casCons: 'Folgefehler — nicht einzeln reparieren',
@@ -774,6 +824,7 @@ body.critical .lamp{
       unknownSpnNote: 'Ce SPN n’est pas dans la base — probablement un code propre au constructeur. Essayez de choisir une marque ci-dessus.',
       loadError: 'La base n’a pas pu être chargée — vérifiez que le dossier <b>32-sait-assets</b> se trouve à côté de cette page.',
       sourceLabel: 'source : {src}', fmiNonstandard: 'FMI {fmi} (valeur non standard)',
+      commonTitle: 'Codes défaut fréquents',
       casCount: 'codes analysés : {n}',
       casRoot: 'cause probable',
       casCons: 'conséquences — ne se réparent pas séparément',
@@ -834,6 +885,7 @@ body.critical .lamp{
       unknownSpnNote: 'Este SPN no está en la base de datos — probablemente un código específico del fabricante. Prueba a elegir una marca arriba.',
       loadError: 'No se pudo cargar la base de datos — comprueba que la carpeta <b>32-sait-assets</b> esté junto a esta página.',
       sourceLabel: 'fuente: {src}', fmiNonstandard: 'FMI {fmi} (valor no estándar)',
+      commonTitle: 'Códigos de avería frecuentes',
       casCount: 'códigos analizados: {n}',
       casRoot: 'causa probable',
       casCons: 'consecuencias — no se reparan por separado',
@@ -894,6 +946,7 @@ body.critical .lamp{
       unknownSpnNote: 'Este SPN não está no banco de dados — provavelmente um código específico do fabricante. Tente selecionar uma marca acima.',
       loadError: 'Não foi possível carregar o banco de dados — verifique se a pasta <b>32-sait-assets</b> está junto a esta página.',
       sourceLabel: 'fonte: {src}', fmiNonstandard: 'FMI {fmi} (valor não padrão)',
+      commonTitle: 'Códigos de falha frequentes',
       casCount: 'códigos analisados: {n}',
       casRoot: 'causa provável',
       casCons: 'consequências — não se reparam separadamente',
@@ -954,6 +1007,7 @@ body.critical .lamp{
       unknownSpnNote: 'Tego SPN nie ma w bazie — prawdopodobnie kod producenta. Spróbuj wybrać markę powyżej.',
       loadError: 'Baza się nie wczytała — sprawdź, czy folder <b>32-sait-assets</b> jest obok tej strony.',
       sourceLabel: 'źródło: {src}', fmiNonstandard: 'FMI {fmi} (wartość niestandardowa)',
+      commonTitle: 'Częste kody usterek',
       casCount: 'przeanalizowanych kodów: {n}',
       casRoot: 'prawdopodobna przyczyna',
       casCons: 'skutki — nie naprawia się ich osobno',
@@ -1014,6 +1068,7 @@ body.critical .lamp{
       unknownSpnNote: 'Bu SPN veritabanında yok — muhtemelen üreticiye özel bir kod. Yukarıdan bir marka seçmeyi deneyin.',
       loadError: 'Veritabanı yüklenemedi — <b>32-sait-assets</b> klasörünün bu sayfanın yanında olduğundan emin olun.',
       sourceLabel: 'kaynak: {src}', fmiNonstandard: 'FMI {fmi} (standart olmayan değer)',
+      commonTitle: 'Sık görülen arıza kodları',
       casCount: 'incelenen kod: {n}',
       casRoot: 'olası kök neden',
       casCons: 'sonuç kodları — ayrı ayrı onarılmaz',
@@ -1074,6 +1129,7 @@ body.critical .lamp{
       unknownSpnNote: 'यह SPN डेटाबेस में नहीं है — संभवतः यह निर्माता-विशिष्ट कोड है। ऊपर ब्रांड चुनकर देखें।',
       loadError: 'डेटाबेस लोड नहीं हो पाया — जांचें कि <b>32-sait-assets</b> फ़ोल्डर इस पेज के पास मौजूद है।',
       sourceLabel: 'स्रोत: {src}', fmiNonstandard: 'FMI {fmi} (गैर-मानक मान)',
+      commonTitle: 'आम फॉल्ट कोड',
       casCount: 'जांचे गए कोड: {n}',
       casRoot: 'संभावित मूल कारण',
       casCons: 'परिणामी कोड — अलग से ठीक नहीं होते',
