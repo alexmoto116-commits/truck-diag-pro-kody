@@ -464,8 +464,9 @@ body.critical .lamp{
 .common{max-width:800px;margin:0 auto;padding:8px clamp(18px,5vw,28px) 0}
 .common h2{
   font-family:var(--mono);font-size:10.5px;letter-spacing:.15em;text-transform:uppercase;
-  color:var(--ink-3);font-weight:600;margin:0 0 12px;
+  color:var(--ink-3);font-weight:600;margin:26px 0 12px;
 }
+.common h2:first-child{margin-top:0}
 .common ul{
   list-style:none;margin:0;padding:0;
   display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:7px;
@@ -478,20 +479,22 @@ body.critical .lamp{
 }
 .common a:hover{color:var(--ink);border-color:rgba(111,227,211,.4)}
 .common a:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
-.common a .mono{color:var(--signal);font-size:12.5px;margin-right:7px}
-.common h2 + ul{margin-bottom:22px}
-/* Ситуации и марки - без номеров, поэтому плитки уже и текут строкой. */
-.lines{
+/* Номер кода не должен переноситься: «SPN» и цифры - одно целое. */
+.common a .mono{color:var(--signal);font-size:12.5px;margin-right:7px;white-space:nowrap}
+/* Ситуации и марки - без номеров, названия короткие, поэтому не сетка,
+   а строка: иначе «ЯМЗ» растягивается на пол-экрана. Селектор с .common,
+   иначе сетка выше перебьёт его по специфичности. */
+.common .lines{
   list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:7px;
 }
-.lines a{
+.common .lines a{
   display:flex;align-items:center;min-height:44px;
   text-decoration:none;color:var(--ink-2);font-size:13.5px;
   border:1px solid var(--line-2);border-radius:9px;padding:8px 13px;
   transition:color .18s ease,border-color .18s ease;
 }
-.lines a:hover{color:var(--ink);border-color:rgba(111,227,211,.4)}
-.lines a:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
+.common .lines a:hover{color:var(--ink);border-color:rgba(111,227,211,.4)}
+.common .lines a:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
 @media print{ .common{display:none} }
 
 .foot{
@@ -598,20 +601,13 @@ body.critical .lamp{
   <ul>
     <li><a href="kody/spn-100.html"><span class="mono">SPN 100</span> Давление масла</a></li>
     <li><a href="kody/spn-110.html"><span class="mono">SPN 110</span> Температура ОЖ</a></li>
-    <li><a href="kody/spn-111.html"><span class="mono">SPN 111</span> Уровень ОЖ</a></li>
-    <li><a href="kody/spn-94.html"><span class="mono">SPN 94</span> Давление топлива</a></li>
     <li><a href="kody/spn-97.html"><span class="mono">SPN 97</span> Вода в топливе</a></li>
     <li><a href="kody/spn-102.html"><span class="mono">SPN 102</span> Давление наддува</a></li>
-    <li><a href="kody/spn-105.html"><span class="mono">SPN 105</span> Температура впуска</a></li>
-    <li><a href="kody/spn-157.html"><span class="mono">SPN 157</span> Давление в рампе</a></li>
     <li><a href="kody/spn-168.html"><span class="mono">SPN 168</span> Напряжение АКБ</a></li>
-    <li><a href="kody/spn-190.html"><span class="mono">SPN 190</span> Обороты двигателя</a></li>
     <li><a href="kody/spn-1761.html"><span class="mono">SPN 1761</span> Уровень AdBlue</a></li>
     <li><a href="kody/spn-3251.html"><span class="mono">SPN 3251</span> Сажевый фильтр</a></li>
-    <li><a href="kody/spn-3226.html"><span class="mono">SPN 3226</span> NOx после SCR</a></li>
     <li><a href="kody/spn-1569.html"><span class="mono">SPN 1569</span> Ограничение момента</a></li>
     <li><a href="kody/spn-639.html"><span class="mono">SPN 639</span> CAN-шина</a></li>
-    <li><a href="kody/spn-1110.html"><span class="mono">SPN 1110</span> Остановка по защите</a></li>
   </ul>
 
   <h2 data-i18n="bySituation">Если номера кода нет</h2>
