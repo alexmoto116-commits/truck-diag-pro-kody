@@ -672,6 +672,7 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
     <option value="pl">PL</option>
     <option value="tr">TR</option>
     <option value="hi">HI</option>
+    <option value="zh">中文</option>
   </select>
   <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -1507,6 +1508,86 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
       symAllCodes: "पूरे ट्रक में खराबियां",
       brandKamazLbl: "KAMAZ",
       brandYamzLbl: "YaMZ"
+    },
+    zh: {
+      pageTitle: '卡车故障代码查询 — SPN/FMI 与经销商代码解析',
+      metaDescription: '免费卡车故障代码查询：J1939 标准（SPN/FMI）及12个品牌的原厂代码表。输入诊断仪或仪表盘显示的代码即可查询。',
+      h1: '<em>Check&nbsp;Engine</em>（发动机故障）灯亮了 — 代码是什么意思？',
+      purposeDo: '输入一个代码 — 或者按原样输入整个故障列表：用逗号、空格或换行分隔。一个故障通常会带出五六个代码 — 我们会指出哪个是根本原因，哪些只是随之而来的，并告诉你是否可以继续行驶。',
+      goBtn: '解析',
+      brandDefault: '— 任意品牌 —',
+      standardAuto: '自动识别',
+      standardSpnFmi: 'J1939 — SPN / FMI',
+      standardPcode: '经销商 / OBD 代码',
+      dataLangNote: '故障名称以英文显示。',
+      printLabel: '打印',
+      themeDay: '日间模式',
+      themeNight: '夜间模式',
+      footText: '本查询工具用于解释代码含义，并不能诊断车辆故障。最终判断应由持有专业设备的技师做出。有问题请联系 — <a href="mailto:alexdiag116@gmail.com" style="color:inherit">alexdiag116@gmail.com</a>。',
+      langAria: '页面语言',
+      emptyPrompt: '请输入代码 — 例如 <b>SPN 100 FMI 1</b> 或直接输入 <b>100/1</b>。',
+      badCode: '无法按所选标准解析该代码。请尝试“自动识别”，或使用 <b>SPN 100 FMI 1</b> / <b>100/1</b> / <b>P2BA7</b> 格式。',
+      pcodeNotFound: '数据库中未找到经销商代码 <b>{code}</b>。不同品牌的代码不同 — 请检查输入是否正确。',
+      stepCode: '代码', stepDecoding: '含义',
+      factorySource: '原厂代码表 — {brand}', standardSource: 'J1939 标准',
+      spnNotFound: '数据库中未找到 <b>SPN {spn}</b> — 可能是厂商专有代码。请在上方选择品牌，或补充 FMI，例如 <b>{spn}/1</b>。',
+      stepParam: '参数', knownFailures: '已知故障 — {brand}',
+      stepNeedFmi: '需要 FMI',
+      needFmiText: 'FMI 是代码的后半部分 — 它准确说明了该参数<b>具体</b>出了什么问题。请与编号一起输入，例如 <span class="mono">{spn}/1</span>。',
+      stepUrgency: '紧急程度',
+      urgentText: '<span class="crit">紧急</span> — 请在安全的情况下尽快停车，不要继续行驶。',
+      notUrgentText: '<span class="warn">可以继续行驶</span> — 但请在下次保养时检查该代码。',
+      unknownSpnNote: '数据库中没有该 SPN — 可能是厂商专有代码。请在上方选择品牌后重试。',
+      loadError: '数据库加载失败 — 请确认 <b>32-sait-assets</b> 文件夹与本页面位于同一目录下。',
+      sourceLabel: '来源：{src}', fmiNonstandard: 'FMI {fmi}（非标准值）',
+      commonTitle: '常见故障代码',
+      bySituation: '如果没有代码编号',
+      byBrand: '按品牌查找',
+      casCount: '已分析代码数：{n}',
+      casRoot: '可能的根本原因',
+      casCons: '连带产生的代码 — 无需单独处理',
+      casSolo: '与根本原因无关',
+      casTodo: '现在该怎么做',
+      casWhyChain: '列表中的其他代码通常是由此代码引发的 — 请先处理这一个。',
+      casWhySingle: '列表中的其余代码与该代码没有直接关联。',
+      vStop: '禁止行驶',
+      vStopSub: '请在安全的情况下尽快停车 — 不要继续行驶。',
+      vWarn: '可以继续行驶',
+      vWarnSub: '下方说明您还有多少时间，以及继续行驶会发生什么。',
+      shareLabel: '发送此报告',
+      shareDone: '链接已复制',
+      sysScr: 'AdBlue / 排气', sysOil: '润滑系统', sysCool: '冷却系统',
+      sysFuel: '燃油系统', sysAir: '进气 / 增压', sysPower: '电源系统',
+      sysCan: 'CAN 总线', sysBrake: '制动系统', sysTrans: '变速箱',
+      sysProt: '发动机保护', sysOther: '其他',
+      actScr: '请加注 AdBlue（尿素）。如果已加满，问题可能出在喷射系统或尿素质量上 — 需要使用诊断仪检查。',
+      actOil: '请立即熄火。用机油尺检查油位，并查看车底是否有渗漏。压力恢复正常前不要重新启动发动机。',
+      actCool: '让发动机冷却 — 切勿在高温时打开膨胀水箱盖。冷却后检查冷却液液位和管路。',
+      actFuel: '检查燃油滤清器和油水分离器，排出积水。寒冷天气下应考虑柴油结蜡的可能性。',
+      actAir: '检查空气滤清器和增压管路：泄漏和裂纹正是导致此类代码的常见原因。',
+      actPower: '检查蓄电池接线柱和搭铁线 — 腐蚀或接线松动会在全车范围内引发虚假故障代码。发动机运转时电压应为 27–29 V。',
+      actCan: '检查接插件和线束：CAN 双绞线断路会导致全部电控单元同时失去通讯。',
+      actBrake: '让气路系统建立到工作气压，并检查是否有漏气声。切勿在制动系统故障的情况下行驶。',
+      actDefault: '请记录下所有代码并交给维修厂处理 — 这类故障需要诊断仪和现场检查。',
+      freqOil: "机油压力",
+      freqCool: "冷却液温度",
+      freqWater: "燃油中含水",
+      freqBoost: "增压压力",
+      freqVolt: "蓄电池电压",
+      freqAdblue: "AdBlue 液位",
+      freqDpf: "颗粒捕集器（DPF）",
+      freqTorque: "扭矩限制",
+      freqCan: "CAN 总线",
+      symCheck: "Check Engine（发动机故障灯）亮起",
+      symAdblue: "AdBlue 故障",
+      symPower: "动力下降",
+      symLowOil: "机油压力过低",
+      symOverheat: "发动机过热",
+      symDpfClog: "颗粒捕集器堵塞",
+      symWater: "燃油中含水",
+      symAllCodes: "全车范围故障",
+      brandKamazLbl: "KAMAZ",
+      brandYamzLbl: "YaMZ"
     }
   };
 
@@ -1593,7 +1674,17 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
       14:'üreticiye özel talimat',15:'normalin üzerinde — düşük önem',
       16:'normalin üzerinde — orta önem',17:'normalin altında — düşük önem',
       18:'normalin altında — orta önem',19:'alınan ağ verisinde hata',
-      20:'veri yukarı kaydı',21:'veri aşağı kaydı',31:'durum mevcut (üretici açıklamasına bakın)'}
+      20:'veri yukarı kaydı',21:'veri aşağı kaydı',31:'durum mevcut (üretici açıklamasına bakın)'},
+    zh: {0:'数据高于正常范围（最严重级别）',1:'数据低于正常范围（最严重级别）',
+      2:'数据异常跳动或时断时续',3:'电压高于正常值或对正极短路',
+      4:'电压低于正常值或对地短路',5:'电流低于正常值或电路断路',
+      6:'电流高于正常值或电路对地短路',7:'机械系统无响应',
+      8:'频率或脉冲宽度异常',9:'更新频率异常',10:'变化速率异常',
+      11:'根本原因未知',12:'设备或部件损坏',13:'标定超出范围',
+      14:'厂商专用说明',15:'高于正常值 — 轻微',
+      16:'高于正常值 — 中等',17:'低于正常值 — 轻微',
+      18:'低于正常值 — 中等',19:'接收到的网络数据错误',
+      20:'数据向上漂移',21:'数据向下漂移',31:'故障条件存在（参见厂商说明）'}
   };
 
   /* КамАЗ и ЯМЗ в базе записаны кириллицей - для остальных языков
@@ -1602,12 +1693,20 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
   var BRAND_OVERRIDE = {kamaz:'KAMAZ', yamz:'YAMZ'};
 
   var LANG_KEY = 'pf-lang';
+  function detectBrowserLang(){
+    var langs = (navigator.languages && navigator.languages.length) ? navigator.languages : [navigator.language || navigator.userLanguage || ''];
+    for(var i = 0; i < langs.length; i++){
+      var code = String(langs[i] || '').toLowerCase().split('-')[0];
+      if(I18N[code]) return code;
+    }
+    return null;
+  }
   function getStoredLang(){
     try{
       var v = localStorage.getItem(LANG_KEY);
       if(v && I18N[v]) return v;
     }catch(e){}
-    return 'ru';
+    return detectBrowserLang() || 'ru';
   }
   var currentLang = getStoredLang();
 
