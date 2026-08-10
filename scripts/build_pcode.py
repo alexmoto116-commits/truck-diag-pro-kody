@@ -39,7 +39,7 @@ RU_PATH = os.path.join(ROOT, 'assets', 'dtc.enc.js')
 EN_PATH = os.path.join(ROOT, 'assets', 'dtc.en.js')
 
 # Держать в согласии со списком KNOWN_PCODE_BRANDS в worker/pcode-api.js.
-KNOWN_PCODE_BRANDS = ['volvo', 'mercedes', 'scania', 'shacman']
+KNOWN_PCODE_BRANDS = ['volvo', 'mercedes', 'scania', 'shacman', 'tata']
 
 TEMPLATE = u"""(function(){{
   var b64='{b64}';
