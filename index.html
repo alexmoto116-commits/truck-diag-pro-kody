@@ -783,6 +783,11 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
 
   var DB = null, loading = null;
 
+  /* Дилерские таблицы (pcode) больше не публикуются целиком в
+     assets/dtc.enc.js / dtc.en.js - см. worker/pcode-api.js и
+     scripts/build_pcode.py. Один код ищем по сети, а не в памяти. */
+  var PCODE_API = 'https://codetruck-pcode-api.alexdiag116.workers.dev';
+
   /* ---------- перевод интерфейса ----------
      База (названия SPN, заводские таблицы) остаётся русской - там
      тысячи строк, перевести их некому и незачем. А вот стандартные
@@ -808,6 +813,8 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
       emptyPrompt: 'Введите код — например <b>SPN 100 FMI 1</b> или просто <b>100/1</b>.',
       badCode: 'Не удалось разобрать этот код в выбранном стандарте. Попробуйте «Определить автоматически» или формат <b>SPN 100 FMI 1</b> / <b>100/1</b> / <b>P2BA7</b>.',
       pcodeNotFound: 'Дилерский код <b>{code}</b> в справочнике не найден. Такие коды у каждой марки свои — проверьте написание.',
+      pcodeSearching: 'Ищем код…',
+      pcodeApiError: 'Не удалось получить дилерский код — проверьте связь и попробуйте ещё раз.',
       stepCode: 'код', stepDecoding: 'расшифровка',
       factorySource: 'фирменная таблица {brand}', standardSource: 'стандарт J1939',
       spnNotFound: '<b>SPN {spn}</b> в справочнике не найден — скорее всего, код фирменный. Попробуйте выбрать марку выше или добавьте FMI: например <b>{spn}/1</b>.',
@@ -888,6 +895,8 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
       emptyPrompt: 'Enter a code — for example <b>SPN 100 FMI 1</b> or just <b>100/1</b>.',
       badCode: 'Couldn’t parse this code in the selected standard. Try “Detect automatically” or the format <b>SPN 100 FMI 1</b> / <b>100/1</b> / <b>P2BA7</b>.',
       pcodeNotFound: 'Dealer code <b>{code}</b> not found in the database. These codes differ by make — double-check the spelling.',
+      pcodeSearching: 'Searching…',
+      pcodeApiError: 'Couldn’t reach the dealer-code lookup — check your connection and try again.',
       stepCode: 'code', stepDecoding: 'meaning',
       factorySource: 'factory table — {brand}', standardSource: 'J1939 standard',
       spnNotFound: '<b>SPN {spn}</b> not found in the database — likely a manufacturer-specific code. Try selecting a make above, or add the FMI: e.g. <b>{spn}/1</b>.',
@@ -968,6 +977,8 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
       emptyPrompt: 'Code eingeben — zum Beispiel <b>SPN 100 FMI 1</b> oder einfach <b>100/1</b>.',
       badCode: 'Dieser Code konnte im gewählten Standard nicht erkannt werden. Versuchen Sie „Automatisch erkennen“ oder das Format <b>SPN 100 FMI 1</b> / <b>100/1</b> / <b>P2BA7</b>.',
       pcodeNotFound: 'Händlercode <b>{code}</b> nicht in der Datenbank gefunden. Diese Codes sind je Marke unterschiedlich — Schreibweise prüfen.',
+      pcodeSearching: 'Suche läuft…',
+      pcodeApiError: 'Händlercode konnte nicht abgerufen werden — Verbindung prüfen und erneut versuchen.',
       stepCode: 'Code', stepDecoding: 'Bedeutung',
       factorySource: 'Werkstabelle — {brand}', standardSource: 'J1939-Standard',
       spnNotFound: '<b>SPN {spn}</b> nicht in der Datenbank gefunden — vermutlich ein herstellerspezifischer Code. Wählen Sie oben eine Marke, oder ergänzen Sie den FMI: z. B. <b>{spn}/1</b>.',
@@ -1048,6 +1059,8 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
       emptyPrompt: 'Entrez un code — par exemple <b>SPN 100 FMI 1</b> ou simplement <b>100/1</b>.',
       badCode: 'Impossible d’analyser ce code dans la norme sélectionnée. Essayez « Détecter automatiquement » ou le format <b>SPN 100 FMI 1</b> / <b>100/1</b> / <b>P2BA7</b>.',
       pcodeNotFound: 'Code constructeur <b>{code}</b> introuvable dans la base. Ces codes diffèrent selon la marque — vérifiez l’orthographe.',
+      pcodeSearching: 'Recherche en cours…',
+      pcodeApiError: 'Impossible de récupérer le code constructeur — vérifiez votre connexion et réessayez.',
       stepCode: 'code', stepDecoding: 'signification',
       factorySource: 'table constructeur — {brand}', standardSource: 'norme J1939',
       spnNotFound: '<b>SPN {spn}</b> introuvable dans la base — probablement un code propre au constructeur. Essayez de choisir une marque ci-dessus, ou ajoutez le FMI : par ex. <b>{spn}/1</b>.',
@@ -1128,6 +1141,8 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
       emptyPrompt: 'Introduce un código — por ejemplo <b>SPN 100 FMI 1</b> o simplemente <b>100/1</b>.',
       badCode: 'No se pudo interpretar este código en la norma seleccionada. Prueba "Detectar automáticamente" o el formato <b>SPN 100 FMI 1</b> / <b>100/1</b> / <b>P2BA7</b>.',
       pcodeNotFound: 'Código de concesionario <b>{code}</b> no encontrado en la base de datos. Estos códigos varían según la marca — revisa la escritura.',
+      pcodeSearching: 'Buscando…',
+      pcodeApiError: 'No se pudo obtener el código de concesionario — comprueba tu conexión e inténtalo de nuevo.',
       stepCode: 'código', stepDecoding: 'significado',
       factorySource: 'tabla de fábrica — {brand}', standardSource: 'norma J1939',
       spnNotFound: '<b>SPN {spn}</b> no encontrado en la base de datos — probablemente un código específico del fabricante. Prueba a elegir una marca arriba, o añade el FMI: p. ej. <b>{spn}/1</b>.',
@@ -1208,6 +1223,8 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
       emptyPrompt: 'Digite um código — por exemplo <b>SPN 100 FMI 1</b> ou apenas <b>100/1</b>.',
       badCode: 'Não foi possível interpretar este código na norma selecionada. Tente "Detectar automaticamente" ou o formato <b>SPN 100 FMI 1</b> / <b>100/1</b> / <b>P2BA7</b>.',
       pcodeNotFound: 'Código de concessionária <b>{code}</b> não encontrado no banco de dados. Esses códigos variam por marca — verifique a grafia.',
+      pcodeSearching: 'Buscando…',
+      pcodeApiError: 'Não foi possível obter o código de concessionária — verifique sua conexão e tente novamente.',
       stepCode: 'código', stepDecoding: 'significado',
       factorySource: 'tabela de fábrica — {brand}', standardSource: 'norma J1939',
       spnNotFound: '<b>SPN {spn}</b> não encontrado no banco de dados — provavelmente um código específico do fabricante. Tente selecionar uma marca acima, ou adicione o FMI: ex. <b>{spn}/1</b>.',
@@ -1288,6 +1305,8 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
       emptyPrompt: 'Wpisz kod — na przykład <b>SPN 100 FMI 1</b> albo po prostu <b>100/1</b>.',
       badCode: 'Nie udało się rozpoznać tego kodu w wybranym standardzie. Spróbuj „Wykryj automatycznie” lub formatu <b>SPN 100 FMI 1</b> / <b>100/1</b> / <b>P2BA7</b>.',
       pcodeNotFound: 'Kod dealerski <b>{code}</b> nie znaleziony w bazie. Takie kody różnią się między markami — sprawdź zapis.',
+      pcodeSearching: 'Szukam…',
+      pcodeApiError: 'Nie udało się pobrać kodu dealerskiego — sprawdź połączenie i spróbuj ponownie.',
       stepCode: 'kod', stepDecoding: 'znaczenie',
       factorySource: 'tabela fabryczna — {brand}', standardSource: 'norma J1939',
       spnNotFound: '<b>SPN {spn}</b> nie znaleziony w bazie — prawdopodobnie kod producenta. Spróbuj wybrać markę powyżej albo dodaj FMI: np. <b>{spn}/1</b>.',
@@ -1368,6 +1387,8 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
       emptyPrompt: 'Bir kod girin — örneğin <b>SPN 100 FMI 1</b> veya sadece <b>100/1</b>.',
       badCode: 'Bu kod seçilen standartta çözümlenemedi. "Otomatik algıla" seçeneğini veya <b>SPN 100 FMI 1</b> / <b>100/1</b> / <b>P2BA7</b> biçimini deneyin.',
       pcodeNotFound: 'Bayi kodu <b>{code}</b> veritabanında bulunamadı. Bu kodlar markaya göre farklıdır — yazımı kontrol edin.',
+      pcodeSearching: 'Aranıyor…',
+      pcodeApiError: 'Bayi kodu alınamadı — bağlantınızı kontrol edip tekrar deneyin.',
       stepCode: 'kod', stepDecoding: 'anlam',
       factorySource: 'fabrika tablosu — {brand}', standardSource: 'J1939 standardı',
       spnNotFound: '<b>SPN {spn}</b> veritabanında bulunamadı — muhtemelen üreticiye özel bir kod. Yukarıdan bir marka seçin veya FMI ekleyin: örn. <b>{spn}/1</b>.',
@@ -1448,6 +1469,8 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
       emptyPrompt: 'एक कोड डालें — उदाहरण के लिए <b>SPN 100 FMI 1</b> या सिर्फ <b>100/1</b>.',
       badCode: 'चुने गए मानक में यह कोड समझ नहीं आया। "स्वतः पहचानें" आज़माएं या <b>SPN 100 FMI 1</b> / <b>100/1</b> / <b>P2BA7</b> प्रारूप का उपयोग करें।',
       pcodeNotFound: 'डीलर कोड <b>{code}</b> डेटाबेस में नहीं मिला। ये कोड हर ब्रांड में अलग होते हैं — वर्तनी जांचें।',
+      pcodeSearching: 'खोजा जा रहा है…',
+      pcodeApiError: 'डीलर कोड नहीं मिल सका — अपना कनेक्शन जांचें और फिर से कोशिश करें।',
       stepCode: 'कोड', stepDecoding: 'अर्थ',
       factorySource: 'फैक्ट्री तालिका — {brand}', standardSource: 'J1939 मानक',
       spnNotFound: '<b>SPN {spn}</b> डेटाबेस में नहीं मिला — संभवतः यह निर्माता-विशिष्ट कोड है। ऊपर ब्रांड चुनें, या FMI जोड़ें: जैसे <b>{spn}/1</b>.',
@@ -1528,6 +1551,8 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
       emptyPrompt: '请输入代码 — 例如 <b>SPN 100 FMI 1</b> 或直接输入 <b>100/1</b>。',
       badCode: '无法按所选标准解析该代码。请尝试“自动识别”，或使用 <b>SPN 100 FMI 1</b> / <b>100/1</b> / <b>P2BA7</b> 格式。',
       pcodeNotFound: '数据库中未找到经销商代码 <b>{code}</b>。不同品牌的代码不同 — 请检查输入是否正确。',
+      pcodeSearching: '正在查询…',
+      pcodeApiError: '无法获取经销商代码 — 请检查网络连接后重试。',
       stepCode: '代码', stepDecoding: '含义',
       factorySource: '原厂代码表 — {brand}', standardSource: 'J1939 标准',
       spnNotFound: '数据库中未找到 <b>SPN {spn}</b> — 可能是厂商专有代码。请在上方选择品牌，或补充 FMI，例如 <b>{spn}/1</b>。',
@@ -1893,40 +1918,19 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
     return {text:name + ' — ' + f, src:known ? t('standardSource') : null, unknown:!known};
   }
 
-  /* Ключи дилерских таблиц встречаются и с пробелом ("AA 9999"), и без
-     него, поэтому сверяем оба написания. Индекс без пробелов строим
-     один раз на таблицу и прячем от Object.keys. */
-  function lookupPcode(brand, code){
-    var E = en();
-    return (E && E.pcode && pcodeIn(E.pcode[brand], code)) || pcodeIn(DB.pcode[brand], code);
-  }
-  function pcodeIn(tbl, code){
-    if(!tbl) return null;
-    if(tbl[code]) return tbl[code];
-    var bare = code.replace(/\s+/g, '');
-    if(tbl[bare]) return tbl[bare];
-    if(!tbl.__bare){
-      var idx = {};
-      Object.keys(tbl).forEach(function(k){ idx[k.replace(/\s+/g,'')] = tbl[k]; });
-      try{ Object.defineProperty(tbl, '__bare', {value:idx, enumerable:false}); }
-      catch(e){ tbl.__bare = idx; }
-    }
-    return tbl.__bare[bare] || null;
-  }
-
-  /* Марку выбирать необязательно: если не выбрана - ищем код во всех
-     дилерских таблицах и сами говорим, чья это марка. */
-  function findPcode(brand, code){
-    if(brand){
-      var one = lookupPcode(brand, code);
-      return one ? [{brand:brand, text:one}] : [];
-    }
-    var hits = [];
-    Object.keys(DB.pcode).forEach(function(b){
-      var v = lookupPcode(b, code);
-      if(v) hits.push({brand:b, text:v});
-    });
-    return hits;
+  /* Дилерский код ищем через API (worker/pcode-api.js), а не в памяти -
+     таблицы Volvo/Mercedes/Scania больше не публикуются на сайте целиком.
+     Марку выбирать по-прежнему необязательно: без неё бэкенд сам
+     проверяет все дилерские таблицы и говорит, чья это марка. Пробелы
+     в написании кода ("AA 9999" / "AA9999") нормализует бэкенд. */
+  function fetchPcode(brand, code, lang){
+    var url = PCODE_API + '/pcode?code=' + encodeURIComponent(code) +
+              '&lang=' + encodeURIComponent(lang) +
+              (brand ? '&brand=' + encodeURIComponent(brand) : '');
+    return fetch(url).then(function(r){
+      if(!r.ok) throw new Error('pcode api ' + r.status);
+      return r.json();
+    }).then(function(data){ return data.hits || []; });
   }
 
   function urgent(spn, fmi, brand){
@@ -2442,13 +2446,16 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
       render(note(t('emptyPrompt')));
       return;
     }
-    ready().then(function(){
-      if(p.bad){
-        render(note(t('badCode')));
-        return;
-      }
-      if(p.pcode){
-        var hits = findPcode(brand, p.pcode);
+
+    /* Дилерский код обрабатываем отдельно от ready(): ему не нужен
+       loadEn() (язык бэкенд резолвит сам), только DB.brandNames для
+       подписи марки. p.pcode и p.bad взаимоисключающи, так что
+       выносить эту ветку перед ready() безопасно. */
+    if(p.pcode){
+      render(note(t('pcodeSearching')));
+      load().then(function(){
+        return fetchPcode(brand, p.pcode, currentLang);
+      }).then(function(hits){
         if(!hits.length){
           render(note(t('pcodeNotFound', {code: esc(p.pcode)})));
           return;
@@ -2461,6 +2468,15 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
           });
         });
         render(chain(pSteps), true);
+      }).catch(function(){
+        render(note(t('pcodeApiError')));
+      });
+      return;
+    }
+
+    ready().then(function(){
+      if(p.bad){
+        render(note(t('badCode')));
         return;
       }
       /* SPN без FMI - тоже полноценный ответ: показываем, что это за

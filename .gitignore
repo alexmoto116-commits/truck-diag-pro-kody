@@ -1,3 +1,9 @@
 # рабочие файлы, которые не должны уезжать на сайт
 ИДЕИ.txt
 _*.html
+
+# приватные исходники дилерских кодов (Volvo/Mercedes/Scania) — не для паблика
+pcode-source/
+
+# локальный кэш wrangler (Cloudflare Worker deploy tooling)
+worker/.wrangler/
