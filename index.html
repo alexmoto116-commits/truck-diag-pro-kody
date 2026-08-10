@@ -172,6 +172,7 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
 }
 .filters select:hover{color:var(--ink)}
 .filters select:focus{outline:none;border-color:rgba(111,227,211,.5);color:var(--ink)}
+.filters select option{background:#0E1620;color:#EEF3F9}
 
 /* ---------- результат ----------
    Ответ ложится прямо на кадр с тягачом, поэтому карточка почти
@@ -300,6 +301,7 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
 }
 .lang-switch select:hover{color:#fff}
 .lang-switch select:focus-visible{outline:2px solid var(--lamp);outline-offset:3px}
+.lang-switch select option{background:#0E1620;color:#EEF3F9}
 /* Мобильный уход из фикса стоит здесь, а не в общем медиазапросе
    выше: тот идёт до этого блока, специфичность одинаковая, и
    position:fixed отсюда его переигрывал - плашка «RU» продолжала
@@ -519,6 +521,7 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
 }
 [data-theme="light"] .lang-switch:hover{border-color:rgba(11,122,106,.65);background:#fff}
 [data-theme="light"] .lang-switch select:hover{color:#000}
+[data-theme="light"] .lang-switch select option{background:#fff;color:#0F1720}
 [data-theme="light"] .verdict .vsub{color:#33424F}
 [data-theme="light"] .verdict.stop{background:#FDECEA;border-color:rgba(193,39,26,.45)}
 [data-theme="light"] .verdict.warn{background:#FDF1E3;border-color:rgba(169,73,10,.42)}
@@ -726,33 +729,33 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
 <nav class="common">
   <h2 data-i18n="commonTitle">Частые коды неисправностей</h2>
   <ul>
-    <li><a href="kody/spn-100.html"><span class="mono">SPN 100</span> Давление масла</a></li>
-    <li><a href="kody/spn-110.html"><span class="mono">SPN 110</span> Температура ОЖ</a></li>
-    <li><a href="kody/spn-97.html"><span class="mono">SPN 97</span> Вода в топливе</a></li>
-    <li><a href="kody/spn-102.html"><span class="mono">SPN 102</span> Давление наддува</a></li>
-    <li><a href="kody/spn-168.html"><span class="mono">SPN 168</span> Напряжение АКБ</a></li>
-    <li><a href="kody/spn-1761.html"><span class="mono">SPN 1761</span> Уровень AdBlue</a></li>
-    <li><a href="kody/spn-3251.html"><span class="mono">SPN 3251</span> Сажевый фильтр</a></li>
-    <li><a href="kody/spn-1569.html"><span class="mono">SPN 1569</span> Ограничение момента</a></li>
-    <li><a href="kody/spn-639.html"><span class="mono">SPN 639</span> CAN-шина</a></li>
+    <li><a href="kody/spn-100.html"><span class="mono">SPN 100</span> <span data-i18n="freqOil">Давление масла</span></a></li>
+    <li><a href="kody/spn-110.html"><span class="mono">SPN 110</span> <span data-i18n="freqCool">Температура ОЖ</span></a></li>
+    <li><a href="kody/spn-97.html"><span class="mono">SPN 97</span> <span data-i18n="freqWater">Вода в топливе</span></a></li>
+    <li><a href="kody/spn-102.html"><span class="mono">SPN 102</span> <span data-i18n="freqBoost">Давление наддува</span></a></li>
+    <li><a href="kody/spn-168.html"><span class="mono">SPN 168</span> <span data-i18n="freqVolt">Напряжение АКБ</span></a></li>
+    <li><a href="kody/spn-1761.html"><span class="mono">SPN 1761</span> <span data-i18n="freqAdblue">Уровень AdBlue</span></a></li>
+    <li><a href="kody/spn-3251.html"><span class="mono">SPN 3251</span> <span data-i18n="freqDpf">Сажевый фильтр</span></a></li>
+    <li><a href="kody/spn-1569.html"><span class="mono">SPN 1569</span> <span data-i18n="freqTorque">Ограничение момента</span></a></li>
+    <li><a href="kody/spn-639.html"><span class="mono">SPN 639</span> <span data-i18n="freqCan">CAN-шина</span></a></li>
   </ul>
 
   <h2 data-i18n="bySituation">Если номера кода нет</h2>
   <ul class="lines">
-    <li><a href="problemy/gorit-check-engine.html">Загорелся Check Engine</a></li>
-    <li><a href="problemy/oshibka-adblue.html">Ошибка AdBlue</a></li>
-    <li><a href="problemy/upala-moshchnost.html">Упала мощность</a></li>
-    <li><a href="problemy/nizkoe-davlenie-masla.html">Низкое давление масла</a></li>
-    <li><a href="problemy/peregrev-dvigatelya.html">Перегрев двигателя</a></li>
-    <li><a href="problemy/zabit-sazhevyy-filtr.html">Забит сажевый фильтр</a></li>
-    <li><a href="problemy/problemy-s-toplivom.html">Вода в топливе</a></li>
-    <li><a href="problemy/propalo-pitanie.html">Ошибки по всей машине</a></li>
+    <li><a href="problemy/gorit-check-engine.html" data-i18n="symCheck">Загорелся Check Engine</a></li>
+    <li><a href="problemy/oshibka-adblue.html" data-i18n="symAdblue">Ошибка AdBlue</a></li>
+    <li><a href="problemy/upala-moshchnost.html" data-i18n="symPower">Упала мощность</a></li>
+    <li><a href="problemy/nizkoe-davlenie-masla.html" data-i18n="symLowOil">Низкое давление масла</a></li>
+    <li><a href="problemy/peregrev-dvigatelya.html" data-i18n="symOverheat">Перегрев двигателя</a></li>
+    <li><a href="problemy/zabit-sazhevyy-filtr.html" data-i18n="symDpfClog">Забит сажевый фильтр</a></li>
+    <li><a href="problemy/problemy-s-toplivom.html" data-i18n="symWater">Вода в топливе</a></li>
+    <li><a href="problemy/propalo-pitanie.html" data-i18n="symAllCodes">Ошибки по всей машине</a></li>
   </ul>
 
   <h2 data-i18n="byBrand">По маркам</h2>
   <ul class="lines">
-    <li><a href="marki/kamaz.html">КамАЗ</a></li>
-    <li><a href="marki/yamz.html">ЯМЗ</a></li>
+    <li><a href="marki/kamaz.html" data-i18n="brandKamazLbl">КамАЗ</a></li>
+    <li><a href="marki/yamz.html" data-i18n="brandYamzLbl">ЯМЗ</a></li>
     <li><a href="marki/man.html">MAN</a></li>
     <li><a href="marki/daf.html">DAF</a></li>
     <li><a href="marki/iveco.html">Iveco</a></li>
@@ -844,7 +847,26 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
       actPower: 'Проверь клеммы АКБ и массу — окисление и слабая затяжка сыплют ложные коды по всей машине. На заведённом норма 27–29 В.',
       actCan: 'Смотри разъёмы и жгут: обрыв витой пары CAN валит связь у всех блоков разом.',
       actBrake: 'Дай накачать пневмосистему до рабочего давления, послушай утечки. С неисправными тормозами не едешь.',
-      actDefault: 'Запиши коды и покажи их на сервисе — по этому набору нужен сканер и осмотр на месте.'
+      actDefault: 'Запиши коды и покажи их на сервисе — по этому набору нужен сканер и осмотр на месте.',
+      freqOil: "Давление масла",
+      freqCool: "Температура ОЖ",
+      freqWater: "Вода в топливе",
+      freqBoost: "Давление наддува",
+      freqVolt: "Напряжение АКБ",
+      freqAdblue: "Уровень AdBlue",
+      freqDpf: "Сажевый фильтр",
+      freqTorque: "Ограничение момента",
+      freqCan: "CAN-шина",
+      symCheck: "Загорелся Check Engine",
+      symAdblue: "Ошибка AdBlue",
+      symPower: "Упала мощность",
+      symLowOil: "Низкое давление масла",
+      symOverheat: "Перегрев двигателя",
+      symDpfClog: "Забит сажевый фильтр",
+      symWater: "Вода в топливе",
+      symAllCodes: "Ошибки по всей машине",
+      brandKamazLbl: "КамАЗ",
+      brandYamzLbl: "ЯМЗ"
     },
     en: {
       pageTitle: 'Truck fault code — SPN/FMI and dealer code lookup',
@@ -905,7 +927,26 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
       actPower: 'Check the battery terminals and earth strap — corrosion and loose clamps throw false codes all over the truck. Running voltage should be 27–29 V.',
       actCan: 'Check connectors and the harness: a broken CAN twisted pair takes out communication for every ECU at once.',
       actBrake: 'Let the air system build to working pressure and listen for leaks. Don’t drive with faulty brakes.',
-      actDefault: 'Write the codes down and show them at a workshop — this set needs a scanner and an on-site inspection.'
+      actDefault: 'Write the codes down and show them at a workshop — this set needs a scanner and an on-site inspection.',
+      freqOil: "Oil pressure",
+      freqCool: "Coolant temperature",
+      freqWater: "Water in fuel",
+      freqBoost: "Boost pressure",
+      freqVolt: "Battery voltage",
+      freqAdblue: "AdBlue level",
+      freqDpf: "Soot filter",
+      freqTorque: "Torque limit",
+      freqCan: "CAN bus",
+      symCheck: "Check Engine light is on",
+      symAdblue: "AdBlue error",
+      symPower: "Power loss",
+      symLowOil: "Low oil pressure",
+      symOverheat: "Engine overheating",
+      symDpfClog: "Clogged soot filter",
+      symWater: "Water in fuel",
+      symAllCodes: "Faults all over the truck",
+      brandKamazLbl: "KAMAZ",
+      brandYamzLbl: "YaMZ"
     },
     de: {
       pageTitle: 'LKW-Fehlercode — SPN/FMI und Händlercode entschlüsseln',
@@ -966,7 +1007,26 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
       actPower: 'Batteriepole und Masseband prüfen — Korrosion und lose Klemmen erzeugen Fehlercodes im ganzen Fahrzeug. Im Betrieb sind 27–29 V normal.',
       actCan: 'Stecker und Kabelbaum prüfen: eine unterbrochene CAN-Zweidrahtleitung legt die Kommunikation aller Steuergeräte gleichzeitig lahm.',
       actBrake: 'Druckluftanlage auf Betriebsdruck aufbauen lassen und auf Undichtigkeiten hören. Mit defekten Bremsen wird nicht gefahren.',
-      actDefault: 'Codes notieren und in der Werkstatt zeigen — dieser Satz erfordert ein Diagnosegerät und eine Sichtprüfung vor Ort.'
+      actDefault: 'Codes notieren und in der Werkstatt zeigen — dieser Satz erfordert ein Diagnosegerät und eine Sichtprüfung vor Ort.',
+      freqOil: "Öldruck",
+      freqCool: "Kühlmitteltemperatur",
+      freqWater: "Wasser im Kraftstoff",
+      freqBoost: "Ladedruck",
+      freqVolt: "Batteriespannung",
+      freqAdblue: "AdBlue-Füllstand",
+      freqDpf: "Partikelfilter",
+      freqTorque: "Drehmomentbegrenzung",
+      freqCan: "CAN-Bus",
+      symCheck: "Check-Engine-Leuchte an",
+      symAdblue: "AdBlue-Fehler",
+      symPower: "Leistungsverlust",
+      symLowOil: "Niedriger Öldruck",
+      symOverheat: "Motorüberhitzung",
+      symDpfClog: "Verstopfter Partikelfilter",
+      symWater: "Wasser im Kraftstoff",
+      symAllCodes: "Fehler im ganzen Fahrzeug",
+      brandKamazLbl: "KAMAZ",
+      brandYamzLbl: "YaMZ"
     },
     fr: {
       pageTitle: 'Code défaut camion — décodage SPN/FMI et codes constructeur',
@@ -1027,7 +1087,26 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
       actPower: 'Vérifiez les cosses de batterie et la tresse de masse — la corrosion et un serrage faible génèrent de faux codes dans tout le camion. Moteur tournant, 27–29 V est la norme.',
       actCan: 'Inspectez les connecteurs et le faisceau : une paire torsadée CAN coupée met hors service la communication de tous les calculateurs à la fois.',
       actBrake: 'Laissez le circuit d’air monter à la pression de service et écoutez les fuites. On ne roule pas avec des freins défectueux.',
-      actDefault: 'Notez les codes et montrez-les à un atelier — cet ensemble demande une valise et une inspection sur place.'
+      actDefault: 'Notez les codes et montrez-les à un atelier — cet ensemble demande une valise et une inspection sur place.',
+      freqOil: "Pression d'huile",
+      freqCool: "Température du liquide de refroidissement",
+      freqWater: "Eau dans le carburant",
+      freqBoost: "Pression de suralimentation",
+      freqVolt: "Tension de batterie",
+      freqAdblue: "Niveau d'AdBlue",
+      freqDpf: "Filtre à particules",
+      freqTorque: "Limitation de couple",
+      freqCan: "Bus CAN",
+      symCheck: "Voyant Check Engine allumé",
+      symAdblue: "Erreur AdBlue",
+      symPower: "Perte de puissance",
+      symLowOil: "Pression d'huile basse",
+      symOverheat: "Surchauffe moteur",
+      symDpfClog: "Filtre à particules colmaté",
+      symWater: "Eau dans le carburant",
+      symAllCodes: "Défauts sur tout le camion",
+      brandKamazLbl: "KAMAZ",
+      brandYamzLbl: "YaMZ"
     },
     es: {
       pageTitle: 'Código de avería de camión — decodificación SPN/FMI y códigos de concesionario',
@@ -1088,7 +1167,26 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
       actPower: 'Revise los bornes de la batería y la masa — la corrosión y el apriete flojo generan códigos falsos por todo el camión. Con el motor en marcha, 27–29 V es lo normal.',
       actCan: 'Revise conectores y mazo: un par trenzado CAN cortado deja sin comunicación a todas las centralitas a la vez.',
       actBrake: 'Deje que el circuito neumático alcance la presión de trabajo y escuche si hay fugas. Con los frenos averiados no se circula.',
-      actDefault: 'Anote los códigos y muéstrelos en un taller — este conjunto requiere escáner e inspección presencial.'
+      actDefault: 'Anote los códigos y muéstrelos en un taller — este conjunto requiere escáner e inspección presencial.',
+      freqOil: "Presión de aceite",
+      freqCool: "Temperatura del refrigerante",
+      freqWater: "Agua en el combustible",
+      freqBoost: "Presión de sobrealimentación",
+      freqVolt: "Tensión de batería",
+      freqAdblue: "Nivel de AdBlue",
+      freqDpf: "Filtro de partículas",
+      freqTorque: "Limitación de par",
+      freqCan: "Bus CAN",
+      symCheck: "Testigo Check Engine encendido",
+      symAdblue: "Error de AdBlue",
+      symPower: "Pérdida de potencia",
+      symLowOil: "Presión de aceite baja",
+      symOverheat: "Sobrecalentamiento del motor",
+      symDpfClog: "Filtro de partículas obstruido",
+      symWater: "Agua en el combustible",
+      symAllCodes: "Averías en todo el camión",
+      brandKamazLbl: "KAMAZ",
+      brandYamzLbl: "YaMZ"
     },
     pt: {
       pageTitle: 'Código de falha de caminhão — decodificação SPN/FMI e códigos de concessionária',
@@ -1149,7 +1247,26 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
       actPower: 'Verifique os bornes da bateria e a massa — corrosão e aperto fraco geram códigos falsos por todo o camião. Com o motor a trabalhar, 27–29 V é o normal.',
       actCan: 'Verifique conectores e cablagem: um par entrançado CAN partido deixa todas as centralinas sem comunicação ao mesmo tempo.',
       actBrake: 'Deixe o circuito pneumático atingir a pressão de trabalho e ouça se há fugas. Com travões avariados não se circula.',
-      actDefault: 'Anote os códigos e mostre-os numa oficina — este conjunto exige scanner e inspeção no local.'
+      actDefault: 'Anote os códigos e mostre-os numa oficina — este conjunto exige scanner e inspeção no local.',
+      freqOil: "Pressão do óleo",
+      freqCool: "Temperatura do líquido de arrefecimento",
+      freqWater: "Água no combustível",
+      freqBoost: "Pressão de sobrealimentação",
+      freqVolt: "Tensão da bateria",
+      freqAdblue: "Nível de AdBlue",
+      freqDpf: "Filtro de partículas",
+      freqTorque: "Limitação de binário",
+      freqCan: "Barramento CAN",
+      symCheck: "Luz Check Engine acesa",
+      symAdblue: "Erro de AdBlue",
+      symPower: "Perda de potência",
+      symLowOil: "Pressão de óleo baixa",
+      symOverheat: "Sobreaquecimento do motor",
+      symDpfClog: "Filtro de partículas entupido",
+      symWater: "Água no combustível",
+      symAllCodes: "Avarias em toda a viatura",
+      brandKamazLbl: "KAMAZ",
+      brandYamzLbl: "YaMZ"
     },
     pl: {
       pageTitle: 'Kod usterki ciężarówki — rozszyfrowanie SPN/FMI i kodów dealerskich',
@@ -1210,7 +1327,26 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
       actPower: 'Sprawdź klemy akumulatora i masę — korozja i luźne zaciski sypią fałszywymi kodami po całym pojeździe. Na pracującym silniku norma to 27–29 V.',
       actCan: 'Sprawdź złącza i wiązkę: przerwana skrętka CAN pozbawia łączności wszystkie sterowniki naraz.',
       actBrake: 'Pozwól układowi pneumatycznemu nabić ciśnienie robocze i posłuchaj, czy nie ma nieszczelności. Z niesprawnymi hamulcami się nie jedzie.',
-      actDefault: 'Zapisz kody i pokaż je w warsztacie — ten zestaw wymaga skanera i oględzin na miejscu.'
+      actDefault: 'Zapisz kody i pokaż je w warsztacie — ten zestaw wymaga skanera i oględzin na miejscu.',
+      freqOil: "Ciśnienie oleju",
+      freqCool: "Temperatura płynu chłodzącego",
+      freqWater: "Woda w paliwie",
+      freqBoost: "Ciśnienie doładowania",
+      freqVolt: "Napięcie akumulatora",
+      freqAdblue: "Poziom AdBlue",
+      freqDpf: "Filtr cząstek stałych",
+      freqTorque: "Ograniczenie momentu",
+      freqCan: "Magistrala CAN",
+      symCheck: "Zapaliła się kontrolka Check Engine",
+      symAdblue: "Błąd AdBlue",
+      symPower: "Spadek mocy",
+      symLowOil: "Niskie ciśnienie oleju",
+      symOverheat: "Przegrzanie silnika",
+      symDpfClog: "Zapchany filtr cząstek stałych",
+      symWater: "Woda w paliwie",
+      symAllCodes: "Usterki w całej ciężarówce",
+      brandKamazLbl: "KAMAZ",
+      brandYamzLbl: "YaMZ"
     },
     tr: {
       pageTitle: 'Kamyon arıza kodu — SPN/FMI ve bayi kodu çözümleme',
@@ -1271,7 +1407,26 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
       actPower: 'Akü kutup başlarını ve şasi bağlantısını kontrol edin — oksitlenme ve gevşek sıkma tüm araçta sahte kod üretir. Motor çalışırken 27–29 V normaldir.',
       actCan: 'Soketleri ve tesisatı kontrol edin: kopmuş bir CAN burgulu çifti tüm beyinlerin haberleşmesini aynı anda keser.',
       actBrake: 'Hava sisteminin çalışma basıncına ulaşmasını bekleyin ve kaçak sesi dinleyin. Arızalı frenle yola çıkılmaz.',
-      actDefault: 'Kodları not edin ve serviste gösterin — bu grup için cihaz ve yerinde inceleme gerekir.'
+      actDefault: 'Kodları not edin ve serviste gösterin — bu grup için cihaz ve yerinde inceleme gerekir.',
+      freqOil: "Yağ basıncı",
+      freqCool: "Soğutma suyu sıcaklığı",
+      freqWater: "Yakıtta su",
+      freqBoost: "Turbo basıncı",
+      freqVolt: "Akü voltajı",
+      freqAdblue: "AdBlue seviyesi",
+      freqDpf: "Partikül filtresi",
+      freqTorque: "Tork sınırlama",
+      freqCan: "CAN hattı",
+      symCheck: "Check Engine lambası yandı",
+      symAdblue: "AdBlue hatası",
+      symPower: "Güç kaybı",
+      symLowOil: "Düşük yağ basıncı",
+      symOverheat: "Motor aşırı ısınması",
+      symDpfClog: "Tıkalı partikül filtresi",
+      symWater: "Yakıtta su",
+      symAllCodes: "Kamyonun her yerinde arıza",
+      brandKamazLbl: "KAMAZ",
+      brandYamzLbl: "YaMZ"
     },
     hi: {
       pageTitle: 'ट्रक फॉल्ट कोड — SPN/FMI और डीलर कोड डिकोडिंग',
@@ -1332,7 +1487,26 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
       actPower: 'बैटरी टर्मिनल और अर्थ जांचें — जंग और ढीली कसावट पूरी गाड़ी में झूठे कोड पैदा करती है। इंजन चालू पर 27–29 V सामान्य है।',
       actCan: 'कनेक्टर और वायरिंग जांचें: टूटी CAN जोड़ी सभी ECU का संपर्क एक साथ खत्म कर देती है।',
       actBrake: 'न्यूमैटिक सिस्टम को काम करने के दबाव तक भरने दें और रिसाव सुनें। खराब ब्रेक के साथ गाड़ी नहीं चलाते।',
-      actDefault: 'कोड लिख लें और वर्कशॉप में दिखाएं — इस सेट के लिए स्कैनर और मौके पर जांच चाहिए।'
+      actDefault: 'कोड लिख लें और वर्कशॉप में दिखाएं — इस सेट के लिए स्कैनर और मौके पर जांच चाहिए।',
+      freqOil: "तेल का दबाव",
+      freqCool: "कूलेंट तापमान",
+      freqWater: "ईंधन में पानी",
+      freqBoost: "बूस्ट प्रेशर",
+      freqVolt: "बैटरी वोल्टेज",
+      freqAdblue: "AdBlue स्तर",
+      freqDpf: "सूट फ़िल्टर",
+      freqTorque: "टॉर्क सीमा",
+      freqCan: "CAN बस",
+      symCheck: "Check Engine लाइट जली",
+      symAdblue: "AdBlue त्रुटि",
+      symPower: "पावर लॉस",
+      symLowOil: "कम तेल दबाव",
+      symOverheat: "इंजन ओवरहीटिंग",
+      symDpfClog: "बंद सूट फ़िल्टर",
+      symWater: "ईंधन में पानी",
+      symAllCodes: "पूरे ट्रक में खराबियां",
+      brandKamazLbl: "KAMAZ",
+      brandYamzLbl: "YaMZ"
     }
   };
 
