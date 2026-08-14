@@ -709,6 +709,7 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
 
     <div class="filters">
       <select id="pf-brand" aria-label="Марка машины"><option value="" data-i18n="brandDefault">— любая марка —</option></select>
+      <select id="pf-mid" aria-label="Модуль (MID)" style="display:none"><option value="" data-i18n="midDefault">— выберите модуль —</option></select>
       <select id="pf-standard" aria-label="Стандарт кода">
         <option value="auto" data-i18n="standardAuto">Определить автоматически</option>
         <option value="spnfmi" data-i18n="standardSpnFmi">J1939 — SPN / FMI</option>
@@ -774,6 +775,7 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
   'use strict';
 
   var sel   = document.getElementById('pf-brand');
+  var midSel = document.getElementById('pf-mid');
   var std   = document.getElementById('pf-standard');
   var input = document.getElementById('pf-code');
   var go    = document.getElementById('pf-go');
@@ -782,6 +784,115 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
   var dataNote   = document.getElementById('pf-datanote');
 
   var DB = null, loading = null;
+
+  /* Freightliner/Mack/Detroit Diesel не влезают в двухчастный SPN.FMI:
+     их код - тройка MID (модуль) + PID/SID (параметр) + FMI. Вместо
+     переделки describe()/analyze() под трёхчастный ключ кодируем MID
+     и параметр одной строкой "M<mid>-<P|S><num>" и кладём её на место
+     spn - вся остальная логика (describe, Гирлянда, build_pages.py)
+     работает со строкой как есть, потому что нигде не предполагает,
+     что spn обязательно число. build_pages.py уже отбрасывает нечисловые
+     первые части ключа, так что SEO-страницы под эти марки просто не
+     генерятся - осознанный пробел, не баг.
+
+     У Detroit Diesel MID из источника фактически один и тот же (128,
+     блок двигателя DDEC), поэтому для него выбор модуля не показываем -
+     он зашивается в код напрямую. */
+  var MID_BRANDS = {freightliner:1, mack:1, detroitdiesel:1};
+  var MID_FIXED  = {detroitdiesel:'128'};
+  var MID_LIST = {
+    freightliner: [
+      {v:'128', ru:'128 — Двигатель',                 en:'128 — Engine'},
+      {v:'130', ru:'130 — Автоматическая трансмиссия', en:'130 — Automatic transmission'},
+      {v:'136', ru:'136 — Тормоза (ABS)',              en:'136 — Brakes (ABS)'},
+      {v:'140', ru:'140 — Панель, левая',              en:'140 — Panel, left'},
+      {v:'142', ru:'142 — Панель, правая №1',          en:'142 — Panel, right #1'},
+      {v:'172', ru:'172 — Диагностическая система',    en:'172 — Diagnostic system'},
+      {v:'179', ru:'179 — Чёрный ящик',                en:'179 — Black box'},
+      {v:'181', ru:'181 — Спутниковая система',        en:'181 — Satellite system'},
+      {v:'190', ru:'190 — Кондиционер',                en:'190 — Air conditioner'},
+      {v:'219', ru:'219 — Радар',                      en:'219 — Radar'},
+      {v:'231', ru:'231 — Сотовая связь',              en:'231 — Cellular'},
+      {v:'234', ru:'234 — Панель, правая №2',          en:'234 — Panel, right #2'}
+    ],
+    mack: [
+      {v:'128', ru:'128 — Двигатель (EECU)',        en:'128 — Engine (EECU)'},
+      {v:'142', ru:'142 — Приборка/шасси (VECU)',   en:'142 — Dash/chassis (VECU)'},
+      {v:'143', ru:'143 — Двигатель, доп. блок',    en:'143 — Engine, secondary'}
+    ]
+  };
+
+  /* Freightliner не имеет готовых построчных описаний кодов - только
+     справочные таблицы имён компонентов (см. Америка-DTC/01-Freightliner.md).
+     Вместо тысяч вручную набитых строк describe() собирает текст на лету:
+     имя MID + имя PID/SID + текст FMI. Покрыты MID128 (двигатель) и
+     MID136 (ABS) целиком, плюс общий диапазон SID 151-254, который
+     встречается на многих модулях. Остальные MID (130/140/172/179/181/
+     190/219/231/234) пока без своих SID-таблиц - для них выдаётся
+     "модуль + FMI" без имени параметра, это лучше, чем ничего, и
+     легко дополнить при необходимости. */
+  var FL_PID = {"51":["Положение педали газа","Throttle pedal position"],"52":["Температура интеркулера","Intercooler temperature"],"53":["Синхронизатор сцепления","Clutch synchronizer"],"54":["Синхронизатор тормоза","Brake synchronizer"],"55":["Положение вилки переключения передач","Shift fork position"],"56":["Статус диапазона","Range status"],"57":["Статус активатора №2 (трансмиссия)","Actuator #2 status (transmission)"],"58":["Статус контроллера вилки переключения","Shift fork controller status"],"59":["Статус мотора переключения передач","Shift motor status"],"60":["Положение рейки переключения передач","Shift rail position"],"61":["Статус активатора стояночного тормоза","Parking brake actuator status"],"62":["Статус моторного тормоза (Retarder Inhibit)","Retarder inhibit status"],"63":["Статус активатора №1 (трансмиссия)","Actuator #1 status (transmission)"],"64":["Статус переключателя направления","Direction switch status"],"65":["Статус переключателя рабочего тормоза","Service brake switch status"],"66":["Статус компонента разрешения движения","Vehicle enabling component status"],"67":["Статус переключателя запроса переключения","Shift request switch status"],"68":["Коэффициент ограничения крутящего момента","Torque limiting factor"],"69":["Статус переключателя двухскоростного моста","Two-speed axle switch status"],"70":["Переключатель стояночного тормоза","Parking brake switch"],"71":["Таймер отключения на холостом ходу","Idle shutdown timer"],"72":["Положение байпасного клапана кондиционера","A/C bypass valve position"],"73":["Давление вспомогательного насоса","Auxiliary pump pressure"],"74":["Максимальная скорость движения","Max road speed"],"75":["Температура масла переднего моста","Front axle oil temperature"],"76":["Давление подъёма/опускания моста","Axle lift air pressure"],"77":["Температура масла среднего моста","Forward drive axle oil temperature"],"78":["Температура масла заднего моста","Rear drive axle oil temperature"],"79":["Температура дорожного покрытия","Road surface temperature"],"80":["Уровень жидкости омывателя","Washer fluid level"],"81":["Давление в сажевом фильтре","Particulate trap inlet pressure"],"82":["Давление пневмостартера","Air starter pressure"],"83":["Статус ограничения скорости движения","Road speed limit status"],"84":["Скорость движения","Road speed"],"85":["Переключатель круиз-контроля","Cruise control switch"],"86":["Круиз Set Speed","Cruise set speed"],"87":["Круиз High-Set","Cruise high-set"],"88":["Круиз Low-Set","Cruise low-set"],"89":["Статус коробки отбора мощности (PTO)","PTO status"],"90":["Температура масла PTO","PTO oil temperature"],"91":["Положение педали газа (% полного хода)","Accelerator pedal position (%)"],"92":["Процент нагрузки двигателя","Engine load %"],"93":["Выходной крутящий момент","Output torque"],"94":["Давление топлива впрыска","Fuel delivery pressure"],"95":["Перепад давления на топливном фильтре","Fuel filter differential pressure"],"96":["Уровень топлива","Fuel level"],"97":["Индикатор воды в топливе","Water in fuel indicator"],"98":["Уровень масла в двигателе","Engine oil level"],"99":["Перепад давления масляного фильтра","Oil filter differential pressure"],"100":["Давление масла","Oil pressure"],"101":["Давление газов в картере","Crankcase pressure"],"102":["Давление наддува турбокомпрессора","Boost pressure"],"103":["Обороты турбокомпрессора","Turbo speed"],"104":["Давление масла в турбокомпрессоре","Turbo oil pressure"],"105":["Температура во впускном коллекторе","Intake manifold temperature"],"106":["Давление воздуха на входе воздушного фильтра","Air inlet pressure"],"107":["Перепад давления на воздушном фильтре","Air filter differential pressure"],"108":["Барометрическое давление","Barometric pressure"],"109":["Давление охлаждающей жидкости","Coolant pressure"],"110":["Температура охлаждающей жидкости","Coolant temperature"],"111":["Уровень охлаждающей жидкости","Coolant level"],"112":["Перепад давления на фильтре антифриза","Coolant filter differential pressure"],"113":["Диапазон регулятора компрессора","Governor droop"],"114":["Ток аккумуляторной батареи","Net battery current"],"115":["Ток генератора","Alternator current"],"116":["Рабочее давление тормозов","Brake application pressure"],"117":["Давление в 1-м ресивере","Primary reservoir pressure"],"118":["Давление во 2-м ресивере","Secondary reservoir pressure"],"119":["Давление гидравлического ретардера","Hydraulic retarder pressure"],"120":["Температура масла гидравлического ретардера","Hydraulic retarder oil temperature"],"121":["Статус моторного тормоза","Engine retarder status"],"122":["Процент моторного тормоза","Engine retarder %"],"123":["Давление сцепления","Clutch pressure"],"124":["Уровень масла в коробке передач","Transmission oil level"],"125":["Индикатор уровня масла в трансмиссии","Transmission oil level indicator (Hi/Lo)"],"126":["Перепад давления масляного фильтра трансмиссии","Transmission oil filter differential pressure"],"127":["Давление масла (трансмиссия)","Transmission oil pressure"],"154":["Статус доп. вход/выход №2","Auxiliary input/output #2 status"],"155":["Статус доп. вход/выход №1","Auxiliary input/output #1 status"],"156":["Общее давление системы форсунок (время впрыска)","Injector metering rail pressure (timing)"],"157":["Общее давление системы подачи форсунок","Injector metering rail pressure"],"158":["Коммутируемое напряжение батарей","Switched battery voltage"],"159":["Давление подачи газа (не дизель)","Gas supply pressure (non-diesel)"],"160":["Обороты вторичного вала","Mainshaft speed"],"161":["Обороты входного вала","Input shaft speed"],"162":["Переключатель Range коробки передач (выбрано)","Transmission range selected"],"163":["Range достигнут","Range attained"],"164":["Давление управления впрыском","Injection control pressure"],"165":["Компас","Compass bearing"],"166":["Номинальная мощность двигателя","Rated engine power"],"167":["Напряжение генератора","Alternator voltage"],"168":["Напряжение аккумуляторов","Battery voltage"],"169":["Температура внутри кузова","Cargo ambient temperature"],"170":["Температура в кабине","Cab interior temperature"],"171":["Температура наружного воздуха","Ambient air temperature"],"172":["Температура воздуха на впуске","Air inlet temperature"],"173":["Температура выхлопных газов","Exhaust gas temperature"],"174":["Температура топлива","Fuel temperature"],"175":["Температура масла в двигателе","Engine oil temperature"],"176":["Температура масла в турбокомпрессоре","Turbo oil temperature"],"177":["Температура масла трансмиссии","Transmission oil temperature"],"178":["Нагрузка на передний мост","Front axle weight"],"179":["Нагрузка на задний мост","Rear axle weight"],"180":["Вес прицепа","Trailer weight"],"181":["Вес груза","Cargo weight"],"182":["Расход топлива за поездку","Trip fuel"],"183":["Расход топлива","Fuel rate"],"184":["Мгновенный расход топлива","Instant fuel economy"],"185":["Средний расход топлива","Average fuel economy"],"186":["Обороты PTO","PTO speed"],"187":["Ограниченные обороты PTO","PTO set speed"],"188":["Обороты холостого хода","Idle engine speed"],"189":["Номинальные обороты двигателя","Rated engine speed"],"190":["Обороты двигателя","Engine speed"],"191":["Выходная скорость трансмиссии","Transmission output speed"],"232":["Коррекция DGPS","DGPS correction"],"233":["Заводская настройка (Power Unit №)","Power unit number"],"235":["Общее время на холостом ходу","Total idle hours"],"236":["Общий расход топлива на холостом ходу","Total idle fuel"],"237":["VIN","VIN"],"238":["Направление вектора скорости движения","Velocity vector direction"],"239":["Положение машины (GPS)","Vehicle position (GPS)"],"240":["Заводской код настройки (Change Ref №)","Change reference number"],"241":["Давление в шинах","Tire pressure"],"242":["Температура колеса/шины","Tire temperature"],"243":["ID компонента","Component ID"],"244":["Пробег за поездку (TRIP)","Trip distance"],"245":["Общий пробег","Total vehicle distance"],"246":["Общее время работы машины","Total vehicle hours"],"247":["Общее время работы двигателя","Total engine hours"],"248":["Общее время работы PTO","Total PTO hours"],"249":["Общее число оборотов двигателя","Total engine revolutions"],"250":["Общий расход топлива","Total fuel used"],"251":["Часы (Clock)","Clock"],"252":["Дата","Date"],"253":["Общее время (Elapsed Time)","Elapsed time"]};
+  var FL_SID = {'128':{"1":["Форсунка цилиндра №1","Injector cylinder #1"],"2":["Форсунка цилиндра №2","Injector cylinder #2"],"3":["Форсунка цилиндра №3","Injector cylinder #3"],"4":["Форсунка цилиндра №4","Injector cylinder #4"],"5":["Форсунка цилиндра №5","Injector cylinder #5"],"6":["Форсунка цилиндра №6","Injector cylinder #6"],"7":["Форсунка цилиндра №7","Injector cylinder #7"],"8":["Форсунка цилиндра №8","Injector cylinder #8"],"9":["Форсунка цилиндра №9","Injector cylinder #9"],"10":["Форсунка цилиндра №10","Injector cylinder #10"],"11":["Форсунка цилиндра №11","Injector cylinder #11"],"12":["Форсунка цилиндра №12","Injector cylinder #12"],"13":["Форсунка цилиндра №13","Injector cylinder #13"],"14":["Форсунка цилиндра №14","Injector cylinder #14"],"15":["Форсунка цилиндра №15","Injector cylinder #15"],"16":["Форсунка цилиндра №16","Injector cylinder #16"],"17":["Главный запорный клапан подачи топлива","Fuel shutoff main valve"],"18":["Клапан управления подачей топлива","Fuel control valve"],"19":["Байпасный клапан дросселя","Throttle bypass valve"],"20":["Механизм управления распределением","Timing actuator"],"21":["Датчик положения коленвала","Crankshaft position sensor"],"22":["Датчик распределения","Timing sensor"],"23":["Механизм топливной рейки","Fuel rack actuator"],"24":["Датчик положения топливной рейки","Fuel rack position sensor"],"25":["Сигнал внешней защиты двигателя","External engine protect signal"],"26":["Вспомогательный драйвер №1","Auxiliary output driver #1"],"27":["Привод турбокомпрессора №1","Turbo actuator #1"],"28":["Привод турбокомпрессора №2","Turbo actuator #2"],"29":["Входной сигнал топливной системы","External fuel input signal"],"30":["Входной сигнал скорости","External speed input signal"],"31":["Сигнал тахометра","Tachometer signal"],"32":["Привод байпасного клапана турбины (wastegate)","Wastegate driver"],"33":["Пневмоуправление муфтой вентилятора","Fan clutch drive"],"34":["Датчик давления выхлопа","Exhaust pressure sensor"],"35":["Соленоид регулировки давления выхлопа","Exhaust pressure control solenoid"],"36":["Лампа свечей накаливания","Glow plug lamp"],"37":["Силовое реле","Power relay"],"38":["Реле системы свечей накаливания","Glow plug system relay"],"39":["Реле стартера","Starter relay"],"40":["Вспомогательный драйвер №2","Auxiliary output driver #2"],"41":["Питание ECM 8В","ECM 8-volt power supply"],"42":["Регулятор давления форсунок","Injector pressure regulator"],"43":["Управление высокой передачей автопереключения","Auto-shift high gear control"],"44":["Управление низкой передачей автопереключения","Auto-shift low gear control"],"45":["Управление нейтралью автопереключения","Auto-shift neutral control"],"46":["Общая цепь минус автопереключения","Auto-shift common ground circuit"],"47":["Форсунка цилиндра №17","Injector cylinder #17"],"48":["Форсунка цилиндра №18","Injector cylinder #18"],"49":["Форсунка цилиндра №19","Injector cylinder #19"],"50":["Форсунка цилиндра №20","Injector cylinder #20"],"51":["Дополнительный вход/драйвер №3","Auxiliary output driver #3"],"52":["Дополнительный вход/драйвер №4","Auxiliary output driver #4"],"53":["Вспомогательный драйвер №5","Auxiliary output driver #5"],"54":["Вспомогательный драйвер №6","Auxiliary output driver #6"],"55":["Вспомогательный драйвер №7","Auxiliary output driver #7"],"56":["Дополнительный вход/драйвер №8","Auxiliary output driver #8"],"57":["Дополнительный ШИМ-драйвер №1","Auxiliary PWM driver #1"],"58":["Дополнительный ШИМ-драйвер №2","Auxiliary PWM driver #2"],"59":["Дополнительный ШИМ-драйвер №3","Auxiliary PWM driver #3"],"60":["Дополнительный ШИМ-драйвер №4","Auxiliary PWM driver #4"],"61":["Клапан смесеобразования (Swirl Valve)","Variable swirl valve"],"62":["Датчик преднасоса","Prestroke sensor"],"63":["Привод преднасоса","Prestroke actuator"],"64":["Датчик оборотов двигателя №2","Engine speed sensor #2"],"65":["Датчик кислорода","Oxygen sensor"],"66":["Сигнал режима сгорания","Ignition mode signal"],"67":["Сигнал момента зажигания","Ignition timing signal"],"68":["Давление во впуске 2-го турбокомпрессора","Turbo #2 inlet pressure"],"69":["Температура интеркулера (ACOC)","Intercooler temperature (ACOC)"],"70":["Подогрев впускного воздуха №1","Intake air heater #1"],"71":["Подогрев впускного воздуха №2","Intake air heater #2"],"72":["Форсунка цилиндра №21","Injector cylinder #21"],"73":["Форсунка цилиндра №22","Injector cylinder #22"],"74":["Форсунка цилиндра №23","Injector cylinder #23"],"75":["Форсунка цилиндра №24","Injector cylinder #24"],"76":["Датчик детонации","Knock sensor"],"77":["Клапан подачи газа","Gas metering valve"],"78":["Контроллер топливного насоса","Fuel pump controller"]},'136':{"1":["Датчик ABS, ось 1, левый","ABS sensor, axle 1, left"],"2":["Датчик ABS, ось 1, правый","ABS sensor, axle 1, right"],"3":["Датчик ABS, ось 2, левый","ABS sensor, axle 2, left"],"4":["Датчик ABS, ось 2, правый","ABS sensor, axle 2, right"],"5":["Датчик ABS, ось 3, левый","ABS sensor, axle 3, left"],"6":["Датчик ABS, ось 3, правый","ABS sensor, axle 3, right"],"7":["Модулятор ABS, ось 1, левый","ABS modulator, axle 1, left"],"8":["Модулятор ABS, ось 1, правый","ABS modulator, axle 1, right"],"9":["Модулятор ABS, ось 2, левый","ABS modulator, axle 2, left"],"10":["Модулятор ABS, ось 2, правый","ABS modulator, axle 2, right"],"11":["Модулятор ABS, ось 3, левый","ABS modulator, axle 3, left"],"12":["Модулятор ABS, ось 3, правый","ABS modulator, axle 3, right"],"13":["Реле моторного тормоза","Retarder control relay"],"14":["Реле диагонали №1","Diagonal relay 1"],"15":["Реле диагонали №2","Diagonal relay 2"],"16":["Переключатель ABS","ABS mode switch"],"17":["Переключатель ASR","ASR mode switch"],"18":["Клапан DIF 1-ASR","ASR diff valve 1"],"19":["Клапан DIF 2-ASR","ASR diff valve 2"],"20":["Пневмоуправление двигателем","Pneumatic engine control"],"21":["Электроуправление двигателем","Electric engine control"],"22":["Датчик спидометра","Speedometer sensor signal input"],"23":["Лампа ABS","ABS warning lamp"],"24":["Лампа ASR","ASR warning lamp"],"25":["Средняя скорость датчиков ABS оси 1","Axle 1 ABS sensor average speed"],"26":["Средняя скорость датчиков ABS оси 2","Axle 2 ABS sensor average speed"],"27":["Средняя скорость датчиков ABS оси 3","Axle 3 ABS sensor average speed"],"28":["Модулятор клапана ABS для мостов трансмиссии","Drive axle ABS modulator valve"],"29":["Датчик давления клапана ABS для мостов трансмиссии","Drive axle ABS pressure transducer"],"30":["Главное реле","Master relay"],"31":["Тормоз передней тележки прицепа, левый — регулировка неверна","Front trailer bogie, left brake, adjustment wrong"],"32":["Тормоз передней тележки прицепа, правый — регулировка неверна","Front trailer bogie, right brake, adjustment wrong"],"33":["Тормоз задней тележки прицепа, левый — регулировка неверна","Rear trailer bogie, left brake, adjustment wrong"],"34":["Тормоз задней тележки прицепа, правый — регулировка неверна","Rear trailer bogie, right brake, adjustment wrong"],"35":["Тормоз переднего моста тягача, левый — регулировка неверна","Tractor front axle, left brake, adjustment wrong"],"36":["Тормоз переднего моста тягача, правый — регулировка неверна","Tractor front axle, right brake, adjustment wrong"],"37":["Тормоз переднего моста-редуктора тягача, левый — регулировка неверна","Tractor front drive axle, left brake, adjustment wrong"],"38":["Тормоз переднего моста-редуктора тягача, правый — регулировка неверна","Tractor front drive axle, right brake, adjustment wrong"],"39":["Тормоз заднего моста-редуктора тягача, левый — регулировка неверна","Tractor rear drive axle, left brake, adjustment wrong"],"40":["Тормоз заднего моста-редуктора тягача, правый — регулировка неверна","Tractor rear drive axle, right brake, adjustment wrong"],"41":["Реле пневмоподвески по высоте","Suspension height relay"],"42":["Соленоид удерживающего клапана, ось 1, левый","Holding valve solenoid, axle 1, left"],"43":["Соленоид удерживающего клапана, ось 1, правый","Holding valve solenoid, axle 1, right"],"44":["Соленоид удерживающего клапана, ось 2, левый","Holding valve solenoid, axle 2, left"],"45":["Соленоид удерживающего клапана, ось 2, правый","Holding valve solenoid, axle 2, right"],"46":["Соленоид удерживающего клапана, ось 3, левый","Holding valve solenoid, axle 3, left"],"47":["Соленоид удерживающего клапана, ось 3, правый","Holding valve solenoid, axle 3, right"],"48":["Соленоид сброса клапана, ось 1, левый","Release valve solenoid, axle 1, left"],"49":["Соленоид сброса клапана, ось 1, правый","Release valve solenoid, axle 1, right"],"50":["Соленоид сброса клапана, ось 2, левый","Release valve solenoid, axle 2, left"],"51":["Соленоид сброса клапана, ось 2, правый","Release valve solenoid, axle 2, right"],"52":["Соленоид сброса клапана, ось 3, левый","Release valve solenoid, axle 3, left"],"53":["Соленоид сброса клапана, ось 3, правый","Release valve solenoid, axle 3, right"],"54":["Мотор гидронасоса","Hydraulic pump motor"],"55":["Переключатель стоп-сигнала №1","Brake light switch 1"],"56":["Переключатель стоп-сигнала №2","Brake light switch 2"],"57":["Электроконтроль давления тормозов, ось 1","Electric pressure control, axle 1"],"58":["Контроль давления резервной системы, ось 1","Spare system pressure monitoring, axle 1"],"59":["Давление тормозов, ось 1","Brake pressure, axle 1"],"60":["Электроконтроль давления тормозов, ось 2","Electric pressure control, axle 2"],"61":["Контроль давления резервной системы, ось 2","Spare system pressure control, axle 2"],"62":["Давление тормозов, ось 2","Brake pressure, axle 2"],"63":["Электрорегулировка тормоза, ось 3","Electric brake adjustment, axle 3"],"64":["Электроконтроль давления тормозов, ось 3","Electric pressure control, axle 3"],"65":["Давление тормозов, ось 3","Brake pressure, axle 3"],"66":["Электрорегулировка тормоза, прицеп","Electric brake adjustment, trailer"],"67":["Пневмоконтроль тормозов, прицеп","Pneumatic brake control, trailer"],"68":["Давление тормозов, прицеп","Brake pressure, trailer"],"69":["Датчик нагрузки на оси","Load sensor on axles"],"70":["Датчик толщины накладок, ось 1, левый","Lining thickness sensor, axle 1, left"],"71":["Датчик толщины накладок, ось 1, правый","Lining thickness sensor, axle 1, right"],"72":["Датчик толщины накладок, ось 2, левый","Lining thickness sensor, axle 2, left"],"73":["Датчик толщины накладок, ось 2, правый","Lining thickness sensor, axle 2, right"],"74":["Датчик толщины накладок, ось 3, левый","Lining thickness sensor, axle 3, left"],"75":["Датчик толщины накладок, ось 3, правый","Lining thickness sensor, axle 3, right"],"76":["Датчик сигнала торможения","Brake signal transmitter"],"77":["Сигнал датчика торможения №1","Brake sensor signal #1"],"78":["Сигнал датчика торможения №2","Brake sensor signal #2"],"79":["Размер колеса","Wheel size"],"80":["Управление торможением машины","Vehicle brake control"]}};
+  var FL_SID_COMMON = {"151":["Диагностический код системы №1","System diagnostic code #1"],"152":["Диагностический код системы №2","System diagnostic code #2"],"153":["Диагностический код системы №3","System diagnostic code #3"],"154":["Диагностический код системы №4","System diagnostic code #4"],"155":["Диагностический код системы №5","System diagnostic code #5"],"219":["Индикатор сгорания","Combustion indicator"],"220":["Электрическое соединение тягач/прицеп (ISO 11992)","Tractor/trailer electrical connection (ISO 11992)"],"221":["Напряжение питания датчиков","Sensor supply voltage"],"222":["Лампа PROTECT","Protect lamp"],"223":["Датчик яркости","Brightness sensor"],"224":["Сигнализация","Alarms"],"225":["Жёлтая лампа","Yellow lamp"],"226":["Датчик трансмиссии","Transmission sensor"],"227":["Доп. вход №1","Auxiliary input #1"],"228":["Переключатель высокого давления","High pressure switch"],"229":["Переключатель Kickdown","Kickdown switch"],"230":["Переключатель подтверждения холостого хода","Idle validation switch"],"231":["Цепь SAE J1939","SAE J1939 link"],"232":["Питание 5В","5-volt DC supply"],"233":["Драйвер №2","Driver #2"],"234":["Механизм включения стояночного тормоза","Parking brake ON mechanism"],"235":["Механизм выключения стояночного тормоза","Parking brake OFF mechanism"],"236":["Устройство соединения питания","Power connection device"],"237":["Устройство соединения прикуривателя","Cigar lighter connection device"],"238":["Диагностическая лампа — красная","Diagnostic lamp — red"],"239":["Диагностическая лампа — жёлтая","Diagnostic lamp — yellow"],"240":["Память","Memory"],"242":["Переключатель Resume круиза","Cruise resume switch"],"243":["Переключатель Set круиза","Cruise set switch"],"244":["Переключатель Enable круиза","Cruise enable switch"],"245":["Переключатель №1 педали сцепления","Clutch pedal switch #1"],"246":["Переключатель №1 педали тормоза","Brake pedal switch #1"],"247":["Переключатель №2 педали тормоза","Brake pedal switch #2"],"248":["Диагностическая цепь OME","OEM diagnostic circuit"],"249":["Цепь SAE J1922","SAE J1922 link"],"250":["Цепь SAE J1708 (J1587)","SAE J1708 (J1587) link"],"251":["Питание","Power supply"],"252":["Модуль калибровки","Calibration module"],"253":["Память калибровки","Calibration memory"],"254":["Контроллер №1","Controller #1"]};
+  var FL_MID_NAME = {ru:{"128": "Двигатель", "130": "Трансмиссия", "136": "ABS", "140": "Панель, левая", "142": "Панель, правая", "172": "Диагностическая система", "179": "Чёрный ящик", "181": "Спутниковая система", "190": "Кондиционер", "219": "Радар", "231": "Сотовая связь", "234": "Панель, правая #2"}, en:{"128": "Engine", "130": "Transmission", "136": "ABS", "140": "Panel, left", "142": "Panel, right", "172": "Diagnostic system", "179": "Black box", "181": "Satellite system", "190": "Air conditioner", "219": "Radar", "231": "Cellular", "234": "Panel, right #2"}};
+
+  function composeFreightlinerText(mid, letter, num){
+    var lang = currentLang === 'ru' ? 0 : 1;
+    var entry = letter === 'P' ? FL_PID[num] : ((FL_SID[mid] && FL_SID[mid][num]) || FL_SID_COMMON[num]);
+    if(!entry) return null;
+    var modName = FL_MID_NAME[currentLang === 'ru' ? 'ru' : 'en'][mid] || ('MID ' + mid);
+    return modName + ' — ' + entry[lang];
+  }
+
+  function midName(item){
+    return (currentLang === 'ru' ? item.ru : item.en) || item.ru;
+  }
+
+  function fillMid(){
+    if(!midSel) return;
+    var brand = sel.value;
+    var list = MID_LIST[brand];
+    while(midSel.options.length > 1) midSel.removeChild(midSel.lastChild);
+    if(list){
+      list.forEach(function(item){
+        var o = document.createElement('option');
+        o.value = item.v; o.textContent = midName(item);
+        midSel.appendChild(o);
+      });
+    }
+    /* Строка "Модуль" - только когда её правда нужно выбирать (Freightliner/
+       Mack). У Detroit Diesel модуль зашит в код (MID_FIXED), выбора нет,
+       и своя строка стандарта им обеим ни к чему - формат диктует марка. */
+    midSel.style.display = list ? '' : 'none';
+    if(std) std.style.display = MID_BRANDS[brand] ? 'none' : '';
+    if(input) input.placeholder = MID_BRANDS[brand] ? 'P100 FMI 4' : 'SPN 100 FMI 1';
+  }
+
+  /* Свободный ввод для этих марок - не SPN, а PID/SID: "P100 FMI 4"
+     или "S1 FMI 4" (P/S не указан - считаем PID, он чаще встречается
+     в источниках). MID берём из выбора выше (или из MID_FIXED). */
+  function parseMidCode(t, mid){
+    var up = normCode(t);
+    var m = up.match(/\b([PS])\s*(\d{1,4})\D{0,20}FMI\s*[:\-]?\s*(\d{1,2})/);
+    var letter, num, fmi;
+    if(m){ letter = m[1]; num = m[2]; fmi = m[3]; }
+    else{
+      m = up.match(/\b(\d{1,4})\D{0,20}FMI\s*[:\-]?\s*(\d{1,2})/);
+      if(!m) return {bad:true};
+      letter = 'P'; num = m[1]; fmi = m[2];
+    }
+    return {spn:'M' + mid + '-' + letter + num, fmi:parseInt(fmi, 10)};
+  }
+
+  function parseAllMid(raw, mid){
+    var up = normCode(raw), out = [], seen = {}, m;
+    var re = /\b([PS])\s*(\d{1,4})\D{0,20}FMI\s*[:\-]?\s*(\d{1,2})(?!\d)/g;
+    while((m = re.exec(up))){
+      var spn = 'M' + mid + '-' + m[1] + m[2], fmi = parseInt(m[3], 10), k = spn + '.' + fmi;
+      if(!seen[k]){ seen[k] = 1; out.push({spn:spn, fmi:fmi}); }
+    }
+    return out;
+  }
 
   /* Дилерские таблицы (pcode) больше не публикуются целиком в
      assets/dtc.enc.js / dtc.en.js - см. worker/pcode-api.js и
@@ -801,6 +912,8 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
       purposeDo: 'Введите код — или сразу весь список ошибок, как есть: через запятую, пробел или столбиком. Одна поломка тянет за собой пять-шесть кодов — покажем, какой из них причина, а какие пришли следом, и скажем, можно ли ехать.',
       goBtn: 'Разобрать',
       brandDefault: '— любая марка —',
+      midDefault: '— выберите модуль —',
+      needMid: 'У этой марки код состоит из модуля (MID) и параметра. Выберите модуль в списке выше — например «Двигатель» или «ABS» — и введите остаток кода с FMI, например <b>P100 FMI 4</b>.',
       standardAuto: 'Определить автоматически',
       standardSpnFmi: 'J1939 — SPN / FMI',
       standardPcode: 'Дилерский / OBD-код',
@@ -817,6 +930,7 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
       pcodeApiError: 'Не удалось получить дилерский код — проверьте связь и попробуйте ещё раз.',
       stepCode: 'код', stepDecoding: 'расшифровка',
       factorySource: 'фирменная таблица {brand}', standardSource: 'стандарт J1939',
+      composedSource: 'собрано из таблиц компонентов {brand}',
       spnNotFound: '<b>SPN {spn}</b> в справочнике не найден — скорее всего, код фирменный. Попробуйте выбрать марку выше или добавьте FMI: например <b>{spn}/1</b>.',
       stepParam: 'параметр', knownFailures: 'известные отказы {brand}',
       stepNeedFmi: 'нужен FMI',
@@ -883,6 +997,8 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
       purposeDo: 'Enter one code — or the whole fault list exactly as it is: separated by commas, spaces or line breaks. One fault drags five or six codes along — we show which one is the cause and which just followed, and tell you whether it’s safe to drive.',
       goBtn: 'Decode',
       brandDefault: '— any make —',
+      midDefault: '— select module —',
+      needMid: 'For this brand the code is built from a module (MID) and a parameter. Pick the module above — e.g. “Engine” or “ABS” — then enter the rest of the code with FMI, e.g. <b>P100 FMI 4</b>.',
       standardAuto: 'Detect automatically',
       standardSpnFmi: 'J1939 — SPN / FMI',
       standardPcode: 'Dealer / OBD code',
@@ -899,6 +1015,7 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
       pcodeApiError: 'Couldn’t reach the dealer-code lookup — check your connection and try again.',
       stepCode: 'code', stepDecoding: 'meaning',
       factorySource: 'factory table — {brand}', standardSource: 'J1939 standard',
+      composedSource: 'assembled from {brand} component tables',
       spnNotFound: '<b>SPN {spn}</b> not found in the database — likely a manufacturer-specific code. Try selecting a make above, or add the FMI: e.g. <b>{spn}/1</b>.',
       stepParam: 'parameter', knownFailures: 'known faults — {brand}',
       stepNeedFmi: 'FMI needed',
@@ -1911,9 +2028,20 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
                || (DB.brands[brand] && DB.brands[brand][key]);
       if(exact) return {text:withFmiHint(exact, fmi), src:t('factorySource', {brand: brandName(brand)})};
     }
+    /* У Freightliner нет заводской построчной таблицы кодов - есть
+       только имена компонентов (MID/PID/SID). Готового текста для
+       конкретной комбинации нет, но сама комбинация осмысленна -
+       собираем расшифровку из трёх имён вместо "код не найден". */
+    if(brand === 'freightliner'){
+      var mm = /^M(\d+)-([PS])(\d+)$/.exec(spn);
+      if(mm){
+        var composed = composeFreightlinerText(mm[1], mm[2], mm[3]);
+        if(composed) return {text: withFmiHint(composed, fmi), src: t('composedSource', {brand: brandName(brand)})};
+      }
+    }
     var name = spnName(spn, brand);
     var known = !!name;
-    if(!name) name = 'SPN ' + spn;
+    if(!name) name = codeLabel(spn);
     var f = fmiText(fmi) || t('fmiNonstandard', {fmi:fmi});
     return {text:name + ' — ' + f, src:known ? t('standardSource') : null, unknown:!known};
   }
@@ -2128,8 +2256,16 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
             stop:worst.r.lvl === 'now' || blind, total:list.length};
   }
 
+  /* "M128-P100" - это не SPN, а закодированные MID+PID/SID
+     (см. MID_BRANDS выше): показываем как "MID 128 · P100", а не
+     врём, что это SPN. Обычные коды - без изменений. */
+  function codeLabel(spn){
+    var m = /^M(\d+)-([PS]\d+)$/.exec(spn);
+    return m ? ('MID ' + m[1] + ' · ' + m[2]) : ('SPN ' + spn);
+  }
+
   function codeLine(c){
-    return '<span class="mono">SPN ' + c.spn + '/' + c.fmi + '</span>' +
+    return '<span class="mono">' + codeLabel(c.spn) + '/' + c.fmi + '</span>' +
            '<span>' + esc(c.text) + '</span>';
   }
   function group(label, items, cls){
@@ -2308,7 +2444,7 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
     html += '<div class="card">';
     html += '<div class="grp" style="margin-top:0"><div class="st">' + esc(t('casRoot')) + '</div>' +
               '<div class="root">' +
-                '<div class="rcode"><span class="mono">SPN ' + a.root.spn + '/' + a.root.fmi + '</span>' +
+                '<div class="rcode"><span class="mono">' + codeLabel(a.root.spn) + '/' + a.root.fmi + '</span>' +
                   '<span class="sys">' + esc(t('sys' + a.root.sys.charAt(0).toUpperCase() + a.root.sys.slice(1))) + '</span></div>' +
                 '<div class="rtext">' + esc(a.root.text) + '</div>' +
                 '<div class="rwhy">' + esc(a.cons.length ? t('casWhyChain') : t('casWhySingle')) + '</div>' +
@@ -2322,7 +2458,7 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
        именно он. Тогда показываем его и подписываем номером, чтобы
        не выглядело, будто это про корень. */
     html += riskBlock(a.worst, a.worst === a.root ? '' :
-                      ' · SPN ' + a.worst.spn + '/' + a.worst.fmi);
+                      ' · ' + codeLabel(a.worst.spn) + '/' + a.worst.fmi);
 
     html += '<div class="grp"><div class="st">' + esc(t('casTodo')) + '</div>' +
               '<ol class="todo"><li>' + esc(t(ACT[a.root.sys] || 'actDefault')) + '</li></ol></div>';
@@ -2426,10 +2562,20 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
 
   function run(){
     var brand = sel.value;
+    var midBrand = MID_BRANDS[brand];
+    var mid = midBrand ? (MID_FIXED[brand] || midSel.value) : null;
+
+    /* Freightliner/Mack без выбранного модуля - код неоднозначен: один
+       и тот же PID/SID под разными MID означает разное. Дальше не идём. */
+    if(midBrand && !mid){
+      render(note(t('needMid')));
+      return;
+    }
 
     /* Два кода и больше - это выгрузка со сканера, а не один вопрос.
        Такой список разбираем целиком: ищем первопричину. */
-    var many = std.value === 'pcode' ? [] : parseAll(input.value);
+    var many = midBrand ? parseAllMid(input.value, mid)
+             : (std.value === 'pcode' ? [] : parseAll(input.value));
     if(many.length >= 2){
       ready().then(function(){
         var a = analyze(many, brand);
@@ -2440,7 +2586,7 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
       return;
     }
 
-    var p = parse(input.value, std.value);
+    var p = midBrand ? parseMidCode(input.value, mid) : parse(input.value, std.value);
 
     if(!p){
       render(note(t('emptyPrompt')));
@@ -2513,7 +2659,7 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
       }
       var d = describe(p.spn, p.fmi, brand);
       var u = urgent(p.spn, p.fmi, brand);
-      var code = 'SPN ' + p.spn + ' · FMI ' + p.fmi;
+      var code = codeLabel(p.spn) + ' · FMI ' + p.fmi;
       var steps = [
         {st:t('stepCode'), tx:'<span class="mono">' + code + '</span>', cls:'ok'},
         {st:t('stepDecoding'), tx:'<b>' + esc(d.text) + '</b>' +
@@ -2563,6 +2709,8 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
 
   go.addEventListener('click', run);
   input.addEventListener('keydown', function(e){ if(e.key === 'Enter') run(); });
+  sel.addEventListener('change', fillMid);
+  fillMid();
 
 })();
 </script>
