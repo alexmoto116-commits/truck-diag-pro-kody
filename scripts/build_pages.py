@@ -254,6 +254,23 @@ section{{margin-bottom:32px}}
 <div class="tick"><a href="../">&larr; поиск по коду</a></div>
 """
 
+# Freightliner/Mack/Detroit Diesel используют трёхчастный код MID-PID/SID-FMI
+# вместо SPN.FMI (см. index.html, MID_BRANDS). В assets/dtc.enc.js это лежит
+# как составной ключ "M<mid>-<P|S><num>.<fmi>" - основной цикл ниже такие
+# ключи отбрасывает фильтром .isdigit(), потому что для них нет самого SPN
+# и, значит, нет отдельной страницы kody/spn-*. Но у Mack и Detroit Diesel
+# (в отличие от Freightliner, где текст собирается на лету в JS из справочных
+# таблиц имён) есть готовые построчные описания в brands.* - для них можно
+# и нужно сделать страницу марки, просто сгруппированную по модулю (MID),
+# а не по SPN.
+MID_RE = re.compile(r'^M(\d+)-([A-Z]\d+)$')
+MID_MODULE_NAMES = {
+    'mack':          {'128': u'Двигатель (EECU)', '142': u'Приборка/шасси (VECU)',
+                       '143': u'Двигатель, доп. блок'},
+    'detroitdiesel': {'128': u'Двигатель (DDEC)'},
+}
+
+
 def fmi_table(rows, urgent_fmi):
     out = ['<table><tr><th>Код</th><th>Расшифровка</th></tr>']
     for f, text in rows:
@@ -411,6 +428,52 @@ def build():
         io.open(full, 'w', encoding='utf-8').write(''.join(body))
         return path
 
+    def mid_brand_page(b, mod_names):
+        table = brands.get(b)
+        if not table:
+            return None
+        entries = []
+        for key, text in table.items():
+            composite, dot, fmi = key.rpartition('.')
+            m = MID_RE.match(composite)
+            if not (m and dot and fmi.isdigit()):
+                continue
+            entries.append((m.group(1), m.group(2), int(fmi), text))
+        if not entries:
+            return None
+
+        by_mid = {}
+        for mid, pidsid, fmi, text in entries:
+            by_mid.setdefault(mid, []).append((pidsid, fmi, text))
+
+        bn = brand_names.get(b, b)
+        secs = []
+        for mid in sorted(by_mid, key=int):
+            rows = sorted(by_mid[mid])
+            title = mod_names.get(mid, u'Модуль MID %s' % mid)
+            t = [u'<table><tr><th>Код</th><th>Расшифровка</th></tr>']
+            for pidsid, fmi, text in rows:
+                t.append(u'<tr><td class="fmi">M%s-%s.%d</td><td>%s</td></tr>'
+                         % (mid, pidsid, fmi, rich(text)))
+            t.append('</table>')
+            secs.append(u'<section><h2>%s</h2>%s</section>' % (esc(title), ''.join(t)))
+
+        secs.append(
+            u'<section><h2>Как читать код</h2><p>Код состоит из трёх частей: '
+            u'<b>MID</b> — какой блок управления его выдал, <b>PID/SID</b> — '
+            u'какой параметр или узел неисправен, <b>FMI</b> — тип неисправности '
+            u'(замыкание, обрыв, значение вне нормы). На сканере код обычно '
+            u'показывается как MID-PID/SID-FMI, например MID128 PID100 FMI4.</p></section>')
+
+        path = 'marki/%s.html' % b
+        title = u'Коды ошибок %s — расшифровка MID/PID/SID/FMI | codetruck.ru' % bn
+        desc = (u'Расшифровка кодов неисправностей %s: %d разобранных кодов '
+                u'по модулям управления (MID), с параметром и типом неисправности.'
+                % (bn, len(entries)))
+        sub = (u'В справочнике разобрано <b>%d кодов %s</b> по заводским таблицам, '
+               u'сгруппированы по блоку управления (MID).' % (len(entries), esc(bn)))
+        return page(path, title, desc, u'Коды ошибок %s' % bn, sub, secs)
+
     extra = []
 
     # --- по маркам -------------------------------------------------
@@ -458,6 +521,12 @@ def build():
                u'Ниже — те, что встречаются чаще всего.' % (len(mine), esc(bn)))
         extra.append(page(path, title, desc,
                           u'Коды ошибок %s' % bn, sub, secs))
+
+    # --- по маркам с MID-структурой кода (Mack, Detroit Diesel) -----
+    for b in sorted(MID_MODULE_NAMES, key=lambda x: brand_names.get(x, x)):
+        built = mid_brand_page(b, MID_MODULE_NAMES[b])
+        if built:
+            extra.append(built)
 
     # --- по симптомам ----------------------------------------------
     sym_dir = os.path.join(ROOT, 'problemy')
