@@ -800,6 +800,23 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
      он зашивается в код напрямую. */
   var MID_BRANDS = {freightliner:1, mack:1, detroitdiesel:1};
   var MID_FIXED  = {detroitdiesel:'128'};
+
+  /* Навесное оборудование нумерует свои коды просто числом: у Thermo
+     King это 00-137, у Carrier 1-249, у Планара 1-78, у Eberspacher
+     000-085, у Webasto 00-99, у Daewoo это код мигания лампы вида
+     "4.4". Автоопределение формата (parseAuto) чисто цифровой ввод
+     трактует как SPN - и правильно делает, для грузовика это почти
+     всегда SPN. Но у этих марок SPN-таблицы нет вообще, есть только
+     дилерская, поэтому "61" от них надо искать как дилерский код, а
+     не как SPN 61.
+
+     Подмену снимают два случая: явно выбранный в строке стандарта
+     "J1939 - SPN/FMI" и слово FMI в самом вводе. И то и другое значит,
+     что человек всё-таки вводит SPN - например, чтобы получить общую
+     J1939-расшифровку, она работает для любой марки. Спорить с прямо
+     высказанным намерением не надо. */
+  var NUM_PCODE_BRANDS = {thermoking:1, carrier:1, planar:1, webasto:1,
+                          eberspacher:1, daewoo:1};
   var MID_LIST = {
     freightliner: [
       {v:'128', ru:'128 — Двигатель',                 en:'128 — Engine'},
@@ -1833,7 +1850,7 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
   /* КамАЗ и ЯМЗ в базе записаны кириллицей - для остальных языков
      переключаем на латинскую транслитерацию, так их узнают на
      любом языке. Остальные марки (Volvo, MAN, DAF...) уже латиницей. */
-  var BRAND_OVERRIDE = {kamaz:'KAMAZ', yamz:'YAMZ'};
+  var BRAND_OVERRIDE = {kamaz:'KAMAZ', yamz:'YAMZ', planar:'Planar / Teplostar'};
 
   var LANG_KEY = 'pf-lang';
   function detectBrowserLang(){
@@ -2573,10 +2590,16 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
       return;
     }
 
+    /* См. NUM_PCODE_BRANDS: у навесного оборудования числовой код -
+       дилерский, а не SPN, поэтому в режиме автоопределения ведём их
+       по ветке дилерских кодов. */
+    var numPcode = !!NUM_PCODE_BRANDS[brand] && std.value !== 'spnfmi' &&
+                   !/FMI/.test(normCode(input.value));
+
     /* Два кода и больше - это выгрузка со сканера, а не один вопрос.
        Такой список разбираем целиком: ищем первопричину. */
     var many = midBrand ? parseAllMid(input.value, mid)
-             : (std.value === 'pcode' ? [] : parseAll(input.value));
+             : ((std.value === 'pcode' || numPcode) ? [] : parseAll(input.value));
     if(many.length >= 2){
       ready().then(function(){
         var a = analyze(many, brand);
@@ -2587,7 +2610,8 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
       return;
     }
 
-    var p = midBrand ? parseMidCode(input.value, mid) : parse(input.value, std.value);
+    var p = midBrand ? parseMidCode(input.value, mid)
+          : parse(input.value, numPcode ? 'pcode' : std.value);
 
     if(!p){
       render(note(t('emptyPrompt')));
