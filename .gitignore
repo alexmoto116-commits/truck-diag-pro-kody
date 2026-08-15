@@ -5,5 +5,8 @@ _*.html
 # приватные исходники дилерских кодов (Volvo/Mercedes/Scania) — не для паблика
 pcode-source/
 
-# локальный кэш wrangler (Cloudflare Worker deploy tooling)
+# локальный кэш wrangler (Cloudflare Worker deploy tooling).
+# Вторая строка - когда wrangler запускают из корня репозитория,
+# например для заливки KV (см. scripts/kv_plan.py).
 worker/.wrangler/
+.wrangler/
