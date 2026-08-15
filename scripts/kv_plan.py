@@ -48,9 +48,9 @@ CHUNK = 1000
 
 # Порядок заливки. Всё, чего здесь нет, уезжает в самый конец.
 PRIORITY = ['cumminsisf', 'fuso', 'thermoking', 'carrier', 'planar', 'webasto',
-            'eberspacher', 'daewoo', 'cumminsisb', 'cumminsislisc', 'cumminsism',
-            'cumminsisx', 'paccarmx13', 'hino', 'caterpillar', 'renault',
-            'mahindra', 'deutz', 'scania']
+            'eberspacher', 'daewoo', 'eaton', 'cumminsisb', 'cumminsislisc',
+            'cumminsism', 'cumminsisx', 'paccarmx13', 'hino', 'caterpillar',
+            'renault', 'mahindra', 'deutz', 'scania']
 
 
 def brand(key):
