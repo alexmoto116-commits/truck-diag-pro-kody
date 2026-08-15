@@ -17,7 +17,8 @@
 // pcode-source/pcode.json в scripts/build_pcode.py.
 var KNOWN_PCODE_BRANDS = ['volvo', 'mercedes', 'scania', 'shacman', 'tata', 'ashokleyland', 'howo', 'faw', 'jac', 'international', 'powerstroke',
                           'cumminsisb', 'cumminsislisc', 'cumminsism', 'cumminsisx', 'paccarmx13', 'hino', 'renault', 'caterpillar',
-                          'mahindra', 'deutz'];
+                          'mahindra', 'deutz', 'fuso', 'thermoking', 'carrier',
+                          'planar', 'webasto', 'eberspacher', 'daewoo', 'cumminsisf'];
 var ALLOWED_ORIGINS = ['https://codetruck.ru'];
 
 function norm(code) {
