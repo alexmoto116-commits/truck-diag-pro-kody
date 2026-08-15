@@ -798,8 +798,11 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
      У Detroit Diesel MID из источника фактически один и тот же (128,
      блок двигателя DDEC), поэтому для него выбор модуля не показываем -
      он зашивается в код напрямую. */
-  var MID_BRANDS = {freightliner:1, mack:1, detroitdiesel:1};
-  var MID_FIXED  = {detroitdiesel:'128'};
+  /* Western Star - алиас к Detroit Diesel (см. BRAND_ALIAS ниже), а у
+     того коды не SPN.FMI, а MID/PID/SID. Значит и вводить их надо так
+     же, иначе марка есть, а поиск по ней не работает. */
+  var MID_BRANDS = {freightliner:1, mack:1, detroitdiesel:1, westernstar:1};
+  var MID_FIXED  = {detroitdiesel:'128', westernstar:'128'};
 
   /* Навесное оборудование нумерует свои коды просто числом: у Thermo
      King это 00-137, у Carrier 1-249, у Планара 1-78, у Eberspacher
@@ -817,6 +820,42 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
      высказанным намерением не надо. */
   var NUM_PCODE_BRANDS = {thermoking:1, carrier:1, planar:1, webasto:1,
                           eberspacher:1, daewoo:1, eaton:1};
+
+  /* МАРКИ-АЛИАСЫ.
+
+     Половина грузовиков мира - это чужой двигатель под своим шильдиком.
+     Kenworth и Peterbilt - это PACCAR MX-13, ГАЗель Next - это Cummins
+     ISF, Урал и КрАЗ - это ЯМЗ. Своей таблицы кодов у таких марок нет и
+     быть не может: коды выдаёт блок управления двигателем, а он чужой.
+
+     Раньше это значило, что человек, ищущий "ошибка 3712 ГАЗель", не
+     находил ничего - хотя ровно эти коды лежат у нас под именем
+     "Cummins ISF". Теперь марка есть в списке, а данные берутся у
+     донора. Порядок доноров важен: первым идёт самый вероятный.
+
+     Обманывать при этом не нужно: в ответе показывается имя ДОНОРА, а
+     не алиаса ("заводская таблица Cummins ISF"), чтобы механик понимал,
+     по какому блоку он читает код, и не искал у себя несуществующую
+     "фирменную таблицу ГАЗа". */
+  var BRAND_ALIAS = {
+    gaz:         ['cumminsisf', 'yamz'],
+    maz:         ['yamz', 'mercedes', 'deutz'],
+    ural:        ['yamz', 'kamaz'],
+    kraz:        ['yamz'],
+    kenworth:    ['paccarmx13'],
+    peterbilt:   ['paccarmx13'],
+    westernstar: ['detroitdiesel'],
+    bharatbenz:  ['mercedes', 'fuso'],
+    ram:         ['cumminsisb'],
+    beiben:      ['mercedes']
+  };
+
+  /* Марка -> список таблиц, в которых её искать. Для обычной марки это
+     она сама, для алиаса - его доноры. */
+  function donorsOf(brand){
+    if(!brand) return [];
+    return BRAND_ALIAS[brand] || [brand];
+  }
   var MID_LIST = {
     freightliner: [
       {v:'128', ru:'128 — Двигатель',                 en:'128 — Engine'},
@@ -1850,7 +1889,9 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
   /* КамАЗ и ЯМЗ в базе записаны кириллицей - для остальных языков
      переключаем на латинскую транслитерацию, так их узнают на
      любом языке. Остальные марки (Volvo, MAN, DAF...) уже латиницей. */
-  var BRAND_OVERRIDE = {kamaz:'KAMAZ', yamz:'YAMZ', planar:'Planar / Teplostar'};
+  var BRAND_OVERRIDE = {kamaz:'KAMAZ', yamz:'YAMZ', planar:'Planar / Teplostar',
+                        gaz:'GAZ (GAZelle / GAZon Next)', maz:'MAZ', ural:'Ural',
+                        kraz:'KrAZ', beiben:'Beiben'};
 
   var LANG_KEY = 'pf-lang';
   function detectBrowserLang(){
@@ -2042,9 +2083,15 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
   function describe(spn, fmi, brand){
     if(brand){
       var E = en(), key = spn + '.' + fmi;
-      var exact = (E && E.brands[brand] && E.brands[brand][key])
-               || (DB.brands[brand] && DB.brands[brand][key]);
-      if(exact) return {text:withFmiHint(exact, fmi), src:t('factorySource', {brand: brandName(brand)})};
+      /* По алиасу (см. BRAND_ALIAS) проходим доноров по очереди и
+         подписываем ответ именем того, у кого код реально нашёлся. */
+      var donors = donorsOf(brand);
+      for(var i = 0; i < donors.length; i++){
+        var d = donors[i];
+        var exact = (E && E.brands[d] && E.brands[d][key])
+                 || (DB.brands[d] && DB.brands[d][key]);
+        if(exact) return {text:withFmiHint(exact, fmi), src:t('factorySource', {brand: brandName(d)})};
+      }
     }
     /* У Freightliner нет заводской построчной таблицы кодов - есть
        только имена компонентов (MID/PID/SID). Готового текста для
@@ -2069,7 +2116,7 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
      Марку выбирать по-прежнему необязательно: без неё бэкенд сам
      проверяет все дилерские таблицы и говорит, чья это марка. Пробелы
      в написании кода ("AA 9999" / "AA9999") нормализует бэкенд. */
-  function fetchPcode(brand, code, lang){
+  function fetchPcodeOne(brand, code, lang){
     var url = PCODE_API + '/pcode?code=' + encodeURIComponent(code) +
               '&lang=' + encodeURIComponent(lang) +
               (brand ? '&brand=' + encodeURIComponent(brand) : '');
@@ -2077,6 +2124,26 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
       if(!r.ok) throw new Error('pcode api ' + r.status);
       return r.json();
     }).then(function(data){ return data.hits || []; });
+  }
+
+  /* Бэкенд знает только реальные марки, про алиасы ему рассказывать
+     незачем: спрашиваем доноров по очереди и склеиваем ответы. Марка не
+     выбрана - один запрос без brand, бэкенд сам пройдёт по всем. */
+  function fetchPcode(brand, code, lang){
+    var donors = donorsOf(brand);
+    if(donors.length < 2) return fetchPcodeOne(donors[0] || '', code, lang);
+    return Promise.all(donors.map(function(b){
+      return fetchPcodeOne(b, code, lang).catch(function(){ return []; });
+    })).then(function(lists){
+      var out = [], seen = {};
+      lists.forEach(function(hits){
+        hits.forEach(function(h){
+          var k = h.brand + '|' + h.text;
+          if(!seen[k]){ seen[k] = 1; out.push(h); }
+        });
+      });
+      return out;
+    });
   }
 
   function urgent(spn, fmi, brand){
@@ -2659,9 +2726,15 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
           render(note(t('spnNotFound', {spn: p.spn})));
           return;
         }
-        var known = [];
-        if(brand && DB.brands[brand]){
-          Object.keys(DB.brands[brand]).forEach(function(k){
+        /* Для алиаса берём первого донора, у которого вообще есть
+           таблица SPN.FMI - подпись ниже пойдёт от его имени. */
+        var known = [], tblBrand = null;
+        donorsOf(brand).some(function(d){
+          if(DB.brands[d]){ tblBrand = d; return true; }
+          return false;
+        });
+        if(tblBrand){
+          Object.keys(DB.brands[tblBrand]).forEach(function(k){
             var pair = k.split('.');
             if(pair[0] === String(p.spn) && pair.length === 2) known.push(pair[1]);
           });
@@ -2671,10 +2744,10 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
           {st:t('stepParam'), tx:'<span class="mono">SPN ' + p.spn + '</span> — <b>' + esc(nm) + '</b>', cls:'ok'}
         ];
         if(known.length){
-          sSteps.push({st:t('knownFailures', {brand: brandName(brand)}),
+          sSteps.push({st:t('knownFailures', {brand: brandName(tblBrand)}),
             tx: known.map(function(f){
               var E = en(), bk = p.spn + '.' + f;
-              var txt = (E && E.brands[brand] && E.brands[brand][bk]) || DB.brands[brand][bk];
+              var txt = (E && E.brands[tblBrand] && E.brands[tblBrand][bk]) || DB.brands[tblBrand][bk];
               return '<span class="mono">' + p.spn + '/' + f + '</span> — ' + esc(txt);
             }).join('<br>'), cls:'ok'});
         }
