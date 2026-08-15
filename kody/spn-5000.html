@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SPN 5000 — Статус перегрева генератора — что означает код неисправности | codetruck.ru</title>
+<meta name="description" content="SPN 5000 (Статус перегрева генератора): расшифровка по стандарту J1939 и заводским таблицам марок. Что означает код и можно ли ехать.">
+<link rel="canonical" href="https://codetruck.ru/kody/spn-5000.html">
+<meta name="theme-color" content="#05070A">
+<!-- Yandex.Metrika counter -->
+<script type="text/javascript">
+    (function(m,e,t,r,i,k,a){
+        m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+        m[i].l=1*new Date();
+        for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
+        k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
+    })(window, document,'script','https://mc.yandex.ru/metrika/tag.js?id=111407659', 'ym');
+
+    ym(111407659, 'init', {ssr:true, webvisor:true, clickmap:true, ecommerce:"dataLayer", referrer: document.referrer, url: location.href, accurateTrackBounce:true, trackLinks:true});
+</script>
+<noscript><div><img src="https://mc.yandex.ru/watch/111407659" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+<!-- /Yandex.Metrika counter -->
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "SPN 5000 — Статус перегрева генератора — что означает код неисправности | codetruck.ru", "description": "SPN 5000 (Статус перегрева генератора): расшифровка по стандарту J1939 и заводским таблицам марок. Что означает код и можно ли ехать.", "url": "https://codetruck.ru/kody/spn-5000.html"}</script>
+<style>
+body{margin:0;background:#05070A;color:#EAF0F7;font-family:"Segoe UI Variable Display","Segoe UI",Inter,system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+.w{max-width:680px;margin:0 auto;padding:36px 20px 70px}
+a{color:#6FE3D3}
+.tick{font-family:"Cascadia Mono",Consolas,monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#8B9AAC;margin-bottom:16px}
+.tick a{display:inline-flex;align-items:center;min-height:44px}
+.tick a{color:#8B9AAC;text-decoration:none;border-bottom:1px solid rgba(139,154,172,.4)}
+h1{font-size:26px;line-height:1.25;margin:0 0 8px;letter-spacing:-.01em}
+.sub{color:#94A2B4;font-size:14.5px;margin:0 0 28px}
+.mono{font-family:"Cascadia Mono",Consolas,monospace}
+table{width:100%;border-collapse:collapse;margin:0 0 28px;font-size:14.5px}
+th{text-align:left;font-family:"Cascadia Mono",Consolas,monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#7A8998;padding:0 10px 8px 0;border-bottom:1px solid rgba(255,255,255,.12);font-weight:600}
+td{padding:9px 10px 9px 0;border-bottom:1px solid rgba(255,255,255,.06);vertical-align:top}
+td.fmi{font-family:"Cascadia Mono",Consolas,monospace;color:#6FE3D3;white-space:nowrap;width:1%}
+tr.hit td.fmi{color:#FF6B5A}
+h2{font-family:"Cascadia Mono",Consolas,monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#7A8998;margin:0 0 12px;font-weight:600}
+section{margin-bottom:32px}
+.near{margin:0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:8px}
+.near li{margin:0}
+.near a{display:inline-flex;align-items:center;gap:6px;min-height:44px;text-decoration:none;color:#AFBECD;font-size:13.5px;
+  border:1px solid rgba(255,255,255,.13);border-radius:9px;padding:6px 13px;background:rgba(255,255,255,.03)}
+.near a:hover{color:#EAF0F7;border-color:rgba(111,227,211,.45)}
+.near a .mono{color:#6FE3D3}
+.risk{border:1px solid rgba(255,255,255,.13);border-radius:14px;padding:14px 16px;background:rgba(255,255,255,.022)}
+.risk .rkb{display:inline-block;font-family:"Cascadia Mono",Consolas,monospace;font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;border:1px solid;border-radius:6px;padding:3px 8px;margin-bottom:12px}
+.risk p{margin:0;font-size:15px;line-height:1.6;color:#CBD7E3}
+.risk p+p{margin-top:9px;color:#AFBECD}
+.risk .rkn{margin-top:12px;font-size:13.5px;color:#94A2B4}
+.risk.t-now{color:#FF6B5A;border-color:rgba(255,107,90,.3)}
+.risk.t-warn{color:#FF9B3D;border-color:rgba(255,155,61,.28)}
+.cta{margin-top:44px;padding-top:24px;border-top:1px solid rgba(255,255,255,.06);font-size:14px;color:#94A2B4}
+</style>
+</head>
+<body>
+<div class="w">
+<div class="tick"><a href="../">&larr; поиск по коду</a></div>
+<h1>SPN 5000 — Статус перегрева генератора</h1><p class="sub">Код J1939 SPN 5000. Ниже — как эту неисправность формулируют на заводе у 1 марки, и что вторая половина кода (FMI) означает по стандарту.</p><section><h2>Renault Trucks</h2><table><tr><th>Код</th><th>Расшифровка</th></tr><tr class="hit"><td class="fmi">FMI 0</td><td>Тахограф, внутренняя неисправность</td></tr></table></section><section><h2>Что значит FMI по стандарту J1939</h2><table><tr><th>Код</th><th>Расшифровка</th></tr><tr class="hit"><td class="fmi">FMI 0</td><td>данные выше нормы (наиболее серьёзный уровень)</td></tr></table></section><section><h2>Можно ли ехать</h2><p><b>По этому коду ехать нельзя.</b> Он относится к неисправностям, при которых остановиться нужно при первой безопасной возможности: дальше поедет дороже.</p></section><section><h2>Что будет, если ехать дальше</h2><div class="risk t-warn"><span class="rkb">Запас времени: До ближайшей остановки</span><p>Бортовая сеть не держит напряжение. Пока двигатель работает, всё тянет генератор; заглушите — можете не завестись.</p><p>Дальше сядет свет, начнут отваливаться блоки и сыпаться ложные коды по всей машине. До места, где есть помощь, лучше доехать не глуша двигатель.</p></div></section><section><h2>Что проверить на месте</h2><p>Проверьте клеммы аккумулятора и массу — окисление и слабая затяжка сыплют ложные коды по всей машине. На заведённом двигателе норма 27–29 В.</p></section><section><h2>Рядом: Электропитание</h2><ul class="near"><li><a href="spn-158.html"><span class="mono">SPN 158</span> — Напряжение АКБ на замке зажигания</a></li><li><a href="spn-167.html"><span class="mono">SPN 167</span> — Напряжение генератора (зарядная система)</a></li><li><a href="spn-168.html"><span class="mono">SPN 168</span> — Напряжение АКБ</a></li><li><a href="spn-627.html"><span class="mono">SPN 627</span> — Источник питания</a></li><li><a href="spn-628.html"><span class="mono">SPN 628</span> — Память программ</a></li><li><a href="spn-629.html"><span class="mono">SPN 629</span> — Контроллер №1</a></li><li><a href="spn-650.html"><span class="mono">SPN 650</span> — Реле питания электронного блока привода</a></li><li><a href="spn-676.html"><span class="mono">SPN 676</span> — Реле свечей накаливания</a></li><li><a href="spn-677.html"><span class="mono">SPN 677</span> — Реле стартера</a></li><li><a href="spn-801.html"><span class="mono">SPN 801</span> — Реле управления ретардером</a></li></ul></section><p class="cta">Сканер выдал несколько кодов сразу? <a href="../">Вставьте весь список</a> — покажем, какой из них первопричина, а какие пришли следом.</p></div>
+</body>
+</html>
