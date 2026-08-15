@@ -2,6 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url><loc>https://codetruck.ru/</loc><priority>1.0</priority></url>
 <url><loc>https://codetruck.ru/marki/daf.html</loc><priority>0.7</priority></url>
+<url><loc>https://codetruck.ru/marki/dongfeng.html</loc><priority>0.7</priority></url>
 <url><loc>https://codetruck.ru/marki/isuzu.html</loc><priority>0.7</priority></url>
 <url><loc>https://codetruck.ru/marki/iveco.html</loc><priority>0.7</priority></url>
 <url><loc>https://codetruck.ru/marki/man.html</loc><priority>0.7</priority></url>
@@ -10,6 +11,8 @@
 <url><loc>https://codetruck.ru/marki/volvo.html</loc><priority>0.7</priority></url>
 <url><loc>https://codetruck.ru/marki/kamaz.html</loc><priority>0.7</priority></url>
 <url><loc>https://codetruck.ru/marki/yamz.html</loc><priority>0.7</priority></url>
+<url><loc>https://codetruck.ru/marki/detroitdiesel.html</loc><priority>0.7</priority></url>
+<url><loc>https://codetruck.ru/marki/mack.html</loc><priority>0.7</priority></url>
 <url><loc>https://codetruck.ru/problemy/gorit-check-engine.html</loc><priority>0.7</priority></url>
 <url><loc>https://codetruck.ru/problemy/oshibka-adblue.html</loc><priority>0.7</priority></url>
 <url><loc>https://codetruck.ru/problemy/upala-moshchnost.html</loc><priority>0.7</priority></url>
@@ -93,6 +96,7 @@
 <url><loc>https://codetruck.ru/kody/spn-636.html</loc><priority>0.7</priority></url>
 <url><loc>https://codetruck.ru/kody/spn-639.html</loc><priority>0.7</priority></url>
 <url><loc>https://codetruck.ru/kody/spn-645.html</loc><priority>0.7</priority></url>
+<url><loc>https://codetruck.ru/kody/spn-647.html</loc><priority>0.7</priority></url>
 <url><loc>https://codetruck.ru/kody/spn-651.html</loc><priority>0.7</priority></url>
 <url><loc>https://codetruck.ru/kody/spn-652.html</loc><priority>0.7</priority></url>
 <url><loc>https://codetruck.ru/kody/spn-653.html</loc><priority>0.7</priority></url>
@@ -165,7 +169,9 @@
 <url><loc>https://codetruck.ru/kody/spn-1067.html</loc><priority>0.7</priority></url>
 <url><loc>https://codetruck.ru/kody/spn-1071.html</loc><priority>0.7</priority></url>
 <url><loc>https://codetruck.ru/kody/spn-1072.html</loc><priority>0.7</priority></url>
+<url><loc>https://codetruck.ru/kody/spn-1073.html</loc><priority>0.7</priority></url>
 <url><loc>https://codetruck.ru/kody/spn-1074.html</loc><priority>0.7</priority></url>
+<url><loc>https://codetruck.ru/kody/spn-1075.html</loc><priority>0.7</priority></url>
 <url><loc>https://codetruck.ru/kody/spn-1077.html</loc><priority>0.7</priority></url>
 <url><loc>https://codetruck.ru/kody/spn-1079.html</loc><priority>0.7</priority></url>
 <url><loc>https://codetruck.ru/kody/spn-1080.html</loc><priority>0.7</priority></url>
@@ -175,6 +181,7 @@
 <url><loc>https://codetruck.ru/kody/spn-1108.html</loc><priority>0.7</priority></url>
 <url><loc>https://codetruck.ru/kody/spn-1110.html</loc><priority>0.7</priority></url>
 <url><loc>https://codetruck.ru/kody/spn-1121.html</loc><priority>0.7</priority></url>
+<url><loc>https://codetruck.ru/kody/spn-1136.html</loc><priority>0.7</priority></url>
 <url><loc>https://codetruck.ru/kody/spn-1188.html</loc><priority>0.7</priority></url>
 <url><loc>https://codetruck.ru/kody/spn-1192.html</loc><priority>0.7</priority></url>
 <url><loc>https://codetruck.ru/kody/spn-1195.html</loc><priority>0.7</priority></url>
@@ -203,6 +210,7 @@
 <url><loc>https://codetruck.ru/kody/spn-1330.html</loc><priority>0.7</priority></url>
 <url><loc>https://codetruck.ru/kody/spn-1347.html</loc><priority>0.7</priority></url>
 <url><loc>https://codetruck.ru/kody/spn-1351.html</loc><priority>0.7</priority></url>
+<url><loc>https://codetruck.ru/kody/spn-1378.html</loc><priority>0.7</priority></url>
 <url><loc>https://codetruck.ru/kody/spn-1382.html</loc><priority>0.7</priority></url>
 <url><loc>https://codetruck.ru/kody/spn-1482.html</loc><priority>0.7</priority></url>
 <url><loc>https://codetruck.ru/kody/spn-1484.html</loc><priority>0.7</priority></url>
@@ -244,12 +252,16 @@
 <url><loc>https://codetruck.ru/kody/spn-3222.html</loc><priority>0.7</priority></url>
 <url><loc>https://codetruck.ru/kody/spn-3226.html</loc><priority>0.7</priority></url>
 <url><loc>https://codetruck.ru/kody/spn-3227.html</loc><priority>0.7</priority></url>
+<url><loc>https://codetruck.ru/kody/spn-3228.html</loc><priority>0.7</priority></url>
 <url><loc>https://codetruck.ru/kody/spn-3232.html</loc><priority>0.7</priority></url>
 <url><loc>https://codetruck.ru/kody/spn-3234.html</loc><priority>0.7</priority></url>
 <url><loc>https://codetruck.ru/kody/spn-3241.html</loc><priority>0.7</priority></url>
 <url><loc>https://codetruck.ru/kody/spn-3249.html</loc><priority>0.7</priority></url>
 <url><loc>https://codetruck.ru/kody/spn-3251.html</loc><priority>0.7</priority></url>
 <url><loc>https://codetruck.ru/kody/spn-3353.html</loc><priority>0.7</priority></url>
+<url><loc>https://codetruck.ru/kody/spn-3361.html</loc><priority>0.7</priority></url>
+<url><loc>https://codetruck.ru/kody/spn-3362.html</loc><priority>0.7</priority></url>
+<url><loc>https://codetruck.ru/kody/spn-3363.html</loc><priority>0.7</priority></url>
 <url><loc>https://codetruck.ru/kody/spn-3381.html</loc><priority>0.7</priority></url>
 <url><loc>https://codetruck.ru/kody/spn-3382.html</loc><priority>0.7</priority></url>
 <url><loc>https://codetruck.ru/kody/spn-3383.html</loc><priority>0.7</priority></url>
@@ -368,6 +380,10 @@
 <url><loc>https://codetruck.ru/kody/spn-4236.html</loc><priority>0.7</priority></url>
 <url><loc>https://codetruck.ru/kody/spn-4237.html</loc><priority>0.7</priority></url>
 <url><loc>https://codetruck.ru/kody/spn-4334.html</loc><priority>0.7</priority></url>
+<url><loc>https://codetruck.ru/kody/spn-4340.html</loc><priority>0.7</priority></url>
+<url><loc>https://codetruck.ru/kody/spn-4342.html</loc><priority>0.7</priority></url>
+<url><loc>https://codetruck.ru/kody/spn-4360.html</loc><priority>0.7</priority></url>
+<url><loc>https://codetruck.ru/kody/spn-4363.html</loc><priority>0.7</priority></url>
 <url><loc>https://codetruck.ru/kody/spn-4380.html</loc><priority>0.7</priority></url>
 <url><loc>https://codetruck.ru/kody/spn-4383.html</loc><priority>0.7</priority></url>
 <url><loc>https://codetruck.ru/kody/spn-4391.html</loc><priority>0.7</priority></url>
@@ -377,6 +393,7 @@
 <url><loc>https://codetruck.ru/kody/spn-4616.html</loc><priority>0.7</priority></url>
 <url><loc>https://codetruck.ru/kody/spn-4704.html</loc><priority>0.7</priority></url>
 <url><loc>https://codetruck.ru/kody/spn-4782.html</loc><priority>0.7</priority></url>
+<url><loc>https://codetruck.ru/kody/spn-4794.html</loc><priority>0.7</priority></url>
 <url><loc>https://codetruck.ru/kody/spn-4809.html</loc><priority>0.7</priority></url>
 <url><loc>https://codetruck.ru/kody/spn-4814.html</loc><priority>0.7</priority></url>
 <url><loc>https://codetruck.ru/kody/spn-5264.html</loc><priority>0.7</priority></url>
