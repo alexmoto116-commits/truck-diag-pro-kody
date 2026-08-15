@@ -40,7 +40,8 @@ EN_PATH = os.path.join(ROOT, 'assets', 'dtc.en.js')
 
 # Держать в согласии со списком KNOWN_PCODE_BRANDS в worker/pcode-api.js.
 KNOWN_PCODE_BRANDS = ['volvo', 'mercedes', 'scania', 'shacman', 'tata', 'ashokleyland', 'howo', 'faw', 'jac', 'international', 'powerstroke',
-                       'cumminsisb', 'cumminsislisc', 'cumminsism', 'cumminsisx', 'paccarmx13', 'hino', 'renault', 'caterpillar']
+                       'cumminsisb', 'cumminsislisc', 'cumminsism', 'cumminsisx', 'paccarmx13', 'hino', 'renault', 'caterpillar',
+                       'mahindra', 'deutz']
 
 TEMPLATE = u"""(function(){{
   var b64='{b64}';
