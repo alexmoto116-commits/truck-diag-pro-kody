@@ -15,7 +15,8 @@
 
 // Держать в согласии с KNOWN_PCODE_BRANDS/top-level ключами
 // pcode-source/pcode.json в scripts/build_pcode.py.
-var KNOWN_PCODE_BRANDS = ['volvo', 'mercedes', 'scania', 'shacman', 'tata', 'ashokleyland', 'howo', 'faw', 'jac', 'international', 'powerstroke'];
+var KNOWN_PCODE_BRANDS = ['volvo', 'mercedes', 'scania', 'shacman', 'tata', 'ashokleyland', 'howo', 'faw', 'jac', 'international', 'powerstroke',
+                          'cumminsisb', 'cumminsislisc', 'cumminsism', 'cumminsisx', 'paccarmx13', 'hino'];
 var ALLOWED_ORIGINS = ['https://codetruck.ru'];
 
 function norm(code) {
