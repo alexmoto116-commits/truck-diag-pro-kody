@@ -177,6 +177,7 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
    гаснет; код критичный - становится красной. Это весь смысл
    страницы одним элементом, поэтому вокруг всё тихо. */
 .scanner{
+  position:relative;
   background:linear-gradient(180deg, rgba(22,32,44,.92), rgba(10,16,24,.94));
   border:1px solid var(--line);border-radius:18px;
   padding:6px 6px 6px 16px;
@@ -185,6 +186,20 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
   backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
   transition:border-color .2s ease, box-shadow .2s ease;
 }
+/* Бейдж «пример»: показывается только пока идёт автодемо в поле
+   ввода (см. startIntroDemo в скрипте) - подписывает, откуда взялся
+   код, которого человек не вводил сам. */
+.scanner .demo-tag{
+  position:absolute;left:16px;top:-9px;
+  background:var(--lamp);color:#1A1206;
+  font-size:11px;font-weight:700;letter-spacing:.04em;
+  padding:2px 9px;border-radius:999px;text-transform:uppercase;
+  opacity:0;transform:translateY(4px);
+  transition:opacity .25s ease, transform .25s ease;
+  pointer-events:none;
+}
+.scanner.demo .demo-tag{opacity:1;transform:translateY(0)}
+[data-theme="light"] .scanner .demo-tag{color:#fff}
 .scanner:focus-within{
   border-color:rgba(255,155,61,.7);
   box-shadow:0 24px 60px -28px rgba(0,0,0,.95), 0 0 0 3px rgba(255,155,61,.15);
@@ -750,7 +765,8 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
       <p class="do" data-i18n="purposeDo">Введите код — или сразу весь список ошибок, как есть: через запятую, пробел или столбиком. Одна поломка тянет за собой пять-шесть кодов — покажем, какой из них причина, а какие пришли следом, и скажем, можно ли ехать.</p>
     </div>
 
-    <div class="scanner">
+    <div class="scanner" id="pf-scanner">
+      <span class="demo-tag" data-i18n="demoTag">пример</span>
       <input id="pf-code" type="text" inputmode="text" autocomplete="off" autofocus
              placeholder="SPN 100 FMI 1" aria-label="Код неисправности">
       <button id="pf-go" type="button" data-i18n="goBtn">Разобрать</button>
@@ -1019,6 +1035,7 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
       purposeStats: '15 500+ кодов неисправностей по 60+ маркам техники и агрегатов',
       purposeDo: 'Введите код — или сразу весь список ошибок, как есть: через запятую, пробел или столбиком. Одна поломка тянет за собой пять-шесть кодов — покажем, какой из них причина, а какие пришли следом, и скажем, можно ли ехать.',
       goBtn: 'Разобрать',
+      demoTag: 'пример',
       brandDefault: '— любая марка —',
       brandGroupVehicles: 'Марки техники',
       brandGroupSystems: 'Системы и агрегаты',
@@ -1107,6 +1124,7 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
       purposeStats: '15,500+ fault codes across 60+ makes and systems',
       purposeDo: 'Enter one code — or the whole fault list exactly as it is: separated by commas, spaces or line breaks. One fault drags five or six codes along — we show which one is the cause and which just followed, and tell you whether it’s safe to drive.',
       goBtn: 'Decode',
+      demoTag: 'example',
       brandDefault: '— any make —',
       brandGroupVehicles: 'Vehicle makes',
       brandGroupSystems: 'Systems & components',
@@ -1195,6 +1213,7 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
       purposeStats: '15.500+ Fehlercodes für über 60 Marken und Systeme',
       purposeDo: 'Geben Sie einen Code ein — oder gleich die ganze Fehlerliste, so wie sie ist: getrennt durch Komma, Leerzeichen oder Zeilenumbruch. Ein Defekt zieht fünf bis sechs Codes nach sich — wir zeigen, welcher die Ursache ist und welche nur gefolgt sind, und sagen, ob die Weiterfahrt sicher ist.',
       goBtn: 'Entschlüsseln',
+      demoTag: 'Beispiel',
       brandDefault: '— beliebige Marke —',
       brandGroupVehicles: 'Fahrzeugmarken',
       brandGroupSystems: 'Systeme & Komponenten',
@@ -1280,6 +1299,7 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
       purposeStats: '15 500+ codes défaut pour plus de 60 marques et systèmes',
       purposeDo: 'Saisissez un code — ou toute la liste des défauts, telle quelle : séparés par des virgules, des espaces ou des retours à la ligne. Une panne entraîne cinq ou six codes — nous montrons lequel est la cause et lesquels ont suivi, et vous disons si vous pouvez rouler.',
       goBtn: 'Décoder',
+      demoTag: 'exemple',
       brandDefault: '— toutes marques —',
       brandGroupVehicles: 'Marques de véhicules',
       brandGroupSystems: 'Systèmes et composants',
@@ -1365,6 +1385,7 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
       purposeStats: 'Más de 15.500 códigos de falla en más de 60 marcas y sistemas',
       purposeDo: 'Introduzca un código — o la lista completa de averías, tal cual: separados por comas, espacios o saltos de línea. Una avería arrastra cinco o seis códigos — le mostramos cuál es la causa y cuáles vinieron detrás, y le decimos si puede circular.',
       goBtn: 'Decodificar',
+      demoTag: 'ejemplo',
       brandDefault: '— cualquier marca —',
       brandGroupVehicles: 'Marcas de vehículos',
       brandGroupSystems: 'Sistemas y componentes',
@@ -1450,6 +1471,7 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
       purposeStats: 'Mais de 15.500 códigos de falha em mais de 60 marcas e sistemas',
       purposeDo: 'Introduza um código — ou a lista completa de avarias, tal como está: separados por vírgulas, espaços ou quebras de linha. Uma avaria arrasta cinco ou seis códigos — mostramos qual é a causa e quais vieram a seguir, e dizemos se pode circular.',
       goBtn: 'Decodificar',
+      demoTag: 'exemplo',
       brandDefault: '— qualquer marca —',
       brandGroupVehicles: 'Marcas de veículos',
       brandGroupSystems: 'Sistemas e componentes',
@@ -1535,6 +1557,7 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
       purposeStats: '15 500+ kodów usterek dla ponad 60 marek i systemów',
       purposeDo: 'Wpisz kod — albo od razu całą listę usterek, tak jak jest: oddzielone przecinkami, spacjami lub nowymi wierszami. Jedna usterka ciągnie za sobą pięć-sześć kodów — pokażemy, który jest przyczyną, a które pojawiły się po nim, i powiemy, czy można jechać.',
       goBtn: 'Rozszyfruj',
+      demoTag: 'przykład',
       brandDefault: '— dowolna marka —',
       brandGroupVehicles: 'Marki pojazdów',
       brandGroupSystems: 'Systemy i podzespoły',
@@ -1620,6 +1643,7 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
       purposeStats: '60+ marka ve sistemde 15.500+ arıza kodu',
       purposeDo: 'Bir kod girin — ya da arıza listesinin tamamını olduğu gibi: virgül, boşluk veya alt satır fark etmez. Tek bir arıza beş-altı kodu peşinden sürükler — hangisinin neden olduğunu, hangilerinin ardından geldiğini gösterir ve yola devam edilip edilemeyeceğini söyleriz.',
       goBtn: 'Çöz',
+      demoTag: 'örnek',
       brandDefault: '— herhangi bir marka —',
       brandGroupVehicles: 'Araç markaları',
       brandGroupSystems: 'Sistemler ve bileşenler',
@@ -1705,6 +1729,7 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
       purposeStats: '60+ ब्रांड और सिस्टम के लिए 15,500+ फॉल्ट कोड',
       purposeDo: 'एक कोड डालें — या खराबियों की पूरी सूची जैसी है वैसी ही: कॉमा, स्पेस या नई लाइन से अलग। एक खराबी पांच-छह कोड अपने साथ लाती है — हम बताएंगे कि कौन सा कारण है और कौन से उसके बाद आए, और यह भी कि गाड़ी चलाना सुरक्षित है या नहीं।',
       goBtn: 'डिकोड करें',
+      demoTag: 'उदाहरण',
       brandDefault: '— कोई भी ब्रांड —',
       brandGroupVehicles: 'वाहन ब्रांड',
       brandGroupSystems: 'सिस्टम और घटक',
@@ -1790,6 +1815,7 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
       purposeStats: '覆盖60+品牌和系统，15,500+条故障代码',
       purposeDo: '输入一个代码 — 或者按原样输入整个故障列表：用逗号、空格或换行分隔。一个故障通常会带出五六个代码 — 我们会指出哪个是根本原因，哪些只是随之而来的，并告诉你是否可以继续行驶。',
       goBtn: '解析',
+      demoTag: '示例',
       brandDefault: '— 任意品牌 —',
       brandGroupVehicles: '车辆品牌',
       brandGroupSystems: '系统与部件',
@@ -2933,6 +2959,77 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
   input.addEventListener('keydown', function(e){ if(e.key === 'Enter') run(); });
   sel.addEventListener('change', fillMid);
   fillMid();
+
+  /* Автодемо на первом экране: пока человек не начал действовать,
+     поле по кругу само печатает и стирает пример кода - показывает,
+     как им пользоваться. Разбор не запускает, ничего не решает за
+     человека - только заполнение. Мгновенно и насовсем отменяется при
+     любом реальном взаимодействии с формой - не спорит с человеком. */
+  var scannerEl = document.getElementById('pf-scanner');
+  function startIntroDemo(){
+    if(qc && qc[1]) return;               // пришли по ссылке-разбору - там уже настоящий ввод
+    if(input.value.trim()) return;        // поле не пустое (автозаполнение браузера и т.п.)
+    if(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    var cancelled = false;
+    var cancelEvents = ['input', 'keydown', 'mousedown', 'focus'];
+    function cancel(e){
+      if(cancelled) return;
+      cancelled = true;
+      scannerEl.classList.remove('demo');
+      /* 'input' - недопечатанный пример уже смешан с настоящим
+         символом в value, трогать поздно. На любом более раннем
+         событии (клик/фокус/нажатие клавиши ДО вставки символа)
+         подчищаем хвост анимации, чтобы реальный ввод не слипся с
+         недопечатанным/недостёртым примером (баг, найденный на
+         практике: клик и печать во время анимации давали
+         "SPN 100 FHELLO"). */
+      if(!e || e.type !== 'input') input.value = '';
+      cancelEvents.forEach(function(ev){ input.removeEventListener(ev, cancel); });
+      sel.removeEventListener('change', cancel);
+      std.removeEventListener('change', cancel);
+      go.removeEventListener('click', cancel);
+    }
+    cancelEvents.forEach(function(ev){ input.addEventListener(ev, cancel); });
+    sel.addEventListener('change', cancel);
+    std.addEventListener('change', cancel);
+    go.addEventListener('click', cancel);
+
+    /* Один пример строкой целиком: полная запись плюс список из двух
+       кодов через запятую в короткой записи (точкой и пробелом) -
+       показывает и «гирлянду» (несколько кодов сразу), и что
+       разделители в запросе не важны - ровно то, что обещано в
+       тексте над полем. */
+    var DEMO_CODE = 'SPN 100 FMI 1, 100.1, 100 1';
+    function typeIn(){
+      if(cancelled) return;
+      var i = 0;
+      (function typeNext(){
+        if(cancelled) return;
+        if(i > DEMO_CODE.length){ setTimeout(eraseOut, 2200); return; }
+        input.value = DEMO_CODE.slice(0, i);
+        i++;
+        setTimeout(typeNext, 75);
+      })();
+    }
+    function eraseOut(){
+      if(cancelled) return;
+      var j = DEMO_CODE.length - 1;
+      (function eraseNext(){
+        if(cancelled) return;
+        if(j < 0){ setTimeout(typeIn, 900); return; }
+        input.value = DEMO_CODE.slice(0, j);
+        j--;
+        setTimeout(eraseNext, 45);
+      })();
+    }
+    ready().then(function(){
+      if(cancelled) return;
+      scannerEl.classList.add('demo');
+      typeIn();
+    }).catch(function(){});
+  }
+  setTimeout(startIntroDemo, 1000);
 
 })();
 </script>
