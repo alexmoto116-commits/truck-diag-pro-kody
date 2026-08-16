@@ -191,6 +191,142 @@ def system_of(spn, name):
             return k
     return 'other'
 
+# ------------------------------------------------------- имя кода из таблиц
+# Больше половины кодов - заводские номера, которых нет ни в стандарте J1939,
+# ни в кураторском списке: у них не было имени, и страница получала заголовок
+# «SPN 1 — SPN 1». В выдаче такой заголовок не значит ничего, а во внутренних
+# ссылках даёт пустой анкор. Само название узла при этом на странице есть -
+# в заводской строке («Иммобилайзер — несовместимый ключ»), просто из неё
+# ничего не извлекали. Ниже - извлечение: берём только то, что написал завод,
+# ничего не досочиняя, и молчим там, где марки называют код по-разному.
+
+DASH = re.compile(u'\\s+[\u2014\u2013-]\\s+|;\\s+')
+COLON = re.compile(u':\\s+')
+PAREN = re.compile(u'\\s+\\(')
+
+# Строка часто начинается с типа неисправности, а узел стоит после него
+# («Short circuit to ground at output stage to Y4 (Valve Select)»): срезаем
+# приставку, иначе узел теряется и код остаётся безымянным.
+LEAD = [re.compile(p, re.I | re.U) for p in [
+    u'^short\\s+circuit\\s+to\\s+(ground|positive|low|high)\\s*(source\\s*)?(at|on)\\s+output\\s+stage\\s+to\\s+',
+    u'^(interruption|open\\s+load|overload)\\s+(at|on)\\s+output\\s+stage\\s+to\\s+',
+    u'^short\\s+circuit\\s+to\\s+(ground|positive)\\s+(at|on)\\s+',
+    u'^error\\s+on\\s+',
+    u'^\u043d\u0435\u0438\u0441\u043f\u0440\u0430\u0432\u043d\u043e\u0441\u0442\u044c\\s+\u0432\\s+\u0446\u0435\u043f\u0438\\s+',
+    u'^\u043e\u0448\u0438\u0431\u043a\u0430\\s+\u0432\\s+\u0446\u0435\u043f\u0438\\s+',
+]]
+
+# Обрывки, которые сами по себе не значат ничего.
+GENERIC = set(u'''j1939 can ecu \u044d\u0431\u0443 abs ebs pto eeprom lin error fault failure signal
+\u0441\u0438\u0433\u043d\u0430\u043b \u043e\u0448\u0438\u0431\u043a\u0430 \u043d\u0435\u0438\u0441\u043f\u0440\u0430\u0432\u043d\u043e\u0441\u0442\u044c \u0434\u0430\u0442\u0447\u0438\u043a \u043a\u043b\u0430\u043f\u0430\u043d \u0432\u044b\u0445\u043e\u0434 \u0432\u0445\u043e\u0434 \u0431\u043b\u043e\u043a \u0440\u0435\u043b\u0435 \u043c\u043e\u0434\u0443\u043b\u044c \u0446\u0435\u043f\u044c'''.split())
+
+# Фразы про ТИП неисправности, а не про узел: как имя кода они бесполезны -
+# «SPN 85 — Замыкание на массу» не лучше, чем «SPN 85».
+JUNK_RE = [re.compile(p, re.I | re.U) for p in [
+    u'^(\u043a\u043e\u0440\u043e\u0442\u043a\u043e\u0435\\s+)?\u0437\u0430\u043c\u044b\u043a\u0430\u043d\u0438\u0435\\b.*',
+    u'^\u043e\u0431\u0440\u044b\u0432\\b.*',
+    u'^\u043a\u0437\\b.*',
+    u'^\u043d\u0430\u043f\u0440\u044f\u0436\u0435\u043d\u0438\u0435\\s+(\u0432\u044b\u0448\u0435|\u043d\u0438\u0436\u0435|\u0432\u043d\u0435|\u0441\u043b\u0438\u0448\u043a\u043e\u043c)\\b.*',
+    u'^\u0442\u043e\u043a\\s+(\u0432\u044b\u0448\u0435|\u043d\u0438\u0436\u0435|\u0432\u043d\u0435)\\b.*',
+    u'^(\u043d\u0435\u0442|\u043e\u0442\u0441\u0443\u0442\u0441\u0442\u0432\u0443\u0435\u0442|\u043e\u0442\u0441\u0443\u0442\u0441\u0442\u0432\u0443\u044e\u0442|\u043f\u043e\u0442\u0435\u0440\u044f\u043d|\u043f\u043e\u0442\u0435\u0440\u044f\u043d\u0430)\\s+(\u0441\u0438\u0433\u043d\u0430\u043b\\w*|\u0441\u0432\u044f\u0437\u044c|\u0441\u0432\u044f\u0437\u0438|\u0434\u0430\u043d\u043d\\w+|\u0441\u043e\u043e\u0431\u0449\u0435\u043d\u0438\\w*)\\b.*',
+    u'^\u0441\u0438\u0433\u043d\u0430\u043b\\s+(\u043e\u0442\u0441\u0443\u0442\u0441\u0442\u0432\u0443\u0435\u0442|\u043f\u043e\u0442\u0435\u0440\u044f\u043d|\u0432\u043d\u0435|\u043d\u0435\u0434\u043e\u0441\u0442\u043e\u0432\u0435\u0440\u043d\\w*|\u043d\u0435\u0432\u0435\u0440\u043d\\w*)\\b.*',
+    u'^\u043e\u0448\u0438\u0431\u043a\u0430\\s+(\u0441\u0438\u0433\u043d\u0430\u043b\u0430|\u0434\u0430\u043d\u043d\u044b\u0445|\u0434\u043e\u0441\u0442\u043e\u0432\u0435\u0440\u043d\u043e\u0441\u0442\u0438|\u0441\u0432\u044f\u0437\u0438|\u0447\u0442\u0435\u043d\u0438\u044f|\u0437\u0430\u043f\u0438\u0441\u0438)\\b.*',
+    u'^(\u043d\u0435\u0434\u043e\u0441\u0442\u043e\u0432\u0435\u0440\u043d\\w*|\u043d\u0435\u0434\u043e\u043f\u0443\u0441\u0442\u0438\u043c\\w*|\u043d\u0435\u0432\u0435\u0440\u043d\\w*|\u043d\u0435\u043a\u043e\u0440\u0440\u0435\u043a\u0442\u043d\\w*|\u043d\u0435\u043f\u0440\u0430\u0432\u0434\u043e\u043f\u043e\u0434\u043e\u0431\u043d\\w*)\\b.*',
+    u'^\u0434\u0430\u043d\u043d\u044b\u0435\\s+(\u0432\u044b\u0448\u0435|\u043d\u0438\u0436\u0435|\u0432\u043d\u0435|\u043d\u0435\u0434\u043e\u0441\u0442\u043e\u0432\u0435\u0440\u043d\\w*)\\b.*',
+    u'^\u0437\u043d\u0430\u0447\u0435\u043d\u0438\u0435\\s+(\u0432\u044b\u0448\u0435|\u043d\u0438\u0436\u0435|\u0432\u043d\u0435)\\b.*',
+    u'^(\u0441\u043b\u0438\u0448\u043a\u043e\u043c|\u043f\u0440\u0435\u0432\u044b\u0448\u0435\u043d\\w*|\u0438\u0441\u0442\u0435\u0447\u0435\u043d\u0438\u0435)\\b.*',
+    u'^\u043d\u0435\\s+(\u0441\u043a\u043e\u043d\u0444\u0438\u0433\u0443\u0440\u0438\u0440\u043e\u0432\u0430\u043d\\w*|\u043e\u0442\u043a\u0430\u043b\u0438\u0431\u0440\u043e\u0432\u0430\u043d\\w*|\u043e\u043f\u0440\u0435\u0434\u0435\u043b\\w*)\\b.*',
+    u'^(short|open)[-\\s]+circuit\\b.*',
+    u'^no\\s+(signal|fault|data|message)\\b.*',
+    u'^(signal|voltage|current)\\s+(too|above|below|out|not)\\b.*',
+    u'^(invalid|implausible|erroneous|missing|unknown)\\b.*',
+    u'^\\W*$',
+]]
+
+
+def _norm(c):
+    return re.sub(u'[^0-9a-z\u0430-\u044f]+', u'', (c or u'').lower())
+
+
+def component_of(text, short=True):
+    """Первая, «узловая» половина заводской строки: до тире/двоеточия/скобки."""
+    t = re.sub(u'\\*\\*', u'', text or u'').strip().strip(u'"\u00ab\u00bb\u201c\u201d\u201e\u26a0 ')
+    for r in LEAD:
+        t = r.sub(u'', t, count=1)
+    m = DASH.search(t)
+    if m:
+        t = t[:m.start()]
+    # Двоеточие и скобку режем, только если слева осталось что-то осмысленное:
+    # у «J1939: нет сообщения VDHR» и «Y4 (Valve Select)» весь смысл справа.
+    for rx in (COLON, PAREN):
+        m = rx.search(t)
+        if m and len(t[:m.start()].strip()) >= 12:
+            t = t[:m.start()]
+    t = re.split(u'\\.\\s', t)[0]
+    # Хвост после запятой обычно уже симптом, а не узел. Но у Meritor именно
+    # он различает колёса («ось 1, левое колесо»), поэтому длинный вариант
+    # сохраняем и берём его, когда короткий совпал с чужим кодом.
+    if short and len(t) > 45 and u',' in t:
+        t = t.split(u',')[0]
+    return t.strip(u' .,;:\u2014\u2013-')
+
+
+def usable_name(c):
+    if not c or len(c) < 6 or len(c) > 70:
+        # Длинная строка без тире и двоеточия - это проза заводского описания,
+        # а не название узла: резать её по букве значит выдумать заголовок.
+        return False
+    if not re.search(u'[A-Za-z\u0410-\u042f\u0430-\u044f]', c):
+        return False
+    if _norm(c) in GENERIC:
+        return False
+    return not any(r.match(c) for r in JUNK_RE)
+
+
+def brand_pick(rows, short=True):
+    """Самый частый пригодный узел у одной марки (при равенстве - по младшему FMI)."""
+    cnt, first, order = {}, {}, []
+    for f, txt in sorted(rows):
+        c = component_of(txt, short)
+        if usable_name(c):
+            k = _norm(c)
+            cnt[k] = cnt.get(k, 0) + 1
+            if k not in first:
+                first[k] = c
+                order.append(k)
+    if not order:
+        return None
+    return first[max(order, key=lambda k: (cnt[k], -order.index(k)))]
+
+
+def derive_name(makes, short=True):
+    """Имя SPN: у одной марки - её узел, у нескольких - только если совпали.
+    Разные названия у разных марок - это не имя кода, а разные коды под одним
+    номером: тогда честнее оставить страницу без имени, чем выбрать одно."""
+    picks = [p for p in (brand_pick(makes[b], short) for b in sorted(makes)) if p]
+    if not picks or len({_norm(p) for p in picks}) > 1:
+        return None
+    return picks[0][0].upper() + picks[0][1:]
+
+
+def derive_names(per_spn, spns):
+    """Имена пачкой: одно имя на двух кодах - тот же дубль заголовка, от
+    которого и уходим, поэтому у совпавших берём неурезанный вариант."""
+    names = {}
+    for s in spns:
+        n = derive_name(per_spn[s])
+        if n:
+            names[s] = n
+    seen = {}
+    for n in names.values():
+        seen[_norm(n)] = seen.get(_norm(n), 0) + 1
+    for s, n in list(names.items()):
+        if seen[_norm(n)] > 1:
+            long_n = derive_name(per_spn[s], short=False)
+            if long_n:
+                names[s] = long_n
+    return names
+
 # ---------------------------------------------------------------- вывод
 
 def esc(t):
@@ -389,14 +525,41 @@ def build():
     # страница нужна там, где есть заводской разбор либо кураторская важность
     keep = sorted(set(per_spn) | set(int(k) for k in spn_cur))
 
-    def name_of(spn):
+    # Имя из стандарта/кураторского списка - и только оно идёт в классификатор
+    # системы: выведенное из заводской строки имя туда пускать нельзя, иначе
+    # «питание ручки» у ZF попадёт в электропитание и страница получит чужой
+    # блок «что будет, если ехать дальше». Заголовкам оно годится, советам нет.
+    def std_name(spn):
         s = str(spn)
-        return spn_cur.get(s) or universal.get(s) or ('SPN ' + s)
+        return spn_cur.get(s) or universal.get(s) or u''
+
+    derived = derive_names(per_spn, [s for s in keep if not std_name(s) and s in per_spn])
+
+    def name_of(spn):
+        return std_name(spn) or derived.get(spn) or u''
+
+    # Анкор без имени («SPN 4099 — SPN 4099») не говорит ни человеку, ни
+    # поиску ничего: там, где имени нет, оставляем один номер.
+    def code_link(spn, href):
+        nm = name_of(spn)
+        return (u'<li><a href="%s"><span class="mono">SPN %d</span>%s</a></li>'
+                % (href, spn, (u' — ' + esc(nm)) if nm else u''))
+
+    def brand_list(spn, limit=0):
+        names = [brand_names.get(b, b) for b in
+                 sorted(per_spn.get(spn, {}), key=lambda x: brand_names.get(x, x))]
+        if not names:
+            return u''
+        if limit and len(names) > limit:
+            return u', '.join(names[:limit]) + u' и др.'
+        if len(names) == 1:
+            return names[0]
+        return u', '.join(names[:-1]) + u' и ' + names[-1]
 
     # соседи по системе - для перелинковки
     by_sys = {}
     for spn in keep:
-        by_sys.setdefault(system_of(spn, name_of(spn)), []).append(spn)
+        by_sys.setdefault(system_of(spn, std_name(spn)), []).append(spn)
 
     out_dir = os.path.join(ROOT, 'kody')
     for f in glob.glob(os.path.join(out_dir, 'spn-*.html')):
@@ -405,7 +568,7 @@ def build():
     written = []
     for spn in keep:
         name = name_of(spn)
-        sys_key = system_of(spn, name)
+        sys_key = system_of(spn, std_name(spn))
         makes = per_spn.get(spn, {})
 
         # Вердикт и риск нужны заранее - они уходят в FAQPage в <head>,
@@ -421,14 +584,32 @@ def build():
                        u'Если вместе с ним горит красная лампа или падает мощность — '
                        u'останавливайтесь.')
 
-        page_name = u'SPN %d — %s' % (spn, name)
+        # Заводской номер вне стандарта ищут вместе с маркой («spn 4099 knorr»),
+        # поэтому у таких кодов марка стоит прямо в заголовке; у стандартных
+        # SPN она там лишняя - имя узла и так однозначно.
+        brands_short, brands_all = brand_list(spn, 3), brand_list(spn)
+        if std_name(spn):
+            page_name = u'SPN %d — %s' % (spn, name)
+            desc = (u'SPN %d (%s): расшифровка по стандарту J1939 и заводским таблицам марок. '
+                    u'Что означает код и можно ли ехать.' % (spn, name))
+        elif name:
+            page_name = u'SPN %d — %s (%s)' % (spn, name, brands_short)
+            desc = (u'SPN %d (%s) у %s: что означает заводской код, значения FMI '
+                    u'и можно ли ехать.' % (spn, name, brands_short))
+        elif brands_short:
+            page_name = u'SPN %d — заводской код %s' % (spn, brands_short)
+            desc = (u'SPN %d у %s: как этот заводской код формулирует завод, что означают '
+                    u'значения FMI и можно ли ехать.' % (spn, brands_short))
+        else:
+            page_name = u'SPN %d' % spn
+            desc = (u'SPN %d: что означает код по стандарту J1939, значения FMI '
+                    u'и можно ли ехать.' % spn)
         title = page_name + u' | codetruck.ru'
-        desc = (u'SPN %d (%s): расшифровка по стандарту J1939 и заводским таблицам марок. '
-                u'Что означает код и можно ли ехать.' % (spn, name))
         canon = '%s/kody/spn-%d.html' % (SITE, spn)
 
         faq = [{'@type': 'Question',
-                'name': u'Можно ли ехать с кодом SPN %d (%s)?' % (spn, name),
+                'name': (u'Можно ли ехать с кодом SPN %d (%s)?' % (spn, name) if name
+                         else u'Можно ли ехать с кодом SPN %d?' % spn),
                 'acceptedAnswer': {'@type': 'Answer', 'text': re.sub(r'</?b>', '', verdict)}}]
         risk = RISK.get(sys_key)
         if risk:
@@ -444,13 +625,19 @@ def build():
 
         body = [HEAD.format(title=esc(title), desc=esc(desc), canon=canon,
                             ogtitle=esc(page_name), mid=METRIKA_ID, ld=ld)]
-        body.append(u'<h1>SPN %d — %s</h1>' % (spn, esc(name)))
+        body.append(u'<h1>%s</h1>' % esc(page_name))
 
-        if makes:
+        if makes and std_name(spn):
+            # Марки называем поимённо: раньше здесь стояло «у 3 марок», и самые
+            # нужные человеку слова - названия марок - на странице не звучали.
             body.append(u'<p class="sub">Код J1939 SPN %d. Ниже — как эту неисправность '
-                        u'формулируют на заводе у %d %s, и что вторая половина кода (FMI) '
-                        u'означает по стандарту.</p>'
-                        % (spn, len(makes), u'марки' if len(makes) == 1 else u'марок'))
+                        u'формулируют на заводе у %s, и что вторая половина кода (FMI) '
+                        u'означает по стандарту.</p>' % (spn, esc(brands_all)))
+        elif makes:
+            body.append(u'<p class="sub">SPN %d — заводской номер вне стандартной таблицы '
+                        u'J1939: у разных марок под ним может быть разное. Ниже — как его '
+                        u'формулируют у %s, и что означает вторая половина кода (FMI).</p>'
+                        % (spn, esc(brands_all)))
         else:
             body.append(u'<p class="sub">Код J1939 SPN %d. Заводской расшифровки по маркам '
                         u'для него в справочнике нет — ниже стандартное значение FMI.</p>' % spn)
@@ -485,9 +672,7 @@ def build():
         # соседи по узлу: и человеку полезно, и роботу есть куда идти
         neigh = neighbors_of(spn, by_sys.get(sys_key, []))
         if neigh:
-            links = ''.join(
-                u'<li><a href="spn-%d.html"><span class="mono">SPN %d</span> — %s</a></li>'
-                % (s, s, esc(name_of(s))) for s in neigh)
+            links = ''.join(code_link(s, 'spn-%d.html' % s) for s in neigh)
             body.append(u'<section><h2>Рядом: %s</h2><ul class="near">%s</ul></section>'
                         % (esc(SYS_TITLE.get(sys_key, SYS_TITLE['other'])), links))
 
@@ -510,9 +695,7 @@ def build():
         return spn in set(db['urgentSpn']) or bool(fmis & urgent_fmi)
 
     def code_links(spns, prefix='../kody/'):
-        return ''.join(
-            u'<li><a href="%sspn-%d.html"><span class="mono">SPN %d</span> — %s</a></li>'
-            % (prefix, s, s, esc(name_of(s))) for s in spns)
+        return ''.join(code_link(s, '%sspn-%d.html' % (prefix, s)) for s in spns)
 
     def page(path, title, desc, h1, sub, sections, extra_head=''):
         canon = '%s/%s' % (SITE, path)
