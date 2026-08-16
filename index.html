@@ -2059,6 +2059,26 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
     return t.toUpperCase().replace(/\s+/g, ' ').trim();
   }
 
+  /* SPN/FMI почти всегда чисто десятичные (стандарт J1939), но у
+     некоторых марок (Ford F-MAX/Ecotorq) заводская таблица использует
+     собственную буквенно-цифровую нумерацию (например "06F", "12DC") -
+     это не HEX-запись десятичного SPN (проверено: не совпадает по
+     смыслу с универсальной J1939-таблицей), а отдельная система марки.
+     Что распознаётся как число - остаётся числом (нулевой риск для
+     всех остальных марок); буквенные коды остаются строкой и просто не
+     участвуют в группировке по системе/срочности по номеру (там есть
+     резервный разбор по словам в тексте) - это лучше, чем не находиться
+     вовсе. */
+  function codeVal(s){
+    // Ведущий ноль в многозначном числе - примета марок вроде Ford,
+    // где это несущий часть формата код ("084"), а не десятичное
+    // число со стилистическим нулём спереди: parseInt его бы съел
+    // ("084" -> 84) и сломал поиск по таблице марки, где ключ хранится
+    // как есть. Настоящие J1939 SPN/FMI ведущих нулей не пишут.
+    if(/^0\d+$/.test(s)) return s;
+    return /^\d+$/.test(s) ? parseInt(s, 10) : s;
+  }
+
   function parseAuto(t){
     var up = normCode(t);
     // Панель показывает код вместе с порядковым номером ошибки
@@ -2067,12 +2087,12 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
     // необязательно ("97 FMI 3" пишут чаще, чем полную форму), а
     // между числом и словом FMI допускаем что угодно или ничего -
     // код нередко вводят слитно: "97FMI3".
-    var m = up.match(/(?:SPN\s*[:\-]?\s*)?(\d{1,6})\D{0,20}FMI\s*[:\-]?\s*(\d{1,2})/);
-    if(!m) m = up.match(/(\d{1,6})\s*[\/\-.,]\s*(\d{1,2})(?!\d)/);
-    if(!m) m = up.match(/^(\d{1,6})\s+(\d{1,2})$/);
-    if(m) return {spn:parseInt(m[1],10), fmi:parseInt(m[2],10)};
+    var m = up.match(/(?:SPN\s*[:\-]?\s*)?([0-9A-F]{1,6})\D{0,20}FMI\s*[:\-]?\s*([0-9A-F]{1,3})/);
+    if(!m) m = up.match(/([0-9A-F]{1,6})\s*[\/\-.,]\s*([0-9A-F]{1,3})(?![0-9A-F])/);
+    if(!m) m = up.match(/^([0-9A-F]{1,6})\s+([0-9A-F]{1,3})$/);
+    if(m) return {spn:codeVal(m[1]), fmi:codeVal(m[2])};
     var only = up.match(/^SPN\s*[:\-]?\s*(\d{1,6})$/) || up.match(/^(\d{1,6})$/);
-    if(only) return {spn:parseInt(only[1],10), fmi:null};
+    if(only) return {spn:codeVal(only[1]), fmi:null};
     // Дилерские коды в справочнике очень разной формы: P2BA7, B000101,
     // 00100, "AA 9999", 9A9A99. Общее у них одно - короткий буквенно-
     // цифровой набор. Чисто цифровые сюда не берём: это SPN.
@@ -2088,12 +2108,12 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
     if(standard === 'pcode') return {pcode:normCode(t)};
     if(standard === 'spnfmi'){
       var up = normCode(t);
-      var m = up.match(/(?:SPN\s*[:\-]?\s*)?(\d{1,6})\D{0,20}FMI\s*[:\-]?\s*(\d{1,2})/)
-           || up.match(/(\d{1,6})\s*[\/\-.,]\s*(\d{1,2})(?!\d)/)
-           || up.match(/^(\d{1,6})\s+(\d{1,2})$/);
-      if(m) return {spn:parseInt(m[1],10), fmi:parseInt(m[2],10)};
+      var m = up.match(/(?:SPN\s*[:\-]?\s*)?([0-9A-F]{1,6})\D{0,20}FMI\s*[:\-]?\s*([0-9A-F]{1,3})/)
+           || up.match(/([0-9A-F]{1,6})\s*[\/\-.,]\s*([0-9A-F]{1,3})(?![0-9A-F])/)
+           || up.match(/^([0-9A-F]{1,6})\s+([0-9A-F]{1,3})$/);
+      if(m) return {spn:codeVal(m[1]), fmi:codeVal(m[2])};
       var only = up.match(/^SPN\s*[:\-]?\s*(\d{1,6})$/) || up.match(/^(\d{1,6})$/);
-      if(only) return {spn:parseInt(only[1],10), fmi:null};
+      if(only) return {spn:codeVal(only[1]), fmi:null};
       return {bad:true};
     }
     return parseAuto(t);
@@ -2300,9 +2320,9 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
      приходит и через запятую, и в столбик, и с номерами строк. */
   function parseAll(raw){
     var up = normCode(raw), out = [], seen = {}, m;
-    var re = /(?:SPN\s*[:\-]?\s*)?(\d{1,6})\s*(?:\D{0,12}?FMI\s*[:\-]?\s*|[\/\-.,]\s*)(\d{1,2})(?!\d)/g;
+    var re = /(?:SPN\s*[:\-]?\s*)?([0-9A-F]{1,6})\s*(?:\D{0,12}?FMI\s*[:\-]?\s*|[\/\-.,]\s*)([0-9A-F]{1,3})(?![0-9A-F])/g;
     while((m = re.exec(up))){
-      var spn = parseInt(m[1], 10), fmi = parseInt(m[2], 10), k = spn + '.' + fmi;
+      var spn = codeVal(m[1]), fmi = codeVal(m[2]), k = spn + '.' + fmi;
       if(!seen[k]){ seen[k] = 1; out.push({spn:spn, fmi:fmi}); }
     }
     return out;
@@ -2834,9 +2854,9 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
      человек со стороны, и никаких параметров вида он не ждёт.
      Марку ставим после загрузки справочника - до неё в списке
      марок ещё пусто. */
-  var qc = /[?&]c=([\d,\-]+)/.exec(location.search);
+  var qc = /[?&]c=([0-9A-Fa-f,\-]+)/.exec(location.search);
   if(qc){
-    var pairs = qc[1].split(',').filter(function(x){ return /^\d{1,6}-\d{1,2}$/.test(x); });
+    var pairs = qc[1].split(',').filter(function(x){ return /^[0-9A-Fa-f]{1,6}-[0-9A-Fa-f]{1,3}$/.test(x); });
     if(pairs.length){
       ready().then(function(){
         var qb = /[?&]b=([a-z]+)/.exec(location.search);
