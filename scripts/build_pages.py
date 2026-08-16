@@ -758,8 +758,14 @@ def build():
         extra.append(page(path, title_h + u' | codetruck.ru', desc, h1,
                           esc(intro), secs))
 
-    # sitemap: главная плюс только те страницы, что реально существуют
+    # sitemap: главная плюс только те страницы, что реально существуют.
+    # Языковые версии главной (codetruck.ru/en/ и т.д.) собирает отдельный
+    # scripts/build_lang_pages.py - список кодов языков продублирован
+    # здесь же (не тянуть импортом ради 9 строк), держать в согласии с
+    # LANGS в том файле.
+    LANG_HOMEPAGES = ['en', 'de', 'fr', 'es', 'pt', 'pl', 'tr', 'hi', 'zh']
     urls = ([SITE + '/']
+            + ['%s/%s/' % (SITE, lang) for lang in LANG_HOMEPAGES]
             + ['%s/%s' % (SITE, p) for p in extra]
             + ['%s/kody/spn-%d.html' % (SITE, s) for s in written])
     today = date.today().isoformat()
