@@ -27,6 +27,16 @@ def load_db():
     b64 = re.search(r"b64='([^']+)'", raw).group(1)
     return json.loads(base64.b64decode(b64).decode('utf-8'))
 
+# Дилерские коды (pcode-source/pcode.json) не в git - см. .gitignore: полную
+# таблицу отдавать одним файлом нельзя, для этого и сделан Worker, который
+# отдаёт по одному коду за раз. Если файла нет (чужой чекаут, CI), просто
+# не строим витрины дилерских марок - остальная сборка не должна падать.
+def load_pcode():
+    path = os.path.join(ROOT, 'pcode-source', 'pcode.json')
+    if not os.path.isfile(path):
+        return {}
+    return json.loads(io.open(path, encoding='utf-8').read())
+
 # ------------------------------------------------------- система по SPN
 # Та же раскладка, что в index.html: она решает, какие коды показывать
 # в блоке «рядом» - человеку с горящей лампой полезны соседи по узлу,
@@ -193,6 +203,21 @@ def rich(t):
     t = re.sub(r'\*\*(.+?)\*\*', r'<b>\1</b>', t)
     return t
 
+
+def ld_script(obj):
+    return u'<script type="application/ld+json">%s</script>' % json.dumps(obj, ensure_ascii=False)
+
+
+# Хлебные крошки одного уровня: сайт плоский, у страницы кода/марки/
+# симптома нет промежуточной страницы-раздела - только "← поиск по коду"
+# на главную, поэтому и разметка честно в два уровня, без выдуманной
+# иерархии.
+def breadcrumb_ld(name, canon):
+    return {'@context': 'https://schema.org', '@type': 'BreadcrumbList', 'itemListElement': [
+        {'@type': 'ListItem', 'position': 1, 'name': 'codetruck.ru', 'item': SITE + '/'},
+        {'@type': 'ListItem', 'position': 2, 'name': name, 'item': canon},
+    ]}
+
 HEAD = u"""<!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -215,7 +240,7 @@ HEAD = u"""<!DOCTYPE html>
 </script>
 <noscript><div><img src="https://mc.yandex.ru/watch/{mid}" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
 <!-- /Yandex.Metrika counter -->
-<script type="application/ld+json">{ld}</script>
+{ld}
 <style>
 body{{margin:0;background:#05070A;color:#EAF0F7;font-family:"Segoe UI Variable Display","Segoe UI",Inter,system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}}
 .w{{max-width:680px;margin:0 auto;padding:36px 20px 70px}}
@@ -280,8 +305,43 @@ def fmi_table(rows, urgent_fmi):
     return ''.join(out)
 
 
+# Дилерский код может быть числом ("10004"), точечным парным ("100.1", как
+# у Caterpillar) или буквенно-цифровым ("P0122", "C1312"). Числовые сортируем
+# по значению, остальные - по алфавиту следом за ними.
+def code_sort_key(code):
+    try:
+        return (0, float(code))
+    except ValueError:
+        return (1, code)
+
+
+def pcode_table(rows):
+    out = ['<table><tr><th>Код</th><th>Расшифровка</th></tr>']
+    for code, text in rows:
+        out.append('<tr><td class="fmi">%s</td><td>%s</td></tr>' % (esc(code), rich(text)))
+    out.append('</table>')
+    return ''.join(out)
+
+
+# Витрина, не вся база: страница даёт вкус (равномерная выборка по всей
+# отсортированной таблице, не только первые коды) и отправляет за
+# остальным в поиск. Публиковать таблицу целиком нельзя - см. load_pcode().
+def sample_rows(rows, n=15):
+    if len(rows) <= n:
+        return rows
+    step = len(rows) / float(n)
+    idxs, seen = [], set()
+    for i in range(n):
+        idx = int(i * step)
+        if idx not in seen:
+            seen.add(idx)
+            idxs.append(idx)
+    return [rows[i] for i in idxs]
+
+
 def build():
     db = load_db()
+    pcode = load_pcode()
     universal, spn_cur = db['universal'], db['spn']
     brands, brand_names = db['brands'], db['brandNames']
     urgent_fmi = set(db['urgentFmi'])
@@ -316,19 +376,45 @@ def build():
     for spn in keep:
         name = name_of(spn)
         sys_key = system_of(spn, name)
+        makes = per_spn.get(spn, {})
+
+        # Вердикт и риск нужны заранее - они уходят в FAQPage в <head>,
+        # а не только в тело страницы ниже.
+        seen_all_early = sorted({f for rows in makes.values() for f, _ in rows})
+        stop = spn in set(db['urgentSpn']) or bool(set(seen_all_early) & urgent_fmi)
+        if stop:
+            verdict = (u'<b>По этому коду ехать нельзя.</b> Он относится к неисправностям, '
+                       u'при которых остановиться нужно при первой безопасной возможности: '
+                       u'дальше поедет дороже.')
+        else:
+            verdict = (u'<b>Обычно ехать можно</b>, но код нужно показать на ближайшем ТО. '
+                       u'Если вместе с ним горит красная лампа или падает мощность — '
+                       u'останавливайтесь.')
+
         title = u'SPN %d — %s — что означает код неисправности | codetruck.ru' % (spn, name)
         desc = (u'SPN %d (%s): расшифровка по стандарту J1939 и заводским таблицам марок. '
                 u'Что означает код и можно ли ехать.' % (spn, name))
         canon = '%s/kody/spn-%d.html' % (SITE, spn)
-        ld = json.dumps({'@context': 'https://schema.org', '@type': 'TechArticle',
-                         'headline': title, 'description': desc,
-                         'url': canon}, ensure_ascii=False)
+
+        faq = [{'@type': 'Question',
+                'name': u'Можно ли ехать с кодом SPN %d (%s)?' % (spn, name),
+                'acceptedAnswer': {'@type': 'Answer', 'text': re.sub(r'</?b>', '', verdict)}}]
+        risk = RISK.get(sys_key)
+        if risk:
+            _, _, happens, ends, _ = risk
+            faq.append({'@type': 'Question',
+                        'name': u'Что будет, если ехать дальше с кодом SPN %d?' % spn,
+                        'acceptedAnswer': {'@type': 'Answer', 'text': happens + u' ' + ends}})
+
+        ld = (ld_script({'@context': 'https://schema.org', '@type': 'TechArticle',
+                         'headline': title, 'description': desc, 'url': canon})
+              + ld_script(breadcrumb_ld(u'SPN %d — %s' % (spn, name), canon))
+              + ld_script({'@context': 'https://schema.org', '@type': 'FAQPage', 'mainEntity': faq}))
 
         body = [HEAD.format(title=esc(title), desc=esc(desc), canon=canon,
                             mid=METRIKA_ID, ld=ld)]
         body.append(u'<h1>SPN %d — %s</h1>' % (spn, esc(name)))
 
-        makes = per_spn.get(spn, {})
         if makes:
             body.append(u'<p class="sub">Код J1939 SPN %d. Ниже — как эту неисправность '
                         u'формулируют на заводе у %d %s, и что вторая половина кода (FMI) '
@@ -356,18 +442,8 @@ def build():
             body.append(u'<section><h2>Частые значения FMI</h2>%s</section>'
                         % fmi_table([(f, db['fmi'][str(f)]) for f in common], urgent_fmi))
 
-        # Главное, зачем код вообще ищут: ехать или вставать. Ответ свой
-        # для каждого SPN - берём его из тех же списков, что и поиск.
-        seen_all = sorted({f for rows in makes.values() for f, _ in rows})
-        stop = spn in set(db['urgentSpn']) or bool(set(seen_all) & urgent_fmi)
-        if stop:
-            verdict = (u'<b>По этому коду ехать нельзя.</b> Он относится к неисправностям, '
-                       u'при которых остановиться нужно при первой безопасной возможности: '
-                       u'дальше поедет дороже.')
-        else:
-            verdict = (u'<b>Обычно ехать можно</b>, но код нужно показать на ближайшем ТО. '
-                       u'Если вместе с ним горит красная лампа или падает мощность — '
-                       u'останавливайтесь.')
+        # Вердикт (verdict) и признак stop уже посчитаны выше, до <head> - они
+        # нужны были заранее для FAQPage.
         body.append(u'<section><h2>Можно ли ехать</h2><p>%s</p></section>' % verdict)
         body.append(risk_section(sys_key))
 
@@ -409,9 +485,9 @@ def build():
 
     def page(path, title, desc, h1, sub, sections, extra_head=''):
         canon = '%s/%s' % (SITE, path)
-        ld = json.dumps({'@context': 'https://schema.org', '@type': 'TechArticle',
-                         'headline': title, 'description': desc, 'url': canon},
-                        ensure_ascii=False)
+        ld = (ld_script({'@context': 'https://schema.org', '@type': 'TechArticle',
+                         'headline': title, 'description': desc, 'url': canon})
+              + ld_script(breadcrumb_ld(h1, canon)))
         body = [HEAD.format(title=esc(title), desc=esc(desc), canon=canon,
                             mid=METRIKA_ID, ld=ld)]
         body.append(u'<h1>%s</h1>' % esc(h1))
@@ -482,6 +558,7 @@ def build():
         for f in glob.glob(os.path.join(brand_dir, '*.html')):
             os.remove(f)
 
+    marki_built = set()
     for b in sorted(brands, key=lambda x: brand_names.get(x, x)):
         bn = brand_names.get(b, b)
         mine = sorted({int(k.split('.')[0]) for k in brands[b]
@@ -489,6 +566,7 @@ def build():
         mine = [s for s in mine if s in set(written)]
         if not mine:
             continue
+        marki_built.add(b)
         stop_codes = [s for s in mine if is_stop(s, per_spn.get(s, {}))][:12]
         rest = [s for s in mine if s not in stop_codes][:14]
 
@@ -527,6 +605,40 @@ def build():
         built = mid_brand_page(b, MID_MODULE_NAMES[b])
         if built:
             extra.append(built)
+            marki_built.add(b)
+
+    # --- дилерские марки без своей SPN/FMI-таблицы (Scania, Caterpillar,
+    # Cummins и т.п.) ------------------------------------------------
+    # Полную таблицу публиковать нельзя (см. load_pcode) - вместо неё
+    # карточка марки: сколько кодов есть и выборка из ~15 примеров,
+    # за остальным - в поиск на главной с фильтром по марке.
+    for b in sorted(pcode, key=lambda x: brand_names.get(x, x)):
+        if b in marki_built:
+            continue
+        bn = brand_names.get(b)
+        if not bn:
+            continue
+        rows = sorted(
+            ((code, (entry.get('ru') or entry.get('en') or '')) for code, entry in pcode[b].items()
+             if entry.get('ru') or entry.get('en')),
+            key=lambda r: code_sort_key(r[0]))
+        if not rows:
+            continue
+
+        secs = [u'<section><h2>Примеры кодов %s</h2>%s</section>'
+                % (esc(bn), pcode_table(sample_rows(rows)))]
+
+        path = 'marki/%s.html' % b
+        title = u'Коды ошибок %s — расшифровка неисправностей | codetruck.ru' % bn
+        desc = (u'Расшифровка кодов неисправностей %s: %d дилерских кодов в базе, '
+                u'с описанием на русском. Введите свой код на codetruck.ru.'
+                % (bn, len(rows)))
+        sub = (u'В базе разобрано <b>%d дилерских кодов %s</b> — свой заводской формат, '
+               u'не входит в стандарт J1939 (SPN/FMI). Несколько примеров ниже; '
+               u'свой код — в поиск на главной, там же можно выбрать марку «%s» из списка.'
+               % (len(rows), esc(bn), esc(bn)))
+        extra.append(page(path, title, desc, u'Коды ошибок %s' % bn, sub, secs))
+        marki_built.add(b)
 
     # --- по симптомам ----------------------------------------------
     sym_dir = os.path.join(ROOT, 'problemy')
