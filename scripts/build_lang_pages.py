@@ -23,23 +23,30 @@ OG_LOCALE = {'en': 'en_US', 'de': 'de_DE', 'fr': 'fr_FR', 'es': 'es_ES', 'pt': '
              'pl': 'pl_PL', 'tr': 'tr_TR', 'hi': 'hi_IN', 'zh': 'zh_CN'}
 
 
-def extract_i18n():
+# I18N, RISK_TX, FMI_I18N в app.js - объектные литералы JS (ключи без
+# кавычек), а не JSON, поэтому читаем их через eval в Node, а не парсером.
+# Границу объекта ищем счётчиком скобок от «var <ИМЯ> = {».
+def extract_js_object(name='I18N'):
     app_js = os.path.join(ROOT, 'assets', 'app.js').replace('\\', '/')
     node_script = (
         "const fs=require('fs');"
         "const src=fs.readFileSync(%r,'utf8');"
-        "const start=src.indexOf('var I18N = {');"
+        "const start=src.indexOf('var ' + %r + ' = {');"
         "let i=src.indexOf('{',start),depth=0,end=-1;"
         "for(let j=i;j<src.length;j++){"
         "if(src[j]==='{')depth++;"
         "else if(src[j]==='}'){depth--;if(depth===0){end=j;break;}}"
         "}"
-        "const I18N=eval('('+src.slice(i,end+1)+')');"
-        "process.stdout.write(JSON.stringify(I18N));"
-    ) % app_js
+        "const OBJ=eval('('+src.slice(i,end+1)+')');"
+        "process.stdout.write(JSON.stringify(OBJ));"
+    ) % (app_js, name)
     out = subprocess.run(['node', '-e', node_script], cwd=ROOT,
                           capture_output=True, check=True)
     return json.loads(out.stdout.decode('utf-8'))
+
+
+def extract_i18n():
+    return extract_js_object('I18N')
 
 
 I18N_TAG_RE = re.compile(r'<(\w+)([^>]*\bdata-i18n="([a-zA-Z0-9]+)"[^>]*)>(.*?)</\1>', re.DOTALL)
@@ -53,6 +60,23 @@ def apply_i18n(html, lang_dict):
             return m.group(0)
         return u'<%s%s>%s</%s>' % (tag, attrs, value, tag)
     return I18N_TAG_RE.sub(repl, html)
+
+
+# Языковая главная досталась от русской вместе со ссылками на русские же
+# карточки кодов: человек переключал язык, кликал первую ссылку и снова
+# оказывался в русском тексте. Английские карточки теперь есть (см.
+# scripts/build_en_pages.py), и туда уводим не только английскую версию:
+# у остальных девяти языков описания неисправностей и так показываются
+# по-английски - таково устройство базы, английский тут ближе, чем русский.
+# Разделы /marki/ и /problemy/ пока только русские, их не трогаем.
+def point_to_en(html):
+    def spn(m):
+        page = 'en/kody/spn-%s.html' % m.group(1)
+        return ('href="/%s"' % page) if os.path.isfile(os.path.join(ROOT, page)) else m.group(0)
+    html = re.sub(r'href="/kody/spn-(\d+)\.html"', spn, html)
+    if os.path.isfile(os.path.join(ROOT, 'en', 'kody', 'index.html')):
+        html = html.replace('href="/kody/"', 'href="/en/kody/"')
+    return html
 
 
 def build():
@@ -106,6 +130,7 @@ def build():
             '%s/%s/?q={search_term_string}' % (SITE, lang), 1)
 
         html = apply_i18n(html, d)
+        html = point_to_en(html)
 
         out_dir = os.path.join(ROOT, lang)
         if not os.path.isdir(out_dir):

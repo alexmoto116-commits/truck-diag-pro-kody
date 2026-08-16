@@ -405,6 +405,18 @@ def breadcrumb_ld(name, canon, section=None):
     return {'@context': 'https://schema.org', '@type': 'BreadcrumbList', 'itemListElement': items}
 
 
+# hreflang ставим только там, где английская страница действительно есть.
+# Обещать перевод, которого нет, хуже, чем не обещать ничего: поисковик
+# сходит по ссылке, получит 404 и перестанет доверять всей разметке.
+def alt_links(has_en, rel_path):
+    if not has_en:
+        return u''
+    ru, en = '%s/%s' % (SITE, rel_path), '%s/en/%s' % (SITE, rel_path)
+    return (u'\n<link rel="alternate" hreflang="ru" href="%s">'
+            u'\n<link rel="alternate" hreflang="en" href="%s">'
+            u'\n<link rel="alternate" hreflang="x-default" href="%s">' % (ru, en, ru))
+
+
 # Ссылка на раздел в верхней строке страницы: без неё раздел существует
 # только в sitemap, а человеку и обходчику некуда шагнуть вверх.
 def nav_of(section=None):
@@ -415,18 +427,18 @@ def nav_of(section=None):
     return u'%s<span class="sep">&middot;</span><a href="/%s">%s</a>' % (up, sec_path, sec_name)
 
 HEAD = u"""<!DOCTYPE html>
-<html lang="ru">
+<html lang="{lang}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{title}</title>
 <meta name="description" content="{desc}">
-<link rel="canonical" href="{canon}">
+<link rel="canonical" href="{canon}">{alt}
 <meta name="theme-color" content="#05070A">
 <meta property="og:type" content="article">
 <meta property="og:url" content="{canon}">
 <meta property="og:site_name" content="codetruck.ru">
-<meta property="og:locale" content="ru_RU">
+<meta property="og:locale" content="{locale}">
 <meta property="og:title" content="{ogtitle}">
 <meta property="og:description" content="{desc}">
 <meta property="og:image" content="https://codetruck.ru/assets/tyagach-noch.jpg">
@@ -548,7 +560,11 @@ def sample_rows(rows, n=15):
     return [rows[i] for i in idxs]
 
 
-def build():
+def build(en_spns=()):
+    """en_spns - SPN, у которых есть английская страница: только на них
+    ставится hreflang и только они попадают в sitemap с адресом /en/.
+    Список считает scripts/build_en_pages.py, он же и вызывает эту сборку."""
+    en_spns = set(en_spns)
     db = load_db()
     pcode = load_pcode()
     universal, spn_cur = db['universal'], db['spn']
@@ -668,7 +684,8 @@ def build():
 
         body = [HEAD.format(title=esc(title), desc=esc(desc), canon=canon,
                             ogtitle=esc(page_name), mid=METRIKA_ID, ld=ld,
-                            nav=nav_of('kody'))]
+                            nav=nav_of('kody'), lang='ru', locale='ru_RU',
+                            alt=alt_links(spn in en_spns, 'kody/spn-%d.html' % spn))]
         body.append(u'<h1>%s</h1>' % esc(page_name))
 
         if makes and std_name(spn):
@@ -741,7 +758,7 @@ def build():
     def code_links(spns, prefix='../kody/'):
         return ''.join(code_link(s, '%sspn-%d.html' % (prefix, s)) for s in spns)
 
-    def page(path, title, desc, h1, sub, sections, section=None, extra_ld=None):
+    def page(path, title, desc, h1, sub, sections, section=None, extra_ld=None, alt=u''):
         # Рубрику публикуем как /kody/, а не /kody/index.html: ссылки в
         # навигации ведут на директорию, и canonical должен вести туда же,
         # иначе на одну страницу заводится два адреса.
@@ -752,7 +769,8 @@ def build():
               + ld_script(breadcrumb_ld(h1, canon, section))
               + (ld_script(extra_ld) if extra_ld else u''))
         body = [HEAD.format(title=esc(title), desc=esc(desc), canon=canon,
-                            ogtitle=esc(h1), mid=METRIKA_ID, ld=ld, nav=nav_of(section))]
+                            ogtitle=esc(h1), mid=METRIKA_ID, ld=ld, nav=nav_of(section),
+                            lang='ru', locale='ru_RU', alt=alt)]
         body.append(u'<h1>%s</h1>' % esc(h1))
         body.append(u'<p class="sub">%s</p>' % sub)
         body.extend(sections)
@@ -1045,7 +1063,8 @@ def build():
         u'Ниже — весь список по системам и стандартная таблица FMI: с ней номер '
         u'кода читается целиком, а не наполовину.'
         % (n_codes(len(written)), n_brands(len(brand_index))),
-        secs))
+        secs,
+        alt=alt_links(bool(en_spns), 'kody/')))
 
     veh = [r for r in brand_index if r[3] != 'pcode']
     dlr = [r for r in brand_index if r[3] == 'pcode']
@@ -1108,7 +1127,10 @@ def build():
     urls = ([SITE + '/']
             + ['%s/%s/' % (SITE, lang) for lang in LANG_HOMEPAGES]
             + ['%s/%s' % (SITE, p) for p in extra]
-            + ['%s/kody/spn-%d.html' % (SITE, s) for s in written])
+            + ['%s/kody/spn-%d.html' % (SITE, s) for s in written]
+            + (['%s/en/kody/' % SITE] if en_spns else [])
+            + ['%s/en/kody/spn-%d.html' % (SITE, s)
+               for s in written if s in en_spns])
     today = date.today().isoformat()
     sm = ['<?xml version="1.0" encoding="UTF-8"?>',
           '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
@@ -1120,7 +1142,13 @@ def build():
 
     print('страниц собрано: %d' % len(written))
     print('в sitemap URL:   %d' % len(urls))
-    return written
+    # Отдаём разбивку по системам и признак «ехать нельзя»: английская
+    # сборка обязана расставить коды по тем же узлам и с тем же вердиктом,
+    # иначе два языка одного сайта начнут расходиться в советах.
+    return {'written': written,
+            'sys': dict((s, system_of(s, std_name(s))) for s in written),
+            'stop': dict((s, is_stop(s, per_spn.get(s, {}))) for s in written),
+            'by_sys': by_sys}
 
 
 if __name__ == '__main__':
