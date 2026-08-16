@@ -687,6 +687,22 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
 }
 .common .lines a:hover{color:var(--ink);border-color:rgba(111,227,211,.4)}
 .common .lines a:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
+/* Подзаголовок внутри "По маркам": делит длинный список на технику и
+   агрегаты (то же деление, что уже есть в выпадающем списке марок) -
+   тише самого h2, поэтому не спорит с ним за внимание. */
+.common .subhead{
+  font-family:var(--mono);font-size:10px;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--ink-3);opacity:.7;font-weight:600;margin:16px 0 8px;
+}
+.common .subhead:first-of-type{margin-top:6px}
+/* Марки без своей страницы разбора - тот же ряд чипов, но без наведения
+   и без подчёркивания кликабельности: это просто название, не ссылка. */
+.common .lines span.nolink{
+  display:flex;align-items:center;min-height:44px;
+  color:var(--ink-3);font-size:13.5px;
+  border:1px solid var(--line-2);border-radius:9px;padding:8px 13px;
+  opacity:.68;
+}
 @media print{ .common{display:none} }
 
 .foot{
@@ -824,16 +840,78 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
   </ul>
 
   <h2 data-i18n="byBrand">По маркам</h2>
+
+  <p class="subhead" data-i18n="brandGroupVehicles">Марки техники</p>
   <ul class="lines">
     <li><a href="marki/kamaz.html" data-i18n="brandKamazLbl">КамАЗ</a></li>
-    <li><a href="marki/yamz.html" data-i18n="brandYamzLbl">ЯМЗ</a></li>
-    <li><a href="marki/man.html">MAN</a></li>
+    <li><a href="marki/maz.html" data-i18n="brandMazLbl">МАЗ</a></li>
+    <li><span class="nolink" data-i18n="brandGazLbl">ГАЗ</span></li>
+    <li><span class="nolink" data-i18n="brandKrazLbl">КрАЗ</span></li>
+    <li><span class="nolink" data-i18n="brandUralLbl">Урал</span></li>
+    <li><a href="marki/ashokleyland.html">Ashok Leyland</a></li>
+    <li><span class="nolink">Beiben</span></li>
+    <li><span class="nolink">BharatBenz</span></li>
     <li><a href="marki/daf.html">DAF</a></li>
-    <li><a href="marki/iveco.html">Iveco</a></li>
-    <li><a href="marki/volvo.html">Volvo</a></li>
-    <li><a href="marki/mercedes.html">Mercedes-Benz</a></li>
-    <li><a href="marki/sitrak.html">SITRAK</a></li>
+    <li><span class="nolink">Dodge</span></li>
+    <li><a href="marki/dongfeng.html">Dongfeng</a></li>
+    <li><a href="marki/faw.html">FAW</a></li>
+    <li><a href="marki/ford.html">Ford Trucks</a></li>
+    <li><a href="marki/foton.html">Foton</a></li>
+    <li><span class="nolink">Freightliner</span></li>
+    <li><a href="marki/hino.html">Hino</a></li>
+    <li><a href="marki/howo.html">HOWO</a></li>
+    <li><a href="marki/hyundai.html">Hyundai</a></li>
+    <li><a href="marki/international.html">International</a></li>
     <li><a href="marki/isuzu.html">Isuzu</a></li>
+    <li><a href="marki/iveco.html">Iveco</a></li>
+    <li><a href="marki/jac.html">JAC</a></li>
+    <li><span class="nolink">Kenworth</span></li>
+    <li><a href="marki/mack.html">Mack</a></li>
+    <li><a href="marki/mahindra.html">Mahindra</a></li>
+    <li><a href="marki/man.html">MAN</a></li>
+    <li><a href="marki/mercedes.html">Mercedes-Benz</a></li>
+    <li><a href="marki/fuso.html">Mitsubishi Fuso</a></li>
+    <li><span class="nolink">Peterbilt</span></li>
+    <li><span class="nolink">RAM</span></li>
+    <li><a href="marki/renault.html">Renault Trucks</a></li>
+    <li><span class="nolink">SAIC-Iveco Hongyan</span></li>
+    <li><a href="marki/scania.html">Scania</a></li>
+    <li><a href="marki/shacman.html">Shacman</a></li>
+    <li><a href="marki/sitrak.html">SITRAK</a></li>
+    <li><a href="marki/daewoo.html">Tata Daewoo</a></li>
+    <li><a href="marki/tata.html">Tata Motors</a></li>
+    <li><a href="marki/volvo.html">Volvo</a></li>
+    <li><span class="nolink">Western Star</span></li>
+  </ul>
+
+  <p class="subhead" data-i18n="brandGroupSystems">Системы и агрегаты</p>
+  <ul class="lines">
+    <li><a href="marki/yamz.html" data-i18n="brandYamzLbl">ЯМЗ</a></li>
+    <li><a href="marki/planar.html" data-i18n="brandPlanarLbl">Планар</a></li>
+    <li><span class="nolink" data-i18n="brandTeplostarLbl">Теплостар</span></li>
+    <li><a href="marki/allison.html">Allison</a></li>
+    <li><a href="marki/bendix.html">Bendix ABS/ESP</a></li>
+    <li><a href="marki/carrier.html">Carrier Transicold</a></li>
+    <li><a href="marki/caterpillar.html">Caterpillar</a></li>
+    <li><a href="marki/cumminsisb.html">Cummins ISB</a></li>
+    <li><a href="marki/cumminsisf.html">Cummins ISF 2.8/3.8</a></li>
+    <li><a href="marki/cumminsislisc.html">Cummins ISL/ISC</a></li>
+    <li><a href="marki/cumminsism.html">Cummins ISM</a></li>
+    <li><a href="marki/cumminsisx.html">Cummins ISX</a></li>
+    <li><a href="marki/detroitdiesel.html">Detroit Diesel</a></li>
+    <li><a href="marki/deutz.html">Deutz</a></li>
+    <li><a href="marki/eaton.html">Eaton Fuller</a></li>
+    <li><a href="marki/eberspacher.html">Eberspächer</a></li>
+    <li><a href="marki/powerstroke.html">Ford PowerStroke</a></li>
+    <li><a href="marki/haldex.html">Haldex ABS</a></li>
+    <li><a href="marki/knorrbremse.html">Knorr-Bremse EBS</a></li>
+    <li><a href="marki/meritor.html">Meritor (ex-WABCO)</a></li>
+    <li><a href="marki/paccarmx13.html">PACCAR MX-13</a></li>
+    <li><a href="marki/thermoking.html">Thermo King</a></li>
+    <li><a href="marki/wabco.html">WABCO ABS/ESC</a></li>
+    <li><a href="marki/webasto.html">Webasto</a></li>
+    <li><a href="marki/weichai.html">Weichai/Shaanxi WP10/WP12</a></li>
+    <li><a href="marki/zfastronic.html">ZF AS-Tronic</a></li>
   </ul>
 </nav>
 
@@ -1121,7 +1199,13 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
       symWater: "Вода в топливе",
       symAllCodes: "Ошибки по всей машине",
       brandKamazLbl: "КамАЗ",
-      brandYamzLbl: "ЯМЗ"
+      brandYamzLbl: "ЯМЗ",
+      brandGazLbl: "ГАЗ",
+      brandMazLbl: "МАЗ",
+      brandKrazLbl: "КрАЗ",
+      brandUralLbl: "Урал",
+      brandPlanarLbl: "Планар",
+      brandTeplostarLbl: "Теплостар"
     },
     en: {
       pageTitle: 'Truck fault code — SPN/FMI and dealer code lookup',
@@ -1210,7 +1294,13 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
       symWater: "Water in fuel",
       symAllCodes: "Faults all over the truck",
       brandKamazLbl: "KAMAZ",
-      brandYamzLbl: "YaMZ"
+      brandYamzLbl: "YaMZ",
+      brandGazLbl: "GAZ",
+      brandMazLbl: "MAZ",
+      brandKrazLbl: "KrAZ",
+      brandUralLbl: "Ural",
+      brandPlanarLbl: "Planar",
+      brandTeplostarLbl: "Teplostar"
     },
     de: {
       pageTitle: 'LKW-Fehlercode — SPN/FMI und Händlercode entschlüsseln',
@@ -1296,7 +1386,13 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
       symWater: "Wasser im Kraftstoff",
       symAllCodes: "Fehler im ganzen Fahrzeug",
       brandKamazLbl: "KAMAZ",
-      brandYamzLbl: "YaMZ"
+      brandYamzLbl: "YaMZ",
+      brandGazLbl: "GAZ",
+      brandMazLbl: "MAZ",
+      brandKrazLbl: "KrAZ",
+      brandUralLbl: "Ural",
+      brandPlanarLbl: "Planar",
+      brandTeplostarLbl: "Teplostar"
     },
     fr: {
       pageTitle: 'Code défaut camion — décodage SPN/FMI et codes constructeur',
@@ -1382,7 +1478,13 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
       symWater: "Eau dans le carburant",
       symAllCodes: "Défauts sur tout le camion",
       brandKamazLbl: "KAMAZ",
-      brandYamzLbl: "YaMZ"
+      brandYamzLbl: "YaMZ",
+      brandGazLbl: "GAZ",
+      brandMazLbl: "MAZ",
+      brandKrazLbl: "KrAZ",
+      brandUralLbl: "Ural",
+      brandPlanarLbl: "Planar",
+      brandTeplostarLbl: "Teplostar"
     },
     es: {
       pageTitle: 'Código de avería de camión — decodificación SPN/FMI y códigos de concesionario',
@@ -1468,7 +1570,13 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
       symWater: "Agua en el combustible",
       symAllCodes: "Averías en todo el camión",
       brandKamazLbl: "KAMAZ",
-      brandYamzLbl: "YaMZ"
+      brandYamzLbl: "YaMZ",
+      brandGazLbl: "GAZ",
+      brandMazLbl: "MAZ",
+      brandKrazLbl: "KrAZ",
+      brandUralLbl: "Ural",
+      brandPlanarLbl: "Planar",
+      brandTeplostarLbl: "Teplostar"
     },
     pt: {
       pageTitle: 'Código de falha de caminhão — decodificação SPN/FMI e códigos de concessionária',
@@ -1554,7 +1662,13 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
       symWater: "Água no combustível",
       symAllCodes: "Avarias em toda a viatura",
       brandKamazLbl: "KAMAZ",
-      brandYamzLbl: "YaMZ"
+      brandYamzLbl: "YaMZ",
+      brandGazLbl: "GAZ",
+      brandMazLbl: "MAZ",
+      brandKrazLbl: "KrAZ",
+      brandUralLbl: "Ural",
+      brandPlanarLbl: "Planar",
+      brandTeplostarLbl: "Teplostar"
     },
     pl: {
       pageTitle: 'Kod usterki ciężarówki — rozszyfrowanie SPN/FMI i kodów dealerskich',
@@ -1640,7 +1754,13 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
       symWater: "Woda w paliwie",
       symAllCodes: "Usterki w całej ciężarówce",
       brandKamazLbl: "KAMAZ",
-      brandYamzLbl: "YaMZ"
+      brandYamzLbl: "YaMZ",
+      brandGazLbl: "GAZ",
+      brandMazLbl: "MAZ",
+      brandKrazLbl: "KrAZ",
+      brandUralLbl: "Ural",
+      brandPlanarLbl: "Planar",
+      brandTeplostarLbl: "Teplostar"
     },
     tr: {
       pageTitle: 'Kamyon arıza kodu — SPN/FMI ve bayi kodu çözümleme',
@@ -1726,7 +1846,13 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
       symWater: "Yakıtta su",
       symAllCodes: "Kamyonun her yerinde arıza",
       brandKamazLbl: "KAMAZ",
-      brandYamzLbl: "YaMZ"
+      brandYamzLbl: "YaMZ",
+      brandGazLbl: "GAZ",
+      brandMazLbl: "MAZ",
+      brandKrazLbl: "KrAZ",
+      brandUralLbl: "Ural",
+      brandPlanarLbl: "Planar",
+      brandTeplostarLbl: "Teplostar"
     },
     hi: {
       pageTitle: 'ट्रक फॉल्ट कोड — SPN/FMI और डीलर कोड डिकोडिंग',
@@ -1812,7 +1938,13 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
       symWater: "ईंधन में पानी",
       symAllCodes: "पूरे ट्रक में खराबियां",
       brandKamazLbl: "KAMAZ",
-      brandYamzLbl: "YaMZ"
+      brandYamzLbl: "YaMZ",
+      brandGazLbl: "GAZ",
+      brandMazLbl: "MAZ",
+      brandKrazLbl: "KrAZ",
+      brandUralLbl: "Ural",
+      brandPlanarLbl: "Planar",
+      brandTeplostarLbl: "Teplostar"
     },
     zh: {
       pageTitle: '卡车故障代码查询 — SPN/FMI 与经销商代码解析',
@@ -1898,7 +2030,13 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
       symWater: "燃油中含水",
       symAllCodes: "全车范围故障",
       brandKamazLbl: "KAMAZ",
-      brandYamzLbl: "YaMZ"
+      brandYamzLbl: "YaMZ",
+      brandGazLbl: "GAZ",
+      brandMazLbl: "MAZ",
+      brandKrazLbl: "KrAZ",
+      brandUralLbl: "Ural",
+      brandPlanarLbl: "Planar",
+      brandTeplostarLbl: "Teplostar"
     }
   };
 
