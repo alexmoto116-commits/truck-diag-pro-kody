@@ -235,6 +235,10 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
 .filters select:hover{color:var(--ink)}
 .filters select:focus{outline:none;border-color:rgba(111,227,211,.5);color:var(--ink)}
 .filters select option{background:#0E1620;color:#EEF3F9}
+/* Заголовки групп марок ("Марки техники" / "Системы и агрегаты")
+   подсвечены цветом лампы, чтобы выделялись в открытом списке; сами
+   пункты внутри остаются обычного цвета (задаём цвет только группе). */
+#pf-brand optgroup{font-style:normal;color:var(--lamp)}
 
 /* ---------- результат ----------
    Ответ ложится прямо на кадр с тягачом, поэтому карточка почти
@@ -912,6 +916,7 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
     westernstar: ['detroitdiesel'],
     bharatbenz:  ['mercedes', 'fuso'],
     ram:         ['cumminsisb'],
+    dodge:       ['cumminsisb'],
     beiben:      ['mercedes'],
     hongyan:     ['iveco']
   };
@@ -1996,7 +2001,7 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
      переключаем на латинскую транслитерацию, так их узнают на
      любом языке. Остальные марки (Volvo, MAN, DAF...) уже латиницей. */
   var BRAND_OVERRIDE = {kamaz:'KAMAZ', yamz:'YAMZ', planar:'Planar / Teplostar',
-                        gaz:'GAZ (GAZelle / GAZon Next)', maz:'MAZ', ural:'Ural',
+                        gaz:'GAZ', maz:'MAZ', ural:'Ural',
                         kraz:'KrAZ', beiben:'Beiben'};
 
   /* Часть "марок" в базе — не марки техники, а поставщики систем/агрегатов
@@ -2057,9 +2062,9 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
     });
     vehicleKeys.sort(byName);
     systemKeys.sort(byName);
-    function addGroup(label, keys){
+    function addGroup(label, keys, cls){
       var g = document.createElement('optgroup');
-      g.label = label;
+      g.label = label; g.className = cls;
       keys.forEach(function(k){
         var o = document.createElement('option');
         o.value = k; o.textContent = brandName(k);
@@ -2067,8 +2072,8 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
       });
       sel.appendChild(g);
     }
-    addGroup(t('brandGroupVehicles'), vehicleKeys);
-    addGroup(t('brandGroupSystems'), systemKeys);
+    addGroup(t('brandGroupVehicles'), vehicleKeys, 'grp-vehicles');
+    addGroup(t('brandGroupSystems'), systemKeys, 'grp-systems');
     sel.value = prevValue;
   }
 
@@ -3009,7 +3014,7 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
         if(i > DEMO_CODE.length){ setTimeout(eraseOut, 2200); return; }
         input.value = DEMO_CODE.slice(0, i);
         i++;
-        setTimeout(typeNext, 75);
+        setTimeout(typeNext, 100);
       })();
     }
     function eraseOut(){
@@ -3020,7 +3025,7 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
         if(j < 0){ setTimeout(typeIn, 900); return; }
         input.value = DEMO_CODE.slice(0, j);
         j--;
-        setTimeout(eraseNext, 45);
+        setTimeout(eraseNext, 60);
       })();
     }
     ready().then(function(){
