@@ -329,6 +329,24 @@ def derive_names(per_spn, spns):
 
 # ---------------------------------------------------------------- вывод
 
+# «1384 кодов» и «52 марок» - машинный русский, который сразу видно.
+def plural(n, one, few, many):
+    n10, n100 = n % 10, n % 100
+    if n10 == 1 and n100 != 11:
+        return one
+    if 2 <= n10 <= 4 and not 12 <= n100 <= 14:
+        return few
+    return many
+
+
+def n_codes(n):
+    return u'%d %s' % (n, plural(n, u'код', u'кода', u'кодов'))
+
+
+def n_brands(n):
+    return u'%d %s' % (n, plural(n, u'марки', u'марок', u'марок'))
+
+
 def esc(t):
     return (str(t).replace('&', '&amp;').replace('<', '&lt;')
                   .replace('>', '&gt;').replace('"', '&quot;'))
@@ -366,15 +384,35 @@ def neighbors_of(spn, bucket, n=10):
     return [s for s in bucket[lo:hi] if s != spn][:n]
 
 
-# Хлебные крошки одного уровня: сайт плоский, у страницы кода/марки/
-# симптома нет промежуточной страницы-раздела - только "← поиск по коду"
-# на главную, поэтому и разметка честно в два уровня, без выдуманной
-# иерархии.
-def breadcrumb_ld(name, canon):
-    return {'@context': 'https://schema.org', '@type': 'BreadcrumbList', 'itemListElement': [
-        {'@type': 'ListItem', 'position': 1, 'name': 'codetruck.ru', 'item': SITE + '/'},
-        {'@type': 'ListItem', 'position': 2, 'name': name, 'item': canon},
-    ]}
+# Раньше крошки были в два уровня честно: у страницы кода/марки/симптома не
+# было промежуточной страницы-раздела, придумывать её в разметке значило бы
+# врать. Теперь разделы есть (kody/, marki/, problemy/), и третий уровень -
+# уже не выдумка: на него можно кликнуть.
+SECTIONS = {
+    'kody':     (u'Все коды ошибок', 'kody/'),
+    'marki':    (u'Все марки', 'marki/'),
+    'problemy': (u'Неисправности по симптомам', 'problemy/'),
+}
+
+
+def breadcrumb_ld(name, canon, section=None):
+    items = [{'@type': 'ListItem', 'position': 1, 'name': 'codetruck.ru', 'item': SITE + '/'}]
+    if section:
+        sec_name, sec_path = SECTIONS[section]
+        items.append({'@type': 'ListItem', 'position': 2, 'name': sec_name,
+                      'item': '%s/%s' % (SITE, sec_path)})
+    items.append({'@type': 'ListItem', 'position': len(items) + 1, 'name': name, 'item': canon})
+    return {'@context': 'https://schema.org', '@type': 'BreadcrumbList', 'itemListElement': items}
+
+
+# Ссылка на раздел в верхней строке страницы: без неё раздел существует
+# только в sitemap, а человеку и обходчику некуда шагнуть вверх.
+def nav_of(section=None):
+    up = u'<a href="/">&larr; поиск по коду</a>'
+    if not section:
+        return up
+    sec_name, sec_path = SECTIONS[section]
+    return u'%s<span class="sep">&middot;</span><a href="/%s">%s</a>' % (up, sec_path, sec_name)
 
 HEAD = u"""<!DOCTYPE html>
 <html lang="ru">
@@ -414,6 +452,7 @@ a{{color:#6FE3D3}}
 .tick{{font-family:"Cascadia Mono",Consolas,monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#8B9AAC;margin-bottom:16px}}
 .tick a{{display:inline-flex;align-items:center;min-height:44px}}
 .tick a{{color:#8B9AAC;text-decoration:none;border-bottom:1px solid rgba(139,154,172,.4)}}
+.tick .sep{{margin:0 10px;color:#4C5A6B}}
 h1{{font-size:26px;line-height:1.25;margin:0 0 8px;letter-spacing:-.01em}}
 .sub{{color:#94A2B4;font-size:14.5px;margin:0 0 28px}}
 .mono{{font-family:"Cascadia Mono",Consolas,monospace}}
@@ -437,12 +476,16 @@ section{{margin-bottom:32px}}
 .risk .rkn{{margin-top:12px;font-size:13.5px;color:#94A2B4}}
 .risk.t-now{{color:#FF6B5A;border-color:rgba(255,107,90,.3)}}
 .risk.t-warn{{color:#FF9B3D;border-color:rgba(255,155,61,.28)}}
+.lead{{margin:0 0 18px;font-size:14.5px;color:#94A2B4}}
+.lines{{margin:0;padding:0;list-style:none}}
+.lines li{{padding:9px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:14.5px;color:#94A2B4}}
+.lines a{{text-decoration:none;border-bottom:1px solid rgba(111,227,211,.35)}}
 .cta{{margin-top:44px;padding-top:24px;border-top:1px solid rgba(255,255,255,.06);font-size:14px;color:#94A2B4}}
 </style>
 </head>
 <body>
 <div class="w">
-<div class="tick"><a href="../">&larr; поиск по коду</a></div>
+<div class="tick">{nav}</div>
 """
 
 # Freightliner/Mack/Detroit Diesel используют трёхчастный код MID-PID/SID-FMI
@@ -620,11 +663,12 @@ def build():
 
         ld = (ld_script({'@context': 'https://schema.org', '@type': 'TechArticle',
                          'headline': title, 'description': desc, 'url': canon})
-              + ld_script(breadcrumb_ld(page_name, canon))
+              + ld_script(breadcrumb_ld(page_name, canon, 'kody'))
               + ld_script({'@context': 'https://schema.org', '@type': 'FAQPage', 'mainEntity': faq}))
 
         body = [HEAD.format(title=esc(title), desc=esc(desc), canon=canon,
-                            ogtitle=esc(page_name), mid=METRIKA_ID, ld=ld)]
+                            ogtitle=esc(page_name), mid=METRIKA_ID, ld=ld,
+                            nav=nav_of('kody'))]
         body.append(u'<h1>%s</h1>' % esc(page_name))
 
         if makes and std_name(spn):
@@ -697,18 +741,23 @@ def build():
     def code_links(spns, prefix='../kody/'):
         return ''.join(code_link(s, '%sspn-%d.html' % (prefix, s)) for s in spns)
 
-    def page(path, title, desc, h1, sub, sections, extra_head=''):
-        canon = '%s/%s' % (SITE, path)
+    def page(path, title, desc, h1, sub, sections, section=None, extra_ld=None):
+        # Рубрику публикуем как /kody/, а не /kody/index.html: ссылки в
+        # навигации ведут на директорию, и canonical должен вести туда же,
+        # иначе на одну страницу заводится два адреса.
+        pub = path[:-len('index.html')] if path.endswith('index.html') else path
+        canon = '%s/%s' % (SITE, pub)
         ld = (ld_script({'@context': 'https://schema.org', '@type': 'TechArticle',
                          'headline': title, 'description': desc, 'url': canon})
-              + ld_script(breadcrumb_ld(h1, canon)))
+              + ld_script(breadcrumb_ld(h1, canon, section))
+              + (ld_script(extra_ld) if extra_ld else u''))
         body = [HEAD.format(title=esc(title), desc=esc(desc), canon=canon,
-                            ogtitle=esc(h1), mid=METRIKA_ID, ld=ld)]
+                            ogtitle=esc(h1), mid=METRIKA_ID, ld=ld, nav=nav_of(section))]
         body.append(u'<h1>%s</h1>' % esc(h1))
         body.append(u'<p class="sub">%s</p>' % sub)
         body.extend(sections)
         body.append(u'<p class="cta">Знаете номер кода? '
-                    u'<a href="../">Введите его в поиск</a> — или вставьте сразу весь '
+                    u'<a href="/">Введите его в поиск</a> — или вставьте сразу весь '
                     u'список со сканера, покажем, какая поломка настоящая.</p>')
         body.append(u'</div>\n</body>\n</html>\n')
         full = os.path.join(ROOT, path)
@@ -716,7 +765,12 @@ def build():
         if not os.path.isdir(d):
             os.makedirs(d)
         io.open(full, 'w', encoding='utf-8').write(''.join(body))
-        return path
+        return pub
+
+    # Что попало в раздел марок - собираем по ходу, чтобы рубричная
+    # страница /marki/ строилась из фактически созданных страниц,
+    # а не из отдельного, расходящегося с ними списка.
+    brand_index = []
 
     def mid_brand_page(b, mod_names):
         table = brands.get(b)
@@ -757,12 +811,12 @@ def build():
 
         path = 'marki/%s.html' % b
         title = u'Коды ошибок %s | codetruck.ru' % bn
-        desc = (u'Расшифровка кодов неисправностей %s: %d разобранных кодов '
-                u'по модулям управления (MID), с параметром и типом неисправности.'
-                % (bn, len(entries)))
-        sub = (u'В справочнике разобрано <b>%d кодов %s</b> по заводским таблицам, '
-               u'сгруппированы по блоку управления (MID).' % (len(entries), esc(bn)))
-        return page(path, title, desc, u'Коды ошибок %s' % bn, sub, secs)
+        desc = (u'Расшифровка кодов неисправностей %s: %s по модулям управления '
+                u'(MID), с параметром и типом неисправности.' % (bn, n_codes(len(entries))))
+        sub = (u'В справочнике разобрано <b>%s %s</b> по заводским таблицам, '
+               u'сгруппированы по блоку управления (MID).' % (n_codes(len(entries)), esc(bn)))
+        brand_index.append((path, bn, len(entries), 'mid'))
+        return page(path, title, desc, u'Коды ошибок %s' % bn, sub, secs, 'marki')
 
     extra = []
 
@@ -806,13 +860,14 @@ def build():
 
         path = 'marki/%s.html' % b
         title = u'Коды ошибок %s | codetruck.ru' % bn
-        desc = (u'Расшифровка кодов неисправностей %s: %d разобранных кода, '
+        desc = (u'Расшифровка кодов неисправностей %s: %s разобрано, '
                 u'какие требуют немедленной остановки и что проверить на месте.'
-                % (bn, len(mine)))
-        sub = (u'В справочнике разобрано <b>%d кодов %s</b> по заводским таблицам. '
-               u'Ниже — те, что встречаются чаще всего.' % (len(mine), esc(bn)))
+                % (bn, n_codes(len(mine))))
+        sub = (u'В справочнике разобрано <b>%s %s</b> по заводским таблицам. '
+               u'Ниже — те, что встречаются чаще всего.' % (n_codes(len(mine)), esc(bn)))
+        brand_index.append((path, bn, len(mine), 'spn'))
         extra.append(page(path, title, desc,
-                          u'Коды ошибок %s' % bn, sub, secs))
+                          u'Коды ошибок %s' % bn, sub, secs, 'marki'))
 
     # --- по маркам с MID-структурой кода (Mack, Detroit Diesel) -----
     for b in sorted(MID_MODULE_NAMES, key=lambda x: brand_names.get(x, x)):
@@ -844,14 +899,15 @@ def build():
 
         path = 'marki/%s.html' % b
         title = u'Коды ошибок %s | codetruck.ru' % bn
-        desc = (u'Расшифровка кодов неисправностей %s: %d дилерских кодов в базе, '
-                u'с описанием на русском. Введите свой код на codetruck.ru.'
-                % (bn, len(rows)))
-        sub = (u'В базе разобрано <b>%d дилерских кодов %s</b> — свой заводской формат, '
+        n_d = u'%d дилерских %s' % (len(rows), plural(len(rows), u'код', u'кода', u'кодов'))
+        desc = (u'Расшифровка кодов неисправностей %s: %s в базе, '
+                u'с описанием на русском. Введите свой код на codetruck.ru.' % (bn, n_d))
+        sub = (u'В базе разобрано <b>%s %s</b> — свой заводской формат, '
                u'не входит в стандарт J1939 (SPN/FMI). Несколько примеров ниже; '
                u'свой код — в поиск на главной, там же можно выбрать марку «%s» из списка.'
-               % (len(rows), esc(bn), esc(bn)))
-        extra.append(page(path, title, desc, u'Коды ошибок %s' % bn, sub, secs))
+               % (n_d, esc(bn), esc(bn)))
+        brand_index.append((path, bn, len(rows), 'pcode'))
+        extra.append(page(path, title, desc, u'Коды ошибок %s' % bn, sub, secs, 'marki'))
         marki_built.add(b)
 
     # --- по симптомам ----------------------------------------------
@@ -908,6 +964,7 @@ def build():
          'power', 'power'),
     ]
 
+    sym_index = []
     for slug, title_h, h1, intro, sys_key, adv in SYMPTOMS:
         if sys_key:
             pool = [s for s in by_sys.get(sys_key, [])]
@@ -938,8 +995,109 @@ def build():
 
         path = 'problemy/%s.html' % slug
         desc = intro[:155]
+        sym_index.append((path, h1, intro))
         extra.append(page(path, title_h + u' | codetruck.ru', desc, h1,
-                          esc(intro), secs))
+                          esc(intro), secs, 'problemy'))
+
+    # ---------------------------------------------------------------
+    # Рубричные страницы. До них у разделов не было ни одной страницы:
+    # kody/, marki/ и problemy/ отдавали 404, наверх с карточки шагнуть
+    # было некуда, а под общий запрос («коды ошибок грузовиков», «таблица
+    # FMI») отвечать было нечем - на весь сайт одна главная. Каталог тут
+    # ещё и связывает граф: до этого до кода добирались только цепочкой
+    # соседей по системе.
+    # ---------------------------------------------------------------
+    SYS_ORDER = ['oil', 'cool', 'fuel', 'air', 'scr', 'power', 'can',
+                 'brake', 'trans', 'prot', 'other']
+
+    secs = [u'<section><h2>Что значит FMI</h2><p class="lead">Номер SPN говорит, '
+            u'<i>что</i> неисправно, FMI — <i>что именно</i> с ним не так. Вторая '
+            u'половина кода одинакова для всех марок, это стандарт J1939.</p>%s</section>'
+            % fmi_table(sorted(((int(f), t) for f, t in db['fmi'].items())), urgent_fmi)]
+    for key in SYS_ORDER:
+        bucket = by_sys.get(key)
+        if not bucket:
+            continue
+        # «Прочие системы» - это 4/5 справочника: заводские номера, которые
+        # классификатор по имени не разбирает. Одним списком в тысячу ссылок
+        # в нём не найти свой номер, поэтому режем на диапазоны - по ним
+        # человек с кодом в руках попадает в нужный кусок с одного взгляда.
+        if len(bucket) <= 200:
+            secs.append(u'<section><h2>%s — %s</h2><ul class="near">%s</ul></section>'
+                        % (esc(SYS_TITLE[key]), n_codes(len(bucket)),
+                           code_links(bucket, prefix='')))
+            continue
+        secs.append(u'<section><h2>%s — %s</h2></section>'
+                    % (esc(SYS_TITLE[key]), n_codes(len(bucket))))
+        for i in range(0, len(bucket), 120):
+            chunk = bucket[i:i + 120]
+            secs.append(u'<section><h2>SPN %d — %d</h2><ul class="near">%s</ul></section>'
+                        % (chunk[0], chunk[-1], code_links(chunk, prefix='')))
+
+    extra.append(page(
+        'kody/index.html',
+        u'Все коды ошибок грузовиков — SPN и FMI по J1939 | codetruck.ru',
+        u'Полный список разобранных кодов неисправностей грузовиков: %s SPN '
+        u'по системам и стандартная таблица FMI. Что означает код и можно ли ехать.'
+        % n_codes(len(written)),
+        u'Все коды ошибок: SPN и FMI',
+        u'В справочнике разобрано <b>%s</b> по заводским таблицам %s. '
+        u'Ниже — весь список по системам и стандартная таблица FMI: с ней номер '
+        u'кода читается целиком, а не наполовину.'
+        % (n_codes(len(written)), n_brands(len(brand_index))),
+        secs))
+
+    veh = [r for r in brand_index if r[3] != 'pcode']
+    dlr = [r for r in brand_index if r[3] == 'pcode']
+
+    def brand_rows(rows):
+        return u'<ul class="near">%s</ul>' % ''.join(
+            u'<li><a href="%s">%s <span class="mono">%d</span></a></li>'
+            % (os.path.basename(path), esc(name), cnt)
+            for path, name, cnt, _ in sorted(rows, key=lambda r: r[1]))
+
+    secs = []
+    if veh:
+        secs.append(u'<section><h2>Коды SPN/FMI по стандарту J1939</h2>'
+                    u'<p class="lead">У этих марок код читается по стандарту: номер узла '
+                    u'плюс тип неисправности. Рядом с маркой — сколько кодов разобрано.</p>'
+                    u'%s</section>' % brand_rows(veh))
+    if dlr:
+        secs.append(u'<section><h2>Дилерские коды в своём формате</h2>'
+                    u'<p class="lead">Эти марки нумеруют неисправности по-своему, вне '
+                    u'стандарта J1939. Код ищется на главной с выбором марки.</p>'
+                    u'%s</section>' % brand_rows(dlr))
+
+    extra.append(page(
+        'marki/index.html',
+        u'Коды ошибок грузовиков по маркам — расшифровка | codetruck.ru',
+        u'Коды неисправностей по маркам грузовиков: %s с заводскими таблицами, '
+        u'от КамАЗа и МАЗа до Volvo, Scania и Shacman.' % n_brands(len(brand_index)),
+        u'Коды ошибок по маркам',
+        u'Заводские таблицы <b>%s</b>: у одних код читается по стандарту J1939, '
+        u'у других — свой дилерский формат. Выберите марку или введите код на главной.'
+        % n_brands(len(brand_index)),
+        secs))
+
+    secs = [u'<section><h2>С чего начать</h2><ul class="lines">%s</ul></section>'
+            % ''.join(u'<li><a href="%s">%s</a> — %s</li>'
+                      % (os.path.basename(path), esc(h1), esc(intro.split(u'. ')[0]))
+                      for path, h1, intro in sym_index)]
+    secs.append(
+        u'<section><h2>Если код всё-таки есть</h2><p>Симптом сужает круг, но точный '
+        u'ответ даёт номер. <a href="/">Введите код со сканера</a> — справочник скажет '
+        u'прямо, ехать или вставать, и сколько есть времени. Несколько кодов сразу — '
+        u'вставьте весь список, покажем, какой из них первопричина.</p></section>')
+
+    extra.append(page(
+        'problemy/index.html',
+        u'Неисправности грузовика по симптомам — что делать | codetruck.ru',
+        u'Что делать, если на грузовике горит Check Engine, упала мощность, ошибка '
+        u'AdBlue или перегрев: вероятные коды, можно ли ехать и что проверить на месте.',
+        u'Неисправности по симптомам',
+        u'Кода нет, а машина ведёт себя не так? Начните с симптома: ниже — что за ним '
+        u'обычно стоит, какие коды это подтверждают и можно ли доехать.',
+        secs))
 
     # sitemap: главная плюс только те страницы, что реально существуют.
     # Языковые версии главной (codetruck.ru/en/ и т.д.) собирает отдельный
