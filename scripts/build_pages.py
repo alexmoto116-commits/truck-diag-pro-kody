@@ -15,6 +15,7 @@
 Запуск из корня репозитория:  python scripts/build_pages.py
 """
 import base64, glob, io, json, os, re
+from datetime import date
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SITE = 'https://codetruck.ru'
@@ -208,6 +209,27 @@ def ld_script(obj):
     return u'<script type="application/ld+json">%s</script>' % json.dumps(obj, ensure_ascii=False)
 
 
+# Раньше сосед по системе был всегда "первые 10 по номеру во всём бакете" -
+# одни и те же для каждой страницы бакета. У бакета в сотни SPN это значит,
+# что 990 страниц из 1000 ссылаются на одну и ту же верхушку, а сами не
+# получают ни одной входящей ссылки "Рядом" - только запись в sitemap.xml.
+# Окно вокруг СВОЕЙ позиции в отсортированном бакете превращает бакет в
+# цепочку: сосед ссылается на соседа, и через неё связаны почти все.
+def neighbors_of(spn, bucket, n=10):
+    if len(bucket) <= 1:
+        return []
+    i = bucket.index(spn) if spn in bucket else 0
+    lo = i - n // 2
+    hi = lo + n + 1
+    if lo < 0:
+        hi -= lo
+        lo = 0
+    if hi > len(bucket):
+        lo = max(0, lo - (hi - len(bucket)))
+        hi = len(bucket)
+    return [s for s in bucket[lo:hi] if s != spn][:n]
+
+
 # Хлебные крошки одного уровня: сайт плоский, у страницы кода/марки/
 # симптома нет промежуточной страницы-раздела - только "← поиск по коду"
 # на главную, поэтому и разметка честно в два уровня, без выдуманной
@@ -227,6 +249,14 @@ HEAD = u"""<!DOCTYPE html>
 <meta name="description" content="{desc}">
 <link rel="canonical" href="{canon}">
 <meta name="theme-color" content="#05070A">
+<meta property="og:type" content="article">
+<meta property="og:url" content="{canon}">
+<meta property="og:site_name" content="codetruck.ru">
+<meta property="og:locale" content="ru_RU">
+<meta property="og:title" content="{ogtitle}">
+<meta property="og:description" content="{desc}">
+<meta property="og:image" content="https://codetruck.ru/assets/tyagach-noch.jpg">
+<meta name="twitter:card" content="summary_large_image">
 <!-- Yandex.Metrika counter -->
 <script type="text/javascript">
     (function(m,e,t,r,i,k,a){{
@@ -391,7 +421,8 @@ def build():
                        u'Если вместе с ним горит красная лампа или падает мощность — '
                        u'останавливайтесь.')
 
-        title = u'SPN %d — %s — что означает код неисправности | codetruck.ru' % (spn, name)
+        page_name = u'SPN %d — %s' % (spn, name)
+        title = page_name + u' | codetruck.ru'
         desc = (u'SPN %d (%s): расшифровка по стандарту J1939 и заводским таблицам марок. '
                 u'Что означает код и можно ли ехать.' % (spn, name))
         canon = '%s/kody/spn-%d.html' % (SITE, spn)
@@ -408,11 +439,11 @@ def build():
 
         ld = (ld_script({'@context': 'https://schema.org', '@type': 'TechArticle',
                          'headline': title, 'description': desc, 'url': canon})
-              + ld_script(breadcrumb_ld(u'SPN %d — %s' % (spn, name), canon))
+              + ld_script(breadcrumb_ld(page_name, canon))
               + ld_script({'@context': 'https://schema.org', '@type': 'FAQPage', 'mainEntity': faq}))
 
         body = [HEAD.format(title=esc(title), desc=esc(desc), canon=canon,
-                            mid=METRIKA_ID, ld=ld)]
+                            ogtitle=esc(page_name), mid=METRIKA_ID, ld=ld)]
         body.append(u'<h1>SPN %d — %s</h1>' % (spn, esc(name)))
 
         if makes:
@@ -452,7 +483,7 @@ def build():
                         % ADVICE[sys_key])
 
         # соседи по узлу: и человеку полезно, и роботу есть куда идти
-        neigh = [s for s in by_sys.get(sys_key, []) if s != spn][:10]
+        neigh = neighbors_of(spn, by_sys.get(sys_key, []))
         if neigh:
             links = ''.join(
                 u'<li><a href="spn-%d.html"><span class="mono">SPN %d</span> — %s</a></li>'
@@ -489,7 +520,7 @@ def build():
                          'headline': title, 'description': desc, 'url': canon})
               + ld_script(breadcrumb_ld(h1, canon)))
         body = [HEAD.format(title=esc(title), desc=esc(desc), canon=canon,
-                            mid=METRIKA_ID, ld=ld)]
+                            ogtitle=esc(h1), mid=METRIKA_ID, ld=ld)]
         body.append(u'<h1>%s</h1>' % esc(h1))
         body.append(u'<p class="sub">%s</p>' % sub)
         body.extend(sections)
@@ -542,7 +573,7 @@ def build():
             u'показывается как MID-PID/SID-FMI, например MID128 PID100 FMI4.</p></section>')
 
         path = 'marki/%s.html' % b
-        title = u'Коды ошибок %s — расшифровка MID/PID/SID/FMI | codetruck.ru' % bn
+        title = u'Коды ошибок %s | codetruck.ru' % bn
         desc = (u'Расшифровка кодов неисправностей %s: %d разобранных кодов '
                 u'по модулям управления (MID), с параметром и типом неисправности.'
                 % (bn, len(entries)))
@@ -591,7 +622,7 @@ def build():
             u'<a href="../">Вставьте весь список</a> — покажем, какой код корневой.</p></section>')
 
         path = 'marki/%s.html' % b
-        title = u'Коды ошибок %s — расшифровка неисправностей | codetruck.ru' % bn
+        title = u'Коды ошибок %s | codetruck.ru' % bn
         desc = (u'Расшифровка кодов неисправностей %s: %d разобранных кода, '
                 u'какие требуют немедленной остановки и что проверить на месте.'
                 % (bn, len(mine)))
@@ -629,7 +660,7 @@ def build():
                 % (esc(bn), pcode_table(sample_rows(rows)))]
 
         path = 'marki/%s.html' % b
-        title = u'Коды ошибок %s — расшифровка неисправностей | codetruck.ru' % bn
+        title = u'Коды ошибок %s | codetruck.ru' % bn
         desc = (u'Расшифровка кодов неисправностей %s: %d дилерских кодов в базе, '
                 u'с описанием на русском. Введите свой код на codetruck.ru.'
                 % (bn, len(rows)))
@@ -731,11 +762,12 @@ def build():
     urls = ([SITE + '/']
             + ['%s/%s' % (SITE, p) for p in extra]
             + ['%s/kody/spn-%d.html' % (SITE, s) for s in written])
+    today = date.today().isoformat()
     sm = ['<?xml version="1.0" encoding="UTF-8"?>',
           '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
     for i, u in enumerate(urls):
-        sm.append('<url><loc>%s</loc><priority>%s</priority></url>'
-                  % (u, '1.0' if i == 0 else '0.7'))
+        sm.append('<url><loc>%s</loc><lastmod>%s</lastmod><priority>%s</priority></url>'
+                  % (u, today, '1.0' if i == 0 else '0.7'))
     sm.append('</urlset>')
     io.open(os.path.join(ROOT, 'sitemap.xml'), 'w', encoding='utf-8').write('\n'.join(sm))
 
