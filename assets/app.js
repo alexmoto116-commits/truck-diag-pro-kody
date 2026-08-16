@@ -1234,6 +1234,16 @@
     zfastronic:1, allison:1, weichai:1, teplostar:1};
 
   var LANG_KEY = 'pf-lang';
+  /* /en/, /de/ и т.д. - отдельные страницы под hreflang (см. <head>: там
+     же canonical и alternate на все версии). Каждая обязана всегда
+     открываться на своём языке, иначе поисковик не сможет доверять
+     hreflang - он объявляет URL источником истины по языку, а не
+     localStorage конкретного браузера. Поэтому здесь язык страницы не
+     угадывается: html[data-lock-lang] выставлен в самой генерируемой
+     странице (scripts/build_lang_pages.py) и перебивает и localStorage,
+     и navigator.languages. У корня (ru) атрибута нет - там прежнее
+     поведение: подстроиться под язык гостя. */
+  var LOCK_LANG = document.documentElement.getAttribute('data-lock-lang');
   function detectBrowserLang(){
     var langs = (navigator.languages && navigator.languages.length) ? navigator.languages : [navigator.language || navigator.userLanguage || ''];
     for(var i = 0; i < langs.length; i++){
@@ -1243,6 +1253,7 @@
     return null;
   }
   function getStoredLang(){
+    if(LOCK_LANG && (LOCK_LANG === 'ru' || I18N[LOCK_LANG])) return LOCK_LANG;
     try{
       var v = localStorage.getItem(LANG_KEY);
       if(v && I18N[v]) return v;
@@ -2002,6 +2013,12 @@
   });
 
   langSelect.addEventListener('change', function(){
+    if(LOCK_LANG){
+      var picked = langSelect.value;
+      try{ localStorage.setItem(LANG_KEY, picked); }catch(e){}
+      location.href = picked === 'ru' ? '/' : '/' + picked + '/';
+      return;
+    }
     applyLang(langSelect.value);
     labelTheme();
   });

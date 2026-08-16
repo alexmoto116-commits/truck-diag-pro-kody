@@ -1,6 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url><loc>https://codetruck.ru/</loc><lastmod>2026-08-16</lastmod><priority>1.0</priority></url>
+<url><loc>https://codetruck.ru/en/</loc><lastmod>2026-08-16</lastmod><priority>0.7</priority></url>
+<url><loc>https://codetruck.ru/de/</loc><lastmod>2026-08-16</lastmod><priority>0.7</priority></url>
+<url><loc>https://codetruck.ru/fr/</loc><lastmod>2026-08-16</lastmod><priority>0.7</priority></url>
+<url><loc>https://codetruck.ru/es/</loc><lastmod>2026-08-16</lastmod><priority>0.7</priority></url>
+<url><loc>https://codetruck.ru/pt/</loc><lastmod>2026-08-16</lastmod><priority>0.7</priority></url>
+<url><loc>https://codetruck.ru/pl/</loc><lastmod>2026-08-16</lastmod><priority>0.7</priority></url>
+<url><loc>https://codetruck.ru/tr/</loc><lastmod>2026-08-16</lastmod><priority>0.7</priority></url>
+<url><loc>https://codetruck.ru/hi/</loc><lastmod>2026-08-16</lastmod><priority>0.7</priority></url>
+<url><loc>https://codetruck.ru/zh/</loc><lastmod>2026-08-16</lastmod><priority>0.7</priority></url>
 <url><loc>https://codetruck.ru/marki/bendix.html</loc><lastmod>2026-08-16</lastmod><priority>0.7</priority></url>
 <url><loc>https://codetruck.ru/marki/daf.html</loc><lastmod>2026-08-16</lastmod><priority>0.7</priority></url>
 <url><loc>https://codetruck.ru/marki/dongfeng.html</loc><lastmod>2026-08-16</lastmod><priority>0.7</priority></url>

@@ -1,55 +1,12 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="zh" data-lock-lang="zh">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Код неисправности грузовика — расшифровка SPN/FMI и дилерских кодов</title>
-<meta name="description" content="Бесплатная расшифровка кодов неисправностей грузовиков: стандарт J1939 (SPN/FMI) и заводские таблицы 12 марок. Введите код со сканера или с приборной панели.">
-<script>
-/* Первый кадр раньше был русским для всех, даже для англоязычных -
-   пока не выполнится и не распарсится основной скрипт (148 КБ), тег
-   title/H1/meta оставались как в исходнике. Для гостя, который и так
-   не уверен, что делает на .ru-домене, доля секунды русского текста -
-   лишний повод закрыть вкладку не читая. Здесь - тот же алгоритм
-   выбора языка, что и в основном скрипте (localStorage 'pf-lang',
-   иначе navigator.languages), но выполняется сразу, до тела страницы.
-   Держать текст в согласии с I18N.<lang>.pageTitle/metaDescription/h1
-   в основном скрипте ниже - здесь только дубликат для скорости показа,
-   не источник истины. */
-(function(){
-  var D = {
-    en:['Truck fault code — SPN/FMI and dealer code lookup','Free truck fault code lookup: J1939 standard (SPN/FMI) and factory tables for 12 makes. Enter a code from your scanner or dashboard.','The <em>Check&nbsp;Engine</em> light is on — what does the code mean?'],
-    de:['LKW-Fehlercode — SPN/FMI und Händlercode entschlüsseln','Kostenlose Entschlüsselung von LKW-Fehlercodes: J1939-Standard (SPN/FMI) und Werkstabellen für 12 Marken. Code vom Scanner oder Armaturenbrett eingeben.','Die <em>Check&nbsp;Engine</em>-Leuchte ist an — was bedeutet der Code?'],
-    fr:['Code défaut camion — décodage SPN/FMI et codes constructeur','Décodage gratuit des codes défaut camion : norme J1939 (SPN/FMI) et tables constructeur pour 12 marques. Entrez le code du scanner ou du tableau de bord.','Le voyant <em>Check&nbsp;Engine</em> est allumé — que signifie le code ?'],
-    es:['Código de avería de camión — decodificación SPN/FMI y códigos de concesionario','Decodificación gratuita de códigos de avería de camiones: norma J1939 (SPN/FMI) y tablas de fábrica de 12 marcas. Introduce el código del escáner o del salpicadero.','Se ha encendido el testigo <em>Check&nbsp;Engine</em> — ¿qué significa el código?'],
-    pt:['Código de falha de caminhão — decodificação SPN/FMI e códigos de concessionária','Decodificação gratuita de códigos de falha de caminhões: norma J1939 (SPN/FMI) e tabelas de fábrica de 12 marcas. Digite o código do scanner ou do painel.','A luz de <em>Check&nbsp;Engine</em> acendeu — o que significa o código?'],
-    pl:['Kod usterki ciężarówki — rozszyfrowanie SPN/FMI i kodów dealerskich','Darmowe rozszyfrowanie kodów usterek ciężarówek: norma J1939 (SPN/FMI) i tabele fabryczne 12 marek. Wpisz kod ze skanera lub z deski rozdzielczej.','Zapaliła się kontrolka <em>Check&nbsp;Engine</em> — co oznacza kod?'],
-    tr:['Kamyon arıza kodu — SPN/FMI ve bayi kodu çözümleme','Ücretsiz kamyon arıza kodu çözümleme: J1939 standardı (SPN/FMI) ve 12 markanın fabrika tabloları. Tarayıcıdan veya gösterge panelinden kodu girin.','<em>Check&nbsp;Engine</em> lambası yandı — kod ne anlama geliyor?'],
-    hi:['ट्रक फॉल्ट कोड — SPN/FMI और डीलर कोड डिकोडिंग','ट्रक फॉल्ट कोड की मुफ्त डिकोडिंग: J1939 मानक (SPN/FMI) और 12 ब्रांड की फैक्ट्री तालिकाएं। स्कैनर या डैशबोर्ड से कोड डालें।','<em>Check&nbsp;Engine</em> लैंप जल गया है — कोड का मतलब क्या है?'],
-    zh:['卡车故障代码查询 — SPN/FMI 与经销商代码解析','免费卡车故障代码查询：J1939 标准（SPN/FMI）及12个品牌的原厂代码表。输入诊断仪或仪表盘显示的代码即可查询。','<em>Check&nbsp;Engine</em>（发动机故障）灯亮了 — 代码是什么意思？']
-  };
-  try{
-    var lang = null, stored = localStorage.getItem('pf-lang');
-    if(stored && (stored === 'ru' || D[stored])) lang = stored;
-    if(!lang){
-      var cands = (navigator.languages && navigator.languages.length) ? navigator.languages : [navigator.language || ''];
-      for(var i = 0; i < cands.length; i++){
-        var code = String(cands[i] || '').toLowerCase().split('-')[0];
-        if(code === 'ru' || D[code]){ lang = code; break; }
-      }
-    }
-    if(lang && lang !== 'ru' && D[lang]){
-      document.documentElement.lang = lang;
-      document.title = D[lang][0];
-      var m = document.querySelector('meta[name="description"]');
-      if(m) m.setAttribute('content', D[lang][1]);
-      window.__ctEarlyH1 = D[lang][2];
-    }
-  }catch(e){}
-})();
-</script>
+<title>卡车故障代码查询 — SPN/FMI 与经销商代码解析</title>
+<meta name="description" content="免费卡车故障代码查询：J1939 标准（SPN/FMI）及12个品牌的原厂代码表。输入诊断仪或仪表盘显示的代码即可查询。">
 <meta name="theme-color" content="#070B12">
-<link rel="canonical" href="https://codetruck.ru/">
+<link rel="canonical" href="https://codetruck.ru/zh/">
 <link rel="alternate" hreflang="x-default" href="https://codetruck.ru/">
 <link rel="alternate" hreflang="ru" href="https://codetruck.ru/">
 <link rel="alternate" hreflang="en" href="https://codetruck.ru/en/">
@@ -66,14 +23,14 @@
 <!-- Превью для мессенджеров: ссылку на разбор кода чаще всего
      пересылают водителю прямо в переписке. -->
 <meta property="og:type" content="website">
-<meta property="og:url" content="https://codetruck.ru/">
+<meta property="og:url" content="https://codetruck.ru/zh/">
 <meta property="og:site_name" content="codetruck.ru">
-<meta property="og:locale" content="ru_RU">
-<meta property="og:title" content="Код неисправности грузовика — расшифровка SPN/FMI">
-<meta property="og:description" content="Введите код или весь список ошибок: найдём, какая поломка настоящая, и скажем, можно ли ехать. J1939 и заводские таблицы 12 марок.">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:title" content="卡车故障代码查询 — SPN/FMI 与经销商代码解析">
+<meta property="og:description" content="免费卡车故障代码查询：J1939 标准（SPN/FMI）及12个品牌的原厂代码表。输入诊断仪或仪表盘显示的代码即可查询。">
 <meta property="og:image" content="https://codetruck.ru/assets/tyagach-noch.jpg">
 <meta name="twitter:card" content="summary_large_image">
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"codetruck.ru","url":"https://codetruck.ru/","potentialAction":{"@type":"SearchAction","target":{"@type":"EntryPoint","urlTemplate":"https://codetruck.ru/?q={search_term_string}"},"query-input":"required name=search_term_string"}}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"codetruck.ru","url":"https://codetruck.ru/zh/","potentialAction":{"@type":"SearchAction","target":{"@type":"EntryPoint","urlTemplate":"https://codetruck.ru/zh/?q={search_term_string}"},"query-input":"required name=search_term_string"}}</script>
 <style>
 /* ============================================================
    codetruck.ru - страница расшифровки кода.
@@ -790,32 +747,32 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
   <div class="photo" aria-hidden="true"></div>
   <div class="veil" aria-hidden="true"></div>
   <div class="w">
-    <h1 data-i18n="h1">Загорелась лампа <em>Check&nbsp;Engine</em> — что означает код?</h1>
+    <h1 data-i18n="h1"><em>Check&nbsp;Engine</em>（发动机故障）灯亮了 — 代码是什么意思？</h1>
     <script>if(window.__ctEarlyH1) document.currentScript.previousElementSibling.innerHTML = window.__ctEarlyH1;</script>
     <div class="purpose">
-      <p class="stats" data-i18n="purposeStats">15 500+ кодов неисправностей по 60+ маркам техники и агрегатов</p>
-      <p class="do" data-i18n="purposeDo">Введите код — или сразу весь список ошибок, как есть: через запятую, пробел или столбиком. Одна поломка тянет за собой пять-шесть кодов — покажем, какой из них причина, а какие пришли следом, и скажем, можно ли ехать.</p>
+      <p class="stats" data-i18n="purposeStats">覆盖60+品牌和系统，15,500+条故障代码</p>
+      <p class="do" data-i18n="purposeDo">输入一个代码 — 或者按原样输入整个故障列表：用逗号、空格或换行分隔。一个故障通常会带出五六个代码 — 我们会指出哪个是根本原因，哪些只是随之而来的，并告诉你是否可以继续行驶。</p>
     </div>
 
     <div class="scanner" id="pf-scanner">
-      <span class="demo-tag" data-i18n="demoTag">пример</span>
+      <span class="demo-tag" data-i18n="demoTag">示例</span>
       <input id="pf-code" type="text" inputmode="text" autocomplete="off" autofocus
              placeholder="SPN 100 FMI 1" aria-label="Код неисправности">
-      <button id="pf-go" type="button" data-i18n="goBtn">Разобрать</button>
+      <button id="pf-go" type="button" data-i18n="goBtn">解析</button>
     </div>
 
     <div class="filters">
-      <select id="pf-brand" aria-label="Марка машины"><option value="" data-i18n="brandDefault">— любая марка —</option></select>
+      <select id="pf-brand" aria-label="Марка машины"><option value="" data-i18n="brandDefault">— 任意品牌 —</option></select>
       <select id="pf-mid" aria-label="Модуль (MID)" style="display:none"><option value="" data-i18n="midDefault">— выберите модуль —</option></select>
       <select id="pf-standard" aria-label="Стандарт кода">
-        <option value="auto" data-i18n="standardAuto">Определить автоматически</option>
+        <option value="auto" data-i18n="standardAuto">自动识别</option>
         <option value="spnfmi" data-i18n="standardSpnFmi">J1939 — SPN / FMI</option>
-        <option value="pcode" data-i18n="standardPcode">Дилерский / OBD-код</option>
+        <option value="pcode" data-i18n="standardPcode">经销商 / OBD 代码</option>
       </select>
     </div>
 
 
-    <p class="datanote" id="pf-datanote" data-i18n="dataLangNote"></p>
+    <p class="datanote" id="pf-datanote" data-i18n="dataLangNote">故障名称以英文显示。</p>
 
     <div class="out" id="pf-out"></div>
   </div>
@@ -826,40 +783,40 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
      sitemap. Здесь и человеку короткий путь к типичной поломке, и
      роботу дорога вглубь сайта. -->
 <nav class="common">
-  <h2 data-i18n="commonTitle">Частые коды неисправностей</h2>
+  <h2 data-i18n="commonTitle">常见故障代码</h2>
   <ul>
-    <li><a href="/kody/spn-100.html"><span class="mono">SPN 100</span> <span data-i18n="freqOil">Давление масла</span></a></li>
-    <li><a href="/kody/spn-110.html"><span class="mono">SPN 110</span> <span data-i18n="freqCool">Температура ОЖ</span></a></li>
-    <li><a href="/kody/spn-97.html"><span class="mono">SPN 97</span> <span data-i18n="freqWater">Вода в топливе</span></a></li>
-    <li><a href="/kody/spn-102.html"><span class="mono">SPN 102</span> <span data-i18n="freqBoost">Давление наддува</span></a></li>
-    <li><a href="/kody/spn-168.html"><span class="mono">SPN 168</span> <span data-i18n="freqVolt">Напряжение АКБ</span></a></li>
-    <li><a href="/kody/spn-1761.html"><span class="mono">SPN 1761</span> <span data-i18n="freqAdblue">Уровень AdBlue</span></a></li>
-    <li><a href="/kody/spn-3251.html"><span class="mono">SPN 3251</span> <span data-i18n="freqDpf">Сажевый фильтр</span></a></li>
-    <li><a href="/kody/spn-1569.html"><span class="mono">SPN 1569</span> <span data-i18n="freqTorque">Ограничение момента</span></a></li>
-    <li><a href="/kody/spn-639.html"><span class="mono">SPN 639</span> <span data-i18n="freqCan">CAN-шина</span></a></li>
+    <li><a href="/kody/spn-100.html"><span class="mono">SPN 100</span> <span data-i18n="freqOil">机油压力</span></a></li>
+    <li><a href="/kody/spn-110.html"><span class="mono">SPN 110</span> <span data-i18n="freqCool">冷却液温度</span></a></li>
+    <li><a href="/kody/spn-97.html"><span class="mono">SPN 97</span> <span data-i18n="freqWater">燃油中含水</span></a></li>
+    <li><a href="/kody/spn-102.html"><span class="mono">SPN 102</span> <span data-i18n="freqBoost">增压压力</span></a></li>
+    <li><a href="/kody/spn-168.html"><span class="mono">SPN 168</span> <span data-i18n="freqVolt">蓄电池电压</span></a></li>
+    <li><a href="/kody/spn-1761.html"><span class="mono">SPN 1761</span> <span data-i18n="freqAdblue">AdBlue 液位</span></a></li>
+    <li><a href="/kody/spn-3251.html"><span class="mono">SPN 3251</span> <span data-i18n="freqDpf">颗粒捕集器（DPF）</span></a></li>
+    <li><a href="/kody/spn-1569.html"><span class="mono">SPN 1569</span> <span data-i18n="freqTorque">扭矩限制</span></a></li>
+    <li><a href="/kody/spn-639.html"><span class="mono">SPN 639</span> <span data-i18n="freqCan">CAN 总线</span></a></li>
   </ul>
 
-  <h2 data-i18n="bySituation">Если номера кода нет</h2>
+  <h2 data-i18n="bySituation">如果没有代码编号</h2>
   <ul class="lines">
-    <li><a href="/problemy/gorit-check-engine.html" data-i18n="symCheck">Загорелся Check Engine</a></li>
-    <li><a href="/problemy/oshibka-adblue.html" data-i18n="symAdblue">Ошибка AdBlue</a></li>
-    <li><a href="/problemy/upala-moshchnost.html" data-i18n="symPower">Упала мощность</a></li>
-    <li><a href="/problemy/nizkoe-davlenie-masla.html" data-i18n="symLowOil">Низкое давление масла</a></li>
-    <li><a href="/problemy/peregrev-dvigatelya.html" data-i18n="symOverheat">Перегрев двигателя</a></li>
-    <li><a href="/problemy/zabit-sazhevyy-filtr.html" data-i18n="symDpfClog">Забит сажевый фильтр</a></li>
-    <li><a href="/problemy/problemy-s-toplivom.html" data-i18n="symWater">Вода в топливе</a></li>
-    <li><a href="/problemy/propalo-pitanie.html" data-i18n="symAllCodes">Ошибки по всей машине</a></li>
+    <li><a href="/problemy/gorit-check-engine.html" data-i18n="symCheck">Check Engine（发动机故障灯）亮起</a></li>
+    <li><a href="/problemy/oshibka-adblue.html" data-i18n="symAdblue">AdBlue 故障</a></li>
+    <li><a href="/problemy/upala-moshchnost.html" data-i18n="symPower">动力下降</a></li>
+    <li><a href="/problemy/nizkoe-davlenie-masla.html" data-i18n="symLowOil">机油压力过低</a></li>
+    <li><a href="/problemy/peregrev-dvigatelya.html" data-i18n="symOverheat">发动机过热</a></li>
+    <li><a href="/problemy/zabit-sazhevyy-filtr.html" data-i18n="symDpfClog">颗粒捕集器堵塞</a></li>
+    <li><a href="/problemy/problemy-s-toplivom.html" data-i18n="symWater">燃油中含水</a></li>
+    <li><a href="/problemy/propalo-pitanie.html" data-i18n="symAllCodes">全车范围故障</a></li>
   </ul>
 
-  <h2 data-i18n="byBrand">По маркам</h2>
+  <h2 data-i18n="byBrand">按品牌查找</h2>
 
-  <p class="subhead" data-i18n="brandGroupVehicles">Марки техники</p>
+  <p class="subhead" data-i18n="brandGroupVehicles">车辆品牌</p>
   <ul class="lines">
-    <li><a href="/marki/kamaz.html" data-i18n="brandKamazLbl">КамАЗ</a></li>
-    <li><a href="/marki/maz.html" data-i18n="brandMazLbl">МАЗ</a></li>
-    <li><span class="nolink" data-i18n="brandGazLbl">ГАЗ</span></li>
-    <li><span class="nolink" data-i18n="brandKrazLbl">КрАЗ</span></li>
-    <li><span class="nolink" data-i18n="brandUralLbl">Урал</span></li>
+    <li><a href="/marki/kamaz.html" data-i18n="brandKamazLbl">KAMAZ</a></li>
+    <li><a href="/marki/maz.html" data-i18n="brandMazLbl">MAZ</a></li>
+    <li><span class="nolink" data-i18n="brandGazLbl">GAZ</span></li>
+    <li><span class="nolink" data-i18n="brandKrazLbl">KrAZ</span></li>
+    <li><span class="nolink" data-i18n="brandUralLbl">Ural</span></li>
     <li><a href="/marki/ashokleyland.html">Ashok Leyland</a></li>
     <li><span class="nolink">Beiben</span></li>
     <li><span class="nolink">BharatBenz</span></li>
@@ -896,11 +853,11 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
     <li><span class="nolink">Western Star</span></li>
   </ul>
 
-  <p class="subhead" data-i18n="brandGroupSystems">Системы и агрегаты</p>
+  <p class="subhead" data-i18n="brandGroupSystems">系统与部件</p>
   <ul class="lines">
-    <li><a href="/marki/yamz.html" data-i18n="brandYamzLbl">ЯМЗ</a></li>
-    <li><a href="/marki/planar.html" data-i18n="brandPlanarLbl">Планар</a></li>
-    <li><span class="nolink" data-i18n="brandTeplostarLbl">Теплостар</span></li>
+    <li><a href="/marki/yamz.html" data-i18n="brandYamzLbl">YaMZ</a></li>
+    <li><a href="/marki/planar.html" data-i18n="brandPlanarLbl">Planar</a></li>
+    <li><span class="nolink" data-i18n="brandTeplostarLbl">Teplostar</span></li>
     <li><a href="/marki/allison.html">Allison</a></li>
     <li><a href="/marki/bendix.html">Bendix ABS/ESP</a></li>
     <li><a href="/marki/carrier.html">Carrier Transicold</a></li>
@@ -927,7 +884,7 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
   </ul>
 </nav>
 
-<p class="foot" data-i18n="footText">Справочник показывает, что означает код, а не ставит диагноз — решение всегда за человеком с оборудованием. Вопросы — <a href="mailto:alexdiag116@gmail.com" style="color:inherit">alexdiag116@gmail.com</a>.</p>
+<p class="foot" data-i18n="footText">本查询工具用于解释代码含义，并不能诊断车辆故障。最终判断应由持有专业设备的技师做出。有问题请联系 — <a href="mailto:alexdiag116@gmail.com" style="color:inherit">alexdiag116@gmail.com</a>。</p>
 
 <script src="/assets/app.js"></script>
 </body>

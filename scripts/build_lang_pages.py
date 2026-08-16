@@ -1,0 +1,122 @@
+# -*- coding: utf-8 -*-
+"""
+Языковые версии главной (codetruck.ru/en/, /de/ и т.д.) под hreflang.
+
+index.html (корень, ru) - источник правды по разметке и оформлению.
+Инструмент один на все версии (assets/app.js, см. build_pages.py не
+трогает этот файл), а сам HTML главной на 9 языков собирается отсюда:
+заголовок/описание/og-теги - на язык версии, все data-i18n элементы -
+подставлены строкой из I18N (не оставлены на клиентский JS, чтобы
+краулер увидел готовый текст без выполнения скрипта). <html> получает
+data-lock-lang - см. assets/app.js: на такой странице язык не
+угадывается по браузеру/localStorage, а сам переключатель ведёт на
+нужный URL, а не перерисовывает текст на месте.
+
+Запуск из корня репозитория: python scripts/build_lang_pages.py
+"""
+import io, json, os, re, subprocess
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+SITE = 'https://codetruck.ru'
+LANGS = ['en', 'de', 'fr', 'es', 'pt', 'pl', 'tr', 'hi', 'zh']
+OG_LOCALE = {'en': 'en_US', 'de': 'de_DE', 'fr': 'fr_FR', 'es': 'es_ES', 'pt': 'pt_PT',
+             'pl': 'pl_PL', 'tr': 'tr_TR', 'hi': 'hi_IN', 'zh': 'zh_CN'}
+
+
+def extract_i18n():
+    app_js = os.path.join(ROOT, 'assets', 'app.js').replace('\\', '/')
+    node_script = (
+        "const fs=require('fs');"
+        "const src=fs.readFileSync(%r,'utf8');"
+        "const start=src.indexOf('var I18N = {');"
+        "let i=src.indexOf('{',start),depth=0,end=-1;"
+        "for(let j=i;j<src.length;j++){"
+        "if(src[j]==='{')depth++;"
+        "else if(src[j]==='}'){depth--;if(depth===0){end=j;break;}}"
+        "}"
+        "const I18N=eval('('+src.slice(i,end+1)+')');"
+        "process.stdout.write(JSON.stringify(I18N));"
+    ) % app_js
+    out = subprocess.run(['node', '-e', node_script], cwd=ROOT,
+                          capture_output=True, check=True)
+    return json.loads(out.stdout.decode('utf-8'))
+
+
+I18N_TAG_RE = re.compile(r'<(\w+)([^>]*\bdata-i18n="([a-zA-Z0-9]+)"[^>]*)>(.*?)</\1>', re.DOTALL)
+
+
+def apply_i18n(html, lang_dict):
+    def repl(m):
+        tag, attrs, key, inner = m.group(1), m.group(2), m.group(3), m.group(4)
+        value = lang_dict.get(key)
+        if value is None:
+            return m.group(0)
+        return u'<%s%s>%s</%s>' % (tag, attrs, value, tag)
+    return I18N_TAG_RE.sub(repl, html)
+
+
+def build():
+    i18n = extract_i18n()
+    ru_html = io.open(os.path.join(ROOT, 'index.html'), encoding='utf-8').read()
+
+    # Ранний скрипт-подмена в <head> (тег/H1/meta до загрузки основного
+    # скрипта) нужен только там, где язык страницы неизвестен заранее -
+    # у языковых версий он известен по URL, страница и так уже на своём
+    # языке с первого байта. Вырезаем его целиком.
+    early_flash = re.search(r'<script>\n/\* Первый кадр.*?\n</script>\n', ru_html, re.DOTALL)
+    if not early_flash:
+        raise SystemExit('не нашёл ранний скрипт-подмену языка в index.html - шаблон изменился?')
+    base = ru_html[:early_flash.start()] + ru_html[early_flash.end():]
+
+    written = []
+    for lang in LANGS:
+        d = i18n[lang]
+        html = base
+
+        html = html.replace('<html lang="ru">', '<html lang="%s" data-lock-lang="%s">' % (lang, lang), 1)
+        html = html.replace(
+            '<title>Код неисправности грузовика — расшифровка SPN/FMI и дилерских кодов</title>',
+            u'<title>%s</title>' % d['pageTitle'], 1)
+        html = re.sub(
+            r'<meta name="description" content="[^"]*">',
+            lambda m: u'<meta name="description" content="%s">' % d['metaDescription'].replace('"', '&quot;'),
+            html, count=1)
+        html = html.replace(
+            '<link rel="canonical" href="https://codetruck.ru/">',
+            '<link rel="canonical" href="%s/%s/">' % (SITE, lang), 1)
+        html = html.replace(
+            '<meta property="og:url" content="https://codetruck.ru/">',
+            '<meta property="og:url" content="%s/%s/">' % (SITE, lang), 1)
+        html = html.replace(
+            '<meta property="og:locale" content="ru_RU">',
+            '<meta property="og:locale" content="%s">' % OG_LOCALE[lang], 1)
+        html = re.sub(
+            r'<meta property="og:title" content="[^"]*">',
+            lambda m: u'<meta property="og:title" content="%s">' % d['pageTitle'].replace('"', '&quot;'),
+            html, count=1)
+        html = re.sub(
+            r'<meta property="og:description" content="[^"]*">',
+            lambda m: u'<meta property="og:description" content="%s">' % d['metaDescription'].replace('"', '&quot;'),
+            html, count=1)
+        html = html.replace(
+            'https://codetruck.ru/","potentialAction"',
+            '%s/%s/","potentialAction"' % (SITE, lang), 1)
+        html = html.replace(
+            'https://codetruck.ru/?q={search_term_string}',
+            '%s/%s/?q={search_term_string}' % (SITE, lang), 1)
+
+        html = apply_i18n(html, d)
+
+        out_dir = os.path.join(ROOT, lang)
+        if not os.path.isdir(out_dir):
+            os.makedirs(out_dir)
+        out_path = os.path.join(out_dir, 'index.html')
+        io.open(out_path, 'w', encoding='utf-8', newline='\n').write(html)
+        written.append('%s/index.html' % lang)
+
+    print(u'языковых версий собрано: %d' % len(written))
+    return written
+
+
+if __name__ == '__main__':
+    build()
