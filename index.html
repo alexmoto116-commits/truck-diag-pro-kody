@@ -715,6 +715,10 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
   border:1px solid var(--line-2);border-radius:9px;padding:8px 13px;
   opacity:.68;
 }
+/* Ссылка на рубрику под каждым списком: сам список на главной короткий,
+   витрина, а весь раздел лежит в /kody/, /marki/, /problemy/. */
+.common .allof{margin:14px 0 0;font-size:13.5px}
+.common .allof a{border-bottom:1px solid rgba(111,227,211,.35)}
 @media print{ .common{display:none} }
 
 .foot{
@@ -838,6 +842,7 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
     <li><a href="/kody/spn-1569.html"><span class="mono">SPN 1569</span> <span data-i18n="freqTorque">Ограничение момента</span></a></li>
     <li><a href="/kody/spn-639.html"><span class="mono">SPN 639</span> <span data-i18n="freqCan">CAN-шина</span></a></li>
   </ul>
+  <p class="allof"><a href="/kody/" data-i18n="allCodes">Все коды ошибок</a></p>
 
   <h2 data-i18n="bySituation">Если номера кода нет</h2>
   <ul class="lines">
@@ -850,6 +855,7 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
     <li><a href="/problemy/problemy-s-toplivom.html" data-i18n="symWater">Вода в топливе</a></li>
     <li><a href="/problemy/propalo-pitanie.html" data-i18n="symAllCodes">Ошибки по всей машине</a></li>
   </ul>
+  <p class="allof"><a href="/problemy/" data-i18n="allProblems">Все неисправности</a></p>
 
   <h2 data-i18n="byBrand">По маркам</h2>
 
@@ -925,6 +931,7 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
     <li><a href="/marki/weichai.html">Weichai/Shaanxi WP10/WP12</a></li>
     <li><a href="/marki/zfastronic.html">ZF AS-Tronic</a></li>
   </ul>
+  <p class="allof"><a href="/marki/" data-i18n="allBrands">Все марки</a></p>
 </nav>
 
 <p class="foot" data-i18n="footText">Справочник показывает, что означает код, а не ставит диагноз — решение всегда за человеком с оборудованием. Вопросы — <a href="mailto:alexdiag116@gmail.com" style="color:inherit">alexdiag116@gmail.com</a>.</p>

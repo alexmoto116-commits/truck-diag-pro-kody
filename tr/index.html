@@ -672,6 +672,10 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
   border:1px solid var(--line-2);border-radius:9px;padding:8px 13px;
   opacity:.68;
 }
+/* Ссылка на рубрику под каждым списком: сам список на главной короткий,
+   витрина, а весь раздел лежит в /kody/, /marki/, /problemy/. */
+.common .allof{margin:14px 0 0;font-size:13.5px}
+.common .allof a{border-bottom:1px solid rgba(111,227,211,.35)}
 @media print{ .common{display:none} }
 
 .foot{
@@ -795,6 +799,7 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
     <li><a href="/kody/spn-1569.html"><span class="mono">SPN 1569</span> <span data-i18n="freqTorque">Tork sınırlama</span></a></li>
     <li><a href="/kody/spn-639.html"><span class="mono">SPN 639</span> <span data-i18n="freqCan">CAN hattı</span></a></li>
   </ul>
+  <p class="allof"><a href="/kody/" data-i18n="allCodes">Tüm arıza kodları</a></p>
 
   <h2 data-i18n="bySituation">Kod numarası yoksa</h2>
   <ul class="lines">
@@ -807,6 +812,7 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
     <li><a href="/problemy/problemy-s-toplivom.html" data-i18n="symWater">Yakıtta su</a></li>
     <li><a href="/problemy/propalo-pitanie.html" data-i18n="symAllCodes">Kamyonun her yerinde arıza</a></li>
   </ul>
+  <p class="allof"><a href="/problemy/" data-i18n="allProblems">Tüm belirtiler</a></p>
 
   <h2 data-i18n="byBrand">Markaya göre</h2>
 
@@ -882,6 +888,7 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
     <li><a href="/marki/weichai.html">Weichai/Shaanxi WP10/WP12</a></li>
     <li><a href="/marki/zfastronic.html">ZF AS-Tronic</a></li>
   </ul>
+  <p class="allof"><a href="/marki/" data-i18n="allBrands">Tüm markalar</a></p>
 </nav>
 
 <p class="foot" data-i18n="footText">Bu rehber kodun ne anlama geldiğini açıklar — teşhis koymaz. Nihai karar her zaman uygun ekipmana sahip bir kişiye aittir. Sorular — <a href="mailto:alexdiag116@gmail.com" style="color:inherit">alexdiag116@gmail.com</a>.</p>
