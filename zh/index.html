@@ -5,6 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>卡车故障代码查询 — SPN/FMI 与经销商代码解析</title>
 <meta name="description" content="免费卡车故障代码查询：J1939 标准（SPN/FMI）及12个品牌的原厂代码表。输入诊断仪或仪表盘显示的代码即可查询。">
+<!-- Ранний скрипт-подмена языка убран 2026-08-17. Он менял title,
+     description и H1 по языку браузера - и Googlebot, который
+     представляется английским и выполняет JS, индексировал русскую
+     главную как английскую: в выдаче стояло «Truck fault code»,
+     хотя canonical и hreflang объявляют этот адрес русским. Пока
+     других адресов не было, подмена была оправдана; теперь есть
+     /en/, /de/ и остальные, и язык определяет URL, а не браузер.
+     html[data-lock-lang="ru"] выше держит корень русским и
+     превращает переключатель языка в переход на /xx/. -->
 <meta name="theme-color" content="#070B12">
 <link rel="canonical" href="https://codetruck.ru/zh/">
 <link rel="alternate" hreflang="x-default" href="https://codetruck.ru/">

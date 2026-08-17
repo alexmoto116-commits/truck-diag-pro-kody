@@ -87,17 +87,22 @@ def build():
     # скрипта) нужен только там, где язык страницы неизвестен заранее -
     # у языковых версий он известен по URL, страница и так уже на своём
     # языке с первого байта. Вырезаем его целиком.
+    # Раннего скрипта-подмены языка в index.html больше нет: убран 2026-08-17,
+    # потому что Googlebot выполняет JS, представляется английским и получал
+    # английские title/description на русском адресе - см. комментарий на его
+    # месте в index.html. Если он когда-нибудь вернётся, здесь его вырежем:
+    # языковой версии он не нужен, её язык известен из URL.
     early_flash = re.search(r'<script>\n/\* Первый кадр.*?\n</script>\n', ru_html, re.DOTALL)
-    if not early_flash:
-        raise SystemExit('не нашёл ранний скрипт-подмену языка в index.html - шаблон изменился?')
-    base = ru_html[:early_flash.start()] + ru_html[early_flash.end():]
+    base = (ru_html[:early_flash.start()] + ru_html[early_flash.end():]
+            if early_flash else ru_html)
 
     written = []
     for lang in LANGS:
         d = i18n[lang]
         html = base
 
-        html = html.replace('<html lang="ru">', '<html lang="%s" data-lock-lang="%s">' % (lang, lang), 1)
+        html = html.replace('<html lang="ru" data-lock-lang="ru">',
+                            '<html lang="%s" data-lock-lang="%s">' % (lang, lang), 1)
         html = html.replace(
             '<title>Код неисправности грузовика — расшифровка SPN/FMI и дилерских кодов</title>',
             u'<title>%s</title>' % d['pageTitle'], 1)

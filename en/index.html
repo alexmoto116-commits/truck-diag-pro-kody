@@ -5,6 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Truck fault code — SPN/FMI and dealer code lookup</title>
 <meta name="description" content="Free truck fault code lookup: J1939 standard (SPN/FMI) and factory tables for 12 makes. Enter a code from your scanner or dashboard.">
+<!-- Ранний скрипт-подмена языка убран 2026-08-17. Он менял title,
+     description и H1 по языку браузера - и Googlebot, который
+     представляется английским и выполняет JS, индексировал русскую
+     главную как английскую: в выдаче стояло «Truck fault code»,
+     хотя canonical и hreflang объявляют этот адрес русским. Пока
+     других адресов не было, подмена была оправдана; теперь есть
+     /en/, /de/ и остальные, и язык определяет URL, а не браузер.
+     html[data-lock-lang="ru"] выше держит корень русским и
+     превращает переключатель языка в переход на /xx/. -->
 <meta name="theme-color" content="#070B12">
 <link rel="canonical" href="https://codetruck.ru/en/">
 <link rel="alternate" hreflang="x-default" href="https://codetruck.ru/">
