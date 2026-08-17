@@ -199,12 +199,21 @@ def build():
             {'@type': 'ListItem', 'position': 3, 'name': name, 'item': canon},
         ]}
 
-    def fmi_table(rows):
+    # Скан показывает «SPN 100 FMI 1», «100/1» или «100.1» - ищут ровно то,
+    # что видно на экране. В стандартной таблице печатаем все три написания
+    # и вешаем якорь на сочетание (см. тот же приём в build_pages.py).
+    def fmi_table(rows, spn=None):
         out = ['<table><tr><th>Code</th><th>Meaning</th></tr>']
         for f, text in rows:
             cls = ' class="hit"' if f in urgent_fmi else ''
-            out.append('<tr%s><td class="fmi">FMI %s</td><td>%s</td></tr>'
-                       % (cls, f, bp.rich(text)))
+            if spn is None:
+                cell = 'FMI %s' % f
+            else:
+                cell = ('<a id="fmi-%s"></a>SPN %d FMI %s'
+                        '<span class="alt">%d/%s &middot; %d.%s</span>'
+                        % (f, spn, f, spn, f, spn, f))
+            out.append('<tr%s><td class="fmi">%s</td><td>%s</td></tr>'
+                       % (cls, cell, bp.rich(text)))
         out.append('</table>')
         return ''.join(out)
 
@@ -234,6 +243,9 @@ def build():
 
     for spn in written:
         makes = per_en.get(spn, {})
+        # Какие FMI вообще встречаются у этого кода - нужно и в FAQ (вопрос
+        # про конкретное сочетание), и ниже в таблице, поэтому считаем сразу.
+        seen = sorted({f for rows in makes.values() for f, _ in rows})
         sys_key = sys_of.get(spn, 'other')
         name = name_of(spn)
         brands_short, brands_all = brand_list(spn, 3), brand_list(spn)
@@ -270,6 +282,15 @@ def build():
                         'name': u'What happens if I keep driving with SPN %d?' % spn,
                         'acceptedAnswer': {'@type': 'Answer', 'text': happens + u' ' + ends}})
 
+        for f in sorted(seen, key=lambda x: (x not in urgent_fmi, x))[:2]:
+            if str(f) not in fmi_en:
+                continue
+            faq.append({'@type': 'Question',
+                        'name': u'What does SPN %d FMI %d (%d/%d) mean?' % (spn, f, spn, f),
+                        'acceptedAnswer': {'@type': 'Answer',
+                                           'text': u'%s: %s.' % (name or u'SPN %d' % spn,
+                                                                 fmi_en[str(f)])}})
+
         ld = (bp.ld_script({'@context': 'https://schema.org', '@type': 'TechArticle',
                             'headline': title, 'description': desc, 'url': canon,
                             'inLanguage': 'en'})
@@ -292,16 +313,15 @@ def build():
             body.append(u'<section><h2>%s</h2>%s</section>'
                         % (bp.esc(bname(b)), fmi_table(sorted(makes[b], key=lambda r: r[0]))))
 
-        seen = sorted({f for rows in makes.values() for f, _ in rows})
         if seen:
             std_rows = [(f, fmi_en[str(f)]) for f in seen if str(f) in fmi_en]
             if std_rows:
                 body.append(u'<section><h2>%s</h2>%s</section>'
-                            % (TX['fmiStd'], fmi_table(std_rows)))
+                            % (TX['fmiStd'], fmi_table(std_rows, spn)))
         else:
             common = [(f, fmi_en[str(f)]) for f in (0, 1, 2, 3, 4, 5) if str(f) in fmi_en]
             body.append(u'<section><h2>%s</h2>%s</section>'
-                        % (TX['fmiCommon'], fmi_table(common)))
+                        % (TX['fmiCommon'], fmi_table(common, spn)))
 
         body.append(u'<section><h2>%s</h2><p>%s</p></section>' % (TX['canDrive'], verdict))
         body.append(risk_section(sys_key))
