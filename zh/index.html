@@ -673,14 +673,6 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
   color:var(--ink-3);opacity:.7;font-weight:600;margin:16px 0 8px;
 }
 .common .subhead:first-of-type{margin-top:6px}
-/* Марки без своей страницы разбора - тот же ряд чипов, но без наведения
-   и без подчёркивания кликабельности: это просто название, не ссылка. */
-.common .lines span.nolink{
-  display:flex;align-items:center;min-height:44px;
-  color:var(--ink-3);font-size:13.5px;
-  border:1px solid var(--line-2);border-radius:9px;padding:8px 13px;
-  opacity:.68;
-}
 /* Ссылка на рубрику под каждым списком: сам список на главной короткий,
    витрина, а весь раздел лежит в /kody/, /marki/, /problemy/. */
 .common .allof{margin:14px 0 0;font-size:13.5px}
@@ -829,19 +821,19 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
   <ul class="lines">
     <li><a href="/marki/kamaz.html" data-i18n="brandKamazLbl">KAMAZ</a></li>
     <li><a href="/marki/maz.html" data-i18n="brandMazLbl">MAZ</a></li>
-    <li><span class="nolink" data-i18n="brandGazLbl">GAZ</span></li>
-    <li><span class="nolink" data-i18n="brandKrazLbl">KrAZ</span></li>
-    <li><span class="nolink" data-i18n="brandUralLbl">Ural</span></li>
+    <li><a href="?b=gaz" data-i18n="brandGazLbl">GAZ</a></li>
+    <li><a href="?b=kraz" data-i18n="brandKrazLbl">KrAZ</a></li>
+    <li><a href="?b=ural" data-i18n="brandUralLbl">Ural</a></li>
     <li><a href="/marki/ashokleyland.html">Ashok Leyland</a></li>
-    <li><span class="nolink">Beiben</span></li>
-    <li><span class="nolink">BharatBenz</span></li>
+    <li><a href="?b=beiben">Beiben</a></li>
+    <li><a href="?b=bharatbenz">BharatBenz</a></li>
     <li><a href="/marki/daf.html">DAF</a></li>
-    <li><span class="nolink">Dodge</span></li>
+    <li><a href="?b=dodge">Dodge</a></li>
     <li><a href="/marki/dongfeng.html">Dongfeng</a></li>
     <li><a href="/marki/faw.html">FAW</a></li>
     <li><a href="/marki/ford.html">Ford Trucks</a></li>
     <li><a href="/marki/foton.html">Foton</a></li>
-    <li><span class="nolink">Freightliner</span></li>
+    <li><a href="?b=freightliner">Freightliner</a></li>
     <li><a href="/marki/hino.html">Hino</a></li>
     <li><a href="/marki/howo.html">HOWO</a></li>
     <li><a href="/marki/hyundai.html">Hyundai</a></li>
@@ -849,30 +841,30 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
     <li><a href="/marki/isuzu.html">Isuzu</a></li>
     <li><a href="/marki/iveco.html">Iveco</a></li>
     <li><a href="/marki/jac.html">JAC</a></li>
-    <li><span class="nolink">Kenworth</span></li>
+    <li><a href="?b=kenworth">Kenworth</a></li>
     <li><a href="/marki/mack.html">Mack</a></li>
     <li><a href="/marki/mahindra.html">Mahindra</a></li>
     <li><a href="/marki/man.html">MAN</a></li>
     <li><a href="/marki/mercedes.html">Mercedes-Benz</a></li>
     <li><a href="/marki/fuso.html">Mitsubishi Fuso</a></li>
-    <li><span class="nolink">Peterbilt</span></li>
-    <li><span class="nolink">RAM</span></li>
+    <li><a href="?b=peterbilt">Peterbilt</a></li>
+    <li><a href="?b=ram">RAM</a></li>
     <li><a href="/marki/renault.html">Renault Trucks</a></li>
-    <li><span class="nolink">SAIC-Iveco Hongyan</span></li>
+    <li><a href="?b=hongyan">SAIC-Iveco Hongyan</a></li>
     <li><a href="/marki/scania.html">Scania</a></li>
     <li><a href="/marki/shacman.html">Shacman</a></li>
     <li><a href="/marki/sitrak.html">SITRAK</a></li>
     <li><a href="/marki/daewoo.html">Tata Daewoo</a></li>
     <li><a href="/marki/tata.html">Tata Motors</a></li>
     <li><a href="/marki/volvo.html">Volvo</a></li>
-    <li><span class="nolink">Western Star</span></li>
+    <li><a href="?b=westernstar">Western Star</a></li>
   </ul>
 
   <p class="subhead" data-i18n="brandGroupSystems">系统与部件</p>
   <ul class="lines">
     <li><a href="/marki/yamz.html" data-i18n="brandYamzLbl">YaMZ</a></li>
     <li><a href="/marki/planar.html" data-i18n="brandPlanarLbl">Planar</a></li>
-    <li><span class="nolink" data-i18n="brandTeplostarLbl">Teplostar</span></li>
+    <li><a href="?b=teplostar" data-i18n="brandTeplostarLbl">Teplostar</a></li>
     <li><a href="/marki/allison.html">Allison</a></li>
     <li><a href="/marki/bendix.html">Bendix ABS/ESP</a></li>
     <li><a href="/marki/carrier.html">Carrier Transicold</a></li>
