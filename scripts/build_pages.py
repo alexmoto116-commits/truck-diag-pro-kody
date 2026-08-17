@@ -483,12 +483,17 @@ td.fmi{{font-family:"Cascadia Mono",Consolas,monospace;color:#6FE3D3;white-space
 tr.hit td.fmi{{color:#FF6B5A}}
 h2{{font-family:"Cascadia Mono",Consolas,monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#7A8998;margin:0 0 12px;font-weight:600}}
 section{{margin-bottom:32px}}
-.near{{margin:0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:8px}}
-.near li{{margin:0}}
-.near a{{display:inline-flex;align-items:center;gap:6px;min-height:44px;text-decoration:none;color:#AFBECD;font-size:13.5px;
-  border:1px solid rgba(255,255,255,.13);border-radius:9px;padding:6px 13px;background:rgba(255,255,255,.03)}}
-.near a:hover{{color:#EAF0F7;border-color:rgba(111,227,211,.45)}}
-.near a .mono{{color:#6FE3D3}}
+/* Раньше это были плашки в строку - хорошо, пока подпись короткая.
+   Теперь в ссылке полное название узла, и на телефоне плашки рвались:
+   «SPN» и номер вставали друг под другом, ширина скакала. Строка во всю
+   ширину с колонкой номера читается сверху вниз и не зависит от длины. */
+.near{{margin:0;padding:0;list-style:none;border-top:1px solid rgba(255,255,255,.06)}}
+.near li{{margin:0;border-bottom:1px solid rgba(255,255,255,.06)}}
+.near a{{display:flex;align-items:baseline;gap:12px;min-height:44px;padding:10px 2px;
+  text-decoration:none;color:#AFBECD;font-size:14.5px;line-height:1.45}}
+.near a:hover{{color:#EAF0F7}}
+.near a .mono{{color:#6FE3D3;flex:none;min-width:5.4em}}
+.near a .nm{{flex:1}}
 .risk{{border:1px solid rgba(255,255,255,.13);border-radius:14px;padding:14px 16px;background:rgba(255,255,255,.022)}}
 .risk .rkb{{display:inline-block;font-family:"Cascadia Mono",Consolas,monospace;font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;border:1px solid;border-radius:6px;padding:3px 8px;margin-bottom:12px}}
 .risk p{{margin:0;font-size:15px;line-height:1.6;color:#CBD7E3}}
@@ -502,6 +507,22 @@ td.fmi .alt{{display:block;font-size:11px;letter-spacing:.02em;color:#7A8998;mar
 .lines{{margin:0;padding:0;list-style:none}}
 .lines li{{padding:9px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:14.5px;color:#94A2B4}}
 .lines a{{text-decoration:none;border-bottom:1px solid rgba(111,227,211,.35)}}
+/* Ответ на главный вопрос - сразу под заголовком. Подробный блок риска
+   ниже объясняет, а эта строка отвечает: человек на обочине не должен
+   пролистывать десять заводских таблиц, чтобы узнать, ехать ему или нет. */
+.vline{{display:inline-flex;align-items:baseline;flex-wrap:wrap;gap:4px 10px;
+  margin:0 0 24px;padding:9px 14px;border:1px solid;border-radius:10px;font-size:15px}}
+.vline b{{font-weight:650}}
+.vline .hz{{font-size:13.5px;opacity:.85}}
+.vline.t-now{{color:#FF6B5A;border-color:rgba(255,107,90,.35);background:rgba(255,107,90,.06)}}
+.vline.t-warn{{color:#FF9B3D;border-color:rgba(255,155,61,.3);background:rgba(255,155,61,.05)}}
+.vline.t-calm{{color:#6FE3D3;border-color:rgba(111,227,211,.3);background:rgba(111,227,211,.05)}}
+/* Марка - то, что ищут глазами. Раньше она была набрана как шапка
+   таблицы, мелким серым капсом, и терялась среди служебных подписей. */
+h2.mk{{font-family:var(--sans-fallback,inherit);font-size:17.5px;letter-spacing:-.01em;
+  text-transform:none;color:#EAF0F7;font-weight:640;margin:30px 0 10px}}
+.jump{{margin:0 0 26px;font-size:13.5px;color:#7A8998;display:flex;flex-wrap:wrap;gap:6px 14px}}
+.jump a{{text-decoration:none;border-bottom:1px solid rgba(111,227,211,.35)}}
 .cta{{margin-top:44px;padding-top:24px;border-top:1px solid rgba(255,255,255,.06);font-size:14px;color:#94A2B4}}
 </style>
 </head>
@@ -534,7 +555,10 @@ MID_MODULE_NAMES = {
 # якорь, чтобы на конкретное сочетание можно было дать ссылку. В заводских
 # таблицах марок оставляем как было: там строк много и марка своя у каждой.
 def fmi_table(rows, urgent_fmi, spn=None):
-    out = ['<table><tr><th>Код</th><th>Расшифровка</th></tr>']
+    # Шапка «Код / Расшифровка» повторялась над каждой заводской таблицей -
+    # на SPN 100 десять раз подряд, и ничего не сообщала: что слева код, а
+    # справа расшифровка, видно и так.
+    out = ['<table>']
     for f, text in rows:
         cls = ' class="hit"' if f in urgent_fmi else ''
         if spn is None:
@@ -559,7 +583,7 @@ def code_sort_key(code):
 
 
 def pcode_table(rows):
-    out = ['<table><tr><th>Код</th><th>Расшифровка</th></tr>']
+    out = ['<table>']
     for code, text in rows:
         out.append('<tr><td class="fmi">%s</td><td>%s</td></tr>' % (esc(code), rich(text)))
     out.append('</table>')
@@ -710,7 +734,7 @@ def build(en_spns=()):
     def code_link(spn, href):
         nm = name_of(spn)
         return (u'<li><a href="%s"><span class="mono">SPN %d</span>%s</a></li>'
-                % (href, spn, (u' — ' + esc(nm)) if nm else u''))
+                % (href, spn, (u'<span class="nm">%s</span>' % esc(nm)) if nm else u''))
 
     def brand_list(spn, limit=0):
         names = [brand_names.get(b, b) for b in
@@ -812,6 +836,12 @@ def build(en_spns=()):
                             nav=nav_of('kody'), lang='ru', locale='ru_RU',
                             alt=alt_links(spn in en_spns, 'kody/spn-%d.html' % spn))]
         body.append(u'<h1>%s</h1>' % esc(page_name))
+        _tier = 'now' if worst_lvl == 'now' else (
+            'warn' if worst_lvl in ('short', 'base') else 'calm')
+        body.append(u'<p class="vline t-%s"><b>%s</b><span class="hz">%s</span></p>'
+                    % (_tier,
+                       u'Ехать нельзя' if stop else u'Ехать можно',
+                       esc(risk_model()['h'].get(worst_lvl, u''))))
 
         if makes and std_name(spn):
             # Марки называем поимённо: раньше здесь стояло «у 3 марок», и самые
@@ -829,10 +859,17 @@ def build(en_spns=()):
                         u'для него в справочнике нет — ниже стандартное значение FMI.</p>' % spn)
 
         # заводские таблицы - это и есть уникальная часть страницы
-        for b in sorted(makes, key=lambda x: brand_names.get(x, x)):
+        # На странице с десятком марок человек ищет свою. Строка переходов
+        # экономит ему всю прокрутку - он приходит сюда по запросу с маркой.
+        ordered = sorted(makes, key=lambda x: brand_names.get(x, x))
+        if len(ordered) >= 3:
+            body.append(u'<p class="jump">%s</p>' % u''.join(
+                u'<a href="#mk-%s">%s</a>' % (b, esc(brand_names.get(b, b)))
+                for b in ordered))
+        for b in ordered:
             rows = sorted(makes[b], key=lambda r: r[0])
-            body.append(u'<section><h2>%s</h2>%s</section>'
-                        % (esc(brand_names.get(b, b)), fmi_table(rows, urgent_fmi)))
+            body.append(u'<section><h2 class="mk" id="mk-%s">%s</h2>%s</section>'
+                        % (b, esc(brand_names.get(b, b)), fmi_table(rows, urgent_fmi)))
 
         # стандартную таблицу печатаем только по встреченным FMI
         seen_fmi = sorted({f for rows in makes.values() for f, _ in rows})
@@ -1423,6 +1460,10 @@ def build(en_spns=()):
     return {'written': written,
             'sys': dict((s, system_of(s, std_name(s))) for s in written),
             'stop': dict((s, is_stop(s, per_spn.get(s, {}))) for s in written),
+            'lvl': dict((s, page_risk(system_of(s, std_name(s)),
+                                      sorted({f for rows in per_spn.get(s, {}).values()
+                                              for f, _ in rows}),
+                                      urgent_fmi, s in urgent_spn)[1]) for s in written),
             'by_sys': by_sys}
 
 

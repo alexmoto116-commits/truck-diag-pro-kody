@@ -47,12 +47,17 @@ td.fmi{font-family:"Cascadia Mono",Consolas,monospace;color:#6FE3D3;white-space:
 tr.hit td.fmi{color:#FF6B5A}
 h2{font-family:"Cascadia Mono",Consolas,monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#7A8998;margin:0 0 12px;font-weight:600}
 section{margin-bottom:32px}
-.near{margin:0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:8px}
-.near li{margin:0}
-.near a{display:inline-flex;align-items:center;gap:6px;min-height:44px;text-decoration:none;color:#AFBECD;font-size:13.5px;
-  border:1px solid rgba(255,255,255,.13);border-radius:9px;padding:6px 13px;background:rgba(255,255,255,.03)}
-.near a:hover{color:#EAF0F7;border-color:rgba(111,227,211,.45)}
-.near a .mono{color:#6FE3D3}
+/* Раньше это были плашки в строку - хорошо, пока подпись короткая.
+   Теперь в ссылке полное название узла, и на телефоне плашки рвались:
+   «SPN» и номер вставали друг под другом, ширина скакала. Строка во всю
+   ширину с колонкой номера читается сверху вниз и не зависит от длины. */
+.near{margin:0;padding:0;list-style:none;border-top:1px solid rgba(255,255,255,.06)}
+.near li{margin:0;border-bottom:1px solid rgba(255,255,255,.06)}
+.near a{display:flex;align-items:baseline;gap:12px;min-height:44px;padding:10px 2px;
+  text-decoration:none;color:#AFBECD;font-size:14.5px;line-height:1.45}
+.near a:hover{color:#EAF0F7}
+.near a .mono{color:#6FE3D3;flex:none;min-width:5.4em}
+.near a .nm{flex:1}
 .risk{border:1px solid rgba(255,255,255,.13);border-radius:14px;padding:14px 16px;background:rgba(255,255,255,.022)}
 .risk .rkb{display:inline-block;font-family:"Cascadia Mono",Consolas,monospace;font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;border:1px solid;border-radius:6px;padding:3px 8px;margin-bottom:12px}
 .risk p{margin:0;font-size:15px;line-height:1.6;color:#CBD7E3}
@@ -66,12 +71,28 @@ td.fmi .alt{display:block;font-size:11px;letter-spacing:.02em;color:#7A8998;marg
 .lines{margin:0;padding:0;list-style:none}
 .lines li{padding:9px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:14.5px;color:#94A2B4}
 .lines a{text-decoration:none;border-bottom:1px solid rgba(111,227,211,.35)}
+/* Ответ на главный вопрос - сразу под заголовком. Подробный блок риска
+   ниже объясняет, а эта строка отвечает: человек на обочине не должен
+   пролистывать десять заводских таблиц, чтобы узнать, ехать ему или нет. */
+.vline{display:inline-flex;align-items:baseline;flex-wrap:wrap;gap:4px 10px;
+  margin:0 0 24px;padding:9px 14px;border:1px solid;border-radius:10px;font-size:15px}
+.vline b{font-weight:650}
+.vline .hz{font-size:13.5px;opacity:.85}
+.vline.t-now{color:#FF6B5A;border-color:rgba(255,107,90,.35);background:rgba(255,107,90,.06)}
+.vline.t-warn{color:#FF9B3D;border-color:rgba(255,155,61,.3);background:rgba(255,155,61,.05)}
+.vline.t-calm{color:#6FE3D3;border-color:rgba(111,227,211,.3);background:rgba(111,227,211,.05)}
+/* Марка - то, что ищут глазами. Раньше она была набрана как шапка
+   таблицы, мелким серым капсом, и терялась среди служебных подписей. */
+h2.mk{font-family:var(--sans-fallback,inherit);font-size:17.5px;letter-spacing:-.01em;
+  text-transform:none;color:#EAF0F7;font-weight:640;margin:30px 0 10px}
+.jump{margin:0 0 26px;font-size:13.5px;color:#7A8998;display:flex;flex-wrap:wrap;gap:6px 14px}
+.jump a{text-decoration:none;border-bottom:1px solid rgba(111,227,211,.35)}
 .cta{margin-top:44px;padding-top:24px;border-top:1px solid rgba(255,255,255,.06);font-size:14px;color:#94A2B4}
 </style>
 </head>
 <body>
 <div class="w">
 <div class="tick"><a href="/">&larr; поиск по коду</a><span class="sep">&middot;</span><a href="/problemy/">Неисправности по симптомам</a></div>
-<h1>Не отпускает стояночный тормоз</h1><p class="sub">Энергоаккумуляторы отпускают колодки давлением воздуха, поэтому первое, что смотрят, — добрало ли давление в контуре. Второе — сам выключатель стояночного тормоза и его цепь: блок считает, что ручник поднят, и не даёт ехать.</p><section><h2>Коды, при которых нужно встать</h2><ul class="near"><li><a href="../kody/spn-70.html"><span class="mono">SPN 70</span> — Выключатель стояночного тормоза</a></li><li><a href="../kody/spn-597.html"><span class="mono">SPN 597</span> — Выключатель тормоза</a></li><li><a href="../kody/spn-603.html"><span class="mono">SPN 603</span> — Выключатель педали тормоза №2</a></li><li><a href="../kody/spn-46.html"><span class="mono">SPN 46</span> — Давление в пневмосистеме (главный ресивер)</a></li><li><a href="../kody/spn-117.html"><span class="mono">SPN 117</span> — Давление в первом контуре тормозов</a></li><li><a href="../kody/spn-118.html"><span class="mono">SPN 118</span> — Давление во втором контуре тормозов</a></li></ul></section><section><h2>Что будет, если ехать дальше</h2><div class="risk t-now"><span class="rkb">Запас времени: Минуты</span><p>Часть тормозного контура или ABS/EBS вышла из работы. Педаль при этом может ощущаться нормально — до первого экстренного торможения или спуска.</p><p>Дальше — увеличенный тормозной путь, занос на скользком, отказ на затяжном спуске. Это тот случай, когда «доеду потихоньку» не работает.</p></div></section><section><h2>Что проверить на месте</h2><p>Дайте пневмосистеме накачать рабочее давление и послушайте утечки. С неисправными тормозами не выезжают.</p></section><section><h2>Можно ли ехать</h2><p>Ответ зависит от кода, а не от лампы. Янтарная лампа — предупреждение, красная означает, что двигаться нельзя. Но и под янтарной попадаются неисправности, при которых остановиться нужно сразу: низкое давление масла, перегрев, потеря тормозного давления. <a href="../">Введите код</a> — справочник скажет прямо, ехать или вставать.</p></section><p class="cta">Знаете номер кода? <a href="/">Введите его в поиск</a> — или вставьте сразу весь список со сканера, покажем, какая поломка настоящая.</p></div>
+<h1>Не отпускает стояночный тормоз</h1><p class="sub">Энергоаккумуляторы отпускают колодки давлением воздуха, поэтому первое, что смотрят, — добрало ли давление в контуре. Второе — сам выключатель стояночного тормоза и его цепь: блок считает, что ручник поднят, и не даёт ехать.</p><section><h2>Коды, при которых нужно встать</h2><ul class="near"><li><a href="../kody/spn-70.html"><span class="mono">SPN 70</span><span class="nm">Выключатель стояночного тормоза</span></a></li><li><a href="../kody/spn-597.html"><span class="mono">SPN 597</span><span class="nm">Выключатель тормоза</span></a></li><li><a href="../kody/spn-603.html"><span class="mono">SPN 603</span><span class="nm">Выключатель педали тормоза №2</span></a></li><li><a href="../kody/spn-46.html"><span class="mono">SPN 46</span><span class="nm">Давление в пневмосистеме (главный ресивер)</span></a></li><li><a href="../kody/spn-117.html"><span class="mono">SPN 117</span><span class="nm">Давление в первом контуре тормозов</span></a></li><li><a href="../kody/spn-118.html"><span class="mono">SPN 118</span><span class="nm">Давление во втором контуре тормозов</span></a></li></ul></section><section><h2>Что будет, если ехать дальше</h2><div class="risk t-now"><span class="rkb">Запас времени: Минуты</span><p>Часть тормозного контура или ABS/EBS вышла из работы. Педаль при этом может ощущаться нормально — до первого экстренного торможения или спуска.</p><p>Дальше — увеличенный тормозной путь, занос на скользком, отказ на затяжном спуске. Это тот случай, когда «доеду потихоньку» не работает.</p></div></section><section><h2>Что проверить на месте</h2><p>Дайте пневмосистеме накачать рабочее давление и послушайте утечки. С неисправными тормозами не выезжают.</p></section><section><h2>Можно ли ехать</h2><p>Ответ зависит от кода, а не от лампы. Янтарная лампа — предупреждение, красная означает, что двигаться нельзя. Но и под янтарной попадаются неисправности, при которых остановиться нужно сразу: низкое давление масла, перегрев, потеря тормозного давления. <a href="../">Введите код</a> — справочник скажет прямо, ехать или вставать.</p></section><p class="cta">Знаете номер кода? <a href="/">Введите его в поиск</a> — или вставьте сразу весь список со сканера, покажем, какая поломка настоящая.</p></div>
 </body>
 </html>

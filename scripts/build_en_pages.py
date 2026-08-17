@@ -149,6 +149,7 @@ def build():
     info = bp.build(en_spns=en_set)
     written = [s for s in info['written'] if s in en_set]
     sys_of, stop_of, by_sys = info['sys'], info['stop'], info['by_sys']
+    lvl_of = info['lvl']
 
     brand_names = ru_db['brandNames']
 
@@ -179,7 +180,7 @@ def build():
     def code_link(spn, href):
         nm = name_of(spn)
         return (u'<li><a href="%s"><span class="mono">SPN %d</span>%s</a></li>'
-                % (href, spn, (u' — ' + bp.esc(nm)) if nm else u''))
+                % (href, spn, (u'<span class="nm">%s</span>' % bp.esc(nm)) if nm else u''))
 
     def nav():
         return (u'<a href="/en/">%s</a><span class="sep">&middot;</span>'
@@ -203,7 +204,7 @@ def build():
     # что видно на экране. В стандартной таблице печатаем все три написания
     # и вешаем якорь на сочетание (см. тот же приём в build_pages.py).
     def fmi_table(rows, spn=None):
-        out = ['<table><tr><th>Code</th><th>Meaning</th></tr>']
+        out = ['<table>']
         for f, text in rows:
             cls = ' class="hit"' if f in urgent_fmi else ''
             if spn is None:
@@ -302,6 +303,11 @@ def build():
                                ogtitle=bp.esc(page_name), mid=bp.METRIKA_ID, ld=ld,
                                nav=nav(), lang='en', locale='en_US', alt=alt_links(rel))]
         body.append(u'<h1>%s</h1>' % bp.esc(page_name))
+        lvl = lvl_of.get(spn, 'plan')
+        tier = 'now' if lvl == 'now' else ('warn' if lvl in ('short', 'base') else 'calm')
+        body.append(u'<p class="vline t-%s"><b>%s</b><span class="hz">%s</span></p>'
+                    % (tier, i18n['vStop'] if stop_of.get(spn) else i18n['vWarn'],
+                       bp.esc(risk_h.get(lvl, u''))))
         if not makes:
             body.append(u'<p class="sub">%s</p>' % (TX['subNone'] % spn))
         else:
@@ -309,9 +315,14 @@ def build():
                         % ((TX['subStd'] if std_name(spn) else TX['subOwn'])
                            % (spn, bp.esc(brands_all))))
 
-        for b in sorted(makes, key=lambda x: bname(x)):
-            body.append(u'<section><h2>%s</h2>%s</section>'
-                        % (bp.esc(bname(b)), fmi_table(sorted(makes[b], key=lambda r: r[0]))))
+        ordered = sorted(makes, key=lambda x: bname(x))
+        if len(ordered) >= 3:
+            body.append(u'<p class="jump">%s</p>' % u''.join(
+                u'<a href="#mk-%s">%s</a>' % (b, bp.esc(bname(b))) for b in ordered))
+        for b in ordered:
+            body.append(u'<section><h2 class="mk" id="mk-%s">%s</h2>%s</section>'
+                        % (b, bp.esc(bname(b)),
+                           fmi_table(sorted(makes[b], key=lambda r: r[0]))))
 
         if seen:
             std_rows = [(f, fmi_en[str(f)]) for f in seen if str(f) in fmi_en]
