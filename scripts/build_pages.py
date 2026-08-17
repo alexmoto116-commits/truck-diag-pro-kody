@@ -67,6 +67,10 @@ SYS_WORD = {
     'trans': ['коробк','сцеплен','передач','кпп','трансмисс'],
     'prot':  ['ограничен','защит','останов двигател'],
 }
+# Порядок систем на страницах-каталогах: от того, что убивает двигатель
+# быстрее всего, к тому, что терпит. «Прочие» всегда последними.
+SYS_ORDER_BRAND = ['oil', 'cool', 'fuel', 'air', 'scr', 'power', 'can',
+                   'brake', 'trans', 'prot', 'other']
 SYS_TITLE = {
     'scr':'AdBlue и выпуск', 'oil':'Смазка', 'cool':'Охлаждение', 'fuel':'Топливная система',
     'air':'Впуск и наддув', 'power':'Электропитание', 'can':'CAN-шина', 'brake':'Тормоза',
@@ -489,6 +493,7 @@ section{{margin-bottom:32px}}
 .risk.t-now{{color:#FF6B5A;border-color:rgba(255,107,90,.3)}}
 .risk.t-warn{{color:#FF9B3D;border-color:rgba(255,155,61,.28)}}
 .lead{{margin:0 0 18px;font-size:14.5px;color:#94A2B4}}
+td.fmi .alt{{display:block;font-size:11px;letter-spacing:.02em;color:#7A8998;margin-top:2px}}
 .lines{{margin:0;padding:0;list-style:none}}
 .lines li{{padding:9px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:14.5px;color:#94A2B4}}
 .lines a{{text-decoration:none;border-bottom:1px solid rgba(111,227,211,.35)}}
@@ -517,11 +522,23 @@ MID_MODULE_NAMES = {
 }
 
 
-def fmi_table(rows, urgent_fmi):
+# На сканере одна и та же неисправность показывается по-разному: «SPN 100
+# FMI 1», «100/1», «100.1». Человек ищет ровно то, что видит на экране, а
+# на странице стояло голое «FMI 1» - совпасть было не с чем. В стандартной
+# таблице печатаем код целиком во всех трёх написаниях (spn задан) и вешаем
+# якорь, чтобы на конкретное сочетание можно было дать ссылку. В заводских
+# таблицах марок оставляем как было: там строк много и марка своя у каждой.
+def fmi_table(rows, urgent_fmi, spn=None):
     out = ['<table><tr><th>Код</th><th>Расшифровка</th></tr>']
     for f, text in rows:
         cls = ' class="hit"' if f in urgent_fmi else ''
-        out.append('<tr%s><td class="fmi">FMI %s</td><td>%s</td></tr>' % (cls, f, rich(text)))
+        if spn is None:
+            cell = 'FMI %s' % f
+        else:
+            cell = ('<a id="fmi-%s"></a>SPN %d FMI %s'
+                    '<span class="alt">%d/%s &middot; %d.%s</span>'
+                    % (f, spn, f, spn, f, spn, f))
+        out.append('<tr%s><td class="fmi">%s</td><td>%s</td></tr>' % (cls, cell, rich(text)))
     out.append('</table>')
     return ''.join(out)
 
@@ -676,6 +693,17 @@ def build(en_spns=()):
             faq.append({'@type': 'Question',
                         'name': u'Что будет, если ехать дальше с кодом SPN %d?' % spn,
                         'acceptedAnswer': {'@type': 'Answer', 'text': happens + u' ' + ends}})
+        # Спрашивают не «что такое SPN 100», а «что такое 100.1»: половина кода
+        # без второй половины ничего не решает. Берём сначала те FMI, что уже
+        # помечены срочными - на них и приходят с горящей лампой.
+        for f in (sorted(seen_all_early, key=lambda x: (x not in urgent_fmi, x))[:2]):
+            if str(f) not in db['fmi']:
+                continue
+            faq.append({'@type': 'Question',
+                        'name': u'Что означает SPN %d FMI %d (%d/%d)?' % (spn, f, spn, f),
+                        'acceptedAnswer': {'@type': 'Answer',
+                                           'text': u'%s: %s.' % (name or u'SPN %d' % spn,
+                                                                 db['fmi'][str(f)])}})
 
         ld = (ld_script({'@context': 'https://schema.org', '@type': 'TechArticle',
                          'headline': title, 'description': desc, 'url': canon})
@@ -715,11 +743,11 @@ def build(en_spns=()):
             std_rows = [(f, db['fmi'][str(f)]) for f in seen_fmi if str(f) in db['fmi']]
             if std_rows:
                 body.append(u'<section><h2>Что значит FMI по стандарту J1939</h2>%s</section>'
-                            % fmi_table(std_rows, urgent_fmi))
+                            % fmi_table(std_rows, urgent_fmi, spn))
         else:
             common = [f for f in (0, 1, 2, 3, 4, 5) if str(f) in db['fmi']]
             body.append(u'<section><h2>Частые значения FMI</h2>%s</section>'
-                        % fmi_table([(f, db['fmi'][str(f)]) for f in common], urgent_fmi))
+                        % fmi_table([(f, db['fmi'][str(f)]) for f in common], urgent_fmi, spn))
 
         # Вердикт (verdict) и признак stop уже посчитаны выше, до <head> - они
         # нужны были заранее для FAQPage.
@@ -854,15 +882,28 @@ def build(en_spns=()):
             continue
         marki_built.add(b)
         stop_codes = [s for s in mine if is_stop(s, per_spn.get(s, {}))][:12]
-        rest = [s for s in mine if s not in stop_codes][:14]
 
         secs = []
         if stop_codes:
             secs.append(u'<section><h2>С этими кодами ехать нельзя</h2>'
                         u'<ul class="near">%s</ul></section>' % code_links(stop_codes))
-        if rest:
-            secs.append(u'<section><h2>Другие частые коды %s</h2>'
-                        u'<ul class="near">%s</ul></section>' % (esc(bn), code_links(rest)))
+
+        # Дальше - полный список кодов марки, а не витрина из полутора десятков.
+        # ВАЖНО, ПРОВЕРЕНО ПЕРЕД ТЕМ, КАК ДЕЛАТЬ: здесь только свободные таблицы
+        # brands.* - те самые данные, что уже полностью напечатаны на страницах
+        # кодов. Ничего нового мы не раскрываем, это ссылки на открытое.
+        # Дилерские pcode.* сюда не попадают физически: у них своя ветка ниже,
+        # с выборкой примеров (см. load_pcode и sample_rows). Не объединять.
+        by_sys_brand = {}
+        for s in mine:
+            by_sys_brand.setdefault(system_of(s, std_name(s)), []).append(s)
+        for key in SYS_ORDER_BRAND:
+            bucket = by_sys_brand.get(key)
+            if not bucket:
+                continue
+            secs.append(u'<section><h2>%s — %s</h2><ul class="near">%s</ul></section>'
+                        % (esc(SYS_TITLE[key]), n_codes(len(bucket)), code_links(bucket)))
+
         secs.append(
             u'<section><h2>Как читать код</h2><p>Код состоит из двух половин. '
             u'<b>SPN</b> — что именно барахлит: датчик, узел, параметр. '
@@ -878,11 +919,12 @@ def build(en_spns=()):
 
         path = 'marki/%s.html' % b
         title = u'Коды ошибок %s | codetruck.ru' % bn
-        desc = (u'Расшифровка кодов неисправностей %s: %s разобрано, '
-                u'какие требуют немедленной остановки и что проверить на месте.'
+        desc = (u'Все коды неисправностей %s: %s по системам — какие требуют '
+                u'немедленной остановки, что означает каждый и можно ли ехать.'
                 % (bn, n_codes(len(mine))))
-        sub = (u'В справочнике разобрано <b>%s %s</b> по заводским таблицам. '
-               u'Ниже — те, что встречаются чаще всего.' % (n_codes(len(mine)), esc(bn)))
+        sub = (u'В справочнике разобрано <b>%s %s</b> по заводским таблицам — '
+               u'ниже весь список по системам. Сначала те, с которыми ехать нельзя.'
+               % (n_codes(len(mine)), esc(bn)))
         brand_index.append((path, bn, len(mine), 'spn'))
         extra.append(page(path, title, desc,
                           u'Коды ошибок %s' % bn, sub, secs, 'marki'))
@@ -1170,14 +1212,11 @@ def build(en_spns=()):
     # ещё и связывает граф: до этого до кода добирались только цепочкой
     # соседей по системе.
     # ---------------------------------------------------------------
-    SYS_ORDER = ['oil', 'cool', 'fuel', 'air', 'scr', 'power', 'can',
-                 'brake', 'trans', 'prot', 'other']
-
     secs = [u'<section><h2>Что значит FMI</h2><p class="lead">Номер SPN говорит, '
             u'<i>что</i> неисправно, FMI — <i>что именно</i> с ним не так. Вторая '
             u'половина кода одинакова для всех марок, это стандарт J1939.</p>%s</section>'
             % fmi_table(sorted(((int(f), t) for f, t in db['fmi'].items())), urgent_fmi)]
-    for key in SYS_ORDER:
+    for key in SYS_ORDER_BRAND:
         bucket = by_sys.get(key)
         if not bucket:
             continue
