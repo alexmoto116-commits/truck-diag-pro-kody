@@ -50,12 +50,17 @@ td.fmi{font-family:"Cascadia Mono",Consolas,monospace;color:#6FE3D3;white-space:
 tr.hit td.fmi{color:#FF6B5A}
 h2{font-family:"Cascadia Mono",Consolas,monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#7A8998;margin:0 0 12px;font-weight:600}
 section{margin-bottom:32px}
-.near{margin:0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:8px}
-.near li{margin:0}
-.near a{display:inline-flex;align-items:center;gap:6px;min-height:44px;text-decoration:none;color:#AFBECD;font-size:13.5px;
-  border:1px solid rgba(255,255,255,.13);border-radius:9px;padding:6px 13px;background:rgba(255,255,255,.03)}
-.near a:hover{color:#EAF0F7;border-color:rgba(111,227,211,.45)}
-.near a .mono{color:#6FE3D3}
+/* Раньше это были плашки в строку - хорошо, пока подпись короткая.
+   Теперь в ссылке полное название узла, и на телефоне плашки рвались:
+   «SPN» и номер вставали друг под другом, ширина скакала. Строка во всю
+   ширину с колонкой номера читается сверху вниз и не зависит от длины. */
+.near{margin:0;padding:0;list-style:none;border-top:1px solid rgba(255,255,255,.06)}
+.near li{margin:0;border-bottom:1px solid rgba(255,255,255,.06)}
+.near a{display:flex;align-items:baseline;gap:12px;min-height:44px;padding:10px 2px;
+  text-decoration:none;color:#AFBECD;font-size:14.5px;line-height:1.45}
+.near a:hover{color:#EAF0F7}
+.near a .mono{color:#6FE3D3;flex:none;min-width:5.4em}
+.near a .nm{flex:1}
 .risk{border:1px solid rgba(255,255,255,.13);border-radius:14px;padding:14px 16px;background:rgba(255,255,255,.022)}
 .risk .rkb{display:inline-block;font-family:"Cascadia Mono",Consolas,monospace;font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;border:1px solid;border-radius:6px;padding:3px 8px;margin-bottom:12px}
 .risk p{margin:0;font-size:15px;line-height:1.6;color:#CBD7E3}
@@ -69,12 +74,28 @@ td.fmi .alt{display:block;font-size:11px;letter-spacing:.02em;color:#7A8998;marg
 .lines{margin:0;padding:0;list-style:none}
 .lines li{padding:9px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:14.5px;color:#94A2B4}
 .lines a{text-decoration:none;border-bottom:1px solid rgba(111,227,211,.35)}
+/* Ответ на главный вопрос - сразу под заголовком. Подробный блок риска
+   ниже объясняет, а эта строка отвечает: человек на обочине не должен
+   пролистывать десять заводских таблиц, чтобы узнать, ехать ему или нет. */
+.vline{display:inline-flex;align-items:baseline;flex-wrap:wrap;gap:4px 10px;
+  margin:0 0 24px;padding:9px 14px;border:1px solid;border-radius:10px;font-size:15px}
+.vline b{font-weight:650}
+.vline .hz{font-size:13.5px;opacity:.85}
+.vline.t-now{color:#FF6B5A;border-color:rgba(255,107,90,.35);background:rgba(255,107,90,.06)}
+.vline.t-warn{color:#FF9B3D;border-color:rgba(255,155,61,.3);background:rgba(255,155,61,.05)}
+.vline.t-calm{color:#6FE3D3;border-color:rgba(111,227,211,.3);background:rgba(111,227,211,.05)}
+/* Марка - то, что ищут глазами. Раньше она была набрана как шапка
+   таблицы, мелким серым капсом, и терялась среди служебных подписей. */
+h2.mk{font-family:var(--sans-fallback,inherit);font-size:17.5px;letter-spacing:-.01em;
+  text-transform:none;color:#EAF0F7;font-weight:640;margin:30px 0 10px}
+.jump{margin:0 0 26px;font-size:13.5px;color:#7A8998;display:flex;flex-wrap:wrap;gap:6px 14px}
+.jump a{text-decoration:none;border-bottom:1px solid rgba(111,227,211,.35)}
 .cta{margin-top:44px;padding-top:24px;border-top:1px solid rgba(255,255,255,.06);font-size:14px;color:#94A2B4}
 </style>
 </head>
 <body>
 <div class="w">
 <div class="tick"><a href="/">&larr; поиск по коду</a><span class="sep">&middot;</span><a href="/kody/">Все коды ошибок</a></div>
-<h1>SPN 1321 — Цепь драйвера реле блокировки соленоида стартера</h1><p class="sub">Код J1939 SPN 1321. Ниже — как эту неисправность формулируют на заводе у SITRAK, и что вторая половина кода (FMI) означает по стандарту.</p><section><h2>SITRAK</h2><table><tr><th>Код</th><th>Расшифровка</th></tr><tr><td class="fmi">FMI 3</td><td>Высокое напряжение датчика тускового реле на источник питания</td></tr></table></section><section><h2>Что значит FMI по стандарту J1939</h2><table><tr><th>Код</th><th>Расшифровка</th></tr><tr><td class="fmi"><a id="fmi-3"></a>SPN 1321 FMI 3<span class="alt">1321/3 &middot; 1321.3</span></td><td>напряжение выше нормы или КЗ на плюс</td></tr></table></section><section><h2>Можно ли ехать</h2><p><b>Обычно ехать можно</b>, но код нужно показать на ближайшем ТО. Если вместе с ним горит красная лампа или падает мощность — останавливайтесь.</p></section><section><h2>Что будет, если ехать дальше</h2><div class="risk t-warn"><span class="rkb">Запас времени: До ближайшей остановки</span><p>Бортовая сеть не держит напряжение. Пока двигатель работает, всё тянет генератор; заглушишь — можешь не завестись.</p><p>Дальше сядет свет, начнут отваливаться блоки и сыпаться ложные коды по всей машине. До места, где есть помощь, лучше доехать не глуша двигатель.</p></div></section><section><h2>Что проверить на месте</h2><p>Проверьте клеммы аккумулятора и массу — окисление и слабая затяжка сыплют ложные коды по всей машине. На заведённом двигателе норма 27–29 В.</p></section><section><h2>Рядом: Электропитание</h2><ul class="near"><li><a href="spn-1075.html"><span class="mono">SPN 1075</span> — Электрический подкачивающий насос системы питания двигателя</a></li><li><a href="spn-1079.html"><span class="mono">SPN 1079</span> — Напряжение питания датчиков 1</a></li><li><a href="spn-1080.html"><span class="mono">SPN 1080</span> — Напряжение питания датчиков 2</a></li><li><a href="spn-1089.html"><span class="mono">SPN 1089</span> — Давление питания дополнительного оборудования</a></li><li><a href="spn-1267.html"><span class="mono">SPN 1267</span> — Цепь драйвера реле отключения потребителей при остановке на холостом ходу</a></li><li><a href="spn-1485.html"><span class="mono">SPN 1485</span> — Главное реле ЭБУ (ECM)</a></li><li><a href="spn-2634.html"><span class="mono">SPN 2634</span> — Реле питания</a></li><li><a href="spn-3228.html"><span class="mono">SPN 3228</span> — Питание датчика газа на выходе в норме, СНВГ 1</a></li><li><a href="spn-3353.html"><span class="mono">SPN 3353</span> — Состояние генератора №1</a></li><li><a href="spn-3381.html"><span class="mono">SPN 3381</span> — Ток возбуждения генератора</a></li></ul></section><p class="cta">Сканер выдал несколько кодов сразу? <a href="../">Вставьте весь список</a> — покажем, какой из них первопричина, а какие пришли следом.</p></div>
+<h1>SPN 1321 — Цепь драйвера реле блокировки соленоида стартера</h1><p class="vline t-warn"><b>Ехать можно</b><span class="hz">До ближайшей остановки</span></p><p class="sub">Код J1939 SPN 1321. Ниже — как эту неисправность формулируют на заводе у SITRAK, и что вторая половина кода (FMI) означает по стандарту.</p><section><h2 class="mk" id="mk-sitrak">SITRAK</h2><table><tr><td class="fmi">FMI 3</td><td>Высокое напряжение датчика тускового реле на источник питания</td></tr></table></section><section><h2>Что значит FMI по стандарту J1939</h2><table><tr><td class="fmi"><a id="fmi-3"></a>SPN 1321 FMI 3<span class="alt">1321/3 &middot; 1321.3</span></td><td>напряжение выше нормы или КЗ на плюс</td></tr></table></section><section><h2>Можно ли ехать</h2><p><b>Обычно ехать можно</b>, но код нужно показать на ближайшем ТО. Если вместе с ним горит красная лампа или падает мощность — останавливайтесь.</p></section><section><h2>Что будет, если ехать дальше</h2><div class="risk t-warn"><span class="rkb">Запас времени: До ближайшей остановки</span><p>Бортовая сеть не держит напряжение. Пока двигатель работает, всё тянет генератор; заглушишь — можешь не завестись.</p><p>Дальше сядет свет, начнут отваливаться блоки и сыпаться ложные коды по всей машине. До места, где есть помощь, лучше доехать не глуша двигатель.</p></div></section><section><h2>Что проверить на месте</h2><p>Проверьте клеммы аккумулятора и массу — окисление и слабая затяжка сыплют ложные коды по всей машине. На заведённом двигателе норма 27–29 В.</p></section><section><h2>Рядом: Электропитание</h2><ul class="near"><li><a href="spn-1075.html"><span class="mono">SPN 1075</span><span class="nm">Электрический подкачивающий насос системы питания двигателя</span></a></li><li><a href="spn-1079.html"><span class="mono">SPN 1079</span><span class="nm">Напряжение питания датчиков 1</span></a></li><li><a href="spn-1080.html"><span class="mono">SPN 1080</span><span class="nm">Напряжение питания датчиков 2</span></a></li><li><a href="spn-1089.html"><span class="mono">SPN 1089</span><span class="nm">Давление питания дополнительного оборудования</span></a></li><li><a href="spn-1267.html"><span class="mono">SPN 1267</span><span class="nm">Цепь драйвера реле отключения потребителей при остановке на холостом ходу</span></a></li><li><a href="spn-1485.html"><span class="mono">SPN 1485</span><span class="nm">Главное реле ЭБУ (ECM)</span></a></li><li><a href="spn-2634.html"><span class="mono">SPN 2634</span><span class="nm">Реле питания</span></a></li><li><a href="spn-3228.html"><span class="mono">SPN 3228</span><span class="nm">Питание датчика газа на выходе в норме, СНВГ 1</span></a></li><li><a href="spn-3353.html"><span class="mono">SPN 3353</span><span class="nm">Состояние генератора №1</span></a></li><li><a href="spn-3381.html"><span class="mono">SPN 3381</span><span class="nm">Ток возбуждения генератора</span></a></li></ul></section><p class="cta">Сканер выдал несколько кодов сразу? <a href="../">Вставьте весь список</a> — покажем, какой из них первопричина, а какие пришли следом.</p></div>
 </body>
 </html>
