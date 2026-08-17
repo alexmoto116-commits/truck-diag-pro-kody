@@ -14,7 +14,7 @@ data-lock-lang - см. assets/app.js: на такой странице язык 
 
 Запуск из корня репозитория: python scripts/build_lang_pages.py
 """
-import io, json, os, re, subprocess
+import io, json, os, re, subprocess, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SITE = 'https://codetruck.ru'
@@ -83,10 +83,6 @@ def build():
     i18n = extract_i18n()
     ru_html = io.open(os.path.join(ROOT, 'index.html'), encoding='utf-8').read()
 
-    # Ранний скрипт-подмена в <head> (тег/H1/meta до загрузки основного
-    # скрипта) нужен только там, где язык страницы неизвестен заранее -
-    # у языковых версий он известен по URL, страница и так уже на своём
-    # языке с первого байта. Вырезаем его целиком.
     # Раннего скрипта-подмены языка в index.html больше нет: убран 2026-08-17,
     # потому что Googlebot выполняет JS, представляется английским и получал
     # английские title/description на русском адресе - см. комментарий на его
@@ -143,6 +139,12 @@ def build():
         out_path = os.path.join(out_dir, 'index.html')
         io.open(out_path, 'w', encoding='utf-8', newline='\n').write(html)
         written.append('%s/index.html' % lang)
+
+    # Языковые главные пишутся последними, поэтому дату в карте сайта им
+    # проставляем здесь - иначе она отставала бы ровно на одну сборку.
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import build_pages
+    build_pages.write_sitemap()
 
     print(u'языковых версий собрано: %d' % len(written))
     return written

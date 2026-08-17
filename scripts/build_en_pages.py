@@ -387,6 +387,10 @@ def build():
     body.append(u'</div>\n</body>\n</html>\n')
     io.open(os.path.join(OUT, 'index.html'), 'w', encoding='utf-8').write(''.join(body))
 
+    # Карта сайта пересобирается ПОСЛЕ записи английских страниц: только
+    # тогда их можно захешировать и понять, изменились ли они на самом деле.
+    bp.write_sitemap()
+
     print('английских страниц: %d' % len(written))
     print('без английского:    %d' % (len(info['written']) - len(written)))
     return written
