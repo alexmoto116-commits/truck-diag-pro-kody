@@ -108,81 +108,85 @@ ADVICE = {
 #
 # Формат: (запас времени, тир для цвета, что происходит, чем кончится,
 #          оговорка про электрический код или None).
-RISK = {
-    'oil': (u'Счёт на минуты', 'now',
-            u'Масляная плёнка в подшипниках уже рвётся. Каждая минута под нагрузкой — '
-            u'это металл по металлу на шейках коленвала.',
-            u'Дальше — провёрнутые вкладыши и капитальный ремонт двигателя. Глушить сразу, '
-            u'к обочине катиться накатом, не подгазовывая.',
-            u'Если код электрический (FMI 3–6), давление, скорее всего, в норме: оборван или '
-            u'замкнут провод датчика. Ехать можно, но настоящее падение давления приборка '
-            u'уже не покажет — до ремонта цепи проверяйте уровень щупом на каждой остановке.'),
-    'cool': (u'Счёт на минуты', 'now',
-             u'Двигатель за пределом по температуре. Алюминиевая головка ведёт себя быстро: '
-             u'сначала уходит геометрия, потом прогорает прокладка.',
-             u'Дальше — пробитая прокладка ГБЦ, повреждённая головка, в худшем случае трещина '
-             u'в блоке. Заглушить и дать остыть; крышку расширительного бачка на горячую '
-             u'не открывать.',
-             u'Если код электрический (FMI 3–6), врёт датчик или его проводка, а не система '
-             u'охлаждения. Ехать можно, но стрелка температуры ненадёжна и вентилятор может '
-             u'не включиться вовремя.'),
-    'brake': (u'Счёт на минуты', 'now',
-              u'Часть тормозного контура или ABS/EBS вышла из работы. Педаль при этом может '
-              u'ощущаться нормально — до первого экстренного торможения или спуска.',
-              u'Дальше — увеличенный тормозной путь, занос на скользком, отказ на затяжном '
-              u'спуске. Это тот случай, когда «доеду потихоньку» не работает.', None),
-    'scr': (u'Хватит доехать до базы', 'warn',
-            u'Дозирование мочевины прервано, и блок это считает. Сначала лампа, потом срез '
-            u'момента, потом принудительное ограничение до скорости пешехода — ступени '
-            u'включаются по наработке, а не разом.',
-            u'Посреди трассы машина не заглохнет, но запас времени тает с каждым часом работы. '
-            u'Планировать ремонт нужно сейчас, а не когда мощности уже не останется: эмулятор '
-            u'и «отключить мочевину» проблему не убирают, коды копятся дальше.', None),
-    'power': (u'До ближайшей остановки', 'warn',
-              u'Бортовая сеть не держит напряжение. Пока двигатель работает, всё тянет '
-              u'генератор; заглушите — можете не завестись.',
-              u'Дальше сядет свет, начнут отваливаться блоки и сыпаться ложные коды по всей '
-              u'машине. До места, где есть помощь, лучше доехать не глуша двигатель.', None),
-    'can': (u'Хватит доехать до базы', 'warn',
-            u'Блоки перестали слышать друг друга по шине. Часть показаний на панели теперь '
-            u'берётся из воздуха, часть функций просто выключена.',
-            u'Физически ехать можно, но приборке верить нельзя, и остальные коды вполне могут '
-            u'быть ложными: сначала лечится шина, потом всё остальное.', None),
-    'fuel': (u'До ближайшей остановки', 'warn',
-             u'Топливо приходит не в том количестве или не под тем давлением. На подъёме '
-             u'и под нагрузкой это вылезет первым.',
-             u'Скорее всего, заглохнете на трассе, и не факт, что заведётесь с обочины. '
-             u'Если причина в фильтре или воде в баке — до сервиса дотянуть реально; '
-             u'если в ТНВД — нет.', None),
-    'air': (u'Хватит доехать до базы', 'warn',
-            u'Наддув не выходит на расчётные значения: турбина, интеркулер или впуск. '
-            u'Двигатель компенсирует это составом смеси и греется сильнее обычного.',
-            u'Тяги не будет, расход вырастет, на затяжном подъёме добавится перегрев. '
-            u'Если со стороны турбины слышен вой или свист — не тянуть: там разрушается '
-            u'крыльчатка.', None),
-    'trans': (u'До ближайшей остановки', 'warn',
-              u'Коробка или сцепление ушли в аварийный режим: часть передач может стать '
-              u'недоступна, робот — перестать переключаться под нагрузкой.',
-              u'Главный риск — остаться на подъёме без передачи и покатиться назад. '
-              u'Гружёным в горы не идти; до ровного места и сервиса — можно.', None),
-    'prot': (u'Хватит доехать до базы', 'warn',
-             u'Это не поломка, а реакция на неё: блок сам режет мощность, чтобы защитить '
-             u'двигатель или выпуск.',
-             u'Ограничение будут ужесточать, пока причину не устранят. Искать надо не этот '
-             u'код, а тот, из-за которого он появился.', None),
-}
 
 
-def risk_section(sys_key):
-    r = RISK.get(sys_key)
-    if not r:
+# Модель риска берётся из assets/app.js - оттуда же, откуда её берёт сам
+# инструмент на главной (RISK_MAP / RISK_TX / RISK_H). Раньше здесь лежала
+# СВОЯ копия текстов и свой критерий вердикта: страница считала «ехать
+# нельзя» по сырому флагу urgentSpn/urgentFmi, а инструмент - по уровню
+# риска. Расходились они не теоретически: 40 страниц писали «обычно ехать
+# можно» и тут же «запас времени: счёт на минуты», ещё 57 - наоборот.
+# Одна модель на оба места - единственный способ, чтобы это не вернулось.
+FMI_ELEC = [3, 4, 5, 6]
+LVL_ORDER = ['plan', 'watch', 'base', 'short', 'now']   # от спокойного к срочному
+_RISK_JS = {}
+
+
+def risk_model():
+    if not _RISK_JS:
+        from build_lang_pages import extract_js_object
+        _RISK_JS['map'] = extract_js_object('RISK_MAP')
+        _RISK_JS['tx'] = extract_js_object('RISK_TX')['ru']
+        _RISK_JS['h'] = extract_js_object('RISK_H')['ru']
+        _RISK_JS['title'] = extract_js_object('RISK_TITLE')['ru']
+        _RISK_JS['flag'] = extract_js_object('RISK_FLAG')['ru']
+    return _RISK_JS
+
+
+def risk_of(sys_key, fmi, urgent):
+    """Тот же выбор, что и riskOf() в assets/app.js - строка в строку."""
+    m = risk_model()['map'].get(sys_key)
+    if m:
+        pick = m['elec'] if (m.get('elec') and fmi in FMI_ELEC) else m['any']
+    elif fmi in FMI_ELEC:
+        pick = ['elecGen', 'watch']
+    else:
+        pick = ['genUrgent', 'short'] if urgent else ['gen', 'plan']
+    key, lvl, flag = pick[0], pick[1], False
+    # Метка производителя перевешивает наш спокойный вывод - и мы говорим
+    # об этом расхождении вслух, а не втихую (см. RISK_FLAG в app.js).
+    if urgent and lvl in ('plan', 'watch'):
+        lvl, flag = 'short', True
+    return key, lvl, flag
+
+
+def page_risk(sys_key, fmis, urgent_fmi, urgent_spn_hit):
+    """Худший случай по всем FMI страницы: карточка отвечает за код целиком."""
+    worst_key, worst_lvl, worst_flag = None, None, False
+    for f in (fmis or [None]):
+        urgent = urgent_spn_hit or (f in urgent_fmi)
+        key, lvl, flag = risk_of(sys_key, f, urgent)
+        if worst_lvl is None or LVL_ORDER.index(lvl) > LVL_ORDER.index(worst_lvl):
+            worst_key, worst_lvl, worst_flag = key, lvl, flag
+    return worst_key, worst_lvl, worst_flag
+
+
+def risk_section(sys_key, fmis, urgent_fmi, urgent_spn_hit):
+    R = risk_model()
+    key, lvl, flag = page_risk(sys_key, fmis, urgent_fmi, urgent_spn_hit)
+    if not key or key not in R['tx']:
         return u''
-    horizon, tier, happens, ends, elec = r
-    note = u'<p class="rkn">%s</p>' % elec if elec else u''
-    return (u'<section><h2>Что будет, если ехать дальше</h2>'
+    happens, ends = R['tx'][key][0], R['tx'][key][1]
+    # Оговорку про электрический код показываем, только если у системы
+    # действительно есть отдельный электрический вариант и такие FMI на
+    # странице встречаются: иначе это чужой текст.
+    note = u''
+    m = R['map'].get(sys_key)
+    if m and m.get('elec') and any(f in FMI_ELEC for f in (fmis or [])) and key != m['elec'][0]:
+        e = R['tx'][m['elec'][0]]
+        note = u'<p class="rkn">%s %s</p>' % (esc(e[0]), esc(e[1]))
+    # Флаг из risk_of() относится к одному коду; на странице кодов много,
+    # и при выборе худшего он теряется. Здесь условие страничное и оно
+    # честнее: метка производителя есть, а наш вердикт мягче «минут» -
+    # значит мы разошлись с заводом и обязаны сказать об этом.
+    flagged = urgent_spn_hit or any(f in urgent_fmi for f in (fmis or []))
+    if flagged and lvl != 'now':
+        note += u'<p class="rkn">%s</p>' % esc(R['flag'])
+    tier = 'now' if lvl == 'now' else ('warn' if lvl in ('short', 'base') else 'calm')
+    return (u'<section><h2>%s</h2>'
             u'<div class="risk t-%s"><span class="rkb">Запас времени: %s</span>'
             u'<p>%s</p><p>%s</p>%s</div></section>'
-            % (tier, esc(horizon), esc(happens), esc(ends), note))
+            % (esc(R['title']), tier, esc(R['h'][lvl]), esc(happens), esc(ends), note))
 
 
 def system_of(spn, name):
@@ -492,6 +496,7 @@ section{{margin-bottom:32px}}
 .risk .rkn{{margin-top:12px;font-size:13.5px;color:#94A2B4}}
 .risk.t-now{{color:#FF6B5A;border-color:rgba(255,107,90,.3)}}
 .risk.t-warn{{color:#FF9B3D;border-color:rgba(255,155,61,.28)}}
+.risk.t-calm{{color:#6FE3D3;border-color:rgba(111,227,211,.28)}}
 .lead{{margin:0 0 18px;font-size:14.5px;color:#94A2B4}}
 td.fmi .alt{{display:block;font-size:11px;letter-spacing:.02em;color:#7A8998;margin-top:2px}}
 .lines{{margin:0;padding:0;list-style:none}}
@@ -672,6 +677,7 @@ def build(en_spns=()):
     universal, spn_cur = db['universal'], db['spn']
     brands, brand_names = db['brands'], db['brandNames']
     urgent_fmi = set(db['urgentFmi'])
+    urgent_spn = set(db['urgentSpn'])
 
     # какие FMI разобраны у каждого SPN и какими марками
     per_spn = {}
@@ -735,7 +741,13 @@ def build(en_spns=()):
         # Вердикт и риск нужны заранее - они уходят в FAQPage в <head>,
         # а не только в тело страницы ниже.
         seen_all_early = sorted({f for rows in makes.values() for f, _ in rows})
-        stop = spn in set(db['urgentSpn']) or bool(set(seen_all_early) & urgent_fmi)
+        # «Ехать нельзя» ставим там же, где его ставит инструмент, - когда
+        # худший из кодов страницы выходит на уровень «минуты». Сырой флаг
+        # производителя при этом не теряется: он поднимает уровень внутри
+        # risk_of(), просто больше не спорит с горизонтом времени.
+        urgent_spn_hit = spn in urgent_spn
+        _, worst_lvl, _ = page_risk(sys_key, seen_all_early, urgent_fmi, urgent_spn_hit)
+        stop = worst_lvl == 'now'
         if stop:
             verdict = (u'<b>По этому коду ехать нельзя.</b> Он относится к неисправностям, '
                        u'при которых остановиться нужно при первой безопасной возможности: '
@@ -772,9 +784,9 @@ def build(en_spns=()):
                 'name': (u'Можно ли ехать с кодом SPN %d (%s)?' % (spn, name) if name
                          else u'Можно ли ехать с кодом SPN %d?' % spn),
                 'acceptedAnswer': {'@type': 'Answer', 'text': re.sub(r'</?b>', '', verdict)}}]
-        risk = RISK.get(sys_key)
-        if risk:
-            _, _, happens, ends, _ = risk
+        rk_key, _, _ = page_risk(sys_key, seen_all_early, urgent_fmi, urgent_spn_hit)
+        if rk_key and rk_key in risk_model()['tx']:
+            happens, ends = risk_model()['tx'][rk_key][0], risk_model()['tx'][rk_key][1]
             faq.append({'@type': 'Question',
                         'name': u'Что будет, если ехать дальше с кодом SPN %d?' % spn,
                         'acceptedAnswer': {'@type': 'Answer', 'text': happens + u' ' + ends}})
@@ -837,7 +849,7 @@ def build(en_spns=()):
         # Вердикт (verdict) и признак stop уже посчитаны выше, до <head> - они
         # нужны были заранее для FAQPage.
         body.append(u'<section><h2>Можно ли ехать</h2><p>%s</p></section>' % verdict)
-        body.append(risk_section(sys_key))
+        body.append(risk_section(sys_key, seen_all_early, urgent_fmi, urgent_spn_hit))
 
         if ADVICE.get(sys_key):
             body.append(u'<section><h2>Что проверить на месте</h2><p>%s</p></section>'
@@ -865,8 +877,9 @@ def build(en_spns=()):
     # ответа не было. Эти страницы ловят вопрос и уводят к разбору.
     # ---------------------------------------------------------------
     def is_stop(spn, makes):
-        fmis = {f for rows in makes.values() for f, _ in rows}
-        return spn in set(db['urgentSpn']) or bool(fmis & urgent_fmi)
+        fmis = sorted({f for rows in makes.values() for f, _ in rows})
+        _, lvl, _ = page_risk(system_of(spn, std_name(spn)), fmis, urgent_fmi, spn in urgent_spn)
+        return lvl == 'now'
 
     def code_links(spns, prefix='../kody/'):
         return ''.join(code_link(s, '%sspn-%d.html' % (prefix, s)) for s in spns)
@@ -1269,7 +1282,7 @@ def build(en_spns=()):
             secs.append(u'<section><h2>Другие коды по этой части</h2>'
                         u'<ul class="near">%s</ul></section>' % code_links(rest))
         if sys_key:
-            secs.append(risk_section(sys_key))
+            secs.append(risk_section(sys_key, sorted(urgent_fmi), urgent_fmi, False))
         if adv and ADVICE.get(adv):
             secs.append(u'<section><h2>Что проверить на месте</h2><p>%s</p></section>'
                         % ADVICE[adv])
