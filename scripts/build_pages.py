@@ -14,7 +14,7 @@
 
 Запуск из корня репозитория:  python scripts/build_pages.py
 """
-import base64, glob, io, json, os, re
+import base64, glob, hashlib, io, json, os, re
 from datetime import date
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -575,6 +575,91 @@ def sample_rows(rows, n=15):
             seen.add(idx)
             idxs.append(idx)
     return [rows[i] for i in idxs]
+
+
+# ---------------------------------------------------------------- sitemap
+# Раньше здесь стояла одна строка: today = date.today() - и эта дата
+# уходила ВСЕМ адресам при каждой сборке. То есть sitemap ежедневно
+# заявлял, что изменился весь сайт целиком. Поисковик такие даты
+# перестаёт принимать всерьёз и начинает их игнорировать - а вместе с
+# ними теряется единственный способ сказать «вот это обновилось,
+# перечитай». Поэтому дату двигаем только тем страницам, у которых
+# реально изменилось содержимое: сверяем хеш отрендеренного файла с
+# запомненным в sitemap-lastmod.json (он в git, иначе на чистом
+# чекауте все даты обнулятся разом и мы вернёмся к тому же вранью).
+LASTMOD_DB = 'sitemap-lastmod.json'
+
+# Русские и английские адреса разнесены по двум картам под общим
+# индексом: в Search Console охват показывается по каждому файлу
+# отдельно, и сразу видно, какую половину сайта робот берёт, а какую
+# нет. Одним файлом это неразличимо.
+SITEMAPS = [('sitemap-ru.xml', lambda u: '/en/' not in u),
+            ('sitemap-en.xml', lambda u: '/en/' in u)]
+
+
+def url_to_file(url):
+    rel = url[len(SITE):].lstrip('/')
+    if rel == '' or rel.endswith('/'):
+        rel += 'index.html'
+    return os.path.join(ROOT, rel.replace('/', os.sep))
+
+
+def write_sitemap(urls=None):
+    """Пересобирает карты сайта, сохраняя даты у неизменившихся страниц."""
+    path = os.path.join(ROOT, LASTMOD_DB)
+    db = {'urls': [], 'pages': {}}
+    if os.path.isfile(path):
+        db = json.loads(io.open(path, encoding='utf-8').read())
+    if urls is None:
+        urls = db.get('urls') or []
+    today = date.today().isoformat()
+    pages = db.get('pages', {})
+    fresh = {}
+    changed = 0
+    for u in urls:
+        f = url_to_file(u)
+        try:
+            h = hashlib.sha1(io.open(f, 'rb').read()).hexdigest()[:12]
+        except IOError:
+            # Страницы ещё нет на диске (например, английская до первой
+            # сборки) - дату не выдумываем, берём прежнюю или сегодняшнюю.
+            prev = pages.get(u)
+            fresh[u] = prev if prev else {'h': '', 'd': today}
+            continue
+        prev = pages.get(u)
+        if prev and prev.get('h') == h:
+            fresh[u] = prev
+        else:
+            fresh[u] = {'h': h, 'd': today}
+            changed += 1
+
+    written_files = []
+    for name, keep in SITEMAPS:
+        part = [u for u in urls if keep(u)]
+        if not part:
+            continue
+        sm = ['<?xml version="1.0" encoding="UTF-8"?>',
+              '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
+        for u in part:
+            sm.append('<url><loc>%s</loc><lastmod>%s</lastmod></url>'
+                      % (u, fresh[u]['d']))
+        sm.append('</urlset>')
+        io.open(os.path.join(ROOT, name), 'w', encoding='utf-8').write('\n'.join(sm))
+        written_files.append(name)
+
+    idx = ['<?xml version="1.0" encoding="UTF-8"?>',
+           '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
+    for name in written_files:
+        idx.append('<sitemap><loc>%s/%s</loc><lastmod>%s</lastmod></sitemap>'
+                   % (SITE, name, today))
+    idx.append('</sitemapindex>')
+    io.open(os.path.join(ROOT, 'sitemap.xml'), 'w', encoding='utf-8').write('\n'.join(idx))
+
+    io.open(os.path.join(ROOT, LASTMOD_DB), 'w', encoding='utf-8').write(
+        json.dumps({'urls': urls, 'pages': fresh}, ensure_ascii=False,
+                   indent=0, sort_keys=True))
+    print('обновилось страниц: %d из %d' % (changed, len(urls)))
+    return changed
 
 
 def build(en_spns=()):
@@ -1315,14 +1400,7 @@ def build(en_spns=()):
             + (['%s/en/kody/' % SITE] if en_spns else [])
             + ['%s/en/kody/spn-%d.html' % (SITE, s)
                for s in written if s in en_spns])
-    today = date.today().isoformat()
-    sm = ['<?xml version="1.0" encoding="UTF-8"?>',
-          '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
-    for i, u in enumerate(urls):
-        sm.append('<url><loc>%s</loc><lastmod>%s</lastmod><priority>%s</priority></url>'
-                  % (u, today, '1.0' if i == 0 else '0.7'))
-    sm.append('</urlset>')
-    io.open(os.path.join(ROOT, 'sitemap.xml'), 'w', encoding='utf-8').write('\n'.join(sm))
+    write_sitemap(urls)
 
     print('страниц собрано: %d' % len(written))
     print('в sitemap URL:   %d' % len(urls))
