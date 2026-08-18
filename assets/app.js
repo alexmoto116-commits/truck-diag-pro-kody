@@ -1503,10 +1503,16 @@
     if(currentLang !== 'ru' && BRAND_OVERRIDE[key]) return BRAND_OVERRIDE[key];
     return DB.brandNames[key];
   }
-  function fmiText(fmi){
+  function fmiLookup(f){
     var tbl = FMI_I18N[currentLang];
-    if(tbl && tbl[fmi] != null) return tbl[fmi];
-    return DB.fmi[String(fmi)];
+    if(tbl && tbl[f] != null) return tbl[f];
+    return DB.fmi[f];
+  }
+  function fmiText(fmi){
+    var f = String(fmi), v = fmiLookup(f);
+    if(v != null) return v;
+    var f2 = stripZero(f);
+    return f2 ? fmiLookup(f2) : v;
   }
 
   function fillBrands(){
@@ -1630,6 +1636,31 @@
     return /^\d+$/.test(s) ? parseInt(s, 10) : s;
   }
 
+  /* На деле приборка почти всегда показывает SPN/FMI с отступом до
+     фиксированной ширины ("03043-00" - реальный пример с фото приборной
+     панели), и codeVal() выше нарочно хранит такую запись строкой -
+     иначе сломалась бы собственная нумерация Ford. Но для любой другой
+     марки и для стандартных J1939-таблиц (SPN.FMI в заводских таблицах,
+     urgentSpn/urgentFmi, классификация по системе для «гирлянды») это
+     просто десятичное число с нулём для красоты - и его тоже нужно
+     узнавать, иначе самый обычный код с приборки MAN/Scania/Volvo
+     показывает «нет в справочнике» вместо расшифровки. stripZero()
+     отдаёт раздетый вид ТОЛЬКО когда есть что снимать: у настоящих
+     кодов Ford в записи всегда есть буква ("06F"), чистого "\d+" там не
+     бывает, так что под фильтр они не попадают и не путаются с чужим
+     десятичным SPN, которому просто не повезло совпасть по цифрам.
+     hasNum() - тот же поиск по массиву целых чисел: сначала как есть
+     (без стоимости для всех остальных марок), и только если не нашлось -
+     в раздетом виде. */
+  function stripZero(s){
+    return (typeof s === 'string' && /^0\d+$/.test(s)) ? String(parseInt(s, 10)) : null;
+  }
+  function hasNum(arr, v){
+    if(arr.indexOf(v) >= 0) return true;
+    var s = stripZero(v);
+    return s ? arr.indexOf(parseInt(s, 10)) >= 0 : false;
+  }
+
   function parseAuto(t){
     var up = normCode(t);
     // Панель показывает код вместе с порядковым номером ошибки
@@ -1685,8 +1716,8 @@
   /* Имя параметра по SPN - одна лестница источников: заводская
      таблица марки, стандарт J1939, общий справочник. На каждой
      ступени сначала английский (если язык не русский), потом русский. */
-  function spnName(spn, brand){
-    var E = en(), s = String(spn);
+  function spnLookup(s, brand){
+    var E = en();
     return (E && E.spn[s])
         || (E && brand && E.spnName[brand] && E.spnName[brand][s])
         || (E && E.universal[s])
@@ -1695,18 +1726,36 @@
         || (brand && DB.spnNameEn[brand] && DB.spnNameEn[brand][s])
         || DB.universal[s];
   }
+  function spnName(spn, brand){
+    var s = String(spn), found = spnLookup(s, brand);
+    if(found) return found;
+    var s2 = stripZero(s);
+    return s2 ? spnLookup(s2, brand) : found;
+  }
 
   function describe(spn, fmi, brand){
     if(brand){
-      var E = en(), key = spn + '.' + fmi;
+      var E = en();
+      var spnS = String(spn), fmiS = String(fmi);
+      var spnAlt = stripZero(spnS), fmiAlt = stripZero(fmiS);
+      /* Точный ключ - первым: у Ford он совпадает сразу же, до
+         раздетых вариантов дело не доходит. Раздетые добавляем, только
+         если реально есть что раздевать - иначе не плодим одинаковые
+         попытки для обычного кода без нулей. */
+      var keys = [spnS + '.' + fmiS];
+      if(spnAlt) keys.push(spnAlt + '.' + fmiS);
+      if(fmiAlt) keys.push(spnS + '.' + fmiAlt);
+      if(spnAlt && fmiAlt) keys.push(spnAlt + '.' + fmiAlt);
       /* По алиасу (см. BRAND_ALIAS) проходим доноров по очереди и
          подписываем ответ именем того, у кого код реально нашёлся. */
       var donors = donorsOf(brand);
       for(var i = 0; i < donors.length; i++){
         var d = donors[i];
-        var exact = (E && E.brands[d] && E.brands[d][key])
-                 || (DB.brands[d] && DB.brands[d][key]);
-        if(exact) return {text:withFmiHint(exact, fmi), src:t('factorySource', {brand: brandName(d)})};
+        for(var j = 0; j < keys.length; j++){
+          var exact = (E && E.brands[d] && E.brands[d][keys[j]])
+                   || (DB.brands[d] && DB.brands[d][keys[j]]);
+          if(exact) return {text:withFmiHint(exact, fmi), src:t('factorySource', {brand: brandName(d)})};
+        }
       }
     }
     /* У Freightliner нет заводской построчной таблицы кодов - есть
@@ -1763,9 +1812,13 @@
   }
 
   function urgent(spn, fmi, brand){
-    if(DB.urgentSpn.indexOf(spn) >= 0) return true;
-    if(DB.urgentFmi.indexOf(fmi) >= 0) return true;
-    return brand === 'kamaz' && DB.kamazUrgent.indexOf(spn + '.' + fmi) >= 0;
+    if(hasNum(DB.urgentSpn, spn)) return true;
+    if(hasNum(DB.urgentFmi, fmi)) return true;
+    if(brand !== 'kamaz') return false;
+    if(DB.kamazUrgent.indexOf(spn + '.' + fmi) >= 0) return true;
+    var spnAlt = stripZero(String(spn)), fmiAlt = stripZero(String(fmi));
+    return !!(spnAlt || fmiAlt) &&
+      DB.kamazUrgent.indexOf((spnAlt || spn) + '.' + (fmiAlt || fmi)) >= 0;
   }
 
   function esc(t){
@@ -1826,7 +1879,7 @@
   };
   function systemOf(spn, name){
     var k;
-    for(k in SYS_SPN){ if(SYS_SPN[k].indexOf(spn) >= 0) return k; }
+    for(k in SYS_SPN){ if(hasNum(SYS_SPN[k], spn)) return k; }
     var low = (name || '').toLowerCase();
     for(k in SYS_WORD){
       if(SYS_WORD[k].some(function(w){ return low.indexOf(w) >= 0; })) return k;
@@ -1861,9 +1914,9 @@
     if(c.sys === 'prot')  return 90;
     if(c.sys === 'power') return 10;
     if(c.sys === 'can')   return 15;
-    if(FMI_RANGE.indexOf(c.fmi)   >= 0) return 30;
-    if(FMI_ELEC.indexOf(c.fmi)    >= 0) return 50;
-    if(FMI_DERIVED.indexOf(c.fmi) >= 0) return 70;
+    if(hasNum(FMI_RANGE, c.fmi))   return 30;
+    if(hasNum(FMI_ELEC, c.fmi))    return 50;
+    if(hasNum(FMI_DERIVED, c.fmi)) return 70;
     return 60;
   }
 
@@ -1901,7 +1954,7 @@
     if(supply){
       best = {root:supply, cons:list.filter(function(c){
         return c !== supply &&
-               (FMI_ELEC.indexOf(c.fmi) >= 0 || FMI_DERIVED.indexOf(c.fmi) >= 0);
+               (hasNum(FMI_ELEC, c.fmi) || hasNum(FMI_DERIVED, c.fmi));
       })};
     }
 
@@ -1916,13 +1969,13 @@
              вылезшую за норму величину. Перегрев тянет за собой дерейт,
              а оборванный провод датчика перегрева - нет: это разные
              неисправности, и путать их нельзя. */
-          if(root || rule.root.indexOf(c.spn) < 0) return;
-          if(rule.phys && FMI_RANGE.indexOf(c.fmi) < 0) return;
+          if(root || !hasNum(rule.root, c.spn)) return;
+          if(rule.phys && !hasNum(FMI_RANGE, c.fmi)) return;
           root = c;
         });
         if(!root) return;
         var cons = list.filter(function(c){
-          return c !== root && rule.cons.indexOf(c.spn) >= 0;
+          return c !== root && hasNum(rule.cons, c.spn);
         });
         if(!best || cons.length > best.cons.length) best = {root:root, cons:cons};
       });
@@ -2106,8 +2159,8 @@
 
   function riskOf(c){
     var m = RISK_MAP[c.sys], pick;
-    if(m) pick = (m.elec && FMI_ELEC.indexOf(c.fmi) >= 0) ? m.elec : m.any;
-    else if(FMI_ELEC.indexOf(c.fmi) >= 0) pick = ['elecGen','watch'];
+    if(m) pick = (m.elec && hasNum(FMI_ELEC, c.fmi)) ? m.elec : m.any;
+    else if(hasNum(FMI_ELEC, c.fmi)) pick = ['elecGen','watch'];
     else pick = c.urgent ? ['genUrgent','short'] : ['gen','plan'];
 
     var lvl = pick[1], flag = false;
