@@ -2172,11 +2172,20 @@
      коды голосом - пусть лучше отправит ссылку, по которой тот увидит
      ровно тот же отчёт. Параметр предпросмотра в неё намеренно не
      попадает: получателю уходит обычный адрес сайта. */
+  /* Раньше здесь заново разбирали input.value через parseAll() - тот
+     же разбор, что и для обычных SPN/FMI. Для дилерских кодов и для
+     MID-марок (Freightliner и т.п.) run() ведёт код по другим веткам
+     (fetchPcode, parseAllMid) - parseAll() их не понимает и находит
+     ноль пар, кнопка молча ничего не делала. Теперь ссылка несёт сырой
+     текст поля через ?q= - тот же путь, что уже был у SearchAction -
+     и восстановление на другом конце просто повторяет run(), а не
+     дублирует его логику вторым парсером. */
   function shareUrl(){
-    var codes = parseAll(input.value).map(function(c){ return c.spn + '-' + c.fmi; });
-    if(!codes.length) return null;
-    var u = location.origin + location.pathname + '?c=' + codes.join(',');
+    var val = input.value.trim();
+    if(!val) return null;
+    var u = location.origin + location.pathname + '?q=' + encodeURIComponent(val);
     if(sel.value) u += '&b=' + encodeURIComponent(sel.value);
+    if(MID_BRANDS[sel.value] && midSel.value) u += '&mid=' + encodeURIComponent(midSel.value);
     return u;
   }
 
@@ -2434,7 +2443,26 @@
        уже выбранной маркой. Марку ставим после загрузки справочника -
        до неё список марок ещё пуст, как и в разборе по ссылке выше. */
     var qb1 = /[?&]b=([a-z0-9]+)/.exec(location.search);
-    if(qb1){
+    /* ?q=... - цель SearchAction в JSON-LD на этой странице (см. <head>)
+       и формат ссылки «Отослать разбор» из shareUrl() выше: любой текст
+       из поля ввода плюс марка и модуль, без привязки к формату кода -
+       работает для дилерских и MID-кодов, не только для пар SPN/FMI.
+       Проверяем раньше qb1 и, если есть, забираем марку из того же
+       location.search сама - иначе оба блока запустили бы run()
+       вперемешку. */
+    var qq = /[?&]q=([^&]+)/.exec(location.search);
+    if(qq){
+      ready().then(function(){
+        if(qb1 && DB.brandNames[qb1[1]]){
+          sel.value = qb1[1];
+          fillMid();
+          var qmid = /[?&]mid=([0-9]+)/.exec(location.search);
+          if(qmid) midSel.value = qmid[1];
+        }
+        input.value = decodeURIComponent(qq[1].replace(/\+/g, ' '));
+        run();
+      }).catch(function(){});
+    } else if(qb1){
       ready().then(function(){
         if(!DB.brandNames[qb1[1]]) return;
         sel.value = qb1[1];
@@ -2443,17 +2471,6 @@
         catch(e){ ev = document.createEvent('Event'); ev.initEvent('change', true, true); }
         sel.dispatchEvent(ev);
         input.focus();
-      }).catch(function(){});
-    }
-    /* ?q=... - цель SearchAction в JSON-LD на этой странице (см. <head>):
-       если Google когда-нибудь покажет строку поиска сайта прямо в
-       выдаче, переход по ней должен реально что-то делать, а не
-       просто открывать главную с игнорируемым параметром в адресе. */
-    var qq = /[?&]q=([^&]+)/.exec(location.search);
-    if(qq){
-      ready().then(function(){
-        input.value = decodeURIComponent(qq[1].replace(/\+/g, ' '));
-        run();
       }).catch(function(){});
     }
   }
