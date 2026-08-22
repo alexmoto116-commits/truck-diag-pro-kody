@@ -127,11 +127,13 @@ def build():
     risk_tx = extract_js_object('RISK_TX')['en']
     risk_h = extract_js_object('RISK_H')['en']
     risk_title = extract_js_object('RISK_TITLE')['en']
+    risk_flag = extract_js_object('RISK_FLAG')['en']
     risk_map = extract_js_object('RISK_MAP')
     fmi_en = extract_js_object('FMI_I18N')['en']
 
     per_en = per_spn_en(en_db)
     urgent_fmi = set(ru_db['urgentFmi'])
+    urgent_spn = set(ru_db['urgentSpn'])
 
     def en_std(spn):
         s = str(spn)
@@ -218,23 +220,38 @@ def build():
         out.append('</table>')
         return ''.join(out)
 
-    # Горизонт риска собирается из RISK_MAP/RISK_TX ровно так же, как его
-    # собирает инструмент: «any» - основной вариант, «elec» - оговорка про
-    # электрический код. Уровень (now/short/base/watch) даёт и подпись
-    # запаса времени, и цвет плашки.
-    def risk_section(sys_key):
-        rule = risk_map.get(sys_key)
-        if not rule or 'any' not in rule:
+    # Горизонт риска считаем не своей копией правил, а той же bp.page_risk(),
+    # что и русская сборка: ключ текста и уровень от языка не зависят, поэтому
+    # английская страница обязана говорить ровно то же, что русская.
+    #
+    # Раньше здесь стояло «нет правила у системы - нет блока», и блок теряли
+    # четыре страницы из пяти: правил в RISK_MAP десяток, а систем на сайте
+    # больше. У русской версии на этот случай есть общий текст (gen/genUrgent/
+    # elecGen), английский перевод для него в app.js лежал неиспользованным -
+    # из-за чего английские карточки выходили заметно тоньше русских.
+    def risk_section(sys_key, fmis, urgent_spn_hit):
+        key, lvl, _ = bp.page_risk(sys_key, fmis, urgent_fmi, urgent_spn_hit)
+        if not key or key not in risk_tx:
             return u''
-        key, lvl = rule['any']
-        happens, ends = risk_tx[key]
+        happens, ends = risk_tx[key][0], risk_tx[key][1]
         note = u''
-        if 'elec' in rule:
-            note = u'<p class="rkn">%s</p>' % bp.esc(u' '.join(risk_tx[rule['elec'][0]]))
+        rule = risk_map.get(sys_key)
+        # Оговорку про электрический код ставим, только если такие FMI на
+        # странице действительно есть: раньше она печаталась у всей системы
+        # без разбора и попадала на страницы, где электрики нет вовсе.
+        if (rule and rule.get('elec') and key != rule['elec'][0]
+                and any(f in bp.FMI_ELEC for f in (fmis or []))):
+            e = risk_tx[rule['elec'][0]]
+            note = u'<p class="rkn">%s %s</p>' % (bp.esc(e[0]), bp.esc(e[1]))
+        # Метка производителя перевешивает наш спокойный вывод - говорим
+        # о расхождении вслух, как и русская версия.
+        if (urgent_spn_hit or any(f in urgent_fmi for f in (fmis or []))) and lvl != 'now':
+            note += u'<p class="rkn">%s</p>' % bp.esc(risk_flag)
+        tier = 'now' if lvl == 'now' else ('warn' if lvl in ('short', 'base') else 'calm')
         return (u'<section><h2>%s</h2>'
                 u'<div class="risk t-%s"><span class="rkb">Time you have: %s</span>'
                 u'<p>%s</p><p>%s</p>%s</div></section>'
-                % (bp.esc(risk_title), 'now' if lvl == 'now' else 'warn',
+                % (bp.esc(risk_title), tier,
                    bp.esc(risk_h[lvl]), bp.esc(happens), bp.esc(ends), note))
 
     if not os.path.isdir(OUT):
@@ -276,9 +293,11 @@ def build():
                 'name': (u'Can I keep driving with code SPN %d (%s)?' % (spn, name) if name
                          else u'Can I keep driving with code SPN %d?' % spn),
                 'acceptedAnswer': {'@type': 'Answer', 'text': re.sub(r'</?b>', '', verdict)}}]
-        rule = risk_map.get(sys_key)
-        if rule and 'any' in rule:
-            happens, ends = risk_tx[rule['any'][0]]
+        # Вопрос в FAQ и блок на странице должны отвечать одинаково, поэтому
+        # ключ текста здесь берётся тем же способом, что и в risk_section().
+        rkey, _, _ = bp.page_risk(sys_key, seen, urgent_fmi, spn in urgent_spn)
+        if rkey and rkey in risk_tx:
+            happens, ends = risk_tx[rkey][0], risk_tx[rkey][1]
             faq.append({'@type': 'Question',
                         'name': u'What happens if I keep driving with SPN %d?' % spn,
                         'acceptedAnswer': {'@type': 'Answer', 'text': happens + u' ' + ends}})
@@ -335,7 +354,7 @@ def build():
                         % (TX['fmiCommon'], fmi_table(common, spn)))
 
         body.append(u'<section><h2>%s</h2><p>%s</p></section>' % (TX['canDrive'], verdict))
-        body.append(risk_section(sys_key))
+        body.append(risk_section(sys_key, seen, spn in urgent_spn))
         act = i18n.get(ACT_KEY.get(sys_key, ''))
         if act:
             body.append(u'<section><h2>%s</h2><p>%s</p></section>'
