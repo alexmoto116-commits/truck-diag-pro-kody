@@ -10,3 +10,8 @@ pcode-source/
 # например для заливки KV (см. scripts/kv_plan.py).
 worker/.wrangler/
 .wrangler/
+
+# Байт-код Python: пересобирается сам при каждом запуске scripts/*.py
+# и оттого вечно висел в git status, засоряя вывод перед коммитом.
+__pycache__/
+*.pyc
