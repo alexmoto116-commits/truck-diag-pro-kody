@@ -109,7 +109,7 @@ SYMPTOMS_EN = {
     'gorit-check-engine': (
         u'Check Engine light on a truck — what it means',
         u'Check Engine light is on',
-        u'An amber light means the electronics found a fault and logged a code. On its '
+        u'A yellow light means the electronics found a fault and logged a code. On its '
         u'own it does not say how serious it is — it could be a clogged filter or '
         u'dropped oil pressure. You need to look at the code.'),
     'oshibka-adblue': (
@@ -616,8 +616,8 @@ def build():
             secs.append(u'<section><h2>What to check on the spot</h2><p>%s</p></section>' % act)
         secs.append(
             u'<section><h2>Can I keep driving</h2><p>The answer depends on the code, not '
-            u'the light. An amber light is a warning; a red one means do not move. But '
-            u'even under an amber light there are faults that require stopping right '
+            u'the light. A yellow light is a warning; a red one means do not move. But '
+            u'even under a yellow light there are faults that require stopping right '
             u'away — low oil pressure, overheating, lost brake pressure. '
             u'<a href="/en/">Enter the code</a> — the reference will tell you '
             u'plainly whether to keep driving or stop.</p></section>')
