@@ -1,8 +1,8 @@
 {
 "pages": {
 "https://codetruck.ru/": {
-"d": "2026-08-17",
-"h": "6aca9271346f"
+"d": "2026-08-24",
+"h": "937a13a1fa16"
 },
 "https://codetruck.ru/de/": {
 "d": "2026-08-24",
@@ -10,7 +10,7 @@
 },
 "https://codetruck.ru/en/": {
 "d": "2026-08-24",
-"h": "8ed0fa49ee46"
+"h": "c654117dc2a1"
 },
 "https://codetruck.ru/en/kody/": {
 "d": "2026-08-24",
@@ -5544,6 +5544,342 @@
 "d": "2026-08-24",
 "h": "19b88948d63f"
 },
+"https://codetruck.ru/en/marki/": {
+"d": "2026-08-24",
+"h": "20432346f197"
+},
+"https://codetruck.ru/en/marki/allison.html": {
+"d": "2026-08-24",
+"h": "3414d215ee0c"
+},
+"https://codetruck.ru/en/marki/ashokleyland.html": {
+"d": "2026-08-24",
+"h": "340e3279f1cb"
+},
+"https://codetruck.ru/en/marki/bendix.html": {
+"d": "2026-08-24",
+"h": "fc675c92f831"
+},
+"https://codetruck.ru/en/marki/carrier.html": {
+"d": "2026-08-24",
+"h": "5920588f9413"
+},
+"https://codetruck.ru/en/marki/caterpillar.html": {
+"d": "2026-08-24",
+"h": "f3ca6e5ce72f"
+},
+"https://codetruck.ru/en/marki/cumminsisb.html": {
+"d": "2026-08-24",
+"h": "642229e628ba"
+},
+"https://codetruck.ru/en/marki/cumminsisf.html": {
+"d": "2026-08-24",
+"h": "c6758e3c7413"
+},
+"https://codetruck.ru/en/marki/cumminsislisc.html": {
+"d": "2026-08-24",
+"h": "338dee84fa62"
+},
+"https://codetruck.ru/en/marki/cumminsism.html": {
+"d": "2026-08-24",
+"h": "fe72bdd6066b"
+},
+"https://codetruck.ru/en/marki/cumminsisx.html": {
+"d": "2026-08-24",
+"h": "89f421e10b22"
+},
+"https://codetruck.ru/en/marki/daewoo.html": {
+"d": "2026-08-24",
+"h": "a45080d33579"
+},
+"https://codetruck.ru/en/marki/daf.html": {
+"d": "2026-08-24",
+"h": "77808163b995"
+},
+"https://codetruck.ru/en/marki/detroitdiesel.html": {
+"d": "2026-08-24",
+"h": "cd3bbb92b568"
+},
+"https://codetruck.ru/en/marki/deutz.html": {
+"d": "2026-08-24",
+"h": "df3d268d3c4e"
+},
+"https://codetruck.ru/en/marki/dongfeng.html": {
+"d": "2026-08-24",
+"h": "510423632296"
+},
+"https://codetruck.ru/en/marki/eaton.html": {
+"d": "2026-08-24",
+"h": "3453aa2e3e34"
+},
+"https://codetruck.ru/en/marki/eberspacher.html": {
+"d": "2026-08-24",
+"h": "8ddad962fde3"
+},
+"https://codetruck.ru/en/marki/faw.html": {
+"d": "2026-08-24",
+"h": "c34b56a39acb"
+},
+"https://codetruck.ru/en/marki/ford.html": {
+"d": "2026-08-24",
+"h": "40357d189aa7"
+},
+"https://codetruck.ru/en/marki/foton.html": {
+"d": "2026-08-24",
+"h": "8feb350342bd"
+},
+"https://codetruck.ru/en/marki/fuso.html": {
+"d": "2026-08-24",
+"h": "9d56e8c2b4b2"
+},
+"https://codetruck.ru/en/marki/haldex.html": {
+"d": "2026-08-24",
+"h": "0ae0a036f598"
+},
+"https://codetruck.ru/en/marki/hino.html": {
+"d": "2026-08-24",
+"h": "64df17c022a1"
+},
+"https://codetruck.ru/en/marki/howo.html": {
+"d": "2026-08-24",
+"h": "45b2fa1c0f3e"
+},
+"https://codetruck.ru/en/marki/hyundai.html": {
+"d": "2026-08-24",
+"h": "61b621f9ce71"
+},
+"https://codetruck.ru/en/marki/international.html": {
+"d": "2026-08-24",
+"h": "bfded8f0548f"
+},
+"https://codetruck.ru/en/marki/isuzu.html": {
+"d": "2026-08-24",
+"h": "a904246ecf03"
+},
+"https://codetruck.ru/en/marki/iveco.html": {
+"d": "2026-08-24",
+"h": "75629a8bc174"
+},
+"https://codetruck.ru/en/marki/jac.html": {
+"d": "2026-08-24",
+"h": "3706ed05eab7"
+},
+"https://codetruck.ru/en/marki/kamaz.html": {
+"d": "2026-08-24",
+"h": "716734954bbd"
+},
+"https://codetruck.ru/en/marki/kenworth.html": {
+"d": "2026-08-24",
+"h": "c8192bbc5071"
+},
+"https://codetruck.ru/en/marki/knorrbremse.html": {
+"d": "2026-08-24",
+"h": "5fb7ad674352"
+},
+"https://codetruck.ru/en/marki/mack.html": {
+"d": "2026-08-24",
+"h": "f4bca92a4b36"
+},
+"https://codetruck.ru/en/marki/mahindra.html": {
+"d": "2026-08-24",
+"h": "cc1a2c596850"
+},
+"https://codetruck.ru/en/marki/man.html": {
+"d": "2026-08-24",
+"h": "4add8f18714f"
+},
+"https://codetruck.ru/en/marki/maz.html": {
+"d": "2026-08-24",
+"h": "3c69fef71099"
+},
+"https://codetruck.ru/en/marki/mercedes.html": {
+"d": "2026-08-24",
+"h": "623d6c8841f9"
+},
+"https://codetruck.ru/en/marki/meritor.html": {
+"d": "2026-08-24",
+"h": "68e7e12e67f4"
+},
+"https://codetruck.ru/en/marki/paccarmx13.html": {
+"d": "2026-08-24",
+"h": "6b5f7aefe350"
+},
+"https://codetruck.ru/en/marki/planar.html": {
+"d": "2026-08-24",
+"h": "26258dfdbcaa"
+},
+"https://codetruck.ru/en/marki/powerstroke.html": {
+"d": "2026-08-24",
+"h": "b1f64332dab1"
+},
+"https://codetruck.ru/en/marki/renault.html": {
+"d": "2026-08-24",
+"h": "79e5349bf30e"
+},
+"https://codetruck.ru/en/marki/scania.html": {
+"d": "2026-08-24",
+"h": "b4c4f942fb68"
+},
+"https://codetruck.ru/en/marki/shacman.html": {
+"d": "2026-08-24",
+"h": "3626f66cc2dd"
+},
+"https://codetruck.ru/en/marki/sitrak.html": {
+"d": "2026-08-24",
+"h": "0d2d3e11e51f"
+},
+"https://codetruck.ru/en/marki/tata.html": {
+"d": "2026-08-24",
+"h": "eb7688c93a14"
+},
+"https://codetruck.ru/en/marki/thermoking.html": {
+"d": "2026-08-24",
+"h": "52bb085eb659"
+},
+"https://codetruck.ru/en/marki/volkswagen.html": {
+"d": "2026-08-24",
+"h": "72727e2ecacd"
+},
+"https://codetruck.ru/en/marki/volvo.html": {
+"d": "2026-08-24",
+"h": "7c65e1f6dd0d"
+},
+"https://codetruck.ru/en/marki/wabco.html": {
+"d": "2026-08-24",
+"h": "571e62d0f5f8"
+},
+"https://codetruck.ru/en/marki/webasto.html": {
+"d": "2026-08-24",
+"h": "ba03e59fc210"
+},
+"https://codetruck.ru/en/marki/weichai.html": {
+"d": "2026-08-24",
+"h": "f1d64814ce55"
+},
+"https://codetruck.ru/en/marki/yamz.html": {
+"d": "2026-08-24",
+"h": "313effcc835a"
+},
+"https://codetruck.ru/en/marki/zfastronic.html": {
+"d": "2026-08-24",
+"h": "934198dca97f"
+},
+"https://codetruck.ru/en/problemy/": {
+"d": "2026-08-24",
+"h": "1c2b16f31d39"
+},
+"https://codetruck.ru/en/problemy/belyy-dym.html": {
+"d": "2026-08-24",
+"h": "5d3639877e37"
+},
+"https://codetruck.ru/en/problemy/bolshoy-rashod-topliva.html": {
+"d": "2026-08-24",
+"h": "a5c7ec0f5373"
+},
+"https://codetruck.ru/en/problemy/chernyy-dym.html": {
+"d": "2026-08-24",
+"h": "49e716bc41ba"
+},
+"https://codetruck.ru/en/problemy/datchik-nox.html": {
+"d": "2026-08-24",
+"h": "3feb3b1e01e0"
+},
+"https://codetruck.ru/en/problemy/glohnet-na-hodu.html": {
+"d": "2026-08-24",
+"h": "ff6c12f6de2b"
+},
+"https://codetruck.ru/en/problemy/gorit-check-engine.html": {
+"d": "2026-08-24",
+"h": "259b6c4fe998"
+},
+"https://codetruck.ru/en/problemy/gorit-lampa-abs.html": {
+"d": "2026-08-24",
+"h": "6c2e9b0fc1bb"
+},
+"https://codetruck.ru/en/problemy/greetsya-v-goru.html": {
+"d": "2026-08-24",
+"h": "919b7428de6b"
+},
+"https://codetruck.ru/en/problemy/nasos-adblue.html": {
+"d": "2026-08-24",
+"h": "0cbb8f4acdbe"
+},
+"https://codetruck.ru/en/problemy/ne-idet-regeneratsiya.html": {
+"d": "2026-08-24",
+"h": "8c389fa03b9b"
+},
+"https://codetruck.ru/en/problemy/ne-nabiraet-vozduh.html": {
+"d": "2026-08-24",
+"h": "b2f360fa7eaa"
+},
+"https://codetruck.ru/en/problemy/ne-pereklyuchayutsya-peredachi.html": {
+"d": "2026-08-24",
+"h": "e78a7e9edd0b"
+},
+"https://codetruck.ru/en/problemy/ne-rabotaet-motornyy-tormoz.html": {
+"d": "2026-08-24",
+"h": "14863d780609"
+},
+"https://codetruck.ru/en/problemy/ne-zaryazhaet-generator.html": {
+"d": "2026-08-24",
+"h": "cfaacb30f951"
+},
+"https://codetruck.ru/en/problemy/ne-zavoditsya.html": {
+"d": "2026-08-24",
+"h": "8ecdabac369c"
+},
+"https://codetruck.ru/en/problemy/nizkoe-davlenie-masla.html": {
+"d": "2026-08-24",
+"h": "29ddc5ed5d6e"
+},
+"https://codetruck.ru/en/problemy/oshibka-adblue.html": {
+"d": "2026-08-24",
+"h": "d5221d53c035"
+},
+"https://codetruck.ru/en/problemy/oshibka-retardera.html": {
+"d": "2026-08-24",
+"h": "f4bee7cd7471"
+},
+"https://codetruck.ru/en/problemy/oshibka-tahografa.html": {
+"d": "2026-08-24",
+"h": "6c0d9389091b"
+},
+"https://codetruck.ru/en/problemy/peregrev-dvigatelya.html": {
+"d": "2026-08-24",
+"h": "14e748a1ace9"
+},
+"https://codetruck.ru/en/problemy/problemy-s-toplivom.html": {
+"d": "2026-08-24",
+"h": "70692516c399"
+},
+"https://codetruck.ru/en/problemy/probuksovyvaet-sceplenie.html": {
+"d": "2026-08-24",
+"h": "087845a4eece"
+},
+"https://codetruck.ru/en/problemy/propalo-pitanie.html": {
+"d": "2026-08-24",
+"h": "5642f8b97b20"
+},
+"https://codetruck.ru/en/problemy/siniy-dym.html": {
+"d": "2026-08-24",
+"h": "f92d6e3bc1bc"
+},
+"https://codetruck.ru/en/problemy/stoyanochnyy-tormoz.html": {
+"d": "2026-08-24",
+"h": "143c5cd473e9"
+},
+"https://codetruck.ru/en/problemy/troit-dvigatel.html": {
+"d": "2026-08-24",
+"h": "3de9066924f4"
+},
+"https://codetruck.ru/en/problemy/upala-moshchnost.html": {
+"d": "2026-08-24",
+"h": "33080c01eb4f"
+},
+"https://codetruck.ru/en/problemy/zabit-sazhevyy-filtr.html": {
+"d": "2026-08-24",
+"h": "a16d5e1caebb"
+},
 "https://codetruck.ru/es/": {
 "d": "2026-08-24",
 "h": "02f0aa26c9a1"
@@ -5558,7 +5894,7 @@
 },
 "https://codetruck.ru/kody/": {
 "d": "2026-08-24",
-"h": "6160deb7ba41"
+"h": "e625c66852d1"
 },
 "https://codetruck.ru/kody/spn-1.html": {
 "d": "2026-08-24",
@@ -11090,219 +11426,223 @@
 },
 "https://codetruck.ru/marki/": {
 "d": "2026-08-24",
-"h": "4a728fe77b5b"
+"h": "c21378b66c8d"
 },
 "https://codetruck.ru/marki/allison.html": {
 "d": "2026-08-24",
-"h": "282fc99a2213"
+"h": "484daa8b36da"
 },
 "https://codetruck.ru/marki/ashokleyland.html": {
 "d": "2026-08-24",
-"h": "48b30a1fdc33"
+"h": "3b5f08d274ab"
 },
 "https://codetruck.ru/marki/bendix.html": {
 "d": "2026-08-24",
-"h": "d9df9a258ac8"
+"h": "e410d75787c6"
 },
 "https://codetruck.ru/marki/carrier.html": {
 "d": "2026-08-24",
-"h": "d44be877a9a9"
+"h": "815dde7409c6"
 },
 "https://codetruck.ru/marki/caterpillar.html": {
 "d": "2026-08-24",
-"h": "682e9b2b1afb"
+"h": "909bf5034b49"
 },
 "https://codetruck.ru/marki/cumminsisb.html": {
 "d": "2026-08-24",
-"h": "31cb0ce377f9"
+"h": "7b783ca720cd"
 },
 "https://codetruck.ru/marki/cumminsisf.html": {
 "d": "2026-08-24",
-"h": "64a22fa53945"
+"h": "883c2505da7a"
 },
 "https://codetruck.ru/marki/cumminsislisc.html": {
 "d": "2026-08-24",
-"h": "36f438c05f97"
+"h": "c96737ac75b1"
 },
 "https://codetruck.ru/marki/cumminsism.html": {
 "d": "2026-08-24",
-"h": "6560d2a994a0"
+"h": "d1fc93cbf847"
 },
 "https://codetruck.ru/marki/cumminsisx.html": {
 "d": "2026-08-24",
-"h": "cda824907959"
+"h": "4baf2fb92822"
 },
 "https://codetruck.ru/marki/daewoo.html": {
 "d": "2026-08-24",
-"h": "e662944e4fed"
+"h": "4758b000659c"
 },
 "https://codetruck.ru/marki/daf.html": {
 "d": "2026-08-24",
-"h": "aab03bfe80a0"
+"h": "be7b27527109"
 },
 "https://codetruck.ru/marki/detroitdiesel.html": {
 "d": "2026-08-24",
-"h": "40cf5b9660dd"
+"h": "576eeb657c84"
 },
 "https://codetruck.ru/marki/deutz.html": {
 "d": "2026-08-24",
-"h": "135dbeb2a1f1"
+"h": "ee2958b5dc0a"
 },
 "https://codetruck.ru/marki/dongfeng.html": {
 "d": "2026-08-24",
-"h": "20dfcc95d51d"
+"h": "8d8299c70872"
 },
 "https://codetruck.ru/marki/eaton.html": {
 "d": "2026-08-24",
-"h": "adf5a709e0fb"
+"h": "1d18dcc4398f"
 },
 "https://codetruck.ru/marki/eberspacher.html": {
 "d": "2026-08-24",
-"h": "adc1e0504b6e"
+"h": "4a151d797d50"
 },
 "https://codetruck.ru/marki/faw.html": {
 "d": "2026-08-24",
-"h": "c9ac6302bcbe"
+"h": "9ca665729109"
 },
 "https://codetruck.ru/marki/ford.html": {
 "d": "2026-08-24",
-"h": "1717e3087d65"
+"h": "8d9d4c98815a"
 },
 "https://codetruck.ru/marki/foton.html": {
 "d": "2026-08-24",
-"h": "c30748ffe204"
+"h": "95d11793ba51"
 },
 "https://codetruck.ru/marki/fuso.html": {
 "d": "2026-08-24",
-"h": "971ca92e1096"
+"h": "532365441376"
 },
 "https://codetruck.ru/marki/haldex.html": {
 "d": "2026-08-24",
-"h": "18beb507b3e1"
+"h": "fd36065dedd1"
 },
 "https://codetruck.ru/marki/hino.html": {
 "d": "2026-08-24",
-"h": "a2db7af44bdd"
+"h": "277ac0eb0932"
 },
 "https://codetruck.ru/marki/howo.html": {
 "d": "2026-08-24",
-"h": "386ab8071b6f"
+"h": "0e5f7c686dc0"
 },
 "https://codetruck.ru/marki/hyundai.html": {
 "d": "2026-08-24",
-"h": "26b06175c1c0"
+"h": "f26034bb26ca"
 },
 "https://codetruck.ru/marki/international.html": {
 "d": "2026-08-24",
-"h": "30d76639b79d"
+"h": "e1bcb6261d26"
 },
 "https://codetruck.ru/marki/isuzu.html": {
 "d": "2026-08-24",
-"h": "f35b67534d47"
+"h": "afdd5062acc2"
 },
 "https://codetruck.ru/marki/iveco.html": {
 "d": "2026-08-24",
-"h": "0c8a9e44aca3"
+"h": "1074a8ae3dc9"
 },
 "https://codetruck.ru/marki/jac.html": {
 "d": "2026-08-24",
-"h": "857139fa6810"
+"h": "3aa80b452cae"
 },
 "https://codetruck.ru/marki/kamaz.html": {
 "d": "2026-08-24",
-"h": "d6e101fe3f7d"
+"h": "7afc4fb0f54b"
 },
 "https://codetruck.ru/marki/kenworth.html": {
 "d": "2026-08-24",
-"h": "c23ec14a813a"
+"h": "90d91c8b3234"
 },
 "https://codetruck.ru/marki/knorrbremse.html": {
 "d": "2026-08-24",
-"h": "166c170f3946"
+"h": "2f3bf2b7cc3c"
 },
 "https://codetruck.ru/marki/mack.html": {
 "d": "2026-08-24",
-"h": "730dc3a44eae"
+"h": "1e763ec9dba7"
 },
 "https://codetruck.ru/marki/mahindra.html": {
 "d": "2026-08-24",
-"h": "9b90358fe135"
+"h": "507b6ea720ec"
 },
 "https://codetruck.ru/marki/man.html": {
 "d": "2026-08-24",
-"h": "a403ca83cbf6"
+"h": "c95ae757f4c6"
 },
 "https://codetruck.ru/marki/maz.html": {
 "d": "2026-08-24",
-"h": "2723818f647a"
+"h": "170543f417a6"
 },
 "https://codetruck.ru/marki/mercedes.html": {
 "d": "2026-08-24",
-"h": "3c0827defd53"
+"h": "df6cf924e7fb"
 },
 "https://codetruck.ru/marki/meritor.html": {
 "d": "2026-08-24",
-"h": "c2fc6c3bcc02"
+"h": "5ecd2f3b8d73"
 },
 "https://codetruck.ru/marki/paccarmx13.html": {
 "d": "2026-08-24",
-"h": "587f534a8861"
+"h": "aa049d48302c"
 },
 "https://codetruck.ru/marki/planar.html": {
 "d": "2026-08-24",
-"h": "85ae6923f93d"
+"h": "e0babc3bf231"
 },
 "https://codetruck.ru/marki/powerstroke.html": {
 "d": "2026-08-24",
-"h": "152bb85e92de"
+"h": "2646140cfed6"
 },
 "https://codetruck.ru/marki/renault.html": {
 "d": "2026-08-24",
-"h": "f8ab6c497571"
+"h": "4ab7a85a4276"
 },
 "https://codetruck.ru/marki/scania.html": {
 "d": "2026-08-24",
-"h": "7eade5dc0113"
+"h": "450d55e95993"
 },
 "https://codetruck.ru/marki/shacman.html": {
 "d": "2026-08-24",
-"h": "84faf0adf8cf"
+"h": "803bbf582267"
 },
 "https://codetruck.ru/marki/sitrak.html": {
 "d": "2026-08-24",
-"h": "c4df96e42af6"
+"h": "dd5d7c05c331"
 },
 "https://codetruck.ru/marki/tata.html": {
 "d": "2026-08-24",
-"h": "169ff08f3c39"
+"h": "76c8ad7bd224"
 },
 "https://codetruck.ru/marki/thermoking.html": {
 "d": "2026-08-24",
-"h": "311c7f3f6b28"
+"h": "6103e3b19c53"
+},
+"https://codetruck.ru/marki/volkswagen.html": {
+"d": "2026-08-24",
+"h": "565811d58dee"
 },
 "https://codetruck.ru/marki/volvo.html": {
 "d": "2026-08-24",
-"h": "53a88cafe10c"
+"h": "ef527a6e89d1"
 },
 "https://codetruck.ru/marki/wabco.html": {
 "d": "2026-08-24",
-"h": "da455fbd4202"
+"h": "678241657efc"
 },
 "https://codetruck.ru/marki/webasto.html": {
 "d": "2026-08-24",
-"h": "831ed43fd728"
+"h": "eda6020d1e6f"
 },
 "https://codetruck.ru/marki/weichai.html": {
 "d": "2026-08-24",
-"h": "79a75dafbe4a"
+"h": "15aa3bc108a8"
 },
 "https://codetruck.ru/marki/yamz.html": {
 "d": "2026-08-24",
-"h": "a01231a58c0d"
+"h": "67789d42e457"
 },
 "https://codetruck.ru/marki/zfastronic.html": {
 "d": "2026-08-24",
-"h": "31ad76401bae"
+"h": "805a970e57f4"
 },
 "https://codetruck.ru/pl/": {
 "d": "2026-08-24",
@@ -11310,119 +11650,119 @@
 },
 "https://codetruck.ru/problemy/": {
 "d": "2026-08-24",
-"h": "0d6eaa6ee885"
+"h": "0e0a9f28a9b8"
 },
 "https://codetruck.ru/problemy/belyy-dym.html": {
 "d": "2026-08-24",
-"h": "526bea488e59"
+"h": "88cd1b1276a1"
 },
 "https://codetruck.ru/problemy/bolshoy-rashod-topliva.html": {
 "d": "2026-08-24",
-"h": "d4dd14017933"
+"h": "95bb5515b23f"
 },
 "https://codetruck.ru/problemy/chernyy-dym.html": {
 "d": "2026-08-24",
-"h": "bd29b1fd7286"
+"h": "f1d452c045ec"
 },
 "https://codetruck.ru/problemy/datchik-nox.html": {
 "d": "2026-08-24",
-"h": "76c534fa7603"
+"h": "f27137f75220"
 },
 "https://codetruck.ru/problemy/glohnet-na-hodu.html": {
 "d": "2026-08-24",
-"h": "f50ad7783a96"
+"h": "bcc0913d4fda"
 },
 "https://codetruck.ru/problemy/gorit-check-engine.html": {
 "d": "2026-08-24",
-"h": "4df8885c5789"
+"h": "59dd90c4a09a"
 },
 "https://codetruck.ru/problemy/gorit-lampa-abs.html": {
 "d": "2026-08-24",
-"h": "ef05c3a8aa9f"
+"h": "429ad5be549b"
 },
 "https://codetruck.ru/problemy/greetsya-v-goru.html": {
 "d": "2026-08-24",
-"h": "4576bd75f7bd"
+"h": "594237b358b1"
 },
 "https://codetruck.ru/problemy/nasos-adblue.html": {
 "d": "2026-08-24",
-"h": "7b72c4d57a51"
+"h": "180069a9ac7c"
 },
 "https://codetruck.ru/problemy/ne-idet-regeneratsiya.html": {
 "d": "2026-08-24",
-"h": "ec8bb29ebfbb"
+"h": "02b8919b2ec8"
 },
 "https://codetruck.ru/problemy/ne-nabiraet-vozduh.html": {
 "d": "2026-08-24",
-"h": "2269c7ca5ccb"
+"h": "17d2f8baa533"
 },
 "https://codetruck.ru/problemy/ne-pereklyuchayutsya-peredachi.html": {
 "d": "2026-08-24",
-"h": "beaa9a13d0fd"
+"h": "6de565be331d"
 },
 "https://codetruck.ru/problemy/ne-rabotaet-motornyy-tormoz.html": {
 "d": "2026-08-24",
-"h": "ba4d5a42317d"
+"h": "caeea170cc8f"
 },
 "https://codetruck.ru/problemy/ne-zaryazhaet-generator.html": {
 "d": "2026-08-24",
-"h": "3999d5ca0ab0"
+"h": "53e9143e41de"
 },
 "https://codetruck.ru/problemy/ne-zavoditsya.html": {
 "d": "2026-08-24",
-"h": "32487132fe32"
+"h": "3624261fd166"
 },
 "https://codetruck.ru/problemy/nizkoe-davlenie-masla.html": {
 "d": "2026-08-24",
-"h": "151d5d26a84c"
+"h": "f65792d3daed"
 },
 "https://codetruck.ru/problemy/oshibka-adblue.html": {
 "d": "2026-08-24",
-"h": "2b50a50f0676"
+"h": "7154b81f8fa1"
 },
 "https://codetruck.ru/problemy/oshibka-retardera.html": {
 "d": "2026-08-24",
-"h": "538468ba8145"
+"h": "f8797f3cb647"
 },
 "https://codetruck.ru/problemy/oshibka-tahografa.html": {
 "d": "2026-08-24",
-"h": "58863ee5668e"
+"h": "ec43c0b42dcd"
 },
 "https://codetruck.ru/problemy/peregrev-dvigatelya.html": {
 "d": "2026-08-24",
-"h": "32a502a02d5e"
+"h": "6572698bea8a"
 },
 "https://codetruck.ru/problemy/problemy-s-toplivom.html": {
 "d": "2026-08-24",
-"h": "841f5b0cb7a9"
+"h": "be4e8e0fbbea"
 },
 "https://codetruck.ru/problemy/probuksovyvaet-sceplenie.html": {
 "d": "2026-08-24",
-"h": "7e56eba97cce"
+"h": "b556d58ce9bc"
 },
 "https://codetruck.ru/problemy/propalo-pitanie.html": {
 "d": "2026-08-24",
-"h": "3b6ff9709c38"
+"h": "1ee332aee2ee"
 },
 "https://codetruck.ru/problemy/siniy-dym.html": {
 "d": "2026-08-24",
-"h": "c934baa28806"
+"h": "ecae14c783df"
 },
 "https://codetruck.ru/problemy/stoyanochnyy-tormoz.html": {
 "d": "2026-08-24",
-"h": "ea7d3ce41b04"
+"h": "4bf7bb865c35"
 },
 "https://codetruck.ru/problemy/troit-dvigatel.html": {
 "d": "2026-08-24",
-"h": "38f87ac04f8d"
+"h": "1acfaa3a0979"
 },
 "https://codetruck.ru/problemy/upala-moshchnost.html": {
 "d": "2026-08-24",
-"h": "2dd48eb94e2a"
+"h": "5c7f758a4d8e"
 },
 "https://codetruck.ru/problemy/zabit-sazhevyy-filtr.html": {
 "d": "2026-08-24",
-"h": "bc016cd91248"
+"h": "312ff4cd98fd"
 },
 "https://codetruck.ru/pt/": {
 "d": "2026-08-24",
@@ -11498,6 +11838,7 @@
 "https://codetruck.ru/marki/daewoo.html",
 "https://codetruck.ru/marki/tata.html",
 "https://codetruck.ru/marki/thermoking.html",
+"https://codetruck.ru/marki/volkswagen.html",
 "https://codetruck.ru/marki/webasto.html",
 "https://codetruck.ru/marki/weichai.html",
 "https://codetruck.ru/marki/planar.html",
@@ -14296,6 +14637,90 @@
 "https://codetruck.ru/en/kody/spn-523623.html",
 "https://codetruck.ru/en/kody/spn-524270.html",
 "https://codetruck.ru/en/kody/spn-524271.html",
-"https://codetruck.ru/en/kody/spn-524272.html"
+"https://codetruck.ru/en/kody/spn-524272.html",
+"https://codetruck.ru/en/marki/",
+"https://codetruck.ru/en/marki/allison.html",
+"https://codetruck.ru/en/marki/ashokleyland.html",
+"https://codetruck.ru/en/marki/bendix.html",
+"https://codetruck.ru/en/marki/carrier.html",
+"https://codetruck.ru/en/marki/caterpillar.html",
+"https://codetruck.ru/en/marki/cumminsisb.html",
+"https://codetruck.ru/en/marki/cumminsisf.html",
+"https://codetruck.ru/en/marki/cumminsislisc.html",
+"https://codetruck.ru/en/marki/cumminsism.html",
+"https://codetruck.ru/en/marki/cumminsisx.html",
+"https://codetruck.ru/en/marki/daewoo.html",
+"https://codetruck.ru/en/marki/daf.html",
+"https://codetruck.ru/en/marki/detroitdiesel.html",
+"https://codetruck.ru/en/marki/deutz.html",
+"https://codetruck.ru/en/marki/dongfeng.html",
+"https://codetruck.ru/en/marki/eaton.html",
+"https://codetruck.ru/en/marki/eberspacher.html",
+"https://codetruck.ru/en/marki/faw.html",
+"https://codetruck.ru/en/marki/ford.html",
+"https://codetruck.ru/en/marki/foton.html",
+"https://codetruck.ru/en/marki/fuso.html",
+"https://codetruck.ru/en/marki/haldex.html",
+"https://codetruck.ru/en/marki/hino.html",
+"https://codetruck.ru/en/marki/howo.html",
+"https://codetruck.ru/en/marki/hyundai.html",
+"https://codetruck.ru/en/marki/international.html",
+"https://codetruck.ru/en/marki/isuzu.html",
+"https://codetruck.ru/en/marki/iveco.html",
+"https://codetruck.ru/en/marki/jac.html",
+"https://codetruck.ru/en/marki/kamaz.html",
+"https://codetruck.ru/en/marki/kenworth.html",
+"https://codetruck.ru/en/marki/knorrbremse.html",
+"https://codetruck.ru/en/marki/mack.html",
+"https://codetruck.ru/en/marki/mahindra.html",
+"https://codetruck.ru/en/marki/man.html",
+"https://codetruck.ru/en/marki/maz.html",
+"https://codetruck.ru/en/marki/mercedes.html",
+"https://codetruck.ru/en/marki/meritor.html",
+"https://codetruck.ru/en/marki/paccarmx13.html",
+"https://codetruck.ru/en/marki/planar.html",
+"https://codetruck.ru/en/marki/powerstroke.html",
+"https://codetruck.ru/en/marki/renault.html",
+"https://codetruck.ru/en/marki/scania.html",
+"https://codetruck.ru/en/marki/shacman.html",
+"https://codetruck.ru/en/marki/sitrak.html",
+"https://codetruck.ru/en/marki/tata.html",
+"https://codetruck.ru/en/marki/thermoking.html",
+"https://codetruck.ru/en/marki/volkswagen.html",
+"https://codetruck.ru/en/marki/volvo.html",
+"https://codetruck.ru/en/marki/wabco.html",
+"https://codetruck.ru/en/marki/webasto.html",
+"https://codetruck.ru/en/marki/weichai.html",
+"https://codetruck.ru/en/marki/yamz.html",
+"https://codetruck.ru/en/marki/zfastronic.html",
+"https://codetruck.ru/en/problemy/",
+"https://codetruck.ru/en/problemy/belyy-dym.html",
+"https://codetruck.ru/en/problemy/bolshoy-rashod-topliva.html",
+"https://codetruck.ru/en/problemy/chernyy-dym.html",
+"https://codetruck.ru/en/problemy/datchik-nox.html",
+"https://codetruck.ru/en/problemy/glohnet-na-hodu.html",
+"https://codetruck.ru/en/problemy/gorit-check-engine.html",
+"https://codetruck.ru/en/problemy/gorit-lampa-abs.html",
+"https://codetruck.ru/en/problemy/greetsya-v-goru.html",
+"https://codetruck.ru/en/problemy/nasos-adblue.html",
+"https://codetruck.ru/en/problemy/ne-idet-regeneratsiya.html",
+"https://codetruck.ru/en/problemy/ne-nabiraet-vozduh.html",
+"https://codetruck.ru/en/problemy/ne-pereklyuchayutsya-peredachi.html",
+"https://codetruck.ru/en/problemy/ne-rabotaet-motornyy-tormoz.html",
+"https://codetruck.ru/en/problemy/ne-zaryazhaet-generator.html",
+"https://codetruck.ru/en/problemy/ne-zavoditsya.html",
+"https://codetruck.ru/en/problemy/nizkoe-davlenie-masla.html",
+"https://codetruck.ru/en/problemy/oshibka-adblue.html",
+"https://codetruck.ru/en/problemy/oshibka-retardera.html",
+"https://codetruck.ru/en/problemy/oshibka-tahografa.html",
+"https://codetruck.ru/en/problemy/peregrev-dvigatelya.html",
+"https://codetruck.ru/en/problemy/problemy-s-toplivom.html",
+"https://codetruck.ru/en/problemy/probuksovyvaet-sceplenie.html",
+"https://codetruck.ru/en/problemy/propalo-pitanie.html",
+"https://codetruck.ru/en/problemy/siniy-dym.html",
+"https://codetruck.ru/en/problemy/stoyanochnyy-tormoz.html",
+"https://codetruck.ru/en/problemy/troit-dvigatel.html",
+"https://codetruck.ru/en/problemy/upala-moshchnost.html",
+"https://codetruck.ru/en/problemy/zabit-sazhevyy-filtr.html"
 ]
 }
