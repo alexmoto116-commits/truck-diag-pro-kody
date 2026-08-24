@@ -83,6 +83,7 @@
     bharatbenz:  ['mercedes', 'fuso'],
     ram:         ['cumminsisb'],
     dodge:       ['cumminsisb'],
+    fordcargo:   ['cumminsisb', 'cumminsislisc'],
     teplostar:   ['planar'],
     beiben:      ['mercedes'],
     hongyan:     ['iveco']
