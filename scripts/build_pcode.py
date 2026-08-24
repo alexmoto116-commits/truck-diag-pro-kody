@@ -43,7 +43,7 @@ KNOWN_PCODE_BRANDS = ['volvo', 'mercedes', 'scania', 'shacman', 'tata', 'ashokle
                        'cumminsisb', 'cumminsislisc', 'cumminsism', 'cumminsisx', 'paccarmx13', 'hino', 'renault', 'caterpillar',
                        'mahindra', 'deutz', 'fuso', 'thermoking', 'carrier',
                        'planar', 'webasto', 'eberspacher', 'daewoo', 'cumminsisf',
-                       'eaton', 'hyundai', 'haldex', 'allison', 'weichai', 'kenworth']
+                       'eaton', 'hyundai', 'haldex', 'allison', 'weichai', 'kenworth', 'volkswagen']
 
 TEMPLATE = u"""(function(){{
   var b64='{b64}';
