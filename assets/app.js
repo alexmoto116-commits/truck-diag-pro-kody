@@ -69,7 +69,7 @@
     maz:         ['maz', 'yamz', 'mercedes', 'deutz'],
     ural:        ['yamz', 'kamaz'],
     kraz:        ['yamz'],
-    kenworth:    ['paccarmx13'],
+    kenworth:    ['kenworth', 'paccarmx13'],
     peterbilt:   ['paccarmx13'],
     westernstar: ['detroitdiesel'],
     bharatbenz:  ['mercedes', 'fuso'],
