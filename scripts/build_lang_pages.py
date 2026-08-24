@@ -68,14 +68,32 @@ def apply_i18n(html, lang_dict):
 # scripts/build_en_pages.py), и туда уводим не только английскую версию:
 # у остальных девяти языков описания неисправностей и так показываются
 # по-английски - таково устройство базы, английский тут ближе, чем русский.
-# Разделы /marki/ и /problemy/ пока только русские, их не трогаем.
+# То же самое теперь верно и для /marki/ и /problemy/ (см.
+# scripts/build_en_marki_problemy.py) - раньше эти два раздела были
+# единственным местом, где любая языковая версия всё равно утаскивала
+# на русский текст.
 def point_to_en(html):
     def spn(m):
         page = 'en/kody/spn-%s.html' % m.group(1)
         return ('href="/%s"' % page) if os.path.isfile(os.path.join(ROOT, page)) else m.group(0)
+
+    def brand(m):
+        page = 'en/marki/%s.html' % m.group(1)
+        return ('href="/%s"' % page) if os.path.isfile(os.path.join(ROOT, page)) else m.group(0)
+
+    def symptom(m):
+        page = 'en/problemy/%s.html' % m.group(1)
+        return ('href="/%s"' % page) if os.path.isfile(os.path.join(ROOT, page)) else m.group(0)
+
     html = re.sub(r'href="/kody/spn-(\d+)\.html"', spn, html)
+    html = re.sub(r'href="/marki/([a-z0-9]+)\.html"', brand, html)
+    html = re.sub(r'href="/problemy/([a-z-]+)\.html"', symptom, html)
     if os.path.isfile(os.path.join(ROOT, 'en', 'kody', 'index.html')):
         html = html.replace('href="/kody/"', 'href="/en/kody/"')
+    if os.path.isfile(os.path.join(ROOT, 'en', 'marki', 'index.html')):
+        html = html.replace('href="/marki/"', 'href="/en/marki/"')
+    if os.path.isfile(os.path.join(ROOT, 'en', 'problemy', 'index.html')):
+        html = html.replace('href="/problemy/"', 'href="/en/problemy/"')
     return html
 
 
