@@ -83,8 +83,8 @@
     bharatbenz:  ['mercedes', 'fuso'],
     ram:         ['cumminsisb'],
     dodge:       ['cumminsisb'],
-    fordcargo:   ['cumminsisb', 'cumminsislisc'],
-    agrale:      ['cumminsisf'],
+    fordcargo:   ['cumminsisb', 'cumminsislisc', 'mwm'],
+    agrale:      ['cumminsisf', 'mwm'],
     teplostar:   ['planar'],
     beiben:      ['mercedes'],
     hongyan:     ['iveco']
@@ -1686,9 +1686,11 @@
     var only = up.match(/^SPN\s*[:\-]?\s*(\d{1,6})$/) || up.match(/^(\d{1,6})$/);
     if(only) return {spn:codeVal(only[1]), fmi:null};
     // Дилерские коды в справочнике очень разной формы: P2BA7, B000101,
-    // 00100, "AA 9999", 9A9A99. Общее у них одно - короткий буквенно-
-    // цифровой набор. Чисто цифровые сюда не берём: это SPN.
-    if(/^[A-Z0-9]{4,8}$/.test(up.replace(/\s+/g,'')) && /[A-Z]/.test(up)){
+    // 00100, "AA 9999", 9A9A99, P0115-01 (MWM). Общее у них одно - короткий
+    // буквенно-цифровой набор, дефис внутри (MWM) - тоже часть кода, не
+    // разделитель SPN/FMI (буква P впереди туда попасть не даёт). Чисто
+    // цифровые сюда не берём: это SPN.
+    if(/^[A-Z0-9-]{4,9}$/.test(up.replace(/\s+/g,'')) && /[A-Z]/.test(up)){
       return {pcode:up.replace(/\s+/g,' ')};
     }
     return {bad:true};
