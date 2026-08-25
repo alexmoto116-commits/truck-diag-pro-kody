@@ -85,6 +85,7 @@
     dodge:       ['cumminsisb'],
     fordcargo:   ['cumminsisb', 'cumminsislisc', 'mwm'],
     agrale:      ['cumminsisf', 'mwm'],
+    udtrucks:    ['volvo'],
     teplostar:   ['planar'],
     beiben:      ['mercedes'],
     hongyan:     ['iveco']
