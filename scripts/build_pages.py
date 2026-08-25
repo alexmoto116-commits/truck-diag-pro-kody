@@ -1241,15 +1241,40 @@ def build(en_spns=()):
             u'и ограничение момента. Чинить нужно первопричину, остальное погаснет само. '
             u'<a href="../">Вставьте весь список</a> — покажем, какой код корневой.</p></section>')
 
+        # У марки МОЖЕТ одновременно быть и своя бесплатная SPN/FMI-таблица
+        # (выше), и отдельная дилерская pcode.* (другой формат кода - у
+        # Isuzu, например, это OBD-II P/U-коды NPR/NQR рядом с J1939 для
+        # тяжёлых моделей). Раньше такое не встречалось - дилерский цикл
+        # ниже просто пропускал уже построенную марку, и вторая таблица
+        # молча терялась. Добавляем секцию-примеры прямо сюда, пока страница
+        # ещё не записана, а не постфактум.
+        dealer_rows = None
+        if b in pcode:
+            dealer_rows = sorted(
+                ((code, (entry.get('ru') or entry.get('en') or '')) for code, entry in pcode[b].items()
+                 if entry.get('ru') or entry.get('en')),
+                key=lambda r: code_sort_key(r[0]))
+            if dealer_rows:
+                secs.append(
+                    u'<section><h2>Ещё %s %s в другом формате</h2>'
+                    u'<p>Кроме стандарта J1939 (SPN/FMI) выше, у %s есть и отдельная '
+                    u'дилерская таблица — свой заводской код, другая нумерация. '
+                    u'Несколько примеров:</p>%s</section>'
+                    % (n_codes(len(dealer_rows)), esc(bn), esc(bn), pcode_table(sample_rows(dealer_rows))))
+
         path = 'marki/%s.html' % b
         title = u'Коды ошибок %s | codetruck.ru' % bn
+        total_n = len(mine) + (len(dealer_rows) if dealer_rows else 0)
         desc = (u'Все коды неисправностей %s: %s по системам — какие требуют '
                 u'немедленной остановки, что означает каждый и можно ли ехать.'
-                % (bn, n_codes(len(mine))))
+                % (bn, n_codes(total_n)))
         sub = (u'В справочнике разобрано <b>%s %s</b> по заводским таблицам — '
                u'ниже весь список по системам. Сначала те, с которыми ехать нельзя.'
                % (n_codes(len(mine)), esc(bn)))
-        brand_index.append((path, bn, len(mine), 'spn'))
+        if dealer_rows:
+            sub += (u' Плюс отдельно ниже — %s %s в дилерском формате.'
+                    % (n_codes(len(dealer_rows)), esc(bn)))
+        brand_index.append((path, bn, total_n, 'spn'))
         extra.append(page(path, title, desc,
                           u'Коды ошибок %s' % bn, sub, secs, 'marki'))
 

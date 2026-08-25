@@ -19,7 +19,7 @@ var KNOWN_PCODE_BRANDS = ['volvo', 'mercedes', 'scania', 'shacman', 'tata', 'ash
                           'cumminsisb', 'cumminsislisc', 'cumminsism', 'cumminsisx', 'paccarmx13', 'hino', 'renault', 'caterpillar',
                           'mahindra', 'deutz', 'fuso', 'thermoking', 'carrier',
                           'planar', 'webasto', 'eberspacher', 'daewoo', 'cumminsisf',
-                          'eaton', 'hyundai', 'haldex', 'allison', 'weichai', 'kenworth', 'volkswagen', 'mwm'];
+                          'eaton', 'hyundai', 'haldex', 'allison', 'weichai', 'kenworth', 'volkswagen', 'mwm', 'isuzu'];
 var ALLOWED_ORIGINS = ['https://codetruck.ru'];
 
 function norm(code) {

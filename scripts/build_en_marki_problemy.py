@@ -468,6 +468,20 @@ def build():
         secs.append(u'<section><h2>%s</h2><p>%s</p></section>' % (MK['howHead'], MK['howBody']))
         secs.append(u'<section><h2>%s</h2><p>%s</p></section>' % (MK['multiHead'], MK['multiBody']))
 
+        # Зеркало фикса из build_pages.py: марка может иметь одновременно
+        # свою бесплатную SPN/FMI-таблицу (выше) и отдельную дилерскую
+        # pcode.* в другом формате кода (Isuzu - J1939 для тяжёлых моделей
+        # + OBD-II P/U-коды для NPR/NQR). Раньше цикл дилерских марок ниже
+        # просто пропускал уже построенную марку, вторая таблица терялась.
+        dealer_rows_en = None
+        if b in pcode:
+            dealer_rows_en = sorted(
+                ((code, entry.get('en') or '') for code, entry in pcode[b].items() if entry.get('en')),
+                key=lambda r: bp.code_sort_key(r[0]))
+            if dealer_rows_en:
+                secs.append(u'<section><h2>%s</h2>%s</section>'
+                            % (MK['dealerHead'] % bn, bp.pcode_table(bp.sample_rows(dealer_rows_en))))
+
         title = MK['titleTpl'] % bname(b)
         h1 = MK['h1Tpl'] % bname(b)
         desc = MK['descStd'] % (bn, len(mine_en))
