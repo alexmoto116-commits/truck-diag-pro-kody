@@ -54,7 +54,14 @@
      высказанным намерением не надо. */
   var NUM_PCODE_BRANDS = {thermoking:1, carrier:1, planar:1, webasto:1,
                           eberspacher:1, daewoo:1, eaton:1, kenworth:1,
-                          volkswagen:1};
+                          volkswagen:1,
+                          /* Подсистемы Iveco: у ivecoedc код мигания
+                             пишется как "4.5" и неотличим от SPN 4 / FMI 5,
+                             у ivecoeurotronic это голое число ("38"). Своей
+                             таблицы SPN ни у той, ни у другой нет, так что
+                             увести числовой ввод в дилерскую ветку здесь
+                             ничего не ломает. */
+                          ivecoedc:1, ivecoeurotronic:1};
 
   /* МАРКИ-АЛИАСЫ.
 
@@ -75,6 +82,12 @@
   var BRAND_ALIAS = {
     gaz:         ['cumminsisf', 'yamz'],
     maz:         ['maz', 'yamz', 'mercedes', 'deutz'],
+    /* КамАЗ 5490 - это мерседесовский силовой агрегат под своим шильдиком
+       (OM457LA, блоки PLD/MR2 + ADM3 + SCR), и коды у него мерседесовские:
+       из 364 внутренних кодов таблицы 5490 282 слово в слово совпали с
+       нашей таблицей Mercedes. Классический КамАЗ 65115/4308 идёт на
+       Cummins ISB. Своя таблица КамАЗа стоит первой и ничего не теряет. */
+    kamaz:       ['kamaz', 'mercedes', 'cumminsisb'],
     ural:        ['yamz', 'kamaz'],
     kraz:        ['yamz'],
     kenworth:    ['kenworth', 'paccarmx13'],
@@ -88,7 +101,14 @@
     udtrucks:    ['volvo'],
     teplostar:   ['planar'],
     beiben:      ['mercedes'],
-    hongyan:     ['iveco']
+    hongyan:     ['iveco'],
+    // Foton: своя таблица SPN/FMI мелкая (27 строк), а реальные коды
+    // выдаёт двигатель. Тяжёлый Auman - Weichai WD615/WP10 (флэш-коды
+    // той же таблицы EDC7 публикуются прямо под именем Foton BJ3251),
+    // лёгкие Aumark/Ollin - Cummins ISF совместного завода Foton
+    // Cummins. Обе строчки подписаны именем донора, так что механик
+    // видит, по какому блоку читает код.
+    foton:       ['foton', 'weichai', 'cumminsisf']
   };
 
   /* Марка -> список таблиц, в которых её искать. Для обычной марки это
@@ -1680,6 +1700,25 @@
     // необязательно ("97 FMI 3" пишут чаще, чем полную форму), а
     // между числом и словом FMI допускаем что угодно или ничего -
     // код нередко вводят слитно: "97FMI3".
+    // Флэш-код мигающей лампы китайских EDC7 (Weichai WP10/WP12 и всё,
+    // что на них собрано - Foton, Shacman, HOWO) пишут тремя группами
+    // через дефис: "1-3-2" = три вспышки. SPN/FMI так не пишут никогда
+    // (там две группы, не три), поэтому форма однозначная и брать её
+    // можно до разбора SPN/FMI, иначе "1-3-2" разобралось бы как
+    // SPN 1 / FMI 3. В таблицах код лежит слитно ("132").
+    var flash = up.replace(/\s+/g, '').match(/^(\d)-(\d)-(\d)$/);
+    if(flash) return {pcode: flash[1] + flash[2] + flash[3]};
+    // Заводской код с буквой впереди и дефисом внутри ("P0105-01" у MWM,
+    // "P0607-283" у BAW) до этого уезжал в разбор SPN/FMI: регулярка ниже
+    // не привязана к началу строки и видела в нём "0105-01" = SPN 105 /
+    // FMI 1. Ответ выходил чужой, но правдоподобный - это хуже пустого.
+    // Буква в начале - надёжная примета заводского кода, SPN и FMI всегда
+    // числа. Слова SPN/FMI в строке правило отменяют: "97FMI3" и "SPN16" -
+    // это ввод по стандарту, а не марочный код.
+    var lead = up.replace(/\s+/g, '');
+    if(/^[A-Z]/.test(lead) && !/SPN|FMI/.test(lead) && /^[A-Z0-9-]{4,10}$/.test(lead)){
+      return {pcode:up.replace(/\s+/g, ' ')};
+    }
     var m = up.match(/(?:SPN\s*[:\-]?\s*)?([0-9A-F]{1,6})\D{0,20}FMI\s*[:\-]?\s*([0-9A-F]{1,3})/);
     if(!m) m = up.match(/([0-9A-F]{1,6})\s*[\/\-.,]\s*([0-9A-F]{1,3})(?![0-9A-F])/);
     if(!m) m = up.match(/^([0-9A-F]{1,6})\s+([0-9A-F]{1,3})$/);
@@ -2451,7 +2490,30 @@
       if(p.fmi === null){
         var nm = spnName(p.spn, brand);
         if(!nm){
-          render(note(t('spnNotFound', {spn: p.spn})));
+          /* Такого SPN нет ни у марки, ни в стандарте - но у той же марки
+             это может быть заводской код: КамАЗ 5490 показывает пятизначные
+             коды блока ADM3, Cummins и FAW - свои трёхзначные. Прежде чем
+             сказать "не найдено", спрашиваем дилерскую таблицу тем же
+             числом. Риска подменить SPN тут нет: сюда попадают только
+             номера, на которые стандарту ответить нечем. */
+          var num = String(p.spn);
+          render(note(t('pcodeSearching')));
+          fetchPcode(brand, num, currentLang).then(function(hits){
+            if(!hits.length){
+              render(note(t('spnNotFound', {spn: p.spn})));
+              return;
+            }
+            var nSteps = [{st:t('stepCode'), tx:'<span class="mono">' + esc(num) + '</span>', cls:'ok'}];
+            hits.forEach(function(h){
+              nSteps.push({
+                st: hits.length > 1 || !brand ? brandName(h.brand) : t('stepDecoding'),
+                tx: '<b>' + esc(h.text) + '</b>', cls:'ok'
+              });
+            });
+            render(chain(nSteps), true);
+          }).catch(function(){
+            render(note(t('spnNotFound', {spn: p.spn})));
+          });
           return;
         }
         /* Для алиаса берём первого донора, у которого вообще есть
