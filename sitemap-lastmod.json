@@ -5550,7 +5550,7 @@
 },
 "https://codetruck.ru/en/marki/": {
 "d": "2026-08-27",
-"h": "ed54fe63217f"
+"h": "b46843ad8da2"
 },
 "https://codetruck.ru/en/marki/allison.html": {
 "d": "2026-08-27",
@@ -5683,10 +5683,6 @@
 "https://codetruck.ru/en/marki/kamaz.html": {
 "d": "2026-08-27",
 "h": "716734954bbd"
-},
-"https://codetruck.ru/en/marki/kenworth.html": {
-"d": "2026-08-27",
-"h": "c8192bbc5071"
 },
 "https://codetruck.ru/en/marki/knorrbremse.html": {
 "d": "2026-08-27",
@@ -5918,7 +5914,7 @@
 },
 "https://codetruck.ru/kody/": {
 "d": "2026-08-27",
-"h": "907c8a1e659e"
+"h": "8d7d2ac29fe3"
 },
 "https://codetruck.ru/kody/spn-1.html": {
 "d": "2026-08-26",
@@ -11454,7 +11450,7 @@
 },
 "https://codetruck.ru/marki/": {
 "d": "2026-08-27",
-"h": "1305936ad63e"
+"h": "7a038acf08aa"
 },
 "https://codetruck.ru/marki/allison.html": {
 "d": "2026-08-27",
@@ -11587,10 +11583,6 @@
 "https://codetruck.ru/marki/kamaz.html": {
 "d": "2026-08-27",
 "h": "7afc4fb0f54b"
-},
-"https://codetruck.ru/marki/kenworth.html": {
-"d": "2026-08-27",
-"h": "90d91c8b3234"
 },
 "https://codetruck.ru/marki/knorrbremse.html": {
 "d": "2026-08-27",
@@ -11880,7 +11872,6 @@
 "https://codetruck.ru/marki/ivecoedc.html",
 "https://codetruck.ru/marki/ivecoeurotronic.html",
 "https://codetruck.ru/marki/jac.html",
-"https://codetruck.ru/marki/kenworth.html",
 "https://codetruck.ru/marki/manzbr2.html",
 "https://codetruck.ru/marki/mwm.html",
 "https://codetruck.ru/marki/mahindra.html",
@@ -14727,7 +14718,6 @@
 "https://codetruck.ru/en/marki/ivecoeurotronic.html",
 "https://codetruck.ru/en/marki/jac.html",
 "https://codetruck.ru/en/marki/kamaz.html",
-"https://codetruck.ru/en/marki/kenworth.html",
 "https://codetruck.ru/en/marki/knorrbremse.html",
 "https://codetruck.ru/en/marki/mack.html",
 "https://codetruck.ru/en/marki/mahindra.html",

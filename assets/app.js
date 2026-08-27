@@ -53,8 +53,7 @@
      J1939-расшифровку, она работает для любой марки. Спорить с прямо
      высказанным намерением не надо. */
   var NUM_PCODE_BRANDS = {thermoking:1, carrier:1, planar:1, webasto:1,
-                          eberspacher:1, daewoo:1, eaton:1, kenworth:1,
-                          volkswagen:1,
+                          eberspacher:1, daewoo:1, eaton:1, volkswagen:1,
                           /* Подсистемы Iveco: у ivecoedc код мигания
                              пишется как "4.5" и неотличим от SPN 4 / FMI 5,
                              у ivecoeurotronic это голое число ("38"). Своей
@@ -90,7 +89,12 @@
     kamaz:       ['kamaz', 'mercedes', 'cumminsisb'],
     ural:        ['yamz', 'kamaz'],
     kraz:        ['yamz'],
-    kenworth:    ['kenworth', 'paccarmx13'],
+    /* Своей таблицы у Kenworth нет: то, что лежало здесь под видом 939
+       кодов, оказалось перечнем номеров ПРОВОДОВ из электросхемы
+       ("ORIGINAL CIRCUIT WIRING KEY", C17SR = компонент + цепь 17 +
+       стартер), а не кодами неисправностей - выброшено 27.08. Остаётся
+       двигатель PACCAR MX-13, он у Kenworth и стоит. */
+    kenworth:    ['paccarmx13'],
     peterbilt:   ['paccarmx13'],
     westernstar: ['detroitdiesel'],
     bharatbenz:  ['mercedes', 'fuso'],
