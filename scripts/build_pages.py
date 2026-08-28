@@ -880,6 +880,18 @@ SYMPTOMS = [
      None, None, (122, 973, 1072, 1073, 1074, 1716, 5543)),
 ]
 
+# Собственная нумерация марки, а не SPN J1939. В таблице brands она нужна -
+# её спрашивают только когда выбрана эта марка, - но отдельная страница
+# «SPN 7001» врала бы: такого параметра в J1939 нет, и по запросу «spn 7001»
+# человек пришёл бы не туда. КамАЗ CBCU3-E нумерует так свет, прицеп,
+# таймауты сообщений CAN и линии кнопок руля.
+PRIVATE_SPN = [('kamaz', 7000, 7199)]
+
+
+def is_private_spn(brand, spn):
+    return any(b == brand and lo <= spn <= hi for b, lo, hi in PRIVATE_SPN)
+
+
 def build(en_spns=()):
     """en_spns - SPN, у которых есть английская страница: только на них
     ставится hreflang и только они попадают в sitemap с адресом /en/.
@@ -900,6 +912,8 @@ def build(en_spns=()):
             if len(parts) != 2 or not parts[0].isdigit() or not parts[1].isdigit():
                 continue
             spn, fmi = int(parts[0]), int(parts[1])
+            if is_private_spn(b, spn):
+                continue
             per_spn.setdefault(spn, {}).setdefault(b, []).append((fmi, text))
 
     # страница нужна там, где есть заводской разбор либо кураторская важность
