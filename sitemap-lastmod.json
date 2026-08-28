@@ -1,16 +1,16 @@
 {
 "pages": {
 "https://codetruck.ru/": {
-"d": "2026-08-25",
-"h": "3710791864d0"
+"d": "2026-08-28",
+"h": "9e1fb0d8585f"
 },
 "https://codetruck.ru/de/": {
 "d": "2026-08-28",
-"h": "89a346ae944b"
+"h": "49ad258b11da"
 },
 "https://codetruck.ru/en/": {
 "d": "2026-08-28",
-"h": "39706bf74668"
+"h": "d6999e666834"
 },
 "https://codetruck.ru/en/kody/": {
 "d": "2026-08-28",
@@ -5554,15 +5554,15 @@
 },
 "https://codetruck.ru/es/": {
 "d": "2026-08-28",
-"h": "9b132cd34c17"
+"h": "5b1da4c07746"
 },
 "https://codetruck.ru/fr/": {
 "d": "2026-08-28",
-"h": "733465003826"
+"h": "63c9d7dd6ebf"
 },
 "https://codetruck.ru/hi/": {
 "d": "2026-08-28",
-"h": "045051e82e53"
+"h": "3be22653d605"
 },
 "https://codetruck.ru/kody/": {
 "d": "2026-08-28",
@@ -11346,7 +11346,7 @@
 },
 "https://codetruck.ru/pl/": {
 "d": "2026-08-28",
-"h": "f5291b9ffffa"
+"h": "569ed225ddd7"
 },
 "https://codetruck.ru/problemy/": {
 "d": "2026-08-28",
@@ -11466,15 +11466,15 @@
 },
 "https://codetruck.ru/pt/": {
 "d": "2026-08-28",
-"h": "0a6c3ec4e4ef"
+"h": "25e329006b17"
 },
 "https://codetruck.ru/tr/": {
 "d": "2026-08-28",
-"h": "b3836dd91566"
+"h": "a5553695e666"
 },
 "https://codetruck.ru/zh/": {
 "d": "2026-08-28",
-"h": "c07174263ba3"
+"h": "35fe97cccd45"
 }
 },
 "urls": [
