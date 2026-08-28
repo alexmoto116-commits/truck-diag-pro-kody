@@ -44,7 +44,7 @@ KNOWN_PCODE_BRANDS = ['volvo', 'mercedes', 'scania', 'shacman', 'tata', 'ashokle
                        'mahindra', 'deutz', 'fuso', 'thermoking', 'carrier',
                        'planar', 'webasto', 'eberspacher', 'daewoo', 'cumminsisf',
                        'eaton', 'hyundai', 'haldex', 'allison', 'weichai', 'volkswagen', 'mwm', 'isuzu', 'baw',
-                        'ivecoedc', 'ivecoeurotronic', 'iveco', 'daf', 'manzbr2', 'manebs', 'man', 'mack']
+                        'ivecoedc', 'ivecoeurotronic', 'iveco', 'daf', 'manzbr2', 'manebs', 'man', 'mack', 'yamz']
 
 TEMPLATE = u"""(function(){{
   var b64='{b64}';
