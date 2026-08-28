@@ -1186,6 +1186,27 @@ def build(en_spns=()):
             t.append('</table>')
             secs.append(u'<section><h2>%s</h2>%s</section>' % (esc(title), ''.join(t)))
 
+        # У MID-марки тоже может быть отдельная дилерская таблица в
+        # совсем другом формате: у Mack это 175 OBD-кодов вида P0016,
+        # никак не связанных с MID/PID. Раньше эта ветка про них не
+        # знала, и таблица молча терялась - ровно та же дыра, что
+        # чинили выше для марок с бесплатной SPN-таблицей.
+        dealer_rows = None
+        if b in pcode:
+            dealer_rows = sorted(
+                ((code, (entry.get('ru') or entry.get('en') or ''))
+                 for code, entry in pcode[b].items()
+                 if entry.get('ru') or entry.get('en')),
+                key=lambda r: code_sort_key(r[0]))
+            if dealer_rows:
+                secs.append(
+                    u'<section><h2>Ещё %s %s в другом формате</h2>'
+                    u'<p>Кроме кодов по модулям (MID) выше, у %s есть и отдельная '
+                    u'дилерская таблица OBD-II — код вида P0016, без MID и FMI. '
+                    u'Несколько примеров:</p>%s</section>'
+                    % (n_codes(len(dealer_rows)), esc(bn), esc(bn),
+                       pcode_table(sample_rows(dealer_rows))))
+
         secs.append(
             u'<section><h2>Как читать код</h2><p>Код состоит из трёх частей: '
             u'<b>MID</b> — какой блок управления его выдал, <b>PID/SID</b> — '
@@ -1195,11 +1216,15 @@ def build(en_spns=()):
 
         path = 'marki/%s.html' % b
         title = u'Коды ошибок %s | codetruck.ru' % bn
+        total_n = len(entries) + (len(dealer_rows) if dealer_rows else 0)
         desc = (u'Расшифровка кодов неисправностей %s: %s по модулям управления '
-                u'(MID), с параметром и типом неисправности.' % (bn, n_codes(len(entries))))
+                u'(MID), с параметром и типом неисправности.' % (bn, n_codes(total_n)))
         sub = (u'В справочнике разобрано <b>%s %s</b> по заводским таблицам, '
                u'сгруппированы по блоку управления (MID).' % (n_codes(len(entries)), esc(bn)))
-        brand_index.append((path, bn, len(entries), 'mid'))
+        if dealer_rows:
+            sub += (u' Плюс отдельно ниже — %s %s в дилерском формате OBD-II.'
+                    % (n_codes(len(dealer_rows)), esc(bn)))
+        brand_index.append((path, bn, total_n, 'mid'))
         return page(path, title, desc, u'Коды ошибок %s' % bn, sub, secs, 'marki')
 
     extra = []

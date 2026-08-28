@@ -203,6 +203,16 @@
   /* Свободный ввод для этих марок - не SPN, а PID/SID: "P100 FMI 4"
      или "S1 FMI 4" (P/S не указан - считаем PID, он чаще встречается
      в источниках). MID берём из выбора выше (или из MID_FIXED). */
+  /* Код OBD-II во вводе MID-марки: буква и четыре знака, без FMI
+     ("P0016", "P02CD", "U0100"). PID/SID так не записывают, так что
+     совпадение однозначно значит дилерскую таблицу марки. */
+  function midObdCode(raw){
+    var up = normCode(raw);
+    if(/FMI/.test(up)) return null;
+    var m = up.match(/\b([PUBC][0-9A-F]{4})\b/);
+    return m ? m[1] : null;
+  }
+
   function parseMidCode(t, mid){
     var up = normCode(t);
     var m = up.match(/\b([PS])\s*(\d{1,4})\D{0,20}FMI\s*[:\-]?\s*(\d{1,2})/);
@@ -210,7 +220,18 @@
     if(m){ letter = m[1]; num = m[2]; fmi = m[3]; }
     else{
       m = up.match(/\b(\d{1,4})\D{0,20}FMI\s*[:\-]?\s*(\d{1,2})/);
-      if(!m) return {bad:true};
+      if(!m){
+        /* FMI нет вовсе, но код похож на OBD-II ("P0016", "P02CD",
+           "U0100") - значит человек читает не PID/SID, а дилерскую
+           таблицу марки. У Mack это её единственный формат: строка
+           стандарта для MID-марок скрыта, выбрать "дилерский код"
+           руками нельзя, и без этой ветки таблица была бы
+           недоступна. Ветка срабатывает только там, где раньше был
+           отказ, поэтому ничего из работавшего сломать не может. */
+        var obd = midObdCode(t);
+        if(obd) return {pcode:obd};
+        return {bad:true};
+      }
       letter = 'P'; num = m[1]; fmi = m[2];
     }
     return {spn:'M' + mid + '-' + letter + num, fmi:parseInt(fmi, 10)};
@@ -2432,7 +2453,10 @@
 
     /* Freightliner/Mack без выбранного модуля - код неоднозначен: один
        и тот же PID/SID под разными MID означает разное. Дальше не идём. */
-    if(midBrand && !mid){
+    /* Дилерская таблица марки (у Mack это 175 OBD-кодов) от модуля
+       не зависит: код там один на всю машину. Поэтому требование
+       выбрать модуль снимается, когда во вводе OBD-код. */
+    if(midBrand && !mid && !midObdCode(input.value)){
       render(note(t('needMid')));
       return;
     }
