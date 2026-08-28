@@ -54,6 +54,14 @@ ACT_KEY = {'scr': 'actScr', 'oil': 'actOil', 'cool': 'actCool', 'fuel': 'actFuel
            'air': 'actAir', 'power': 'actPower', 'can': 'actCan', 'brake': 'actBrake'}
 
 # Единственное, чего в I18N нет: обвязка именно страницы, а не инструмента.
+# Английская пара к OWN_NUMBERING из build_pages.py - держать в согласии.
+OWN_NUMBERING_EN = {
+    'zfastronic': u'ZF AS-Tronic uses its own fault numbering: the number in '
+                  u'the table below is an internal ZF code, not a J1939 SPN. '
+                  u'It matches the title of this page by digit only and means '
+                  u'something different.',
+}
+
 TX = {
     'navUp':      u'&larr; code lookup',
     'navSection': u'All fault codes',
@@ -339,8 +347,11 @@ def build():
             body.append(u'<p class="jump">%s</p>' % u''.join(
                 u'<a href="#mk-%s">%s</a>' % (b, bp.esc(bname(b))) for b in ordered))
         for b in ordered:
-            body.append(u'<section><h2 class="mk" id="mk-%s">%s</h2>%s</section>'
+            # См. OWN_NUMBERING в build_pages.py: у ZF номер свой, не SPN.
+            note = OWN_NUMBERING_EN.get(b)
+            body.append(u'<section><h2 class="mk" id="mk-%s">%s</h2>%s%s</section>'
                         % (b, bp.esc(bname(b)),
+                           (u'<p class="sub">%s</p>' % bp.esc(note)) if note else u'',
                            fmi_table(sorted(makes[b], key=lambda r: r[0]))))
 
         if seen:
