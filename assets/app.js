@@ -60,6 +60,11 @@
      что человек всё-таки вводит SPN - например, чтобы получить общую
      J1939-расшифровку, она работает для любой марки. Спорить с прямо
      высказанным намерением не надо. */
+  /* Марки, у которых дилерский номер пишется как пара «номер-FMI» и
+     потому неотличим от SPN/FMI. См. ветку в run(): для них дилерская
+     таблица спрашивается ПЕРВОЙ. */
+  var PCODE_FMI_BRANDS = {daf:1};
+
   var NUM_PCODE_BRANDS = {thermoking:1, carrier:1, planar:1, webasto:1,
                           eberspacher:1, daewoo:1, eaton:1, volkswagen:1,
                           /* Подсистемы Iveco: у ivecoedc код мигания
@@ -2582,7 +2587,7 @@
      интерфейса, английские описания. */
   function ready(){ return Promise.all([load(), loadEn()]); }
 
-  function run(){
+  function run(skipDealer){
     var brand = sel.value;
     var midBrand = MID_BRANDS[brand];
     var mid = midBrand ? (MID_FIXED[brand] || midSel.value) : null;
@@ -2654,6 +2659,36 @@
       }).catch(function(){
         render(note(t('pcodeApiError')));
       });
+      return;
+    }
+
+    /* У части марок дилерский код по написанию неотличим от пары SPN/FMI:
+       у DAF это «1-2», «84-9», и означает он своё в каждой системе - у
+       ABS-E «1-2» это датчик проскальзывания колеса F512, на шине это
+       отсутствие сообщения EEC1, у подушек безопасности - внутренняя
+       ошибка блока D926. Разбор выше уводит такой ввод в стандарт J1939,
+       и до дилерской таблицы дело не доходило вовсе: её спрашивают только
+       для номера БЕЗ FMI (см. ветку p.fmi === null ниже).
+       Поэтому для таких марок сначала спрашиваем дилерскую таблицу, и
+       только если там пусто - идём в стандарт тем же run(true). Марка
+       выбрана человеком, так что заводской ответ для неё вернее общего.
+       Чужие марки это не задевает: ветка включается только по списку. */
+    if(PCODE_FMI_BRANDS[brand] && !skipDealer && p.spn != null && p.fmi != null){
+      var dcode = p.spn + '-' + p.fmi;
+      render(note(t('pcodeSearching')));
+      load().then(function(){
+        return fetchPcode(brand, dcode, currentLang);
+      }).then(function(hits){
+        if(!hits.length){ run(true); return; }
+        var dSteps = [{st:t('stepCode'), tx:pcodeStep(dcode, hits), cls:'ok'}];
+        hits.forEach(function(h){
+          dSteps.push({
+            st: hits.length > 1 ? brandName(h.brand) : t('stepDecoding'),
+            tx: '<b>' + esc(h.text) + '</b>', cls:'ok'
+          });
+        });
+        render(chain(dSteps), true);
+      }).catch(function(){ run(true); });
       return;
     }
 
@@ -2812,7 +2847,10 @@
     }
   }
 
-  go.addEventListener('click', run);
+  /* через обёртку, а не go.addEventListener('click', run): иначе первым
+     аргументом run пришло бы событие клика, и оно сработало бы как
+     skipDealer - дилерская ветка ниже молча выключилась бы на кнопке. */
+  go.addEventListener('click', function(){ run(); });
   input.addEventListener('keydown', function(e){ if(e.key === 'Enter') run(); });
   sel.addEventListener('change', fillMid);
   fillMid();
