@@ -97,6 +97,14 @@ MK = {
                  u'factory format, outside the J1939 SPN/FMI standard. A few examples '
                  u'below; look up your own code in the search on the homepage, where '
                  u'you can also pick “%s” from the brand list.',
+    # Пара к MID_PCODE_BRANDS в build_pages.py - см. комментарий там.
+    'dealerSubMid': u'The database covers <b>%d dealer codes</b>. A code here has three '
+                    u'parts: <b>MID</b> is which control unit reported the fault, '
+                    u'<b>PID/SID</b> is which parameter or component is at fault, '
+                    u'<b>FMI</b> is what exactly is wrong with it; on the scanner it '
+                    u'shows as MID128 PID100 FMI4. A few examples below; look up your '
+                    u'own code in the search on the homepage: pick “%s” and the '
+                    u'module the code came from.',
 }
 
 # ---------------------------------------------------------------- проблемы
@@ -398,9 +406,17 @@ def build():
     written = [s for s in info['written'] if s in en_set]
     sys_of, stop_of, by_sys = info['sys'], info['stop'], info['by_sys']
 
+    # Марки, чьё имя в базе записано кириллицей, на английских страницах
+    # берём из I18N (КамАЗ, ЯМЗ, ...), а если ключа там нет - из того же
+    # BRAND_OVERRIDE в app.js, которым инструмент подписывает марку на
+    # любом нерусском языке. Иначе английская страница получила бы
+    # русское имя марки.
+    brand_en = extract_js_object('BRAND_OVERRIDE')
+
     def bname(b):
         key = BRAND_LBL.get(b)
-        return (i18n.get(key) if key else None) or brand_names.get(b, b)
+        return ((i18n.get(key) if key else None) or brand_en.get(b)
+                or brand_names.get(b, b))
 
     def en_std(spn):
         s = str(spn)
@@ -550,7 +566,9 @@ def build():
         title = MK['titleTpl'] % bn_en
         h1 = MK['h1Tpl'] % bn_en
         desc = MK['dealerDesc'] % (bn_en, len(rows))
-        sub = MK['dealerSub'] % (len(rows), bp.esc(bn_en), bp.esc(bn_en))
+        sub = (MK['dealerSubMid'] % (len(rows), bp.esc(bn_en))
+               if b in bp.MID_PCODE_BRANDS
+               else MK['dealerSub'] % (len(rows), bp.esc(bn_en), bp.esc(bn_en)))
         rel = 'marki/%s.html' % b
         page_en('en/' + rel, title, desc, h1, sub, secs, 'marki', rel_ru=rel)
         en_marki.add(b)

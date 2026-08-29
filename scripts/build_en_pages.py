@@ -163,9 +163,17 @@ def build():
 
     brand_names = ru_db['brandNames']
 
+    # Марки, чьё имя в базе записано кириллицей, на английских страницах
+    # берём из I18N (КамАЗ, ЯМЗ, ...), а если ключа там нет - из того же
+    # BRAND_OVERRIDE в app.js, которым инструмент подписывает марку на
+    # любом нерусском языке. Иначе английская страница получила бы
+    # русское имя марки.
+    brand_en = extract_js_object('BRAND_OVERRIDE')
+
     def bname(b):
         key = BRAND_LBL.get(b)
-        return (i18n.get(key) if key else None) or brand_names.get(b, b)
+        return ((i18n.get(key) if key else None) or brand_en.get(b)
+                or brand_names.get(b, b))
 
     def brand_list(spn, limit=0):
         names = sorted(bname(b) for b in per_en.get(spn, {}))

@@ -1580,7 +1580,8 @@
      любом языке. Остальные марки (Volvo, MAN, DAF...) уже латиницей. */
   var BRAND_OVERRIDE = {kamaz:'KAMAZ', yamz:'YAMZ', planar:'Planar / Teplostar',
                         gaz:'GAZ', maz:'MAZ', ural:'Ural',
-                        kraz:'KrAZ', beiben:'Beiben'};
+                        kraz:'KrAZ', beiben:'Beiben',
+                        volvomid:'Volvo (MID modules)'};
 
   /* Часть "марок" в базе — не марки техники, а поставщики систем/агрегатов
      (ABS/EBS, двигатели, отопители, рефрижераторы), общие для многих машин.
