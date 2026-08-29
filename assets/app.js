@@ -28,8 +28,16 @@
   /* Western Star - алиас к Detroit Diesel (см. BRAND_ALIAS ниже), а у
      того коды не SPN.FMI, а MID/PID/SID. Значит и вводить их надо так
      же, иначе марка есть, а поиск по ней не работает. */
-  var MID_BRANDS = {freightliner:1, mack:1, detroitdiesel:1, westernstar:1};
+  var MID_BRANDS = {freightliner:1, mack:1, detroitdiesel:1, westernstar:1, volvomid:1};
   var MID_FIXED  = {detroitdiesel:'128', westernstar:'128'};
+
+  /* MID-марка, чья таблица лежит не в бесплатной базе, а в дилерской (KV).
+     Отличие только в том, куда уходит собранный код: у Freightliner и Mack
+     это ключ бесплатной таблицы brands.<марка>["M128-P100.4"], а у Volvo -
+     тот же по виду ключ, но спрашиваемый у pcode-API. Таблица большая
+     (1407 кодов заводского мануала), в assets её класть нельзя - это
+     дилерские данные, и вес файла для всех посетителей. */
+  var MID_PCODE_BRANDS = {volvomid:1};
 
   /* Навесное оборудование нумерует свои коды просто числом: у Thermo
      King это 00-137, у Carrier 1-249, у Планара 1-78, у Eberspacher
@@ -150,6 +158,34 @@
       {v:'128', ru:'128 — Двигатель (EECU)',        en:'128 — Engine (EECU)'},
       {v:'142', ru:'142 — Приборка/шасси (VECU)',   en:'142 — Dash/chassis (VECU)'},
       {v:'143', ru:'143 — Двигатель, доп. блок',    en:'143 — Engine, secondary'}
+    ],
+    /* Volvo FH/FM/FL/NH 3 серии - 24 блока заводского мануала. Названия
+       блоков взяты с оглавления источника, а не придуманы. */
+    volvomid: [
+      {v:'128', ru:'128 — Двигатель (EECU)',            en:'128 — Engine (EECU)'},
+      {v:'130', ru:'130 — Коробка передач',             en:'130 — Transmission'},
+      {v:'136', ru:'136 — Тормоза (ABS, EBS)',          en:'136 — Brakes (ABS, EBS)'},
+      {v:'140', ru:'140 — Приборная панель',            en:'140 — Instrument cluster'},
+      {v:'141', ru:'141 — Dynafleet',                   en:'141 — Dynafleet'},
+      {v:'144', ru:'144 — Блок автомобиля (VECU)',      en:'144 — Vehicle unit (VECU)'},
+      {v:'146', ru:'146 — Микроклимат кабины',          en:'146 — Cab climate control'},
+      {v:'150', ru:'150 — Пневмоподвеска (ECS)',        en:'150 — Air suspension (ECS)'},
+      {v:'163', ru:'163 — Блокиратор запуска',          en:'163 — Immobiliser'},
+      {v:'166', ru:'166 — Давление в шинах',            en:'166 — Tyre pressure monitoring'},
+      {v:'179', ru:'179 — Шлюз FMS',                    en:'179 — FMS gateway'},
+      {v:'184', ru:'184 — Управляемая задняя ось',      en:'184 — Steered rear axle'},
+      {v:'185', ru:'185 — Воздухоосушитель (APM)',      en:'185 — Air dryer (APM)'},
+      {v:'206', ru:'206 — Магнитола (радио, CD)',       en:'206 — Radio/CD player'},
+      {v:'214', ru:'214 — Охранная система',            en:'214 — Alarm system'},
+      {v:'216', ru:'216 — Наружное освещение (LCM)',    en:'216 — Exterior lighting (LCM)'},
+      {v:'219', ru:'219 — Адаптивный круиз-контроль',   en:'219 — Adaptive cruise control'},
+      {v:'220', ru:'220 — Тахограф',                    en:'220 — Tachograph'},
+      {v:'222', ru:'222 — Замедлитель (ретардер)',      en:'222 — Retarder'},
+      {v:'223', ru:'223 — Селектор передач',            en:'223 — Gear selector'},
+      {v:'231', ru:'231 — Мобильный телефон',           en:'231 — Mobile phone'},
+      {v:'232', ru:'232 — Подушки безопасности (SRS)',  en:'232 — Airbags (SRS)'},
+      {v:'249', ru:'249 — Дополнительное оборудование (BBM)', en:'249 — Bodybuilder module (BBM)'},
+      {v:'250', ru:'250 — Модуль на руле',              en:'250 — Steering wheel module'}
     ]
   };
 
@@ -213,11 +249,22 @@
     return m ? m[1] : null;
   }
 
-  function parseMidCode(t, mid){
+  /* Volvo пишет коды четырьмя семействами: PID и SID - это стандарт
+     J1587, PPID и PSID - собственная нумерация Volvo поверх него, и
+     номера в них не пересекаются по смыслу (PSID 42 у MID128 - это
+     прерывание дозирования мочевины, а PID 42 - совсем другое). В
+     ключе семейство сжимается до P/S/PP/PS. Длинные имена разбираем
+     ПЕРВЫМИ: иначе "PSID42" развалится на букву и число неправильно. */
+  var MID_FAMILY = {PID:'P', SID:'S', PPID:'PP', PSID:'PS'};
+
+  function parseMidCode(t, mid, brand){
     var up = normCode(t);
-    var m = up.match(/\b([PS])\s*(\d{1,4})\D{0,20}FMI\s*[:\-]?\s*(\d{1,2})/);
+    var m = up.match(/\b(PPID|PSID|PID|SID)\s*(\d{1,4})\D{0,20}FMI\s*[:\-]?\s*(\d{1,2})/);
     var letter, num, fmi;
-    if(m){ letter = m[1]; num = m[2]; fmi = m[3]; }
+    if(m){ letter = MID_FAMILY[m[1]]; num = m[2]; fmi = m[3]; }
+    else if((m = up.match(/\b(PP|PS|P|S)\s*(\d{1,4})\D{0,20}FMI\s*[:\-]?\s*(\d{1,2})/))){
+      letter = m[1]; num = m[2]; fmi = m[3];
+    }
     else{
       m = up.match(/\b(\d{1,4})\D{0,20}FMI\s*[:\-]?\s*(\d{1,2})/);
       if(!m){
@@ -234,14 +281,20 @@
       }
       letter = 'P'; num = m[1]; fmi = m[2];
     }
+    /* У Volvo та же запись кода ведёт не в бесплатную таблицу, а в
+       дилерскую: ключ собираем сами и отдаём его pcode-ветке. */
+    if(MID_PCODE_BRANDS[brand]){
+      return {pcode:'M' + mid + '-' + letter + num + '.' + parseInt(fmi, 10)};
+    }
     return {spn:'M' + mid + '-' + letter + num, fmi:parseInt(fmi, 10)};
   }
 
   function parseAllMid(raw, mid){
     var up = normCode(raw), out = [], seen = {}, m;
-    var re = /\b([PS])\s*(\d{1,4})\D{0,20}FMI\s*[:\-]?\s*(\d{1,2})(?!\d)/g;
+    var re = /\b(PPID|PSID|PID|SID|PP|PS|P|S)\s*(\d{1,4})\D{0,20}FMI\s*[:\-]?\s*(\d{1,2})(?!\d)/g;
     while((m = re.exec(up))){
-      var spn = 'M' + mid + '-' + m[1] + m[2], fmi = parseInt(m[3], 10), k = spn + '.' + fmi;
+      var spn = 'M' + mid + '-' + (MID_FAMILY[m[1]] || m[1]) + m[2],
+          fmi = parseInt(m[3], 10), k = spn + '.' + fmi;
       if(!seen[k]){ seen[k] = 1; out.push({spn:spn, fmi:fmi}); }
     }
     return out;
@@ -260,6 +313,7 @@
   var I18N = {
     ru: {
       pageTitle: 'Код неисправности грузовика — расшифровка SPN/FMI и дилерских кодов',
+      langOffer: 'Эта страница есть на русском',
       metaDescription: 'Бесплатная расшифровка кодов неисправностей грузовиков: стандарт J1939 (SPN/FMI) и заводские таблицы 12 марок. Введите код со сканера или с приборной панели.',
       h1: 'Загорелась лампа <em>Check&nbsp;Engine</em> — что означает код?',
       purposeStats: '31 000+ кодов неисправностей по 70+ маркам техники и агрегатов',
@@ -378,6 +432,7 @@
     },
     en: {
       pageTitle: 'Truck fault code — SPN/FMI and dealer code lookup',
+      langOffer: 'This page is available in English',
       metaDescription: 'Free truck fault code lookup: J1939 standard (SPN/FMI) and factory tables for 12 makes. Enter a code from your scanner or dashboard.',
       h1: 'The <em>Check&nbsp;Engine</em> light is on — what does the code mean?',
       purposeStats: '31,000+ fault codes across 70+ makes and systems',
@@ -496,6 +551,7 @@
     },
     de: {
       pageTitle: 'LKW-Fehlercode — SPN/FMI und Händlercode entschlüsseln',
+      langOffer: 'Diese Seite gibt es auf Deutsch',
       metaDescription: 'Kostenlose Entschlüsselung von LKW-Fehlercodes: J1939-Standard (SPN/FMI) und Werkstabellen für 12 Marken. Code vom Scanner oder Armaturenbrett eingeben.',
       h1: 'Die <em>Check&nbsp;Engine</em>-Leuchte ist an — was bedeutet der Code?',
       purposeStats: '31.000+ Fehlercodes für über 70 Marken und Systeme',
@@ -611,6 +667,7 @@
     },
     fr: {
       pageTitle: 'Code défaut camion — décodage SPN/FMI et codes constructeur',
+      langOffer: 'Cette page existe en français',
       metaDescription: 'Décodage gratuit des codes défaut camion : norme J1939 (SPN/FMI) et tables constructeur pour 12 marques. Entrez le code du scanner ou du tableau de bord.',
       h1: 'Le voyant <em>Check&nbsp;Engine</em> est allumé — que signifie le code ?',
       purposeStats: '31 000+ codes défaut pour plus de 70 marques et systèmes',
@@ -726,6 +783,7 @@
     },
     es: {
       pageTitle: 'Código de avería de camión — decodificación SPN/FMI y códigos de concesionario',
+      langOffer: 'Esta página está disponible en español',
       metaDescription: 'Decodificación gratuita de códigos de avería de camiones: norma J1939 (SPN/FMI) y tablas de fábrica de 12 marcas. Introduce el código del escáner o del salpicadero.',
       h1: 'Se ha encendido el testigo <em>Check&nbsp;Engine</em> — ¿qué significa el código?',
       purposeStats: 'Más de 31.000 códigos de falla en más de 70 marcas y sistemas',
@@ -841,6 +899,7 @@
     },
     pt: {
       pageTitle: 'Código de falha de caminhão — decodificação SPN/FMI e códigos de concessionária',
+      langOffer: 'Esta página está disponível em português',
       metaDescription: 'Decodificação gratuita de códigos de falha de caminhões: norma J1939 (SPN/FMI) e tabelas de fábrica de 12 marcas. Digite o código do scanner ou do painel.',
       h1: 'A luz de <em>Check&nbsp;Engine</em> acendeu — o que significa o código?',
       purposeStats: 'Mais de 31.000 códigos de falha em mais de 70 marcas e sistemas',
@@ -956,6 +1015,7 @@
     },
     pl: {
       pageTitle: 'Kod usterki ciężarówki — rozszyfrowanie SPN/FMI i kodów dealerskich',
+      langOffer: 'Ta strona jest dostępna po polsku',
       metaDescription: 'Darmowe rozszyfrowanie kodów usterek ciężarówek: norma J1939 (SPN/FMI) i tabele fabryczne 12 marek. Wpisz kod ze skanera lub z deski rozdzielczej.',
       h1: 'Zapaliła się kontrolka <em>Check&nbsp;Engine</em> — co oznacza kod?',
       purposeStats: '31 000+ kodów usterek dla ponad 70 marek i systemów',
@@ -1071,6 +1131,7 @@
     },
     tr: {
       pageTitle: 'Kamyon arıza kodu — SPN/FMI ve bayi kodu çözümleme',
+      langOffer: 'Bu sayfa Türkçe olarak da mevcut',
       metaDescription: 'Ücretsiz kamyon arıza kodu çözümleme: J1939 standardı (SPN/FMI) ve 12 markanın fabrika tabloları. Tarayıcıdan veya gösterge panelinden kodu girin.',
       h1: '<em>Check&nbsp;Engine</em> lambası yandı — kod ne anlama geliyor?',
       purposeStats: '70+ marka ve sistemde 31.000+ arıza kodu',
@@ -1186,6 +1247,7 @@
     },
     hi: {
       pageTitle: 'ट्रक फॉल्ट कोड — SPN/FMI और डीलर कोड डिकोडिंग',
+      langOffer: 'यह पृष्ठ हिंदी में उपलब्ध है',
       metaDescription: 'ट्रक फॉल्ट कोड की मुफ्त डिकोडिंग: J1939 मानक (SPN/FMI) और 12 ब्रांड की फैक्ट्री तालिकाएं। स्कैनर या डैशबोर्ड से कोड डालें।',
       h1: '<em>Check&nbsp;Engine</em> लैंप जल गया है — कोड का मतलब क्या है?',
       purposeStats: '70+ ब्रांड और सिस्टम के लिए 31,000+ फॉल्ट कोड',
@@ -1301,6 +1363,7 @@
     },
     zh: {
       pageTitle: '卡车故障代码查询 — SPN/FMI 与经销商代码解析',
+      langOffer: '本页面有中文版',
       metaDescription: '免费卡车故障代码查询：J1939 标准（SPN/FMI）及12个品牌的原厂代码表。输入诊断仪或仪表盘显示的代码即可查询。',
       h1: '<em>Check&nbsp;Engine</em>（发动机故障）灯亮了 — 代码是什么意思？',
       purposeStats: '覆盖70+品牌和系统，31,000+条故障代码',
@@ -1537,8 +1600,12 @@
      localStorage конкретного браузера. Поэтому здесь язык страницы не
      угадывается: html[data-lock-lang] выставлен в самой генерируемой
      странице (scripts/build_lang_pages.py) и перебивает и localStorage,
-     и navigator.languages. У корня (ru) атрибута нет - там прежнее
-     поведение: подстроиться под язык гостя. */
+     и navigator.languages. Корень тоже закреплён - data-lock-lang="ru"
+     проставлен ему в коммите «Главная перестала притворяться английской»:
+     до этого главная подстраивалась под язык гостя, и Googlebot, который
+     представляется английским, индексировал русский адрес с английским
+     заголовком. Гостю с другим языком вместо подмены показываем ссылку
+     на его версию - см. offerLang(). */
   var LOCK_LANG = document.documentElement.getAttribute('data-lock-lang');
   function detectBrowserLang(){
     var langs = (navigator.languages && navigator.languages.length) ? navigator.languages : [navigator.language || navigator.userLanguage || ''];
@@ -1627,6 +1694,54 @@
     langSelect.setAttribute('aria-label', t('langAria'));
     if(DB) fillBrands();
     if(input.value.trim()) run();
+  }
+
+  /* Ссылка на свою языковую версию для гостя с другим браузерным языком.
+     Зачем именно ссылка, а не подмена языка: адрес объявлен источником
+     истины по языку (canonical + hreflang), и страница обязана оставаться
+     той, за которую себя выдаёт. Заголовок, H1 и canonical здесь не
+     трогаются вовсе - меняется только одна строка над первым экраном.
+
+     Адрес берём из hreflang этой же страницы, а не собираем руками: так
+     ссылка не может разойтись с реальной версией. Показываем один раз -
+     закрытую плашку помним в localStorage. */
+  var OFFER_KEY = 'pf-lang-offer';
+
+  function offerLang(){
+    var guest = detectBrowserLang();
+    if(!guest || guest === currentLang) return;
+    var txt = (I18N[guest] || {}).langOffer;
+    if(!txt) return;
+    var alt = document.querySelector('link[rel="alternate"][hreflang="' + guest + '"]');
+    if(!alt) return;
+    var href = alt.getAttribute('href');
+    if(!href || href === location.href) return;
+    try{ if(localStorage.getItem(OFFER_KEY) === guest) return; }catch(e){}
+
+    var box = document.createElement('div');
+    box.className = 'lang-offer';
+    box.style.cssText = 'display:flex;align-items:center;gap:10px;flex-wrap:wrap;' +
+      'margin:0 0 18px;padding:9px 13px;border:1px solid var(--line);border-radius:12px;' +
+      /* Фон и рамка - переменными, иначе на дневной теме плашка осталась бы
+         тёмной: светлая тема переопределяет ровно эти --line/--line-2. */
+      'background:var(--line-2);color:var(--ink);font:500 14px/1.35 var(--sans)';
+    var a = document.createElement('a');
+    a.href = href; a.hreflang = guest; a.lang = guest;
+    a.textContent = txt + ' →';
+    a.style.cssText = 'color:var(--signal);text-decoration:none';
+    var close = document.createElement('button');
+    close.type = 'button';
+    close.textContent = '×';
+    close.setAttribute('aria-label', 'Close');
+    close.style.cssText = 'margin-left:auto;min-width:32px;min-height:32px;cursor:pointer;' +
+      'background:none;border:0;color:var(--ink-3);font-size:18px;line-height:1';
+    close.addEventListener('click', function(){
+      box.parentNode && box.parentNode.removeChild(box);
+      try{ localStorage.setItem(OFFER_KEY, guest); }catch(e){}
+    });
+    box.appendChild(a); box.appendChild(close);
+    var host = document.querySelector('.scene .w') || document.body;
+    host.insertBefore(box, host.firstChild);
   }
 
   function load(){
@@ -2453,6 +2568,7 @@
   });
   applyLang(currentLang);
   labelTheme();
+  offerLang();
 
   /* printable - только для разобранного кода: печатать сообщение
      «код не найден» смысла нет, поэтому кнопка гаснет. */
@@ -2475,7 +2591,9 @@
     /* Дилерская таблица марки (у Mack это 175 OBD-кодов) от модуля
        не зависит: код там один на всю машину. Поэтому требование
        выбрать модуль снимается, когда во вводе OBD-код. */
-    if(midBrand && !mid && !midObdCode(input.value)){
+    /* У Volvo обходного пути нет вовсе: ключ дилерской таблицы начинается
+       с номера блока, без выбранного модуля его не собрать. */
+    if(midBrand && !mid && (MID_PCODE_BRANDS[brand] || !midObdCode(input.value))){
       render(note(t('needMid')));
       return;
     }
@@ -2488,7 +2606,10 @@
 
     /* Два кода и больше - это выгрузка со сканера, а не один вопрос.
        Такой список разбираем целиком: ищем первопричину. */
-    var many = midBrand ? parseAllMid(input.value, mid)
+    /* Разбор списком (поиск первопричины) работает по бесплатным таблицам,
+       которые лежат в памяти. У дилерской MID-марки каждый код - отдельный
+       запрос к API, поэтому список не собираем: разбираем первый код. */
+    var many = midBrand ? (MID_PCODE_BRANDS[brand] ? [] : parseAllMid(input.value, mid))
              : ((std.value === 'pcode' || numPcode) ? [] : parseAll(input.value));
     if(many.length >= 2){
       ready().then(function(){
@@ -2500,7 +2621,7 @@
       return;
     }
 
-    var p = midBrand ? parseMidCode(input.value, mid)
+    var p = midBrand ? parseMidCode(input.value, mid, brand)
           : parse(input.value, numPcode ? 'pcode' : std.value);
 
     if(!p){
