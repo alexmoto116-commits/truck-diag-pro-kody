@@ -20,7 +20,7 @@ var KNOWN_PCODE_BRANDS = ['volvo', 'mercedes', 'scania', 'shacman', 'tata', 'ash
                           'mahindra', 'deutz', 'fuso', 'thermoking', 'carrier',
                           'planar', 'webasto', 'eberspacher', 'daewoo', 'cumminsisf',
                           'eaton', 'hyundai', 'haldex', 'allison', 'weichai', 'volkswagen', 'mwm', 'isuzu', 'baw',
-                          'ivecoedc', 'ivecoeurotronic', 'iveco', 'daf', 'manzbr2', 'manebs', 'man', 'mack', 'yamz'];
+                          'ivecoedc', 'ivecoeurotronic', 'iveco', 'daf', 'manzbr2', 'manebs', 'man', 'mack', 'yamz', 'volvomid'];
 var ALLOWED_ORIGINS = ['https://codetruck.ru'];
 
 function norm(code) {
