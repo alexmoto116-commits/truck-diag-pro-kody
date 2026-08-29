@@ -262,7 +262,7 @@
       pageTitle: 'Код неисправности грузовика — расшифровка SPN/FMI и дилерских кодов',
       metaDescription: 'Бесплатная расшифровка кодов неисправностей грузовиков: стандарт J1939 (SPN/FMI) и заводские таблицы 12 марок. Введите код со сканера или с приборной панели.',
       h1: 'Загорелась лампа <em>Check&nbsp;Engine</em> — что означает код?',
-      purposeStats: '26 000+ кодов неисправностей по 70+ маркам техники и агрегатов',
+      purposeStats: '31 000+ кодов неисправностей по 70+ маркам техники и агрегатов',
       purposeDo: 'Введите код — или сразу весь список ошибок, как есть: через запятую, пробел или столбиком. Одна поломка тянет за собой пять-шесть кодов — покажем, какой из них причина, а какие пришли следом, и скажем, можно ли ехать.',
       goBtn: 'Разобрать',
       demoTag: 'пример',
@@ -380,7 +380,7 @@
       pageTitle: 'Truck fault code — SPN/FMI and dealer code lookup',
       metaDescription: 'Free truck fault code lookup: J1939 standard (SPN/FMI) and factory tables for 12 makes. Enter a code from your scanner or dashboard.',
       h1: 'The <em>Check&nbsp;Engine</em> light is on — what does the code mean?',
-      purposeStats: '26,000+ fault codes across 70+ makes and systems',
+      purposeStats: '31,000+ fault codes across 70+ makes and systems',
       purposeDo: 'Enter one code — or the whole fault list exactly as it is: separated by commas, spaces or line breaks. One fault drags five or six codes along — we show which one is the cause and which just followed, and tell you whether it’s safe to drive.',
       goBtn: 'Decode',
       demoTag: 'example',
@@ -498,7 +498,7 @@
       pageTitle: 'LKW-Fehlercode — SPN/FMI und Händlercode entschlüsseln',
       metaDescription: 'Kostenlose Entschlüsselung von LKW-Fehlercodes: J1939-Standard (SPN/FMI) und Werkstabellen für 12 Marken. Code vom Scanner oder Armaturenbrett eingeben.',
       h1: 'Die <em>Check&nbsp;Engine</em>-Leuchte ist an — was bedeutet der Code?',
-      purposeStats: '26.000+ Fehlercodes für über 70 Marken und Systeme',
+      purposeStats: '31.000+ Fehlercodes für über 70 Marken und Systeme',
       purposeDo: 'Geben Sie einen Code ein — oder gleich die ganze Fehlerliste, so wie sie ist: getrennt durch Komma, Leerzeichen oder Zeilenumbruch. Ein Defekt zieht fünf bis sechs Codes nach sich — wir zeigen, welcher die Ursache ist und welche nur gefolgt sind, und sagen, ob die Weiterfahrt sicher ist.',
       goBtn: 'Entschlüsseln',
       demoTag: 'Beispiel',
@@ -613,7 +613,7 @@
       pageTitle: 'Code défaut camion — décodage SPN/FMI et codes constructeur',
       metaDescription: 'Décodage gratuit des codes défaut camion : norme J1939 (SPN/FMI) et tables constructeur pour 12 marques. Entrez le code du scanner ou du tableau de bord.',
       h1: 'Le voyant <em>Check&nbsp;Engine</em> est allumé — que signifie le code ?',
-      purposeStats: '26 000+ codes défaut pour plus de 70 marques et systèmes',
+      purposeStats: '31 000+ codes défaut pour plus de 70 marques et systèmes',
       purposeDo: 'Saisissez un code — ou toute la liste des défauts, telle quelle : séparés par des virgules, des espaces ou des retours à la ligne. Une panne entraîne cinq ou six codes — nous montrons lequel est la cause et lesquels ont suivi, et vous disons si vous pouvez rouler.',
       goBtn: 'Décoder',
       demoTag: 'exemple',
@@ -728,7 +728,7 @@
       pageTitle: 'Código de avería de camión — decodificación SPN/FMI y códigos de concesionario',
       metaDescription: 'Decodificación gratuita de códigos de avería de camiones: norma J1939 (SPN/FMI) y tablas de fábrica de 12 marcas. Introduce el código del escáner o del salpicadero.',
       h1: 'Se ha encendido el testigo <em>Check&nbsp;Engine</em> — ¿qué significa el código?',
-      purposeStats: 'Más de 26.000 códigos de falla en más de 70 marcas y sistemas',
+      purposeStats: 'Más de 31.000 códigos de falla en más de 70 marcas y sistemas',
       purposeDo: 'Introduzca un código — o la lista completa de averías, tal cual: separados por comas, espacios o saltos de línea. Una avería arrastra cinco o seis códigos — le mostramos cuál es la causa y cuáles vinieron detrás, y le decimos si puede circular.',
       goBtn: 'Decodificar',
       demoTag: 'ejemplo',
@@ -843,7 +843,7 @@
       pageTitle: 'Código de falha de caminhão — decodificação SPN/FMI e códigos de concessionária',
       metaDescription: 'Decodificação gratuita de códigos de falha de caminhões: norma J1939 (SPN/FMI) e tabelas de fábrica de 12 marcas. Digite o código do scanner ou do painel.',
       h1: 'A luz de <em>Check&nbsp;Engine</em> acendeu — o que significa o código?',
-      purposeStats: 'Mais de 26.000 códigos de falha em mais de 70 marcas e sistemas',
+      purposeStats: 'Mais de 31.000 códigos de falha em mais de 70 marcas e sistemas',
       purposeDo: 'Introduza um código — ou a lista completa de avarias, tal como está: separados por vírgulas, espaços ou quebras de linha. Uma avaria arrasta cinco ou seis códigos — mostramos qual é a causa e quais vieram a seguir, e dizemos se pode circular.',
       goBtn: 'Decodificar',
       demoTag: 'exemplo',
@@ -958,7 +958,7 @@
       pageTitle: 'Kod usterki ciężarówki — rozszyfrowanie SPN/FMI i kodów dealerskich',
       metaDescription: 'Darmowe rozszyfrowanie kodów usterek ciężarówek: norma J1939 (SPN/FMI) i tabele fabryczne 12 marek. Wpisz kod ze skanera lub z deski rozdzielczej.',
       h1: 'Zapaliła się kontrolka <em>Check&nbsp;Engine</em> — co oznacza kod?',
-      purposeStats: '26 000+ kodów usterek dla ponad 70 marek i systemów',
+      purposeStats: '31 000+ kodów usterek dla ponad 70 marek i systemów',
       purposeDo: 'Wpisz kod — albo od razu całą listę usterek, tak jak jest: oddzielone przecinkami, spacjami lub nowymi wierszami. Jedna usterka ciągnie za sobą pięć-sześć kodów — pokażemy, który jest przyczyną, a które pojawiły się po nim, i powiemy, czy można jechać.',
       goBtn: 'Rozszyfruj',
       demoTag: 'przykład',
@@ -1073,7 +1073,7 @@
       pageTitle: 'Kamyon arıza kodu — SPN/FMI ve bayi kodu çözümleme',
       metaDescription: 'Ücretsiz kamyon arıza kodu çözümleme: J1939 standardı (SPN/FMI) ve 12 markanın fabrika tabloları. Tarayıcıdan veya gösterge panelinden kodu girin.',
       h1: '<em>Check&nbsp;Engine</em> lambası yandı — kod ne anlama geliyor?',
-      purposeStats: '70+ marka ve sistemde 26.000+ arıza kodu',
+      purposeStats: '70+ marka ve sistemde 31.000+ arıza kodu',
       purposeDo: 'Bir kod girin — ya da arıza listesinin tamamını olduğu gibi: virgül, boşluk veya alt satır fark etmez. Tek bir arıza beş-altı kodu peşinden sürükler — hangisinin neden olduğunu, hangilerinin ardından geldiğini gösterir ve yola devam edilip edilemeyeceğini söyleriz.',
       goBtn: 'Çöz',
       demoTag: 'örnek',
@@ -1188,7 +1188,7 @@
       pageTitle: 'ट्रक फॉल्ट कोड — SPN/FMI और डीलर कोड डिकोडिंग',
       metaDescription: 'ट्रक फॉल्ट कोड की मुफ्त डिकोडिंग: J1939 मानक (SPN/FMI) और 12 ब्रांड की फैक्ट्री तालिकाएं। स्कैनर या डैशबोर्ड से कोड डालें।',
       h1: '<em>Check&nbsp;Engine</em> लैंप जल गया है — कोड का मतलब क्या है?',
-      purposeStats: '70+ ब्रांड और सिस्टम के लिए 26,000+ फॉल्ट कोड',
+      purposeStats: '70+ ब्रांड और सिस्टम के लिए 31,000+ फॉल्ट कोड',
       purposeDo: 'एक कोड डालें — या खराबियों की पूरी सूची जैसी है वैसी ही: कॉमा, स्पेस या नई लाइन से अलग। एक खराबी पांच-छह कोड अपने साथ लाती है — हम बताएंगे कि कौन सा कारण है और कौन से उसके बाद आए, और यह भी कि गाड़ी चलाना सुरक्षित है या नहीं।',
       goBtn: 'डिकोड करें',
       demoTag: 'उदाहरण',
@@ -1303,7 +1303,7 @@
       pageTitle: '卡车故障代码查询 — SPN/FMI 与经销商代码解析',
       metaDescription: '免费卡车故障代码查询：J1939 标准（SPN/FMI）及12个品牌的原厂代码表。输入诊断仪或仪表盘显示的代码即可查询。',
       h1: '<em>Check&nbsp;Engine</em>（发动机故障）灯亮了 — 代码是什么意思？',
-      purposeStats: '覆盖70+品牌和系统，26,000+条故障代码',
+      purposeStats: '覆盖70+品牌和系统，31,000+条故障代码',
       purposeDo: '输入一个代码 — 或者按原样输入整个故障列表：用逗号、空格或换行分隔。一个故障通常会带出五六个代码 — 我们会指出哪个是根本原因，哪些只是随之而来的，并告诉你是否可以继续行驶。',
       goBtn: '解析',
       demoTag: '示例',
@@ -1923,6 +1923,25 @@
   }
   function note(t){ return '<div class="miss">' + t + '</div>'; }
 
+  /* Строка «Код» для дилерского ответа.
+
+     2176 ключей в базе записаны с ведущими нулями до пяти знаков (manebs, man,
+     manzbr2, mercedes, iveco, eberspacher), а сканер показывает короткую форму
+     без нулей. Воркер с недавних пор дополняет чисто цифровой ввод нулями и
+     возвращает в поле code ту запись, под которой код реально нашёлся. Если
+     она отличается от введённой, показываем обе: иначе выходит, что мы молча
+     поправили ввод и отвечаем не на то, что спросили. Марки могут отдать
+     разные формы - тогда перечисляем все. */
+  function pcodeStep(typed, hits){
+    var flat = String(typed).replace(/\s+/g, ''), forms = [];
+    hits.forEach(function(h){
+      if(h.code && h.code !== flat && forms.indexOf(h.code) < 0) forms.push(h.code);
+    });
+    var html = '<span class="mono">' + esc(typed) + '</span>';
+    if(forms.length) html += ' → <span class="mono">' + esc(forms.join(', ')) + '</span>';
+    return html;
+  }
+
   /* ============================================================
      РАЗБОР ГИРЛЯНДЫ
 
@@ -2502,7 +2521,7 @@
           render(note(t('pcodeNotFound', {code: esc(p.pcode)})));
           return;
         }
-        var pSteps = [{st:t('stepCode'), tx:'<span class="mono">' + esc(p.pcode) + '</span>', cls:'ok'}];
+        var pSteps = [{st:t('stepCode'), tx:pcodeStep(p.pcode, hits), cls:'ok'}];
         hits.forEach(function(h){
           pSteps.push({
             st: hits.length > 1 || !brand ? brandName(h.brand) : t('stepDecoding'),
@@ -2540,7 +2559,7 @@
               render(note(t('spnNotFound', {spn: p.spn})));
               return;
             }
-            var nSteps = [{st:t('stepCode'), tx:'<span class="mono">' + esc(num) + '</span>', cls:'ok'}];
+            var nSteps = [{st:t('stepCode'), tx:pcodeStep(num, hits), cls:'ok'}];
             hits.forEach(function(h){
               nSteps.push({
                 st: hits.length > 1 || !brand ? brandName(h.brand) : t('stepDecoding'),
