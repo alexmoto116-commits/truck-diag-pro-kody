@@ -27,6 +27,40 @@ function norm(code) {
   return code.toUpperCase().replace(/\s+/g, '');
 }
 
+/**
+ * Варианты записи одного и того же номера для чисто цифровых дилерских кодов.
+ *
+ * Зачем. 2176 ключей в базе записаны с ведущими нулями до пяти знаков -
+ * manebs 1380, man 372, manzbr2 221, mercedes 316, iveco 80, eberspacher 74 и
+ * ещё по мелочи. Так их печатает заводская документация, так собраны наши
+ * таблицы. Но сканеры и часть источников показывают тот же номер без нулей
+ * («3051», «597»), и человек вводит ровно то, что видит на экране. Поиск идёт
+ * по точному совпадению ключа, поэтому такой ввод не находил ничего.
+ *
+ * Что делаем. Для чисто цифрового ввода пробуем две записи: как ввели и
+ * дополненную нулями до пяти знаков. Точное совпадение выигрывает, дополнение -
+ * запасной ход. Для всего остального (P-коды, семизначные UDS Volvo, коды с
+ * дефисом) вариант ровно один, лишних чтений KV не появляется.
+ *
+ * ПОЧЕМУ ТОЛЬКО ДОПОЛНЕНИЕ, А НЕ ОБРАТНОЕ ПРЕОБРАЗОВАНИЕ. Раздевать ввод от
+ * нулей («03051» -> «3051») технически так же просто, но это шумит: короткие
+ * номера заняты сразу у нескольких марок (1, 2, 3 есть у planar, shacman,
+ * thermoking, carrier), и запрос без выбранной марки начинал бы возвращать
+ * пачку чужих ответов. По базе посчитано: одно дополнение добавляет лишние
+ * марки 933 кодам, дополнение вместе с раздеванием - уже 1865. Раздевание
+ * при этом никому не нужно: люди вводят то, что видят на экране, а на экране
+ * короткая форма, не длинная.
+ */
+function codeVariants(code) {
+  var c = norm(code);
+  var out = [c];
+  if (/^\d{1,4}$/.test(c)) {
+    var padded = ('00000' + c).slice(-5);
+    if (out.indexOf(padded) < 0) out.push(padded);
+  }
+  return out;
+}
+
 function kvKey(brand, code) {
   return 'pcode:' + brand + ':' + norm(code);
 }
@@ -62,13 +96,19 @@ async function handlePcode(request, env, url) {
 
   var brandsToCheck = brand ? [brand].filter(function (b) { return KNOWN_PCODE_BRANDS.indexOf(b) >= 0; }) : KNOWN_PCODE_BRANDS;
 
+  var variants = codeVariants(code);
+
   var results;
   try {
     results = await Promise.all(brandsToCheck.map(async function (b) {
-      var raw = await env.PCODE_KV.get(kvKey(b, code));
-      if (!raw) return null;
-      var entry = JSON.parse(raw);
-      return { brand: b, text: pickText(entry, lang) };
+      for (var i = 0; i < variants.length; i++) {
+        var raw = await env.PCODE_KV.get(kvKey(b, variants[i]));
+        if (raw) {
+          var entry = JSON.parse(raw);
+          return { brand: b, code: variants[i], text: pickText(entry, lang) };
+        }
+      }
+      return null;
     }));
   } catch (e) {
     return json(request, 502, { error: 'kv_unavailable' });
