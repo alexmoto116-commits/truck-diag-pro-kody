@@ -75,6 +75,16 @@ TX = {
     'canDrive':   u'Can I keep driving',
     'checkNow':   u'What to check on the spot',
     'nearby':     u'Nearby: %s',
+    'casStart':   u'Where to start',
+    'casStartP':  u'This code is often not the fault itself but a knock-on. '
+                  u'If any of these is in the same readout, start with it:',
+    'casFollow':  u'Which codes follow',
+    'casPhys':    u'If the value really did go out of range, rather than a sensor '
+                  u'circuit being broken, these normally light up after it:',
+    'casAny':     u'These normally light up after this code:',
+    'casNote':    u'They are not fixed separately — they go out together with this '
+                  u'one. The list is deliberately short: only the links the '
+                  u'reference is sure about.',
     'cta':        u'Scanner threw several codes at once? '
                   u'<a href="/en/">Paste the whole list</a> — we will show which one is '
                   u'the root cause and which ones simply followed.',
@@ -204,6 +214,26 @@ def build():
         nm = name_of(spn)
         return (u'<li><a href="%s"><span class="mono">SPN %d</span>%s</a></li>'
                 % (href, spn, (u'<span class="nm">%s</span>' % bp.esc(nm)) if nm else u''))
+
+    # Английская пара к causal_section() из build_pages.py: та же таблица
+    # CAUSAL из app.js, но ссылки только на коды, у которых есть /en/-версия.
+    def causal_section(spn):
+        as_root, as_cons = bp.causal_rules(spn)
+        out = []
+        causes = sorted(({s for r in as_cons for s in r['root']} & en_set) - {spn})
+        if causes:
+            out.append(u'<section><h2>%s</h2><p>%s</p><ul class="near">%s</ul></section>'
+                       % (TX['casStart'], TX['casStartP'],
+                          ''.join(code_link(s, 'spn-%d.html' % s) for s in causes)))
+        follow = sorted(({s for r in as_root for s in r['cons']} & en_set) - {spn})
+        if follow:
+            out.append(u'<section><h2>%s</h2><p>%s</p><ul class="near">%s</ul>'
+                       u'<p>%s</p></section>'
+                       % (TX['casFollow'],
+                          TX['casPhys'] if any(r.get('phys') for r in as_root) else TX['casAny'],
+                          ''.join(code_link(s, 'spn-%d.html' % s) for s in follow),
+                          TX['casNote']))
+        return ''.join(out)
 
     def nav():
         return (u'<a href="/en/">%s</a><span class="sep">&middot;</span>'
@@ -383,6 +413,8 @@ def build():
         if act:
             body.append(u'<section><h2>%s</h2><p>%s</p></section>'
                         % (TX['checkNow'], bp.esc(act)))
+
+        body.append(causal_section(spn))
 
         neigh = [s for s in bp.neighbors_of(spn, [x for x in by_sys.get(sys_key, [])
                                                   if x in en_set])]
