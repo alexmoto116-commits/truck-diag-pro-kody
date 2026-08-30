@@ -122,7 +122,6 @@ ADVICE = {
 # риска. Расходились они не теоретически: 40 страниц писали «обычно ехать
 # можно» и тут же «запас времени: счёт на минуты», ещё 57 - наоборот.
 # Одна модель на оба места - единственный способ, чтобы это не вернулось.
-LVL_ORDER = ['plan', 'watch', 'base', 'short', 'now']   # от спокойного к срочному
 _RISK_JS = {}
 
 
@@ -146,6 +145,10 @@ def risk_model():
         _RISK_JS['sysSpn'] = extract_js_object('SYS_SPN')
         _RISK_JS['sysWord'] = extract_js_object('SYS_WORD')
         _RISK_JS['sysExcl'] = extract_js_object('SYS_WORD_EXCLUDE')
+        # Порядок уровней: в RISK_RANK меньше число - серьёзнее уровень.
+        # Здесь лежал свой список LVL_ORDER в обратном порядке; совпадал,
+        # но был последней константой, заведённой дважды.
+        _RISK_JS['rank'] = extract_js_object('RISK_RANK')
     return _RISK_JS
 
 
@@ -178,11 +181,12 @@ def risk_of(sys_key, fmi, urgent):
 
 def page_risk(sys_key, fmis, urgent_fmi, urgent_spn_hit):
     """Худший случай по всем FMI страницы: карточка отвечает за код целиком."""
+    rank = risk_model()['rank']
     worst_key, worst_lvl, worst_flag = None, None, False
     for f in (fmis or [None]):
         urgent = urgent_spn_hit or (f in urgent_fmi)
         key, lvl, flag = risk_of(sys_key, f, urgent)
-        if worst_lvl is None or LVL_ORDER.index(lvl) > LVL_ORDER.index(worst_lvl):
+        if worst_lvl is None or rank[lvl] < rank[worst_lvl]:
             worst_key, worst_lvl, worst_flag = key, lvl, flag
     return worst_key, worst_lvl, worst_flag
 
