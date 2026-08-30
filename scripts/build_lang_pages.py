@@ -23,23 +23,40 @@ OG_LOCALE = {'en': 'en_US', 'de': 'de_DE', 'fr': 'fr_FR', 'es': 'es_ES', 'pt': '
              'pl': 'pl_PL', 'tr': 'tr_TR', 'hi': 'hi_IN', 'zh': 'zh_CN'}
 
 
-# I18N, RISK_TX, FMI_I18N в app.js - объектные литералы JS (ключи без
-# кавычек), а не JSON, поэтому читаем их через eval в Node, а не парсером.
-# Границу объекта ищем счётчиком скобок от «var <ИМЯ> = {».
+# I18N, RISK_TX, FMI_I18N, RISK_LVL в app.js - объектные литералы JS (ключи
+# без кавычек), а не JSON, поэтому читаем их через eval в Node, а не парсером.
+# Границу литерала ищем счётчиком скобок от знака равенства.
+#
+# Массивы (FMI_ELEC) читаются тем же кодом: скобку-открывашку не задаём
+# заранее, а берём ту, что стоит после «=», и ищем парную ей. Пробелы между
+# именем и «=» произвольные - в app.js константы выровнены в колонку, и
+# прежний поиск подстроки «var <ИМЯ> = {» на них уже не срабатывал.
 def extract_js_object(name='I18N'):
     app_js = os.path.join(ROOT, 'assets', 'app.js').replace('\\', '/')
     node_script = (
         "const fs=require('fs');"
         "const src=fs.readFileSync(%r,'utf8');"
-        "const start=src.indexOf('var ' + %r + ' = {');"
-        "let i=src.indexOf('{',start),depth=0,end=-1;"
-        "for(let j=i;j<src.length;j++){"
-        "if(src[j]==='{')depth++;"
-        "else if(src[j]==='}'){depth--;if(depth===0){end=j;break;}}"
+        "const key='var '+%r;"
+        "let i=-1;"
+        "for(let p=src.indexOf(key);p>=0;p=src.indexOf(key,p+1)){"
+        "let q=p+key.length;"
+        "while(q<src.length&&src.charCodeAt(q)<=32)q++;"
+        "if(src[q]==='='){i=q+1;break;}"
         "}"
+        "if(i<0)throw new Error('not declared: '+%r);"
+        "while(i<src.length&&src.charCodeAt(i)<=32)i++;"
+        "const open=src[i];"
+        "if(open!=='{'&&open!=='[')throw new Error('not a literal: '+%r);"
+        "const close=open==='{'?'}':']';"
+        "let depth=0,end=-1;"
+        "for(let j=i;j<src.length;j++){"
+        "if(src[j]===open)depth++;"
+        "else if(src[j]===close){depth--;if(depth===0){end=j;break;}}"
+        "}"
+        "if(end<0)throw new Error('unbalanced: '+%r);"
         "const OBJ=eval('('+src.slice(i,end+1)+')');"
         "process.stdout.write(JSON.stringify(OBJ));"
-    ) % (app_js, name)
+    ) % (app_js, name, name, name, name)
     out = subprocess.run(['node', '-e', node_script], cwd=ROOT,
                           capture_output=True, check=True)
     return json.loads(out.stdout.decode('utf-8'))
