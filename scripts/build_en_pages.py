@@ -56,6 +56,11 @@ ACT_KEY = {'scr': 'actScr', 'oil': 'actOil', 'cool': 'actCool', 'fuel': 'actFuel
 # Единственное, чего в I18N нет: обвязка именно страницы, а не инструмента.
 # Английская пара к OWN_NUMBERING из build_pages.py - держать в согласии.
 OWN_NUMBERING_EN = {
+    'ford': u'Ford Trucks/Ecotorq writes fault numbers in its own format: '
+            u'the code in the table below is a Ford code (hexadecimal, '
+            u'zero-padded), not a J1939 SPN. It matches the standard only '
+            u'where the signal itself is standard, and usually matches the '
+            u'title of this page by digit alone.',
     'zfastronic': u'ZF AS-Tronic uses its own fault numbering: the number in '
                   u'the table below is an internal ZF code, not a J1939 SPN. '
                   u'It matches the title of this page by digit only and means '
