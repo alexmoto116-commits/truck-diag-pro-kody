@@ -154,6 +154,11 @@ def risk_model():
         # Здесь лежал свой список LVL_ORDER в обратном порядке; совпадал,
         # но был последней константой, заведённой дважды.
         _RISK_JS['rank'] = extract_js_object('RISK_RANK')
+        # Известные цепочки «причина -> следствия» и набор FMI, при
+        # которых величина ДЕЙСТВИТЕЛЬНО вышла за норму (а не оборвана
+        # цепь датчика). Тем же правилом, что и analyze() в app.js.
+        _RISK_JS['causal'] = extract_js_object('CAUSAL')
+        _RISK_JS['fmiRange'] = extract_js_object('FMI_RANGE')
     return _RISK_JS
 
 
@@ -216,6 +221,18 @@ def page_stop(sys_key, fmis, urgent_fmi, urgent_spn_hit):
     """«Ехать нельзя» - дословно критерий analyze() из app.js."""
     _, lvl, _ = page_risk(sys_key, fmis, urgent_fmi, urgent_spn_hit)
     return lvl == 'now' or page_blind(sys_key, fmis, urgent_fmi, urgent_spn_hit)
+
+
+def causal_rules(spn):
+    """Правила CAUSAL, где код - первопричина и/или следствие.
+
+    Список в app.js намеренно неполный и консервативный: лучше не связать
+    два кода, чем связать неверно. Страница повторяет ровно его, ничего
+    не достраивая.
+    """
+    R = risk_model()
+    return ([r for r in R['causal'] if spn in r['root']],
+            [r for r in R['causal'] if spn in r['cons']])
 
 
 def risk_section(sys_key, fmis, urgent_fmi, urgent_spn_hit):
@@ -1017,6 +1034,38 @@ def build(en_spns=()):
         return (u'<li><a href="%s"><span class="mono">SPN %d</span>%s</a></li>'
                 % (href, spn, (u'<span class="nm">%s</span>' % esc(nm)) if nm else u''))
 
+    # Цепочки из app.js: инструмент на главной по ним отвечает, какой код
+    # первопричина, а страница молчала - при том что «с чего начинать»
+    # это ровно её вопрос. Ссылки ведут на соседние страницы, поэтому
+    # заодно чинится и внутренняя перелинковка этих 48 адресов.
+    def causal_section(spn):
+        as_root, as_cons = causal_rules(spn)
+        page = set(keep)
+        out = []
+        causes = sorted(({s for r in as_cons for s in r['root']} & page) - {spn})
+        if causes:
+            out.append(u'<section><h2>С чего начинать</h2>'
+                       u'<p>Этот код часто не сам по себе, а следствие. Если в том '
+                       u'же считывании есть какой-то из этих — разбираться надо '
+                       u'с него:</p><ul class="near">%s</ul></section>'
+                       % ''.join(code_link(s, 'spn-%d.html' % s) for s in causes))
+        follow = sorted(({s for r in as_root for s in r['cons']} & page) - {spn})
+        if follow:
+            # phys-цепочка работает только когда величина реально вышла за
+            # норму: перегрев тянет за собой ограничение мощности, а обрыв
+            # провода датчика перегрева - нет. Это разные неисправности.
+            cond = (u'Если величина действительно вышла за норму, а не оборвана '
+                    u'цепь датчика, следом обычно загораются:'
+                    if any(r.get('phys') for r in as_root)
+                    else u'Следом за этим кодом обычно загораются:')
+            out.append(u'<section><h2>Какие коды приходят следом</h2>'
+                       u'<p>%s</p><ul class="near">%s</ul>'
+                       u'<p>Отдельно они не чинятся — гаснут вместе с этим. Список '
+                       u'намеренно короткий: здесь только те связи, в которых '
+                       u'справочник уверен.</p></section>'
+                       % (cond, ''.join(code_link(s, 'spn-%d.html' % s) for s in follow)))
+        return ''.join(out)
+
     def brand_list(spn, limit=0):
         names = [brand_names.get(b, b) for b in
                  sorted(per_spn.get(spn, {}), key=lambda x: brand_names.get(x, x))]
@@ -1177,6 +1226,8 @@ def build(en_spns=()):
         if ADVICE.get(sys_key):
             body.append(u'<section><h2>Что проверить на месте</h2><p>%s</p></section>'
                         % ADVICE[sys_key])
+
+        body.append(causal_section(spn))
 
         # соседи по узлу: и человеку полезно, и роботу есть куда идти
         neigh = neighbors_of(spn, by_sys.get(sys_key, []))
