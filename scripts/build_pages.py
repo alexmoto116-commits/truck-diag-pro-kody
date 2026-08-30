@@ -143,7 +143,6 @@ ADVICE = {
 # риска. Расходились они не теоретически: 40 страниц писали «обычно ехать
 # можно» и тут же «запас времени: счёт на минуты», ещё 57 - наоборот.
 # Одна модель на оба места - единственный способ, чтобы это не вернулось.
-FMI_ELEC = [3, 4, 5, 6]
 LVL_ORDER = ['plan', 'watch', 'base', 'short', 'now']   # от спокойного к срочному
 _RISK_JS = {}
 
@@ -156,15 +155,32 @@ def risk_model():
         _RISK_JS['h'] = extract_js_object('RISK_H')['ru']
         _RISK_JS['title'] = extract_js_object('RISK_TITLE')['ru']
         _RISK_JS['flag'] = extract_js_object('RISK_FLAG')['ru']
+        # Набор «электрических» FMI и таблица тиров лежат там же, в app.js.
+        # До этого оба были переписаны сюда руками: FMI_ELEC одной строкой,
+        # тир - выражением в пяти местах сразу. Разъехаться они могли молча,
+        # потому что ошибка вылезла бы не падением, а чужим текстом на
+        # странице - ровно тем сортом расхождения, о котором комментарий выше.
+        _RISK_JS['elec'] = extract_js_object('FMI_ELEC')
+        _RISK_JS['lvl'] = extract_js_object('RISK_LVL')
     return _RISK_JS
+
+
+def fmi_elec():
+    """FMI электрики самого датчика - из app.js, а не своей копией."""
+    return risk_model()['elec']
+
+
+def tier_of(lvl):
+    """Тир для цвета плашки - из RISK_LVL в app.js."""
+    return risk_model()['lvl'][lvl]['tier']
 
 
 def risk_of(sys_key, fmi, urgent):
     """Тот же выбор, что и riskOf() в assets/app.js - строка в строку."""
     m = risk_model()['map'].get(sys_key)
     if m:
-        pick = m['elec'] if (m.get('elec') and fmi in FMI_ELEC) else m['any']
-    elif fmi in FMI_ELEC:
+        pick = m['elec'] if (m.get('elec') and fmi in fmi_elec()) else m['any']
+    elif fmi in fmi_elec():
         pick = ['elecGen', 'watch']
     else:
         pick = ['genUrgent', 'short'] if urgent else ['gen', 'plan']
@@ -198,7 +214,7 @@ def risk_section(sys_key, fmis, urgent_fmi, urgent_spn_hit):
     # странице встречаются: иначе это чужой текст.
     note = u''
     m = R['map'].get(sys_key)
-    if m and m.get('elec') and any(f in FMI_ELEC for f in (fmis or [])) and key != m['elec'][0]:
+    if m and m.get('elec') and any(f in fmi_elec() for f in (fmis or [])) and key != m['elec'][0]:
         e = R['tx'][m['elec'][0]]
         note = u'<p class="rkn">%s %s</p>' % (esc(e[0]), esc(e[1]))
     # Флаг из risk_of() относится к одному коду; на странице кодов много,
@@ -208,7 +224,7 @@ def risk_section(sys_key, fmis, urgent_fmi, urgent_spn_hit):
     flagged = urgent_spn_hit or any(f in urgent_fmi for f in (fmis or []))
     if flagged and lvl != 'now':
         note += u'<p class="rkn">%s</p>' % esc(R['flag'])
-    tier = 'now' if lvl == 'now' else ('warn' if lvl in ('short', 'base') else 'calm')
+    tier = tier_of(lvl)
     return (u'<section><h2>%s</h2>'
             u'<div class="risk t-%s"><span class="rkb">Запас времени: %s</span>'
             u'<p>%s</p><p>%s</p>%s</div></section>'
@@ -1065,8 +1081,7 @@ def build(en_spns=()):
                             nav=nav_of('kody'), lang='ru', locale='ru_RU',
                             alt=alt_links(spn in en_spns, 'kody/spn-%d.html' % spn))]
         body.append(u'<h1>%s</h1>' % esc(page_name))
-        _tier = 'now' if worst_lvl == 'now' else (
-            'warn' if worst_lvl in ('short', 'base') else 'calm')
+        _tier = tier_of(worst_lvl)
         body.append(u'<p class="vline t-%s"><b>%s</b><span class="hz">%s</span></p>'
                     % (_tier,
                        u'Ехать нельзя' if stop else u'Ехать можно',

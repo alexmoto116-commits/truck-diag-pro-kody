@@ -446,12 +446,12 @@ def build():
         note = u''
         rule = risk_map.get(sys_key)
         if (rule and rule.get('elec') and key != rule['elec'][0]
-                and any(f in bp.FMI_ELEC for f in (fmis or []))):
+                and any(f in bp.fmi_elec() for f in (fmis or []))):
             e = risk_tx[rule['elec'][0]]
             note = u'<p class="rkn">%s %s</p>' % (bp.esc(e[0]), bp.esc(e[1]))
         if (urgent_spn_hit or any(f in urgent_fmi for f in (fmis or []))) and lvl != 'now':
             note += u'<p class="rkn">%s</p>' % bp.esc(risk_flag)
-        tier = 'now' if lvl == 'now' else ('warn' if lvl in ('short', 'base') else 'calm')
+        tier = bp.tier_of(lvl)
         return (u'<section><h2>%s</h2>'
                 u'<div class="risk t-%s"><span class="rkb">Time you have: %s</span>'
                 u'<p>%s</p><p>%s</p>%s</div></section>'
