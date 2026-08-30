@@ -187,6 +187,28 @@ def page_risk(sys_key, fmis, urgent_fmi, urgent_spn_hit):
     return worst_key, worst_lvl, worst_flag
 
 
+def page_blind(sys_key, fmis, urgent_fmi, urgent_spn_hit):
+    """Есть ли на странице код с меткой завода, для системы которого модели
+    нет: risk_of() отдаёт таким ключ genUrgent и уровень «short».
+
+    В app.js это blind в analyze(), и он входит в вердикт наравне с уровнем
+    «минуты»: «чего мы не понимаем, тем не рискуем». Помеченный критическим
+    код без модели остаётся запретом, потому что сказать, что именно
+    откажет следующим, по нему нельзя.
+    """
+    for f in (fmis or [None]):
+        urgent = urgent_spn_hit or (f in urgent_fmi)
+        if risk_of(sys_key, f, urgent)[0] == 'genUrgent':
+            return True
+    return False
+
+
+def page_stop(sys_key, fmis, urgent_fmi, urgent_spn_hit):
+    """«Ехать нельзя» - дословно критерий analyze() из app.js."""
+    _, lvl, _ = page_risk(sys_key, fmis, urgent_fmi, urgent_spn_hit)
+    return lvl == 'now' or page_blind(sys_key, fmis, urgent_fmi, urgent_spn_hit)
+
+
 def risk_section(sys_key, fmis, urgent_fmi, urgent_spn_hit):
     R = risk_model()
     key, lvl, flag = page_risk(sys_key, fmis, urgent_fmi, urgent_spn_hit)
@@ -1006,13 +1028,16 @@ def build(en_spns=()):
         # Вердикт и риск нужны заранее - они уходят в FAQPage в <head>,
         # а не только в тело страницы ниже.
         seen_all_early = sorted({f for rows in makes.values() for f, _ in rows})
-        # «Ехать нельзя» ставим там же, где его ставит инструмент, - когда
-        # худший из кодов страницы выходит на уровень «минуты». Сырой флаг
-        # производителя при этом не теряется: он поднимает уровень внутри
-        # risk_of(), просто больше не спорит с горизонтом времени.
+        # «Ехать нельзя» ставим там же, где его ставит инструмент, - см.
+        # page_stop(): либо худший код страницы вышел на уровень «минуты»,
+        # либо есть помеченный заводом код, для системы которого модели нет.
+        # Второе слагаемое здесь долго отсутствовало, и 259 страниц писали
+        # «обычно ехать можно» над собственной же строкой «запас времени: до
+        # ближайшей остановки» и текстом «продолжать движение без разбора
+        # нельзя» - то есть спорили сами с собой, а не только с виджетом.
         urgent_spn_hit = spn in urgent_spn
         _, worst_lvl, _ = page_risk(sys_key, seen_all_early, urgent_fmi, urgent_spn_hit)
-        stop = worst_lvl == 'now'
+        stop = page_stop(sys_key, seen_all_early, urgent_fmi, urgent_spn_hit)
         if stop:
             verdict = (u'<b>По этому коду ехать нельзя.</b> Он относится к неисправностям, '
                        u'при которых остановиться нужно при первой безопасной возможности: '
@@ -1158,8 +1183,8 @@ def build(en_spns=()):
     # ---------------------------------------------------------------
     def is_stop(spn, makes):
         fmis = sorted({f for rows in makes.values() for f, _ in rows})
-        _, lvl, _ = page_risk(system_of(spn, std_name(spn)), fmis, urgent_fmi, spn in urgent_spn)
-        return lvl == 'now'
+        return page_stop(system_of(spn, std_name(spn)), fmis, urgent_fmi,
+                         spn in urgent_spn)
 
     def code_links(spns, prefix='../kody/'):
         return ''.join(code_link(s, '%sspn-%d.html' % (prefix, s)) for s in spns)
