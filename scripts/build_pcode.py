@@ -46,6 +46,75 @@ KNOWN_PCODE_BRANDS = ['volvo', 'mercedes', 'scania', 'shacman', 'tata', 'ashokle
                        'eaton', 'hyundai', 'haldex', 'allison', 'weichai', 'volkswagen', 'mwm', 'isuzu', 'baw',
                         'ivecoedc', 'ivecoeurotronic', 'iveco', 'daf', 'manzbr2', 'manebs', 'man', 'mack', 'yamz', 'volvomid']
 
+# ------------------------------------------------- индекс номеров сканера
+#
+# ЗАЧЕМ. У части марок код на щитке (SPN/FMI) и номер, который показывает
+# сканер, - разные вещи. Мы их знаем и печатаем прямо в описании: «Код по
+# K-line на КамАЗ-5490: ADM3 10103», «Код FODP (сканер): P0513-00», «Код
+# сканера: P023D». Но лежат они ВНУТРИ ТЕКСТА, а поиск по тексту описаний
+# не идёт - он идёт по ключам. Человек с дешёвым сканером вводит ровно то,
+# что видит на экране, и не находит ничего: 908 номеров были написаны на
+# страницах и при этом недоступны поиску.
+#
+# ЧТО СТРОИМ. Обратный индекс «номер сканера -> марка|SPN.FMI». Ответ по
+# нему выходит полноценной карточкой (расшифровка FMI, срочность, ссылка
+# на страницу кода), а не одной строкой из KV: мы ведём человека к нашему
+# же коду, а не заводим отдельную запись с тем же текстом.
+#
+# ПОЧЕМУ НЕ В KV. Эти описания и так лежат в публичной таблице - прятать
+# нечего, а лишний сетевой запрос на обочине с одной палкой связи стоит
+# дороже 29 КБ в файле, который и без того грузится.
+#
+# ПОЧЕМУ ТОЛЬКО В РУССКОМ ФАЙЛЕ. Индекс - это отображение номера на ключ
+# SPN.FMI, оно от языка не зависит. dtc.enc.js грузится всегда, dtc.en.js -
+# только для нерусских языков; класть одно и то же в оба значит платить
+# весом дважды. Номера при этом собираются из ОБОИХ файлов: английские
+# формулировки писались отдельно, и там, где русского номера нет, может
+# найтись английский.
+SCAN_PATTERNS = [
+    # (язык, зачем, регулярка)
+    (u'ru', u'КамАЗ-5490, старый сканер по K-line', re.compile(u'Код по K-line на КамАЗ-5490: (?:ADM3|MR2) ([0-9]+)')),
+    (u'ru', u'Ford, собственная нумерация FODP',    re.compile(r'Код FODP \(сканер\): ([A-Z0-9-]+)')),
+    (u'ru', u'SITRAK/Dongfeng/Foton, обычный OBD',  re.compile(u'Код сканера: ([A-Z0-9-]+)')),
+    (u'en', u'KamAZ-5490 K-line',                   re.compile(u'K-line code on KamAZ-5490: (?:ADM3|MR2) ([0-9]+)')),
+    (u'en', u'Ford FODP',                           re.compile(r'FODP code \(scan tool\): ([A-Z0-9-]+)')),
+    (u'en', u'SITRAK/Dongfeng/Foton OBD',           re.compile(u'Scan tool code: ([A-Z0-9-]+)')),
+]
+
+
+def build_scan_index(blobs):
+    """blobs - список разобранных таблиц (русская и английская).
+
+    Возвращает {номер: ["марка|SPN.FMI", ...]}. Один номер часто отвечает
+    сразу нескольким кодам (P060C у SITRAK - девятнадцати: одна причина,
+    девятнадцать проявлений), поэтому значение всегда список.
+    """
+    idx = {}
+    stats = {}
+    for blob in blobs:
+        for brand, table in (blob.get('brands') or {}).items():
+            for key, text in table.items():
+                if not isinstance(text, str):
+                    continue
+                for lang, why, rx in SCAN_PATTERNS:
+                    for m in rx.finditer(text):
+                        num = norm(m.group(1))
+                        ref = '%s|%s' % (brand, key)
+                        bucket = idx.setdefault(num, [])
+                        if ref not in bucket:
+                            bucket.append(ref)
+                        stats[(why, brand)] = stats.get((why, brand), 0) + 1
+    for bucket in idx.values():
+        bucket.sort()
+    if not idx:
+        raise SystemExit(
+            u'ПУСТОЙ ИНДЕКС НОМЕРОВ СКАНЕРА: ни одна из формулировок SCAN_PATTERNS '
+            u'не встретилась в описаниях. Скорее всего изменилась формулировка при '
+            u'заливке новых данных - поправьте регулярку, а не выбрасывайте проверку: '
+            u'молча пустой индекс означает, что 900 номеров опять не ищутся.')
+    return idx, stats
+
+
 TEMPLATE = u"""(function(){{
   var b64='{b64}';
   var bin=atob(b64);
@@ -115,14 +184,25 @@ def cmd_build():
         print(u'ВНИМАНИЕ: в pcode.json есть марки, которых нет в KNOWN_PCODE_BRANDS '
               u'(worker/pcode-api.js тоже надо обновить): %s' % ', '.join(unknown))
 
-    # 1) публичные файлы без pcode
+    # 1) публичные файлы: без pcode, зато с индексом номеров сканера
     ru = load_blob(RU_PATH)
     en = load_blob(EN_PATH)
     ru.pop('pcode', None)
     en.pop('pcode', None)
+    # Старый индекс снимаем ДО разбора, а не дописываем к нему: иначе номер,
+    # исчезнувший из описаний (поправили формулировку, откатили данные),
+    # остался бы в индексе навсегда и вёл в никуда.
+    ru.pop('scan', None)
+    en.pop('scan', None)
+    scan, scan_stats = build_scan_index([ru, en])
+    ru['scan'] = scan
     write_blob(RU_PATH, ru, '__TDP_DTC')
     write_blob(EN_PATH, en, '__TDP_DTC_EN')
     print('rewritten', RU_PATH, 'and', EN_PATH, '(pcode removed)')
+    print(u'индекс номеров сканера: %d номеров -> %d кодов'
+          % (len(scan), sum(len(v) for v in scan.values())))
+    for (why, brand), n in sorted(scan_stats.items()):
+        print(u'    %-42s %-10s %d' % (why, brand, n))
 
     # 2) kv-bulk.json для wrangler kv bulk put
     entries = []
