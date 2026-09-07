@@ -65,6 +65,27 @@
      таблица спрашивается ПЕРВОЙ. */
   var PCODE_FMI_BRANDS = {daf:1};
 
+  /* Марки, у которых дилерский номер записан САМИМ СЛОВОМ "SPN" плюс число.
+
+     У Renault Trucks 85 из 91 дилерского кода лежат под ключами вида
+     "SPN16", "SPN597" - так их печатает заводская документация, и значат
+     они там своё: SPN16 у Renault - это "реле обмотки 1, замыкание на плюс
+     или обрыв", а вовсе не перепад давления на топливном фильтре, как SPN
+     16 по стандарту J1939.
+
+     Беда в том, что parseAuto нарочно отменяет дилерскую ветку, когда во
+     вводе есть слово SPN (иначе "SPN16" и "97FMI3" уезжали бы в марочные
+     коды вместо стандарта). Правило верное, но именно на Renault оно
+     срабатывало против нас: весь заводской справочник марки был недостижим
+     в автоопределении, а ответ приходил чужой - и не пустой, а
+     правдоподобный, что хуже.
+
+     Лечим тем же приёмом, что и DAF выше: марка выбрана человеком, значит
+     сначала спрашиваем её заводскую таблицу ("SPN" + число), и только если
+     там пусто - идём в стандарт тем же run(true). Чужих марок не касается:
+     ветка включается только по этому списку. */
+  var SPN_PCODE_BRANDS = {renault:1};
+
   var NUM_PCODE_BRANDS = {thermoking:1, carrier:1, planar:1, webasto:1,
                           eberspacher:1, daewoo:1, eaton:1, volkswagen:1,
                           /* Подсистемы Iveco: у ivecoedc код мигания
@@ -99,7 +120,13 @@
        из 364 внутренних кодов таблицы 5490 282 слово в слово совпали с
        нашей таблицей Mercedes. Классический КамАЗ 65115/4308 идёт на
        Cummins ISB. Своя таблица КамАЗа стоит первой и ничего не теряет. */
-    kamaz:       ['kamaz', 'mercedes', 'cumminsisb'],
+    /* wabco в конце списка: ABS на шасси КамАЗа вабковский (сканер так и
+       подписывает систему - "КАМАЗ - Шасси - Wabco ABS-E4/E8 (CAN)"), и
+       тормозных кодов вроде 791.5 нет ни в своей таблице, ни у доноров
+       двигателя - ответ выходил общий по J1939 вместо заводского. Ставим
+       последним, чтобы четыре пересечения по шине CAN (630.2, 630.12,
+       639.2, 639.12) по-прежнему отвечали своей таблицей КамАЗа. */
+    kamaz:       ['kamaz', 'mercedes', 'cumminsisb', 'wabco'],
     ural:        ['yamz', 'kamaz'],
     kraz:        ['yamz'],
     /* Своей таблицы у Kenworth нет: то, что лежало здесь под видом 939
@@ -344,6 +371,8 @@
       pcodeNotFound: 'Дилерский код <b>{code}</b> в справочнике не найден. Такие коды у каждой марки свои — проверьте написание.',
       pcodeSearching: 'Ищем код…',
       pcodeApiError: 'Не удалось получить дилерский код — проверьте связь и попробуйте ещё раз.',
+      scanStep: 'номер сканера',
+      scanMany: 'Номер <b>{code}</b> отвечает нескольким кодам на щитке — сверьтесь с тем, что показывает панель.',
       stepCode: 'код', stepDecoding: 'расшифровка',
       factorySource: 'фирменная таблица {brand}', standardSource: 'стандарт J1939',
       composedSource: 'собрано из таблиц компонентов {brand}',
@@ -463,6 +492,8 @@
       pcodeNotFound: 'Dealer code <b>{code}</b> not found in the database. These codes differ by make — double-check the spelling.',
       pcodeSearching: 'Searching…',
       pcodeApiError: 'Couldn’t reach the dealer-code lookup — check your connection and try again.',
+      scanStep: 'scanner code',
+      scanMany: 'Code <b>{code}</b> maps to several dash codes — check which one the cluster shows.',
       stepCode: 'code', stepDecoding: 'meaning',
       factorySource: 'factory table — {brand}', standardSource: 'J1939 standard',
       composedSource: 'assembled from {brand} component tables',
@@ -580,6 +611,8 @@
       pcodeNotFound: 'Händlercode <b>{code}</b> nicht in der Datenbank gefunden. Diese Codes sind je Marke unterschiedlich — Schreibweise prüfen.',
       pcodeSearching: 'Suche läuft…',
       pcodeApiError: 'Händlercode konnte nicht abgerufen werden — Verbindung prüfen und erneut versuchen.',
+      scanStep: 'Scanner-Code',
+      scanMany: 'Nummer <b>{code}</b> entspricht mehreren Codes im Kombiinstrument — prüfen Sie, welcher angezeigt wird.',
       stepCode: 'Code', stepDecoding: 'Bedeutung',
       factorySource: 'Werkstabelle — {brand}', standardSource: 'J1939-Standard',
       spnNotFound: '<b>SPN {spn}</b> nicht in der Datenbank gefunden — vermutlich ein herstellerspezifischer Code. Wählen Sie oben eine Marke, oder ergänzen Sie den FMI: z. B. <b>{spn}/1</b>.',
@@ -696,6 +729,8 @@
       pcodeNotFound: 'Code constructeur <b>{code}</b> introuvable dans la base. Ces codes diffèrent selon la marque — vérifiez l’orthographe.',
       pcodeSearching: 'Recherche en cours…',
       pcodeApiError: 'Impossible de récupérer le code constructeur — vérifiez votre connexion et réessayez.',
+      scanStep: 'code de la valise',
+      scanMany: 'Le numéro <b>{code}</b> correspond à plusieurs codes au tableau de bord — vérifiez celui qui s’affiche.',
       stepCode: 'code', stepDecoding: 'signification',
       factorySource: 'table constructeur — {brand}', standardSource: 'norme J1939',
       spnNotFound: '<b>SPN {spn}</b> introuvable dans la base — probablement un code propre au constructeur. Essayez de choisir une marque ci-dessus, ou ajoutez le FMI : par ex. <b>{spn}/1</b>.',
@@ -812,6 +847,8 @@
       pcodeNotFound: 'Código de concesionario <b>{code}</b> no encontrado en la base de datos. Estos códigos varían según la marca — revisa la escritura.',
       pcodeSearching: 'Buscando…',
       pcodeApiError: 'No se pudo obtener el código de concesionario — comprueba tu conexión e inténtalo de nuevo.',
+      scanStep: 'código del escáner',
+      scanMany: 'El número <b>{code}</b> corresponde a varios códigos del cuadro — comprueba cuál se muestra.',
       stepCode: 'código', stepDecoding: 'significado',
       factorySource: 'tabla de fábrica — {brand}', standardSource: 'norma J1939',
       spnNotFound: '<b>SPN {spn}</b> no encontrado en la base de datos — probablemente un código específico del fabricante. Prueba a elegir una marca arriba, o añade el FMI: p. ej. <b>{spn}/1</b>.',
@@ -928,6 +965,8 @@
       pcodeNotFound: 'Código de concessionária <b>{code}</b> não encontrado no banco de dados. Esses códigos variam por marca — verifique a grafia.',
       pcodeSearching: 'Buscando…',
       pcodeApiError: 'Não foi possível obter o código de concessionária — verifique sua conexão e tente novamente.',
+      scanStep: 'código do scanner',
+      scanMany: 'O número <b>{code}</b> corresponde a vários códigos no painel — verifique qual aparece.',
       stepCode: 'código', stepDecoding: 'significado',
       factorySource: 'tabela de fábrica — {brand}', standardSource: 'norma J1939',
       spnNotFound: '<b>SPN {spn}</b> não encontrado no banco de dados — provavelmente um código específico do fabricante. Tente selecionar uma marca acima, ou adicione o FMI: ex. <b>{spn}/1</b>.',
@@ -1044,6 +1083,8 @@
       pcodeNotFound: 'Kod dealerski <b>{code}</b> nie znaleziony w bazie. Takie kody różnią się między markami — sprawdź zapis.',
       pcodeSearching: 'Szukam…',
       pcodeApiError: 'Nie udało się pobrać kodu dealerskiego — sprawdź połączenie i spróbuj ponownie.',
+      scanStep: 'kod ze skanera',
+      scanMany: 'Numer <b>{code}</b> odpowiada kilku kodom na zestawie wskaźników — sprawdź, który pokazuje panel.',
       stepCode: 'kod', stepDecoding: 'znaczenie',
       factorySource: 'tabela fabryczna — {brand}', standardSource: 'norma J1939',
       spnNotFound: '<b>SPN {spn}</b> nie znaleziony w bazie — prawdopodobnie kod producenta. Spróbuj wybrać markę powyżej albo dodaj FMI: np. <b>{spn}/1</b>.',
@@ -1160,6 +1201,8 @@
       pcodeNotFound: 'Bayi kodu <b>{code}</b> veritabanında bulunamadı. Bu kodlar markaya göre farklıdır — yazımı kontrol edin.',
       pcodeSearching: 'Aranıyor…',
       pcodeApiError: 'Bayi kodu alınamadı — bağlantınızı kontrol edip tekrar deneyin.',
+      scanStep: 'tarayıcı kodu',
+      scanMany: '<b>{code}</b> numarası gösterge panelindeki birden fazla koda karşılık gelir — hangisinin göründüğünü kontrol edin.',
       stepCode: 'kod', stepDecoding: 'anlam',
       factorySource: 'fabrika tablosu — {brand}', standardSource: 'J1939 standardı',
       spnNotFound: '<b>SPN {spn}</b> veritabanında bulunamadı — muhtemelen üreticiye özel bir kod. Yukarıdan bir marka seçin veya FMI ekleyin: örn. <b>{spn}/1</b>.',
@@ -1276,6 +1319,8 @@
       pcodeNotFound: 'डीलर कोड <b>{code}</b> डेटाबेस में नहीं मिला। ये कोड हर ब्रांड में अलग होते हैं — वर्तनी जांचें।',
       pcodeSearching: 'खोजा जा रहा है…',
       pcodeApiError: 'डीलर कोड नहीं मिल सका — अपना कनेक्शन जांचें और फिर से कोशिश करें।',
+      scanStep: 'स्कैनर कोड',
+      scanMany: 'नंबर <b>{code}</b> डैश के कई कोड से मेल खाता है — देखें कि पैनल कौन सा दिखा रहा है।',
       stepCode: 'कोड', stepDecoding: 'अर्थ',
       factorySource: 'फैक्ट्री तालिका — {brand}', standardSource: 'J1939 मानक',
       spnNotFound: '<b>SPN {spn}</b> डेटाबेस में नहीं मिला — संभवतः यह निर्माता-विशिष्ट कोड है। ऊपर ब्रांड चुनें, या FMI जोड़ें: जैसे <b>{spn}/1</b>.',
@@ -1392,6 +1437,8 @@
       pcodeNotFound: '数据库中未找到经销商代码 <b>{code}</b>。不同品牌的代码不同 — 请检查输入是否正确。',
       pcodeSearching: '正在查询…',
       pcodeApiError: '无法获取经销商代码 — 请检查网络连接后重试。',
+      scanStep: '扫描仪代码',
+      scanMany: '代码 <b>{code}</b> 对应仪表盘上的多个代码 — 请核对仪表显示的是哪一个。',
       stepCode: '代码', stepDecoding: '含义',
       factorySource: '原厂代码表 — {brand}', standardSource: 'J1939 标准',
       spnNotFound: '数据库中未找到 <b>SPN {spn}</b> — 可能是厂商专有代码。请在上方选择品牌，或补充 FMI，例如 <b>{spn}/1</b>。',
@@ -2029,6 +2076,101 @@
       DB.kamazUrgent.indexOf((spnAlt || spn) + '.' + (fmiAlt || fmi)) >= 0;
   }
 
+  /* Полный ответ по паре SPN/FMI: код, расшифровка, «можно ли ехать» и
+     горизонт риска. Вынесено из run() отдельной функцией, потому что тем
+     же ответом теперь отвечает и номер сканера (см. DB.scan ниже): человек,
+     который ввёл "P0513-00" со своей дешёвой китайской коробочки, должен
+     получить ту же карточку, что и человек с кодом с приборки, а не сухую
+     строчку. lead - необязательный шаг ПЕРЕД «кодом»: им подписывается,
+     из чего мы этот код взяли. */
+  function spnFmiHtml(spn, fmi, brand, lead){
+    var d = describe(spn, fmi, brand);
+    var u = urgent(spn, fmi, brand);
+    var code = codeLabel(spn) + ' · FMI ' + fmi;
+    var steps = lead ? [lead] : [];
+    steps.push({st:t('stepCode'), tx:'<span class="mono">' + code + '</span>', cls:'ok'});
+    steps.push({st:t('stepDecoding'), tx:'<b>' + esc(d.text) + '</b>' +
+      (d.src ? '<div class="st" style="margin-top:7px">' + esc(t('sourceLabel', {src:d.src})) + '</div>' : ''), cls:'ok'});
+    steps.push(u
+      ? {st:t('stepUrgency'), tx:t('urgentText'), cls:'hit'}
+      : {st:t('stepUrgency'), tx:t('notUrgentText')});
+    var html = chain(steps);
+    /* Для нерасшифрованного кода горизонт не строим: срок можно
+       назвать, только зная, что именно сломалось. */
+    if(!d.unknown){
+      html += '<div class="card">' + riskBlock({
+        spn:spn, fmi:fmi, sys:systemOf(spn, d.text), urgent:u
+      }) + '</div>';
+    }
+    if(d.unknown){
+      html += note(t('unknownSpnNote'));
+    }
+    return html;
+  }
+
+  /* ============================================================
+     НОМЕР, КОТОРЫЙ ПОКАЗЫВАЕТ СКАНЕР
+
+     На приборке код один (SPN/FMI), а сканер у того же человека
+     показывает другой: у КамАЗ-5490 старый прибор по K-line читает
+     пятизначный номер блока ADM3/MR2 ("10103"), Ford печатает свою
+     нумерацию FODP ("P0513-00"), а на SITRAK/Dongfeng/Foton дешёвая
+     коробочка за тысячу рублей выдаёт обычный OBD-P-код ("P023D").
+
+     Эти соответствия мы знаем и печатаем прямо в описании кода. Но
+     лежали они ВНУТРИ ТЕКСТА, а поиск идёт по ключам - и 908 номеров
+     были написаны на страницах и при этом не находились ничем. Хуже
+     того, часть уводила к чужой марке: "P023D" отвечал JAC, потому что
+     у JAC такой ключ в дилерской таблице есть, а у SITRAK нет.
+
+     Индекс DB.scan («номер» -> ["марка|SPN.FMI", ...]) собирается на
+     сборке из тех же описаний, см. build_scan_index в
+     scripts/build_pcode.py. Ищем по нему ДО сети: свой ответ из памяти
+     всегда вернее и быстрее чужого по HTTP.
+
+     Марка выбрана - показываем только её (и её доноров): один номер
+     занят у нескольких марок сразу, и вываливать человеку с SITRAK
+     ответы Dongfeng незачем. Марка не выбрана - показываем все, как это
+     делает и дилерский поиск. */
+  function scanRefs(brand, code){
+    if(!DB || !DB.scan) return [];
+    var refs = DB.scan[normCode(code).replace(/\s+/g, '')];
+    if(!refs) return [];
+    var donors = donorsOf(brand);
+    var out = [];
+    refs.forEach(function(ref){
+      var cut = ref.indexOf('|');
+      var b = ref.slice(0, cut), key = ref.slice(cut + 1);
+      if(donors.length && donors.indexOf(b) < 0) return;
+      var dot = key.lastIndexOf('.');
+      out.push({brand:b, spn:key.slice(0, dot), fmi:key.slice(dot + 1)});
+    });
+    return out;
+  }
+
+  /* Ответ по номеру сканера. Один код на щитке - обычная карточка с
+     подписью, откуда взялось; несколько - список, потому что выбрать за
+     человека, какой из них горит именно у него, мы не можем. */
+  function scanStepList(hits){
+    return hits.map(function(h){
+      var E = en(), key = h.spn + '.' + h.fmi;
+      var txt = (E && E.brands[h.brand] && E.brands[h.brand][key]) ||
+                (DB.brands[h.brand] && DB.brands[h.brand][key]) || '';
+      return {st:brandName(h.brand),
+        tx:'<span class="mono">' + codeLabel(h.spn) + ' · FMI ' + esc(h.fmi) +
+           '</span><br><b>' + esc(txt) + '</b>', cls:'ok'};
+    });
+  }
+  function scanHtml(typed, hits){
+    var lead = {st:t('scanStep'),
+                tx:'<span class="mono">' + esc(typed) + '</span>', cls:'ok'};
+    if(hits.length === 1){
+      return spnFmiHtml(hits[0].spn, hits[0].fmi, hits[0].brand, lead);
+    }
+    return chain([lead].concat(scanStepList(hits))) +
+           note(t('scanMany', {code: esc(typed)}));
+  }
+
   function esc(t){
     return String(t).replace(/[&<>"]/g, function(c){
       return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];
@@ -2650,20 +2792,48 @@
     if(p.pcode){
       render(note(t('pcodeSearching')));
       load().then(function(){
-        return fetchPcode(brand, p.pcode, currentLang);
-      }).then(function(hits){
-        if(!hits.length){
+        /* Индекс номеров сканера (DB.scan) лежит в памяти, дилерская
+           таблица - за сетью. Спрашиваем оба: у одного и того же номера
+           бывают оба ответа, и они не спорят, а дополняют друг друга.
+           "P0521" - это и наш SITRAK/Dongfeng (номер дешёвого OBD-сканера
+           к коду на щитке), и настоящий дилерский код JAC и Mack. Показать
+           только один из них значит соврать половине спросивших.
+           Сеть при этом не обязана отвечать: если она отпала, а свой ответ
+           из памяти есть - отдаём его, а не ошибку связи. */
+        var mine = scanRefs(brand, p.pcode);
+        /* Promise.resolve().then вокруг запроса не для красоты: fetch может
+           бросить и синхронно (нет сети у движка, запрещённый URL), а тогда
+           .catch ниже просто не успевает навеситься - исключение улетает
+           мимо и человек с готовым ответом в памяти видит «проверьте связь». */
+        var net = Promise.resolve()
+          .then(function(){ return fetchPcode(brand, p.pcode, currentLang); })
+          .catch(function(e){ if(mine.length) return []; throw e; });
+        /* Английские описания тянем ТОЛЬКО когда ответ будет свой: текст от
+           дилерского API приходит уже на нужном языке (ветка нарочно обходила
+           loadEn(), чтобы не грузить полмегабайта на обочине), а вот ответ по
+           индексу номеров сканера читается из нашей же таблицы - без
+           dtc.en.js он вышел бы по-русски у англичанина. */
+        return Promise.all([net, mine.length ? loadEn() : null])
+          .then(function(a){ return {net:a[0], mine:mine}; });
+      }).then(function(r){
+        if(!r.net.length && !r.mine.length){
           render(note(t('pcodeNotFound', {code: esc(p.pcode)})));
           return;
         }
-        var pSteps = [{st:t('stepCode'), tx:pcodeStep(p.pcode, hits), cls:'ok'}];
-        hits.forEach(function(h){
+        /* Ответ только наш - показываем полной карточкой (а при одном
+           совпадении ещё и с «можно ли ехать»), это ценнее строчки. */
+        if(!r.net.length){
+          render(scanHtml(p.pcode, r.mine), true);
+          return;
+        }
+        var pSteps = [{st:t('stepCode'), tx:pcodeStep(p.pcode, r.net), cls:'ok'}];
+        r.net.forEach(function(h){
           pSteps.push({
-            st: hits.length > 1 || !brand ? brandName(h.brand) : t('stepDecoding'),
+            st: r.net.length > 1 || r.mine.length || !brand ? brandName(h.brand) : t('stepDecoding'),
             tx: '<b>' + esc(h.text) + '</b>', cls:'ok'
           });
         });
-        render(chain(pSteps), true);
+        render(chain(pSteps.concat(scanStepList(r.mine))), true);
       }).catch(function(){
         render(note(t('pcodeApiError')));
       });
@@ -2700,6 +2870,38 @@
       return;
     }
 
+    /* Renault: заводской номер записан словом «SPN» плюс число (см.
+       SPN_PCODE_BRANDS). Разбор выше уводит такой ввод в стандарт J1939 -
+       и до заводской таблицы марки дело не доходило вовсе, хотя лежит там
+       85 кодов из 91. Спрашиваем её первой, при промахе идём в стандарт
+       тем же run(true).
+
+       Ловим и «SPN 16», и голое «16»: ключ в таблице один и тот же, а
+       человек списывает то, что видит - со словом или без.
+
+       Явно выбранный «J1939 - SPN/FMI» отменяет подмену: это прямо
+       высказанное намерение получить общую расшифровку, спорить с ним
+       не надо (то же правило, что у NUM_PCODE_BRANDS). */
+    if(SPN_PCODE_BRANDS[brand] && !skipDealer && std.value !== 'spnfmi' &&
+       p.spn != null && p.fmi == null){
+      var rcode = 'SPN' + p.spn;
+      render(note(t('pcodeSearching')));
+      load().then(function(){
+        return fetchPcode(brand, rcode, currentLang);
+      }).then(function(hits){
+        if(!hits.length){ run(true); return; }
+        var rSteps = [{st:t('stepCode'), tx:pcodeStep(rcode, hits), cls:'ok'}];
+        hits.forEach(function(h){
+          rSteps.push({
+            st: hits.length > 1 ? brandName(h.brand) : t('stepDecoding'),
+            tx: '<b>' + esc(h.text) + '</b>', cls:'ok'
+          });
+        });
+        render(chain(rSteps), true);
+      }).catch(function(){ run(true); });
+      return;
+    }
+
     ready().then(function(){
       if(p.bad){
         render(note(t('badCode')));
@@ -2718,6 +2920,14 @@
              числом. Риска подменить SPN тут нет: сюда попадают только
              номера, на которые стандарту ответить нечем. */
           var num = String(p.spn);
+          /* Сначала свой индекс: все 119 пятизначных номеров ADM3/MR2
+             КамАЗа-5490 приходят именно сюда - стандарту на них ответить
+             нечем, а у нас соответствие есть. Сеть тогда не нужна вовсе. */
+          var nMine = scanRefs(brand, num);
+          if(nMine.length){
+            render(scanHtml(num, nMine), true);
+            return;
+          }
           render(note(t('pcodeSearching')));
           fetchPcode(brand, num, currentLang).then(function(hits){
             if(!hits.length){
@@ -2766,29 +2976,7 @@
         render(chain(sSteps), true);
         return;
       }
-      var d = describe(p.spn, p.fmi, brand);
-      var u = urgent(p.spn, p.fmi, brand);
-      var code = codeLabel(p.spn) + ' · FMI ' + p.fmi;
-      var steps = [
-        {st:t('stepCode'), tx:'<span class="mono">' + code + '</span>', cls:'ok'},
-        {st:t('stepDecoding'), tx:'<b>' + esc(d.text) + '</b>' +
-           (d.src ? '<div class="st" style="margin-top:7px">' + esc(t('sourceLabel', {src:d.src})) + '</div>' : ''), cls:'ok'},
-        u
-          ? {st:t('stepUrgency'), tx:t('urgentText'), cls:'hit'}
-          : {st:t('stepUrgency'), tx:t('notUrgentText')}
-      ];
-      var html = chain(steps);
-      /* Для нерасшифрованного кода горизонт не строим: срок можно
-         назвать, только зная, что именно сломалось. */
-      if(!d.unknown){
-        html += '<div class="card">' + riskBlock({
-          spn:p.spn, fmi:p.fmi, sys:systemOf(p.spn, d.text), urgent:u
-        }) + '</div>';
-      }
-      if(d.unknown){
-        html += note(t('unknownSpnNote'));
-      }
-      render(html, true);
+      render(spnFmiHtml(p.spn, p.fmi, brand), true);
     }).catch(function(){
       render(note(t('loadError')));
     });
