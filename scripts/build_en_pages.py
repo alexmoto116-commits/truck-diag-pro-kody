@@ -373,6 +373,8 @@ def build():
                                ogtitle=bp.esc(page_name), mid=bp.METRIKA_ID, ld=ld,
                                nav=nav(), lang='en', locale='en_US', alt=alt_links(rel))]
         body.append(u'<h1>%s</h1>' % bp.esc(page_name))
+        body.append(bp.search_form(ph=u'Another code, e.g. %d/3' % spn, action=u'/en/', btn=u'Search',
+                                   label=u'Fault code'))
         lvl = lvl_of.get(spn, 'plan')
         tier = bp.tier_of(lvl)
         body.append(u'<p class="vline t-%s"><b>%s</b><span class="hz">%s</span></p>'
@@ -467,6 +469,7 @@ def build():
                            nav=u'<a href="/en/">%s</a>' % TX['navUp'],
                            lang='en', locale='en_US', alt=alt_links('kody/'))]
     body.append(u'<h1>%s</h1>' % bp.esc(TX['hubH1']))
+    body.append(bp.search_form(None, ph=u'Your code, e.g. 1078/3', action=u'/en/', btn=u'Search', label=u'Fault code'))
     body.append(u'<p class="sub">%s</p>' % (TX['hubSub'] % (len(written), n_brands)))
     body.extend(secs)
     body.append(u'<p class="cta">%s</p>' % TX['ctaHub'])

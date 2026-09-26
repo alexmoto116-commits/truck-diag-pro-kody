@@ -342,6 +342,10 @@ def page_en(path, title, desc, h1, sub, sections, section=None, rel_ru=None):
                            ogtitle=bp.esc(h1), mid=bp.METRIKA_ID, ld=ld, nav=nav_en(section),
                            lang='en', locale='en_US', alt=alt)]
     body.append(u'<h1>%s</h1>' % bp.esc(h1))
+    # со страницы марки - поиск сразу с этой маркой, как у русской
+    _марка = (os.path.basename(path)[:-5] if path.startswith('en/marki/')
+              and not path.endswith('index.html') else None)
+    body.append(bp.search_form(_марка, ph=u'Your code, e.g. 1078/3', action=u'/en/', btn=u'Search', label=u'Fault code'))
     body.append(u'<p class="sub">%s</p>' % sub)
     body.extend(sections)
     body.append(u'<p class="cta">Know the code number? <a href="/en/">Type it into the '
