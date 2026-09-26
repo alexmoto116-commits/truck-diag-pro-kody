@@ -79,6 +79,30 @@ OWN_NUMBERING = {
 # «выберите блок». Поэтому на странице пишем это прямо.
 MID_PCODE_BRANDS = {'volvomid'}
 
+# FMI 3, 4, 5, 6 - электрика: обрыв, замыкание на плюс или массу, ток вне
+# нормы. Сама величина при этом, скорее всего, в норме, и совет по узлу
+# («слейте воду из фильтра») не к месту - а раньше он печатался по разделу
+# SPN при любом FMI (spn-1078: цепь датчика ТНВД -> «проверьте отстойник»).
+FMI_ELECTRIC = {3, 4, 5, 6}
+ADVICE_ELECTRIC = (u'Код про электрическую цепь: обрыв, замыкание или плохой контакт. '
+                   u'Осмотрите разъём датчика и жгут рядом: окисление, влага, перетёртая '
+                   u'изоляция, отошедшая защёлка. Разъём разъединить, осмотреть контакты и '
+                   u'защёлкнуть до щелчка. С мультиметром — проверить, нет ли замыкания на '
+                   u'массу и на плюс.')
+
+
+def advice_for(sys_key, fmis):
+    """Что проверить на месте - по виду неисправности, а не только по узлу."""
+    fmis = set(fmis)
+    по_узлу = ADVICE.get(sys_key)
+    if fmis and fmis <= FMI_ELECTRIC:
+        return ADVICE_ELECTRIC
+    if fmis & FMI_ELECTRIC and по_узлу:
+        return (по_узлу + u' Если FMI 3–6 — это электрика, а не сам узел: '
+                u'осмотрите разъём и жгут датчика.')
+    return по_узлу
+
+
 SYS_ORDER_BRAND = ['oil', 'cool', 'fuel', 'air', 'scr', 'power', 'can',
                    'brake', 'trans', 'prot', 'other']
 SYS_TITLE = {
@@ -529,6 +553,18 @@ def nav_of(section=None):
     sec_name, sec_path = SECTIONS[section]
     return u'%s<span class="sep">&middot;</span><a href="/%s">%s</a>' % (up, sec_path, sec_name)
 
+# Строка поиска под заголовком каждой страницы. Человек часто приходит не на
+# свой код (номер тот же, марка другая) или со своим списком со сканера - и
+# уходил через 10 секунд: наверху была только ссылка «поиск по коду». Главная
+# уже понимает код из адреса (?q=, марку - ?b=), поэтому форма простая, без
+# скриптов.
+def search_form(brand=None, ph=u'Ваш код, например 1078/3', action=u'/', btn=u'Найти',
+                label=u'Код неисправности'):
+    return (u'<form class="sf" action="%s" method="get" role="search">'
+            u'<input type="search" name="q" placeholder="%s" aria-label="%s" '
+            u'autocomplete="off" inputmode="text">%s<button type="submit">%s</button></form>'
+            % (action, ph, label, (u'<input type="hidden" name="b" value="%s">' % brand) if brand else u'', btn))
+
 HEAD = u"""<!DOCTYPE html>
 <html lang="{lang}">
 <head>
@@ -621,6 +657,13 @@ h2.mk{{font-family:var(--sans-fallback,inherit);font-size:17.5px;letter-spacing:
   text-transform:none;color:#EAF0F7;font-weight:640;margin:30px 0 10px}}
 .jump{{margin:0 0 26px;font-size:13.5px;color:#7A8998;display:flex;flex-wrap:wrap;gap:6px 14px}}
 .jump a{{text-decoration:none;border-bottom:1px solid rgba(111,227,211,.35)}}
+.sf{{display:flex;gap:8px;margin:0 0 22px}}
+.sf input{{flex:1;min-width:0;min-height:46px;padding:0 14px;border-radius:10px;border:1px solid rgba(111,227,211,.35);
+  background:rgba(255,255,255,.04);color:#EAF0F7;font-size:16px;font-family:inherit}}
+.sf input::placeholder{{color:#7A8998}}
+.sf input:focus{{outline:none;border-color:#6FE3D3}}
+.sf button{{min-height:46px;padding:0 18px;border-radius:10px;border:0;background:#6FE3D3;color:#05070A;
+  font-weight:700;font-size:15px;font-family:inherit;cursor:pointer}}
 .cta{{margin-top:44px;padding-top:24px;border-top:1px solid rgba(255,255,255,.06);font-size:14px;color:#94A2B4}}
 </style>
 </head>
@@ -1169,6 +1212,7 @@ def build(en_spns=()):
                             nav=nav_of('kody'), lang='ru', locale='ru_RU',
                             alt=alt_links(spn in en_spns, 'kody/spn-%d.html' % spn))]
         body.append(u'<h1>%s</h1>' % esc(page_name))
+        body.append(search_form(ph=u'Другой код, например %d/3' % spn))
         _tier = tier_of(worst_lvl)
         body.append(u'<p class="vline t-%s"><b>%s</b><span class="hz">%s</span></p>'
                     % (_tier,
@@ -1223,9 +1267,10 @@ def build(en_spns=()):
         body.append(u'<section><h2>Можно ли ехать</h2><p>%s</p></section>' % verdict)
         body.append(risk_section(sys_key, seen_all_early, urgent_fmi, urgent_spn_hit))
 
-        if ADVICE.get(sys_key):
+        _совет = advice_for(sys_key, seen_all_early)
+        if _совет:
             body.append(u'<section><h2>Что проверить на месте</h2><p>%s</p></section>'
-                        % ADVICE[sys_key])
+                        % _совет)
 
         body.append(causal_section(spn))
 
@@ -1258,7 +1303,7 @@ def build(en_spns=()):
     def code_links(spns, prefix='../kody/'):
         return ''.join(code_link(s, '%sspn-%d.html' % (prefix, s)) for s in spns)
 
-    def page(path, title, desc, h1, sub, sections, section=None, extra_ld=None, alt=u''):
+    def page(path, title, desc, h1, sub, sections, section=None, extra_ld=None, alt=u'', brand=None):
         # Рубрику публикуем как /kody/, а не /kody/index.html: ссылки в
         # навигации ведут на директорию, и canonical должен вести туда же,
         # иначе на одну страницу заводится два адреса.
@@ -1272,6 +1317,12 @@ def build(en_spns=()):
                             ogtitle=esc(h1), mid=METRIKA_ID, ld=ld, nav=nav_of(section),
                             lang='ru', locale='ru_RU', alt=alt)]
         body.append(u'<h1>%s</h1>' % esc(h1))
+        # у марки со своей нумерацией пример - её же код, а не SPN/FMI
+        _пример = None
+        if brand in OWN_NUMBERING and brand in db['brands']:
+            _пример = next(iter(sorted(db['brands'][brand], key=lambda k: (len(k), k))), None)
+        body.append(search_form(brand, ph=(u'Код %s, например %s' % (brand_names.get(brand, brand), _пример))
+                                if _пример else u'Ваш код, например 1078/3'))
         body.append(u'<p class="sub">%s</p>' % sub)
         body.extend(sections)
         body.append(u'<p class="cta">Знаете номер кода? '
@@ -1359,7 +1410,7 @@ def build(en_spns=()):
             sub += (u' Плюс отдельно ниже — %s %s в дилерском формате OBD-II.'
                     % (n_codes(len(dealer_rows)), esc(bn)))
         brand_index.append((path, bn, total_n, 'mid'))
-        return page(path, title, desc, u'Коды ошибок %s' % bn, sub, secs, 'marki')
+        return page(path, title, desc, u'Коды ошибок %s' % bn, sub, secs, 'marki', brand=b)
 
     extra = []
 
@@ -1379,6 +1430,15 @@ def build(en_spns=()):
             continue
         marki_built.add(b)
         stop_codes = [s for s in mine if is_stop(s, per_spn.get(s, {}))][:12]
+        # У ZF AS-Tronic и Ford номер свой: «SPN 19» у ZF - не давление масла.
+        # Раньше список подписывался стандартным названием J1939 и по нему же
+        # раскладывался («Смазка», «Топливо») и помечался «ехать нельзя» -
+        # страница коробки передач была про двигатель, Яндекс выкинул её как
+        # малоценную (26.09.2026). Для них - своя таблица: номер и заводское
+        # описание, ссылка на раздел марки на странице номера.
+        own = b in OWN_NUMBERING
+        if own:
+            stop_codes = []
 
         secs = []
         if stop_codes:
@@ -1392,8 +1452,21 @@ def build(en_spns=()):
         # Дилерские pcode.* сюда не попадают физически: у них своя ветка ниже,
         # с выборкой примеров (см. load_pcode и sample_rows). Не объединять.
         by_sys_brand = {}
-        for s in mine:
+        for s in ([] if own else mine):
             by_sys_brand.setdefault(system_of(s, std_name(s)), []).append(s)
+        if own:
+            def own_key(k):
+                a, _, f = k.partition('.')
+                return (int(a) if a.isdigit() else 10 ** 9, int(f) if f.isdigit() else 0, k)
+            own_rows = [(k, brands[b][k]) for k in sorted(brands[b], key=own_key)
+                        if k.split('.')[0].isdigit() and int(k.split('.')[0]) in set(mine)]
+            secs.append(u'<section><h2>Все коды %s — %s</h2><ul class="near">%s</ul></section>'
+                        % (esc(bn), n_codes(len(own_rows)), u''.join(
+                            u'<li><a href="../kody/spn-%d.html#mk-%s"><span class="mono">%s</span>'
+                            u'<span class="nm">%s</span></a></li>'
+                            % (int(k.split('.')[0]), b, esc(k),
+                               esc(re.split(r'(?<=[.!?])\s', (v or u'').strip())[0][:160]))
+                            for k, v in own_rows)))
         for key in SYS_ORDER_BRAND:
             bucket = by_sys_brand.get(key)
             if not bucket:
@@ -1401,16 +1474,21 @@ def build(en_spns=()):
             secs.append(u'<section><h2>%s — %s</h2><ul class="near">%s</ul></section>'
                         % (esc(SYS_TITLE[key]), n_codes(len(bucket)), code_links(bucket)))
 
-        secs.append(
+        if own:
+            secs.append(u'<section><h2>Как читать номер</h2><p>Нумерация %s своя, не SPN '
+                        u'по стандарту J1939: первая часть — номер неисправности, после точки — '
+                        u'её вид. Тот же номер у двигателя или другой марки означает другое, '
+                        u'поэтому ищите код в списке выше или в поиске с выбранной маркой.</p></section>'
+                        % esc(bn))
+        else:
+            secs.append(
             u'<section><h2>Как читать код</h2><p>Код состоит из двух половин. '
             u'<b>SPN</b> — что именно барахлит: датчик, узел, параметр. '
             u'<b>FMI</b> — что с ним не так: значение вне нормы, обрыв, замыкание, '
             u'недостоверные данные. Поэтому «SPN 100» без FMI — это ещё не диагноз, '
             u'а «100/1» уже говорит, что давление масла упало ниже нормы.</p></section>')
-        if b in OWN_NUMBERING:
-            secs.append(u'<section><h2>Как читать номер</h2><p>%s</p></section>'
-                        % esc(OWN_NUMBERING[b]))
-        secs.append(
+        if b != 'zfastronic':      # коробка передач: AdBlue ни при чём
+            secs.append(
             u'<section><h2>Если кодов сразу несколько</h2><p>Так почти всегда и бывает: '
             u'одна поломка тянет за собой пять-шесть кодов. Пустой бак AdBlue сначала '
             u'даёт ошибку уровня, потом прерванное дозирование, следом превышение NOx '
@@ -1440,19 +1518,24 @@ def build(en_spns=()):
 
         path = 'marki/%s.html' % b
         title = u'Коды ошибок %s | codetruck.ru' % bn
-        total_n = len(mine) + (len(dealer_rows) if dealer_rows else 0)
+        total_n = (len(own_rows) if own else len(mine)) + (len(dealer_rows) if dealer_rows else 0)
         desc = (u'Все коды неисправностей %s: %s по системам — какие требуют '
                 u'немедленной остановки, что означает каждый и можно ли ехать.'
                 % (bn, n_codes(total_n)))
-        sub = (u'В справочнике разобрано <b>%s %s</b> по заводским таблицам — '
-               u'ниже весь список по системам. Сначала те, с которыми ехать нельзя.'
-               % (n_codes(len(mine)), esc(bn)))
+        if own:
+            sub = (u'В справочнике разобрано <b>%s %s</b> по заводским таблицам — '
+                   u'номер кода и что он значит. Нумерация у %s своя, не SPN J1939.'
+                   % (n_codes(len(own_rows)), esc(bn), esc(bn)))
+        else:
+            sub = (u'В справочнике разобрано <b>%s %s</b> по заводским таблицам — '
+                   u'ниже весь список по системам. Сначала те, с которыми ехать нельзя.'
+                   % (n_codes(len(mine)), esc(bn)))
         if dealer_rows:
             sub += (u' Плюс отдельно ниже — %s %s в дилерском формате.'
                     % (n_codes(len(dealer_rows)), esc(bn)))
         brand_index.append((path, bn, total_n, 'spn'))
         extra.append(page(path, title, desc,
-                          u'Коды ошибок %s' % bn, sub, secs, 'marki'))
+                          u'Коды ошибок %s' % bn, sub, secs, 'marki', brand=b))
 
     # --- по маркам с MID-структурой кода (Mack, Detroit Diesel) -----
     for b in sorted(MID_MODULE_NAMES, key=lambda x: brand_names.get(x, x)):
@@ -1501,7 +1584,7 @@ def build(en_spns=()):
                    u'свой код — в поиск на главной, там же можно выбрать марку «%s» из списка.'
                    % (n_d, esc(bn), esc(bn)))
         brand_index.append((path, bn, len(rows), 'pcode'))
-        extra.append(page(path, title, desc, u'Коды ошибок %s' % bn, sub, secs, 'marki'))
+        extra.append(page(path, title, desc, u'Коды ошибок %s' % bn, sub, secs, 'marki', brand=b))
         marki_built.add(b)
 
     # --- по симптомам ----------------------------------------------
