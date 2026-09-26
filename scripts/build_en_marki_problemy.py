@@ -471,13 +471,28 @@ def build():
         if not mine_en:
             continue
         bn = bname(b)
-        stop_codes = [s for s in mine_en if is_stop(s)][:12]
+        # ZF AS-Tronic и Ford: номер свой, не SPN - как у русской страницы,
+        # свой список с заводским описанием и якорем у каждого кода.
+        own_en = {}
+        if b in bp.OWN_NUMBERING:
+            own_en = {k: v for k, v in (en_db.get('brands', {}).get(b) or {}).items()
+                      if v and k.split('.')[0].isdigit()}
+        stop_codes = [] if own_en else [s for s in mine_en if is_stop(s)][:12]
         secs = []
+        if own_en:
+            def _кл(k):
+                a, _, f = k.partition('.')
+                return (int(a), int(f) if f.isdigit() else 0, k)
+            secs.append(u'<section><h2>All %s codes — %d</h2><ul class="own">%s</ul></section>'
+                        % (bp.esc(bn), len(own_en), u''.join(
+                            u'<li id="%s"><span class="mono">%s</span><span class="nm">%s</span></li>'
+                            % (bp.own_anchor(k), bp.esc(k), bp.esc(own_en[k].strip()))
+                            for k in sorted(own_en, key=_кл))))
         if stop_codes:
             secs.append(u'<section><h2>%s</h2><ul class="near">%s</ul></section>'
                         % (MK['stopHead'], code_links(stop_codes)))
         by_sys_brand = {}
-        for s in mine_en:
+        for s in ([] if own_en else mine_en):
             by_sys_brand.setdefault(sys_of.get(s, 'other'), []).append(s)
         for key in bp.SYS_ORDER_BRAND:
             bucket = by_sys_brand.get(key)
@@ -485,8 +500,15 @@ def build():
                 continue
             secs.append(u'<section><h2>%s — %d codes</h2><ul class="near">%s</ul></section>'
                         % (bp.esc(i18n.get(SYS_KEY[key], key)), len(bucket), code_links(bucket)))
-        secs.append(u'<section><h2>%s</h2><p>%s</p></section>' % (MK['howHead'], MK['howBody']))
-        secs.append(u'<section><h2>%s</h2><p>%s</p></section>' % (MK['multiHead'], MK['multiBody']))
+        if own_en:
+            secs.append(u'<section><h2>How to read the number</h2><p>%s numbers its faults its own '
+                        u'way, not by the J1939 SPN standard: the first part is the fault number, '
+                        u'after the dot — its type. The same number on an engine or another make '
+                        u'means something else.</p></section>' % bp.esc(bn))
+        else:
+            secs.append(u'<section><h2>%s</h2><p>%s</p></section>' % (MK['howHead'], MK['howBody']))
+        if b != 'zfastronic':
+            secs.append(u'<section><h2>%s</h2><p>%s</p></section>' % (MK['multiHead'], MK['multiBody']))
 
         # Зеркало фикса из build_pages.py: марка может иметь одновременно
         # свою бесплатную SPN/FMI-таблицу (выше) и отдельную дилерскую
@@ -504,8 +526,10 @@ def build():
 
         title = MK['titleTpl'] % bname(b)
         h1 = MK['h1Tpl'] % bname(b)
-        desc = MK['descStd'] % (bn, len(mine_en))
-        sub = MK['subStd'] % (len(mine_en), bp.esc(bn))
+        desc = MK['descStd'] % (bn, len(own_en) if own_en else len(mine_en))
+        sub = (MK['subStd'] % (len(mine_en), bp.esc(bn)) if not own_en else
+               u'The reference covers <b>%d %s codes</b> from factory tables — the code and what it '
+               u'means. %s numbers faults its own way, not by J1939 SPN.' % (len(own_en), bp.esc(bn), bp.esc(bn)))
         rel = 'marki/%s.html' % b
         page_en('en/' + rel, title, desc, h1, sub, secs, 'marki', rel_ru=rel)
         en_marki.add(b)

@@ -91,6 +91,11 @@ ADVICE_ELECTRIC = (u'Код про электрическую цепь: обры
                    u'массу и на плюс.')
 
 
+def own_anchor(key):
+    """Якорь кода марки со своей нумерацией на её странице: «9.5» -> c-9-5."""
+    return u'c-' + re.sub(r'[^0-9A-Za-z]+', u'-', key).strip(u'-')
+
+
 def advice_for(sys_key, fmis):
     """Что проверить на месте - по виду неисправности, а не только по узлу."""
     fmis = set(fmis)
@@ -657,6 +662,11 @@ h2.mk{{font-family:var(--sans-fallback,inherit);font-size:17.5px;letter-spacing:
   text-transform:none;color:#EAF0F7;font-weight:640;margin:30px 0 10px}}
 .jump{{margin:0 0 26px;font-size:13.5px;color:#7A8998;display:flex;flex-wrap:wrap;gap:6px 14px}}
 .jump a{{text-decoration:none;border-bottom:1px solid rgba(111,227,211,.35)}}
+.own{{margin:0;padding:0;list-style:none;border-top:1px solid rgba(255,255,255,.06)}}
+.own li{{display:flex;align-items:baseline;gap:12px;padding:10px 2px;border-bottom:1px solid rgba(255,255,255,.06);
+  color:#AFBECD;font-size:14.5px;line-height:1.45;scroll-margin-top:16px}}
+.own li .mono{{color:#6FE3D3;flex:none;min-width:5.4em}}
+.own li:target{{background:rgba(111,227,211,.08);color:#EAF0F7}}
 .sf{{display:flex;gap:8px;margin:0 0 22px}}
 .sf input{{flex:1;min-width:0;min-height:46px;padding:0 14px;border-radius:10px;border:1px solid rgba(111,227,211,.35);
   background:rgba(255,255,255,.04);color:#EAF0F7;font-size:16px;font-family:inherit}}
@@ -1067,6 +1077,25 @@ def build(en_spns=()):
 
     derived = derive_names(per_spn, [s for s in keep if not std_name(s) and s in per_spn])
 
+    # Страницы, которые держим на месте (на них уже ведут ссылки, удаление
+    # дало бы 404), но не отдаём в индекс: Яндекс судит о сайте по массе, и
+    # тысяча почти пустых страниц топит толковые (26.09.2026: в поиске 23 из
+    # ~3900, «малоценная» стоит даже на странице с тремя марками).
+    #  - номер есть только у ZF AS-Tronic / Ford: у них своя нумерация, и
+    #    страница SPN про другое (spn-1078: датчик ТНВД против бортовой сети);
+    #  - одна марка, одна заводская строка и нет стандартного имени узла:
+    #    строка плюс общий текст (так 534 страницы Iveco и 214 International).
+    def тонкая(spn):
+        if str(spn) in spn_cur:
+            return False
+        d = per_spn.get(spn, {})
+        std = {b: r for b, r in d.items() if b not in OWN_NUMBERING}
+        if d and not std:
+            return True
+        return (not std_name(spn) and len(std) == 1
+                and len(next(iter(std.values()))) == 1)
+    noindex = {s for s in keep if тонкая(s)}
+
     def name_of(spn):
         return std_name(spn) or derived.get(spn) or u''
 
@@ -1134,6 +1163,13 @@ def build(en_spns=()):
         name = name_of(spn)
         sys_key = system_of(spn, std_name(spn))
         makes = per_spn.get(spn, {})
+        # У ZF AS-Tronic и Ford номер свой: рядом с обычными марками их строка
+        # спорит с заголовком. Если обычные марки есть - ZF/Ford уходят ссылкой
+        # на свою страницу; если их нет - страница про них и закрыта (noindex).
+        own_here = {}
+        if any(b not in OWN_NUMBERING for b in makes):
+            own_here = {b: r for b, r in makes.items() if b in OWN_NUMBERING}
+            makes = {b: r for b, r in makes.items() if b not in OWN_NUMBERING}
 
         # Вердикт и риск нужны заранее - они уходят в FAQPage в <head>,
         # а не только в тело страницы ниже.
@@ -1211,6 +1247,9 @@ def build(en_spns=()):
                             ogtitle=esc(page_name), mid=METRIKA_ID, ld=ld,
                             nav=nav_of('kody'), lang='ru', locale='ru_RU',
                             alt=alt_links(spn in en_spns, 'kody/spn-%d.html' % spn))]
+        if spn in noindex:
+            body[0] = body[0].replace(u'<meta charset="utf-8">',
+                                      u'<meta charset="utf-8">\n<meta name="robots" content="noindex, follow">', 1)
         body.append(u'<h1>%s</h1>' % esc(page_name))
         body.append(search_form(ph=u'Другой код, например %d/3' % spn))
         _tier = tier_of(worst_lvl)
@@ -1249,6 +1288,19 @@ def build(en_spns=()):
                         % (b, esc(brand_names.get(b, b)),
                            (u'<p class="sub">%s</p>' % esc(note)) if note else u'',
                            fmi_table(rows, urgent_fmi)))
+
+        if own_here:
+            пункты = []
+            for b in sorted(own_here, key=lambda x: brand_names.get(x, x)):
+                for k in sorted(kk for kk in brands[b] if kk.split('.')[0].isdigit()
+                                and int(kk.split('.')[0]) == spn):
+                    пункты.append(u'<li><a href="../marki/%s.html#%s"><span class="mono">%s</span>'
+                                  u'<span class="nm">%s: свой код, не SPN %d</span></a></li>'
+                                  % (b, own_anchor(k), esc(k), esc(brand_names.get(b, b)), spn))
+            if пункты:
+                body.append(u'<section><h2>Этот же номер в других таблицах</h2>'
+                            u'<p class="lead">У этих марок своя нумерация: номер совпадает, '
+                            u'а смысл другой.</p><ul class="near">%s</ul></section>' % u''.join(пункты))
 
         # стандартную таблицу печатаем только по встреченным FMI
         seen_fmi = sorted({f for rows in makes.values() for f, _ in rows})
@@ -1460,12 +1512,13 @@ def build(en_spns=()):
                 return (int(a) if a.isdigit() else 10 ** 9, int(f) if f.isdigit() else 0, k)
             own_rows = [(k, brands[b][k]) for k in sorted(brands[b], key=own_key)
                         if k.split('.')[0].isdigit() and int(k.split('.')[0]) in set(mine)]
-            secs.append(u'<section><h2>Все коды %s — %s</h2><ul class="near">%s</ul></section>'
+            # Код живёт здесь, со своим якорем (#c-9-5): отдельная страница на
+            # каждый дала бы ~500 страниц в одну строку - то, за что и ставят
+            # «малоценная». Описание целиком, без обрезки.
+            secs.append(u'<section><h2>Все коды %s — %s</h2><ul class="own">%s</ul></section>'
                         % (esc(bn), n_codes(len(own_rows)), u''.join(
-                            u'<li><a href="../kody/spn-%d.html#mk-%s"><span class="mono">%s</span>'
-                            u'<span class="nm">%s</span></a></li>'
-                            % (int(k.split('.')[0]), b, esc(k),
-                               esc(re.split(r'(?<=[.!?])\s', (v or u'').strip())[0][:160]))
+                            u'<li id="%s"><span class="mono">%s</span><span class="nm">%s</span></li>'
+                            % (own_anchor(k), esc(k), esc((v or u'').strip()))
                             for k, v in own_rows)))
         for key in SYS_ORDER_BRAND:
             bucket = by_sys_brand.get(key)
@@ -1744,18 +1797,20 @@ def build(en_spns=()):
     urls = ([SITE + '/']
             + ['%s/%s/' % (SITE, lang) for lang in LANG_HOMEPAGES]
             + ['%s/%s' % (SITE, p) for p in extra]
-            + ['%s/kody/spn-%d.html' % (SITE, s) for s in written]
+            + ['%s/kody/spn-%d.html' % (SITE, s) for s in written if s not in noindex]
             + (['%s/en/kody/' % SITE] if en_spns else [])
             + ['%s/en/kody/spn-%d.html' % (SITE, s)
-               for s in written if s in en_spns])
+               for s in written if s in en_spns and s not in noindex])
     write_sitemap(urls)
 
     print('страниц собрано: %d' % len(written))
     print('в sitemap URL:   %d' % len(urls))
+    print('закрыто от индекса: %d' % len(set(written) & noindex))
     # Отдаём разбивку по системам и признак «ехать нельзя»: английская
     # сборка обязана расставить коды по тем же узлам и с тем же вердиктом,
     # иначе два языка одного сайта начнут расходиться в советах.
     return {'written': written,
+            'noindex': set(written) & noindex,
             'sys': dict((s, system_of(s, std_name(s))) for s in written),
             'stop': dict((s, is_stop(s, per_spn.get(s, {}))) for s in written),
             'lvl': dict((s, page_risk(system_of(s, std_name(s)),
