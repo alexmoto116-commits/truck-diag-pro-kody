@@ -312,6 +312,10 @@ def build():
 
     for spn in written:
         makes = per_en.get(spn, {})
+        # как у русской: ZF/Ford со своей нумерацией не смешиваем с обычными
+        # марками - есть обычные, их блоки не печатаем
+        if any(b not in OWN_NUMBERING_EN for b in makes):
+            makes = {b: r for b, r in makes.items() if b not in OWN_NUMBERING_EN}
         # Какие FMI вообще встречаются у этого кода - нужно и в FAQ (вопрос
         # про конкретное сочетание), и ниже в таблице, поэтому считаем сразу.
         seen = sorted({f for rows in makes.values() for f, _ in rows})
@@ -372,6 +376,9 @@ def build():
         body = [bp.HEAD.format(title=bp.esc(title), desc=bp.esc(desc), canon=canon,
                                ogtitle=bp.esc(page_name), mid=bp.METRIKA_ID, ld=ld,
                                nav=nav(), lang='en', locale='en_US', alt=alt_links(rel))]
+        if spn in info.get('noindex', ()):      # те же, что закрыты у русской
+            body[0] = body[0].replace(u'<meta charset="utf-8">',
+                                      u'<meta charset="utf-8">\n<meta name="robots" content="noindex, follow">', 1)
         body.append(u'<h1>%s</h1>' % bp.esc(page_name))
         body.append(bp.search_form(ph=u'Another code, e.g. %d/3' % spn, action=u'/en/', btn=u'Search',
                                    label=u'Fault code'))
