@@ -91,6 +91,13 @@ ADVICE_ELECTRIC = (u'Код про электрическую цепь: обры
                    u'массу и на плюс.')
 
 
+# Порядок марок в заголовке - по тому, что чаще ездит и чаще ищется в
+# России, а не по алфавиту: «ошибка 1080 камаз» ищут, «ошибка 1080 agrale» нет.
+ЧАСТЫЕ_МАРКИ = ['kamaz', 'maz', 'yamz', 'sitrak', 'shacman', 'howo', 'faw', 'dongfeng', 'foton',
+                'jac', 'daf', 'man', 'volvo', 'scania', 'mercedes', 'renault', 'iveco', 'isuzu',
+                'hyundai', 'weichai', 'gaz', 'ural', 'cumminsisb', 'cumminsislisc', 'cumminsisf']
+
+
 def own_anchor(key):
     """Якорь кода марки со своей нумерацией на её странице: «9.5» -> c-9-5."""
     return u'c-' + re.sub(r'[^0-9A-Za-z]+', u'-', key).strip(u'-')
@@ -1197,6 +1204,19 @@ def build(en_spns=()):
         # поэтому у таких кодов марка стоит прямо в заголовке; у стандартных
         # SPN она там лишняя - имя узла и так однозначно.
         brands_short, brands_all = brand_list(spn, 3), brand_list(spn)
+        # Для <title> - частые марки впереди, без ZF/Ford (у них номер другой);
+        # сколько влезет в ~75 знаков. На самой странице заголовок прежний.
+        _т_марки = [b for b in makes if b not in OWN_NUMBERING] or list(makes)
+        _т_марки.sort(key=lambda b: (ЧАСТЫЕ_МАРКИ.index(b) if b in ЧАСТЫЕ_МАРКИ else 99,
+                                     brand_names.get(b, b)))
+
+        def с_марками(осн):
+            for n in (3, 2, 1):
+                if len(_т_марки) >= n:
+                    т_ = u'%s: %s' % (осн, u', '.join(brand_names.get(b, b) for b in _т_марки[:n]))
+                    if len(т_) <= 75 or n == 1:
+                        return т_ if len(т_) <= 90 else осн
+            return осн
         if std_name(spn):
             page_name = u'SPN %d — %s' % (spn, name)
             desc = (u'SPN %d (%s): расшифровка по стандарту J1939 и заводским таблицам марок. '
@@ -1213,7 +1233,7 @@ def build(en_spns=()):
             page_name = u'SPN %d' % spn
             desc = (u'SPN %d: что означает код по стандарту J1939, значения FMI '
                     u'и можно ли ехать.' % spn)
-        title = page_name + u' | codetruck.ru'
+        title = (с_марками(page_name) if std_name(spn) else page_name) + u' | codetruck.ru'
         canon = '%s/kody/spn-%d.html' % (SITE, spn)
 
         faq = [{'@type': 'Question',
