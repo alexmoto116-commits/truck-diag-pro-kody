@@ -1,8 +1,8 @@
 {
 "pages": {
 "https://codetruck.ru/": {
-"d": "2026-09-26",
-"h": "f91aa0221e73"
+"d": "2026-09-27",
+"h": "660d0242d75e"
 },
 "https://codetruck.ru/de/": {
 "d": "2026-08-29",
@@ -4138,7 +4138,7 @@
 },
 "https://codetruck.ru/en/marki/": {
 "d": "2026-09-27",
-"h": "7a462417ea9f"
+"h": "1f8d96a178f7"
 },
 "https://codetruck.ru/en/marki/allison.html": {
 "d": "2026-09-27",
@@ -4228,6 +4228,10 @@
 "d": "2026-09-27",
 "h": "65a0808f43a5"
 },
+"https://codetruck.ru/en/marki/gaz.html": {
+"d": "2026-09-27",
+"h": "b771a62a4335"
+},
 "https://codetruck.ru/en/marki/haldex.html": {
 "d": "2026-09-27",
 "h": "db0bc2f51a0e"
@@ -4267,6 +4271,10 @@
 "https://codetruck.ru/en/marki/jac.html": {
 "d": "2026-09-27",
 "h": "266d02446869"
+},
+"https://codetruck.ru/en/marki/jingwei.html": {
+"d": "2026-09-27",
+"h": "fa9dedeff6e9"
 },
 "https://codetruck.ru/en/marki/kamaz.html": {
 "d": "2026-09-27",
@@ -4510,7 +4518,7 @@
 },
 "https://codetruck.ru/kody/": {
 "d": "2026-09-27",
-"h": "7e06052f7e4a"
+"h": "3dc1908ba05f"
 },
 "https://codetruck.ru/kody/spn-1.html": {
 "d": "2026-09-26",
@@ -8634,7 +8642,7 @@
 },
 "https://codetruck.ru/marki/": {
 "d": "2026-09-27",
-"h": "f51a4ed9d4f8"
+"h": "bd2aca190a63"
 },
 "https://codetruck.ru/marki/allison.html": {
 "d": "2026-09-27",
@@ -8724,6 +8732,10 @@
 "d": "2026-09-27",
 "h": "53d7688cef76"
 },
+"https://codetruck.ru/marki/gaz.html": {
+"d": "2026-09-27",
+"h": "cd54b98e9a21"
+},
 "https://codetruck.ru/marki/haldex.html": {
 "d": "2026-09-27",
 "h": "2a2811e66a8a"
@@ -8763,6 +8775,10 @@
 "https://codetruck.ru/marki/jac.html": {
 "d": "2026-09-27",
 "h": "0ae3512ac021"
+},
+"https://codetruck.ru/marki/jingwei.html": {
+"d": "2026-09-27",
+"h": "aa51f056914b"
 },
 "https://codetruck.ru/marki/kamaz.html": {
 "d": "2026-09-27",
@@ -9064,6 +9080,7 @@
 "https://codetruck.ru/marki/ivecoedc.html",
 "https://codetruck.ru/marki/ivecoeurotronic.html",
 "https://codetruck.ru/marki/jac.html",
+"https://codetruck.ru/marki/jingwei.html",
 "https://codetruck.ru/marki/manebs.html",
 "https://codetruck.ru/marki/manzbr2.html",
 "https://codetruck.ru/marki/mwm.html",
@@ -9079,6 +9096,7 @@
 "https://codetruck.ru/marki/volvomid.html",
 "https://codetruck.ru/marki/webasto.html",
 "https://codetruck.ru/marki/weichai.html",
+"https://codetruck.ru/marki/gaz.html",
 "https://codetruck.ru/marki/planar.html",
 "https://codetruck.ru/problemy/gorit-check-engine.html",
 "https://codetruck.ru/problemy/oshibka-adblue.html",
@@ -11195,6 +11213,7 @@
 "https://codetruck.ru/en/marki/ford.html",
 "https://codetruck.ru/en/marki/foton.html",
 "https://codetruck.ru/en/marki/fuso.html",
+"https://codetruck.ru/en/marki/gaz.html",
 "https://codetruck.ru/en/marki/haldex.html",
 "https://codetruck.ru/en/marki/hino.html",
 "https://codetruck.ru/en/marki/howo.html",
@@ -11205,6 +11224,7 @@
 "https://codetruck.ru/en/marki/ivecoedc.html",
 "https://codetruck.ru/en/marki/ivecoeurotronic.html",
 "https://codetruck.ru/en/marki/jac.html",
+"https://codetruck.ru/en/marki/jingwei.html",
 "https://codetruck.ru/en/marki/kamaz.html",
 "https://codetruck.ru/en/marki/knorrbremse.html",
 "https://codetruck.ru/en/marki/mack.html",
