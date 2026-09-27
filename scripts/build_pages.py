@@ -469,6 +469,45 @@ def derive_names(per_spn, spns):
 # ---------------------------------------------------------------- вывод
 
 # «1384 кодов» и «52 марок» - машинный русский, который сразу видно.
+FMI_PREFIX = re.compile(u'^(FMI [\d, ]+)(\s*\([^)]*\))?:\s*')
+
+# стили раздела - в самом разделе: в общей шапке они меняли все 3900 страниц
+DIY_CSS = (u'.diy{border:1px solid rgba(111,227,211,.25);border-radius:14px;padding:16px 18px 6px;'
+           u'background:rgba(111,227,211,.03)}.diy h2{color:#6FE3D3}'
+           u'.diy p{margin:0 0 14px;font-size:15px;color:#CBD7E3}'
+           u'.diy h3{font-size:15px;font-weight:650;margin:18px 0 8px;color:#EAF0F7}'
+           u'.diy table.norm{margin:0 0 6px}.diy table.norm td:last-child{color:#EAF0F7;width:42%}'
+           u'.diy ol{margin:0 0 14px;padding-left:22px;font-size:15px;color:#CBD7E3}'
+           u'.diy li{margin:0 0 8px}.diy li b{color:#6FE3D3;font-weight:600}')
+
+
+def own_section(spn):
+    """Раздел «Как проверить своими руками» из own_checks.CHECKS."""
+    from own_checks import CHECKS
+    c = CHECKS.get(spn)
+    if not c:
+        return u''
+    out = [u'<style>%s</style><section class="diy"><h2>Как проверить своими руками</h2>' % DIY_CSS,
+           u'<p>%s</p>' % esc(c['узел'])]
+    if c.get('нормы'):
+        out.append(u'<h3>Что должно быть</h3><table class="norm">%s</table>' % u''.join(
+            u'<tr><td>%s</td><td><b>%s</b></td></tr>' % (esc(a), esc(b)) for a, b in c['нормы']))
+    if c.get('шаги'):
+        li = []
+        for s in c['шаги']:
+            m = FMI_PREFIX.match(s)
+            if m:
+                li.append(u'<li><b>%s%s:</b> %s</li>' % (esc(m.group(1)), esc(m.group(2) or u''), esc(s[m.end():])))
+            else:
+                li.append(u'<li>%s</li>' % esc(s))
+        out.append(u'<h3>Порядок проверки</h3><ol>%s</ol>' % u''.join(li))
+    if c.get('причины'):
+        out.append(u'<h3>Частые причины — от частой к редкой</h3><ol>%s</ol>' % u''.join(
+            u'<li>%s</li>' % esc(p) for p in c['причины']))
+    out.append(u'</section>')
+    return u''.join(out)
+
+
 def plural(n, one, few, many):
     n10, n100 = n % 10, n % 100
     if n10 == 1 and n100 != 11:
@@ -1292,6 +1331,12 @@ def build(en_spns=()):
         else:
             body.append(u'<p class="sub">Код J1939 SPN %d. Заводской расшифровки по маркам '
                         u'для него в справочнике нет — ниже стандартное значение FMI.</p>' % spn)
+
+        # свой разбор: где узел, что мерить, цифры, причины (own_checks.py) -
+        # этого нет ни в заводских строках, ни у других справочников
+        т_свой = own_section(spn)
+        if т_свой:
+            body.append(т_свой)
 
         # заводские таблицы - это и есть уникальная часть страницы
         # На странице с десятком марок человек ищет свою. Строка переходов
