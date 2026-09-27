@@ -113,7 +113,10 @@
      по какому блоку он читает код, и не искал у себя несуществующую
      "фирменную таблицу ГАЗа". */
   var BRAND_ALIAS = {
-    gaz:         ['cumminsisf', 'yamz'],
+    gaz:         ['gaz', 'cumminsisf', 'yamz'],
+    /* Отопитель Jingwei стоит на SITRAK штатно: код E13 с выбранной маркой
+       SITRAK ищем и в его таблице. */
+    sitrak:      ['sitrak', 'jingwei'],
     maz:         ['maz', 'yamz', 'mercedes', 'deutz'],
     /* КамАЗ 5490 - это мерседесовский силовой агрегат под своим шильдиком
        (OM457LA, блоки PLD/MR2 + ADM3 + SCR), и коды у него мерседесовские:
@@ -1643,7 +1646,7 @@
     cumminsisf:1, cumminsislisc:1, cumminsism:1, cumminsisx:1, detroitdiesel:1,
     deutz:1, eaton:1, eberspacher:1, powerstroke:1, knorrbremse:1, meritor:1,
     paccarmx13:1, thermoking:1, wabco:1, webasto:1, planar:1, yamz:1, haldex:1,
-    zfastronic:1, allison:1, weichai:1, teplostar:1};
+    zfastronic:1, allison:1, weichai:1, teplostar:1, jingwei:1};
 
   var LANG_KEY = 'pf-lang';
   /* /en/, /de/ и т.д. - отдельные страницы под hreflang (см. <head>: там
