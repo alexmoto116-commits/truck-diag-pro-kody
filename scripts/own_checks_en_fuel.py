@@ -224,7 +224,7 @@ CHECKS.update({
             "Fuel: filters, air leak, water in the fuel (SPN 97), rail pressure.",
             "Air: clogged air filter, boost leak (SPN 102).",
             "In winter with a cold engine — the intake air heater (SPN 729, 730) and fuel quality.",
-            "If nothing is common — go through the cylinders one at a time, as for SPN 1323…1328.",
+            "If nothing is common — go through the cylinders one at a time.",
         ],
         "причины": [
             "Fuel: filters, air, water, wax.",

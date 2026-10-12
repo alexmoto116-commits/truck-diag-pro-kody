@@ -170,7 +170,7 @@ CHECKS = {
         "шаги": [
             "Compare the reading with a gauge at the test point on the line, if there is one.",
             "FMI 10 (Renault: open circuit): check the sensor connector and wire.",
-            "FMI 11 (Sitrak: rail pressure below minimum): check the filters, the transfer pump and air leaks on the suction side — as for SPN 157.",
+            "FMI 11 (Sitrak: rail pressure below minimum): check the filters, the transfer pump and air leaks on the suction side.",
         ],
         "причины": [
             "Clogged fuel filters.",
@@ -203,14 +203,14 @@ CHECKS = {
     167: {
         "узел": "The alternator voltage (charging system) that the control unit sees. From it the unit knows whether the batteries are charging and whether there is enough supply for the actuators.",
         "нормы": [
-            ("Two charged 12 V batteries, engine off", "25.2…25.6 V (as for SPN 168, first batch)"),
-            ("Engine running, alternator charging", "27.5…28.8 V (as for SPN 168, first batch)"),
+            ("Two charged 12 V batteries, engine off", "25.2…25.6 V"),
+            ("Engine running, alternator charging", "27.5…28.8 V"),
         ],
         "шаги": [
             "Measure the battery terminal voltage with the engine off and with it running; compare with the norms above.",
             "FMI 1, 16, 18 (critically low alternator voltage): check the belt, the wire from the alternator and the regulator.",
-            "FMI 3, 4 (Sitrak: vehicle system voltage above the limit): the alternator regulator. Above 29.5 V — the regulator, as in the first batch.",
-            "FMI 1, 16, 18 (DAF: low ECU supply voltage): the unit's terminals and grounds, as for SPN 168 in the first batch.",
+            "FMI 3, 4 (Sitrak: vehicle system voltage above the limit): the alternator regulator. Above 29.5 V — the regulator.",
+            "FMI 1, 16, 18 (DAF: low ECU supply voltage): the unit's terminals and grounds.",
         ],
         "причины": [
             "Alternator regulator.",
@@ -625,7 +625,7 @@ CHECKS = {
         "шаги": [
             "FMI 3, 4 (Bendix: the common modulator wire shorted to supply): disconnect the modulators of this diagonal one at a time and watch the code.",
             "FMI 2, 3, 4, 12 (Renault: short at the power terminals of the EBS unit, or loss of ground for part of the ABS functions): check the unit's ground and the power terminals.",
-            "FMI 4, 5, 7 (Wabco: supply voltage too low): check the terminals and the power wires of the unit, as for SPN 168.",
+            "FMI 4, 5, 7 (Wabco: supply voltage too low): check the terminals and the power wires of the unit.",
         ],
         "причины": [
             "Burnt diagonal relay.",
@@ -1108,7 +1108,7 @@ CHECKS = {
             ("Branch voltage with the sensors unplugged", "the same reference, without a drop"),
         ],
         "шаги": [
-            "Measure the branch's reference voltage at the connector with the ignition on: as for the pressure sensors in the first batch.",
+            "Measure the branch's reference voltage at the connector with the ignition on.",
             "FMI 2 (Isuzu: wrong 5 V voltage, circuit 2): unplug the branch's sensors one at a time and see whether the fault goes.",
             "FMI 3, 4 (3 — Sitrak: high voltage; 4 — KamAZ: sensor voltage, branch 2): the same — find the sensor that shorts the branch.",
             "If with all sensors unplugged the voltage is not normal — the control unit.",
@@ -1437,7 +1437,7 @@ CHECKS = {
         "шаги": [
             "FMI 9 (Mercedes: HRW message from the ABS does not arrive): see the general methods for the J1939 bus higher up the list.",
             "FMI 12 (Sitrak: no HRWS frame): check the ABS unit, its supply and the bus.",
-            "If the message is there but the speed is wrong — the speed sensor of the front axle left wheel (see the ABS sensors in the first batch).",
+            "If the message is there but the speed is wrong — the speed sensor of the front axle left wheel (see the ABS sensor pages).",
         ],
         "причины": [
             "ABS unit without power or with faulty software.",
@@ -1815,7 +1815,7 @@ CHECKS = {
             ("Voltage at the unit pin with the sensor unplugged", "the same reference, without a drop"),
         ],
         "шаги": [
-            "Measure the reference voltage at the connector with the ignition on — as for the pressure sensors in the first batch.",
+            "Measure the reference voltage at the connector with the ignition on.",
             "FMI 4 (voltage below normal, a drop): unplug the sensors of this branch one at a time. When the voltage returns to 5 V — this sensor or its wire is shorting the branch to ground.",
             "FMI 3 (voltage above normal): look for a short of the branch wire to plus. With the ignition off, check the sensor supply wire for a short to plus (+24 V or another circuit) and inspect the harness for chafing.",
             "FMI 5 (open circuit of the reference line, KamAZ): check the wire from the unit to the sensor connectors for continuity.",

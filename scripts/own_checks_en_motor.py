@@ -148,7 +148,7 @@ CHECKS = {
         "нормы": [
             ("Reference voltage at the connector, ignition on", "5.0 V ± 0.25"),
             ("Signal in the working range", "0.5…4.5 V"),
-            ("Engine off", "about 1 bar absolute, as for SPN 108"),
+            ("Engine off", "about 1 bar absolute"),
             ("Under full load", "usually 2.5…3.5 bar absolute — per the factory data"),
         ],
         "шаги": [
@@ -256,7 +256,7 @@ CHECKS = {
         "нормы": [
             ("Reference voltage at the connector, ignition on", "5.0 V ± 0.25"),
             ("Signal in the working range", "0.5…4.5 V"),
-            ("Engine off", "atmospheric pressure, as for SPN 108"),
+            ("Engine off", "atmospheric pressure"),
         ],
         "шаги": [
             "With the engine off, compare with atmospheric pressure (SPN 108) — they should match.",
