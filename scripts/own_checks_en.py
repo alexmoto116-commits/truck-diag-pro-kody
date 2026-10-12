@@ -153,7 +153,8 @@ from own_checks_en_fuel import CHECKS as _fuel
 from own_checks_en_elec import CHECKS as _elec
 from own_checks_en_brake import CHECKS as _brake
 from own_checks_en_more import CHECKS as _more
-for _c in (_motor, _fuel, _elec, _brake, _more):
+from own_checks_en_3 import CHECKS as _third
+for _c in (_motor, _fuel, _elec, _brake, _more, _third):
     for _k, _v in _c.items():
         assert _k not in CHECKS, _k
         CHECKS[_k] = _v

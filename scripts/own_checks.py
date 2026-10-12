@@ -158,7 +158,8 @@ from own_checks_fuel import CHECKS as _топливо
 from own_checks_elec import CHECKS as _электрика
 from own_checks_brake import CHECKS as _тормоза
 from own_checks_more import CHECKS as _вторая_сотня
-for _ч in (_мотор, _топливо, _электрика, _тормоза, _вторая_сотня):
+from own_checks_3 import CHECKS as _третья_сотня
+for _ч in (_мотор, _топливо, _электрика, _тормоза, _вторая_сотня, _третья_сотня):
     for _к, _в in _ч.items():
         assert _к not in CHECKS, _к
         CHECKS[_к] = _в
