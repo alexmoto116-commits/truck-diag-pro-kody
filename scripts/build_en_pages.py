@@ -142,6 +142,17 @@ def own_section_en(spn):
     if c.get('нормы'):
         out.append(u'<h3>%s</h3><table class="norm">%s</table>' % (TX['ownNorm'], u''.join(
             u'<tr><td>%s</td><td><b>%s</b></td></tr>' % (bp.esc(a), bp.esc(b)) for a, b in c['нормы'])))
+    # Different meaning by make (see own_checks_en_6): steps are listed per make.
+    for brand, node, steps in c.get('по_маркам', []):
+        li = []
+        for s in steps:
+            m = bp.FMI_PREFIX.match(s)
+            if m:
+                li.append(u'<li><b>%s%s:</b> %s</li>' % (bp.esc(m.group(1)), bp.esc(m.group(2) or u''),
+                                                         bp.esc(s[m.end():])))
+            else:
+                li.append(u'<li>%s</li>' % bp.esc(s))
+        out.append(u'<h3>%s</h3><p>%s</p><ol>%s</ol>' % (bp.esc(brand), bp.esc(node), u''.join(li)))
     if c.get('шаги'):
         li = []
         for s in c['шаги']:

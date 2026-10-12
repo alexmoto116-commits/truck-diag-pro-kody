@@ -156,7 +156,8 @@ from own_checks_en_more import CHECKS as _more
 from own_checks_en_3 import CHECKS as _third
 from own_checks_en_4 import CHECKS as _fourth
 from own_checks_en_5 import CHECKS as _fifth
-for _c in (_motor, _fuel, _elec, _brake, _more, _third, _fourth, _fifth):
+from own_checks_en_6 import CHECKS as _sixth
+for _c in (_motor, _fuel, _elec, _brake, _more, _third, _fourth, _fifth, _sixth):
     for _k, _v in _c.items():
         assert _k not in CHECKS, _k
         CHECKS[_k] = _v

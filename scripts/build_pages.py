@@ -492,6 +492,17 @@ def own_section(spn):
     if c.get('нормы'):
         out.append(u'<h3>Что должно быть</h3><table class="norm">%s</table>' % u''.join(
             u'<tr><td>%s</td><td><b>%s</b></td></tr>' % (esc(a), esc(b)) for a, b in c['нормы']))
+    # Разный смысл у марок (own_checks_6 и далее): шаги идут по каждой марке отдельно,
+    # общих «шагов» у такой записи нет. Записи без поля выводятся как раньше.
+    for brand, node, steps in c.get('по_маркам', []):
+        li = []
+        for s in steps:
+            m = FMI_PREFIX.match(s)
+            if m:
+                li.append(u'<li><b>%s%s:</b> %s</li>' % (esc(m.group(1)), esc(m.group(2) or u''), esc(s[m.end():])))
+            else:
+                li.append(u'<li>%s</li>' % esc(s))
+        out.append(u'<h3>%s</h3><p>%s</p><ol>%s</ol>' % (esc(brand), esc(node), u''.join(li)))
     if c.get('шаги'):
         li = []
         for s in c['шаги']:
