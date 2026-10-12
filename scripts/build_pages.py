@@ -16,10 +16,16 @@
 """
 import base64, glob, hashlib, io, json, os, re
 from datetime import date
+import sys
+# Тексты блоков «Коды марки» и «Как подойти к проблеме» - рядом, в том же каталоге.
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from marki_problemy_texts import BRAND_TEXT, PROBLEM_TEXT
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ROOT =os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SITE = 'https://codetruck.ru'
 METRIKA_ID = '111407659'
+# Второй счётчик - Cloudflare Web Analytics, ставится перед </body> рядом с Метрикой.
+CF_SNIPPET = u"<!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{\"token\": \"177421bba4084e9fa25718d86f1781b0\"}'></script><!-- End Cloudflare Web Analytics -->"
 
 # ---------------------------------------------------------------- данные
 
@@ -1115,6 +1121,27 @@ def is_private_spn(brand, spn):
     return any(b == brand and lo <= spn <= hi for b, lo, hi in PRIVATE_SPN)
 
 
+def top_spns(b, rows_map, open_ok, stop_fn, dealer_texts=(), limit=5):
+    """Частые или важные коды марки, только открытые (open_ok).
+
+    У марки с бесплатной SPN-таблицей - сначала коды, при которых ехать нельзя,
+    затем самые разобранные по FMI. У дилерской марки без такой таблицы -
+    SPN, которые упомянуты в её текстах (например, «SPN 110»), по частоте."""
+    cands = [s for s in rows_map if b in rows_map[s] and open_ok(s)]
+    if cands:
+        stops = [s for s in sorted(cands) if stop_fn(s, rows_map[s])]
+        rest = sorted([s for s in cands if s not in stops],
+                      key=lambda s: (-len(rows_map[s][b]), s))
+        return (stops + rest)[:limit]
+    cnt = {}
+    for t in dealer_texts:
+        for m in re.findall(r'SPN\s*(\d+)', t or u''):
+            s = int(m)
+            if open_ok(s):
+                cnt[s] = cnt.get(s, 0) + 1
+    return [s for s, _ in sorted(cnt.items(), key=lambda x: (-x[1], x[0]))][:limit]
+
+
 def build(en_spns=()):
     """en_spns - SPN, у которых есть английская страница: только на них
     ставится hreflang и только они попадают в sitemap с адресом /en/.
@@ -1438,7 +1465,7 @@ def build(en_spns=()):
 
         body.append(u'<p class="cta">Сканер выдал несколько кодов? '
                     u'<a href="../">Вставьте весь список</a> — покажем первопричину.</p>')
-        body.append(u'</div>\n</body>\n</html>\n')
+        body.append(u'</div>\n' + CF_SNIPPET + u'\n</body>\n</html>\n')
 
         io.open(os.path.join(out_dir, 'spn-%d.html' % spn), 'w', encoding='utf-8').write(''.join(body))
         written.append(spn)
@@ -1456,6 +1483,36 @@ def build(en_spns=()):
 
     def code_links(spns, prefix='../kody/'):
         return ''.join(code_link(s, '%sspn-%d.html' % (prefix, s)) for s in spns)
+
+    def inline_codes(spns):
+        return u', '.join(u'<a href="../kody/spn-%d.html">SPN %d</a>' % (s, s) for s in spns)
+
+    def brand_intro(b, nums, top):
+        t = BRAND_TEXT.get(b)
+        if not t:
+            return u''
+        body = t['ru'].format(codes=n_codes(nums.get('codes', 0)),
+                              dealer=n_codes(nums.get('dealer', 0)),
+                              stops=n_codes(nums.get('stops', 0)))
+        lst = (u'<p>С этих кодов стоит начать:</p><ul class="near">%s</ul>' % code_links(top)
+               if top else u'')
+        return (u'<section><h2>Коды %s: что важно знать</h2><p>%s</p>%s</section>'
+                % (esc(brand_names.get(b, b)), esc(body), lst))
+
+    def problem_intro(slug, stop_codes, rest):
+        t = PROBLEM_TEXT.get(slug)
+        if not t:
+            return u''
+        parts = [u'<p>%s</p>' % esc(t['ru'])]
+        if stop_codes:
+            more = u' и другие' if len(stop_codes) > 6 else u''
+            parts.append(u'<p>Ехать нельзя, если в считывании есть любой из этих кодов: %s%s.</p>'
+                         % (inline_codes(stop_codes[:6]), more))
+        else:
+            parts.append(u'<p>Среди кодов этой части справочник не отмечает таких, при которых нельзя ехать.</p>')
+        if rest:
+            parts.append(u'<p>Обычно вместе с этим приходят: %s.</p>' % inline_codes(rest[:5]))
+        return u'<section><h2>Как подойти к проблеме</h2>%s</section>' % u''.join(parts)
 
     def page(path, title, desc, h1, sub, sections, section=None, extra_ld=None, alt=u'', brand=None):
         # Рубрику публикуем как /kody/, а не /kody/index.html: ссылки в
@@ -1483,7 +1540,7 @@ def build(en_spns=()):
         body.append(u'<p class="cta">Знаете номер кода? '
                     u'<a href="/">Введите его в поиск</a> — или вставьте сразу весь '
                     u'список со сканера, покажем, какая поломка настоящая.</p>')
-        body.append(u'</div>\n</body>\n</html>\n')
+        body.append(u'</div>\n' + CF_SNIPPET + u'\n</body>\n</html>\n')
         full = os.path.join(ROOT, path)
         d = os.path.dirname(full)
         if not os.path.isdir(d):
@@ -1554,6 +1611,8 @@ def build(en_spns=()):
             u'(замыкание, обрыв, значение вне нормы). На сканере код обычно '
             u'показывается как MID-PID/SID-FMI, например MID128 PID100 FMI4.</p></section>')
 
+        secs.insert(0, brand_intro(b, {'codes': len(entries),
+                                       'dealer': len(dealer_rows) if dealer_rows else 0}, []))
         path = 'marki/%s.html' % b
         title = u'Коды ошибок %s | codetruck.ru' % bn
         total_n = len(entries) + (len(dealer_rows) if dealer_rows else 0)
@@ -1655,7 +1714,7 @@ def build(en_spns=()):
 
         # У марки МОЖЕТ одновременно быть и своя бесплатная SPN/FMI-таблица
         # (выше), и отдельная дилерская pcode.* (другой формат кода - у
-        # Isuzu, например, это OBD-II P/U-коды NPR/NQR рядом с J1939 для
+        # Isuzu, например, это C-коды вида C0201 у NPR/NQR рядом с J1939 для
         # тяжёлых моделей). Раньше такое не встречалось - дилерский цикл
         # ниже просто пропускал уже построенную марку, и вторая таблица
         # молча терялась. Добавляем секцию-примеры прямо сюда, пока страница
@@ -1674,6 +1733,13 @@ def build(en_spns=()):
                     u'Несколько примеров:</p>%s</section>'
                     % (n_codes(len(dealer_rows)), esc(bn), esc(bn), pcode_table(sample_rows(dealer_rows))))
 
+        nums = {'codes': len(own_rows) if own else len(mine),
+                'dealer': len(dealer_rows) if dealer_rows else 0,
+                'stops': sum(1 for s in mine_open if is_stop(s, per_spn.get(s, {})))}
+        open_ok = lambda s: s in set(written) and s not in noindex
+        top = ([] if own else
+               top_spns(b, per_spn, open_ok, is_stop, [t for _, t in (dealer_rows or [])]))
+        secs.insert(0, brand_intro(b, nums, top))
         path = 'marki/%s.html' % b
         title = u'Коды ошибок %s | codetruck.ru' % bn
         total_n = (len(own_rows) if own else len(mine)) + (len(dealer_rows) if dealer_rows else 0)
@@ -1723,9 +1789,12 @@ def build(en_spns=()):
         secs = [u'<section><h2>Примеры кодов %s</h2>%s</section>'
                 % (esc(bn), pcode_table(sample_rows(rows)))]
 
+        secs.insert(0, brand_intro(b, {'dealer': len(rows)},
+                                   top_spns(b, per_spn, lambda s: s in set(written) and s not in noindex,
+                                            is_stop, [t for _, t in rows])))
         path = 'marki/%s.html' % b
         title = u'Коды ошибок %s | codetruck.ru' % bn
-        n_d = u'%d дилерских %s' % (len(rows), plural(len(rows), u'код', u'кода', u'кодов'))
+        n_d =u'%d дилерских %s' % (len(rows), plural(len(rows), u'код', u'кода', u'кодов'))
         desc = (u'Расшифровка кодов неисправностей %s: %s в базе, '
                 u'с описанием на русском. Введите свой код на codetruck.ru.' % (bn, n_d))
         if b in MID_PCODE_BRANDS:
@@ -1767,7 +1836,7 @@ def build(en_spns=()):
         stop_codes = [s for s in pool if is_stop(s, per_spn.get(s, {}))][:12]
         rest = [s for s in pool if s not in stop_codes][:12]
 
-        secs = []
+        secs = [x for x in [problem_intro(slug, stop_codes, rest)] if x]
         if stop_codes:
             secs.append(u'<section><h2>Коды, при которых нужно встать</h2>'
                         u'<ul class="near">%s</ul></section>' % code_links(stop_codes))

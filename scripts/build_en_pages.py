@@ -490,7 +490,7 @@ def build():
                            ''.join(code_link(s, 'spn-%d.html' % s) for s in neigh)))
 
         body.append(u'<p class="cta">%s</p>' % TX['cta'])
-        body.append(u'</div>\n</body>\n</html>\n')
+        body.append(u'</div>\n' + bp.CF_SNIPPET + u'\n</body>\n</html>\n')
         io.open(os.path.join(OUT, 'spn-%d.html' % spn), 'w',
                 encoding='utf-8').write(''.join(body))
 
@@ -537,7 +537,7 @@ def build():
     body.append(u'<p class="sub">%s</p>' % (TX['hubSub'] % (len(written), n_brands)))
     body.extend(secs)
     body.append(u'<p class="cta">%s</p>' % TX['ctaHub'])
-    body.append(u'</div>\n</body>\n</html>\n')
+    body.append(u'</div>\n' + bp.CF_SNIPPET + u'\n</body>\n</html>\n')
     io.open(os.path.join(OUT, 'index.html'), 'w', encoding='utf-8').write(''.join(body))
 
     # Карта сайта пересобирается ПОСЛЕ записи английских страниц: только

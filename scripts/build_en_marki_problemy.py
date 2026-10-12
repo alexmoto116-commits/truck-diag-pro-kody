@@ -37,6 +37,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import build_pages as bp                                    # noqa: E402
 import build_en_pages as be                                 # noqa: E402
 from build_lang_pages import extract_js_object               # noqa: E402
+from marki_problemy_texts import BRAND_TEXT, PROBLEM_TEXT    # noqa: E402
 
 ROOT = bp.ROOT
 SITE = bp.SITE
@@ -355,7 +356,7 @@ def page_en(path, title, desc, h1, sub, sections, section=None, rel_ru=None, her
     body.append(u'<p class="cta">Know the code number? <a href="/en/">Type it into the '
                 u'search</a> — or paste the whole list from the scanner and we will '
                 u'show which fault is the real one.</p>')
-    body.append(u'</div>\n</body>\n</html>\n')
+    body.append(u'</div>\n' + bp.CF_SNIPPET + u'\n</body>\n</html>\n')
     full = os.path.join(ROOT, path)
     d = os.path.dirname(full)
     if not os.path.isdir(d):
@@ -447,6 +448,42 @@ def build():
     def is_stop(spn):
         return bool(stop_of.get(spn))
 
+    def ncodes(n):
+        return u'%d codes' % n
+
+    def inline_en(spns):
+        return u', '.join(u'<a href="../kody/spn-%d.html">SPN %d</a>' % (s, s) for s in spns)
+
+    def brand_intro_en(b, nums, top):
+        t = BRAND_TEXT.get(b)
+        if not t:
+            return u''
+        for k in ('codes', 'dealer', 'stops'):
+            if (u'{%s}' % k) in t['en'] and k not in nums:
+                raise ValueError('%s: нет числа %s' % (b, k))
+        body = t['en'].format(codes=ncodes(nums.get('codes', 0)),
+                              dealer=ncodes(nums.get('dealer', 0)),
+                              stops=ncodes(nums.get('stops', 0)))
+        lst = (u'<p>Start with these codes:</p><ul class="near">%s</ul>' % code_links(top)
+               if top else u'')
+        return (u'<section><h2>%s codes: what to know</h2><p>%s</p>%s</section>'
+                % (bp.esc(bname(b)), bp.esc(body), lst))
+
+    def problem_intro_en(slug, stop_codes, rest):
+        t = PROBLEM_TEXT.get(slug)
+        if not t:
+            return u''
+        parts = [u'<p>%s</p>' % bp.esc(t['en'])]
+        if stop_codes:
+            more = u' and others' if len(stop_codes) > 6 else u''
+            parts.append(u'<p>Stop if the reading shows any of these codes: %s%s.</p>'
+                         % (inline_en(stop_codes[:6]), more))
+        else:
+            parts.append(u'<p>The reference does not mark any code in this group as a reason to stop.</p>')
+        if rest:
+            parts.append(u'<p>These codes usually come with it: %s.</p>' % inline_en(rest[:5]))
+        return u'<section><h2>How to approach it</h2>%s</section>' % u''.join(parts)
+
     def risk_section(sys_key, fmis, urgent_spn_hit):
         key, lvl, _ = bp.page_risk(sys_key, fmis, urgent_fmi, urgent_spn_hit)
         if not key or key not in risk_tx:
@@ -519,7 +556,7 @@ def build():
         # Зеркало фикса из build_pages.py: марка может иметь одновременно
         # свою бесплатную SPN/FMI-таблицу (выше) и отдельную дилерскую
         # pcode.* в другом формате кода (Isuzu - J1939 для тяжёлых моделей
-        # + OBD-II P/U-коды для NPR/NQR). Раньше цикл дилерских марок ниже
+        # + C-коды вида C0201 у NPR/NQR). Раньше цикл дилерских марок ниже
         # просто пропускал уже построенную марку, вторая таблица терялась.
         dealer_rows_en = None
         if b in pcode:
@@ -530,6 +567,14 @@ def build():
                 secs.append(u'<section><h2>%s</h2>%s</section>'
                             % (MK['dealerHead'] % bn, bp.pcode_table(bp.sample_rows(dealer_rows_en))))
 
+        nums = {'codes': len(own_en) if own_en else len(mine_en),
+                'dealer': len(dealer_rows_en) if dealer_rows_en else 0,
+                'stops': sum(1 for s in mine_open if is_stop(s))}
+        top = ([] if own_en else
+               bp.top_spns(b, per_en, lambda s: s in set(written) and s not in closed,
+                           lambda s, _r: is_stop(s),
+                           [t for _, t in (dealer_rows_en or [])]))
+        secs.insert(0, brand_intro_en(b, nums, top))
         title = MK['titleTpl'] % bname(b)
         h1 = MK['h1Tpl'] % bname(b)
         desc = MK['descStd'] % (bn, len(own_en) if own_en else len(mine_en))
@@ -572,6 +617,7 @@ def build():
             secs.append(u'<section><h2>%s</h2>%s</section>' % (bp.esc(title_mod), ''.join(t)))
         secs.append(u'<section><h2>%s</h2><p>%s</p></section>' % (MK['howHead'], MK['midHowBody']))
 
+        secs.insert(0, brand_intro_en(b, {'codes': len(entries), 'dealer': 0}, []))
         title = MK['titleTpl'] % bn
         h1 = MK['h1Tpl'] % bn
         desc = MK['descMid'] % (bn, len(entries))
@@ -596,6 +642,10 @@ def build():
         bn_en = bname(b)
         secs = [u'<section><h2>%s</h2>%s</section>'
                 % (MK['dealerHead'] % bn_en, bp.pcode_table(bp.sample_rows(rows)))]
+        secs.insert(0, brand_intro_en(
+            b, {'dealer': len(rows)},
+            bp.top_spns(b, per_en, lambda s: s in set(written) and s not in closed,
+                        lambda s, _r: is_stop(s), [t for _, t in rows])))
 
         title = MK['titleTpl'] % bn_en
         h1 = MK['h1Tpl'] % bn_en
@@ -666,7 +716,7 @@ def build():
         if not (stop_codes or rest):
             continue
 
-        secs = []
+        secs = [x for x in [problem_intro_en(slug, stop_codes, rest)] if x]
         if stop_codes:
             secs.append(u'<section><h2>%s</h2><ul class="near">%s</ul></section>'
                         % (MK['stopHead'], code_links(stop_codes)))

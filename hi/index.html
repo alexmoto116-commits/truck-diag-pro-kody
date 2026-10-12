@@ -680,15 +680,16 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
 @media print{ .common{display:none} }
 
 .foot{
-  max-width:660px;margin:0 auto;padding:26px clamp(18px,5vw,28px) 70px;
+  max-width:660px;margin:0 auto;padding:26px clamp(18px,5vw,28px) 0;
   font-size:13px;color:var(--ink-3);line-height:1.6;
 }
 .copy-mail{
-  display:inline-block;margin:10px 0 0 10px;padding:4px 12px;
+  display:inline-block;margin:0;padding:4px 12px;
   font:inherit;font-size:12px;line-height:1.4;color:inherit;
   background:none;border:1px solid currentColor;border-radius:6px;
   opacity:.85;cursor:pointer;
 }
+.foot-act{max-width:660px;margin:0 auto;padding:6px clamp(18px,5vw,28px) 70px}
 .copy-mail:hover,.copy-mail:focus-visible{opacity:1}
 </style>
 <!-- Yandex.Metrika counter -->
@@ -924,8 +925,8 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
 </nav>
 
 <p class="foot" data-i18n="footText">यह संदर्भ पुस्तिका बताती है कि कोड का मतलब क्या है — यह निदान नहीं करती। अंतिम निर्णय हमेशा उपकरण रखने वाले व्यक्ति का होता है। सवाल — <a href="mailto:alexdiag116@gmail.com" style="color:inherit">alexdiag116@gmail.com</a>.</p>
-<button type="button" class="copy-mail" data-i18n="copyMail" data-mail="alexdiag116@gmail.com">पता कॉपी करें</button>
+<div class="foot-act"><button type="button" class="copy-mail" data-i18n="copyMail" data-mail="alexdiag116@gmail.com">पता कॉपी करें</button></div>
 
 <script src="/assets/app.js"></script>
-</body>
+<!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "177421bba4084e9fa25718d86f1781b0"}'></script><!-- End Cloudflare Web Analytics --></body>
 </html>
