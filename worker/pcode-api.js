@@ -49,11 +49,19 @@ var LIMIT_PER_MINUTE = 20;
 var COST_NO_BRAND = 3;       // запрос без марки проверяет все таблицы сразу
 var DAILY_LIMIT_PER_DAY = 50; // поисков в сутки (UTC) с одного адреса
 var MAX_CODE_LEN = 12;
-var CODE_RE = /^[A-Za-z0-9-]+$/;
+// Буквы кириллицей - в двух кодах Mercedes (2E050Б, EE0A0З): так записаны в базе.
+// Проверяем верхний регистр (см. handlePcode), поэтому строчные сюда не нужны.
+var CODE_RE = /^[A-Z0-9\u0400-\u042F\u0401-]+$/;
 // Дилерский код вида «100.1» (Deutz, Caterpillar, Daewoo, Iveco EDC): цифры,
 // точка, цифры. Точка в прочих форматах не разрешена - P-коды, MID/PID,
 // Volvo B000101 и пары SPN-FMI с дефисом проверяются по CODE_RE, как раньше.
 var DOT_CODE_RE = /^[0-9]{1,7}\.[0-9]{1,2}$/;
+// Код Volvo MID/PID из таблицы volvomid: M128-P100.1, M128-PP270.12 (1 407 ключей).
+// Длина до 14 символов, поэтому проверяется по шаблону, а не по MAX_CODE_LEN.
+var MID_CODE_RE = /^M[0-9]{1,3}-[PS]{1,2}[0-9]{1,4}\.[0-9]{1,2}$/;
+// Код Volkswagen с косой чертой: 0027/04 (589 ключей). Дефисная форма 1045-02
+// проходит CODE_RE.
+var SLASH_CODE_RE = /^[0-9]{3,4}\/[0-9]{2}$/;
 
 // Число шардов индекса без марки. Держать в согласии с SHARDS в
 // scripts/build_pcode.py: там же строится pcode-source/kv-idx.json.
@@ -244,7 +252,10 @@ async function handlePcode(request, env, url) {
   var brand = url.searchParams.get('brand') || '';
 
   if (!code) return json(request, 400, { error: 'missing_code' });
-  if (code.length > MAX_CODE_LEN || !(CODE_RE.test(code) || DOT_CODE_RE.test(code))) {
+  var up = code.toUpperCase();
+  var shapeOk = (code.length <= MAX_CODE_LEN && CODE_RE.test(up)) ||
+                DOT_CODE_RE.test(up) || MID_CODE_RE.test(up) || SLASH_CODE_RE.test(up);
+  if (!shapeOk) {
     return json(request, 400, { error: 'bad_code' });
   }
   if (brand && KNOWN_PCODE_BRANDS.indexOf(brand) < 0) {
