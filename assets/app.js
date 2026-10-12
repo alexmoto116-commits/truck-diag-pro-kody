@@ -1656,7 +1656,8 @@
   var BRAND_OVERRIDE = {kamaz:'KAMAZ', yamz:'YAMZ', planar:'Planar / Teplostar',
                         gaz:'GAZ', maz:'MAZ', ural:'Ural',
                         kraz:'KrAZ', beiben:'Beiben',
-                        volvomid:'Volvo (MID modules)'};
+                        volvomid:'Volvo (MID modules)',
+                        jingwei:'Jingwei (SITRAK heater)'};
 
   /* Часть "марок" в базе — не марки техники, а поставщики систем/агрегатов
      (ABS/EBS, двигатели, отопители, рефрижераторы), общие для многих машин.

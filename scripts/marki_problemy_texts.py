@@ -445,6 +445,19 @@ BRAND_TEXT = {
               u'and the power supply. For example, P0001 is an open load on the metering unit: check the unit connector before '
               u'replacing the unit itself.',
     },
+    'mercedes': {
+        'ru': u'Mercedes-Benz записывает коды двумя способами. В бесплатном разборе {codes} по J1939: SPN и FMI идут парой. '
+              u'Основная часть записей дилерская, {dealer}: коды из 4–7 знаков, например 0004 или MR 9961, а в описании '
+              u'названы модель (Atego, Actros, Axor) и узел. Чаще всего встречаются датчики и электрические цепи, клапаны '
+              u'и тормоза, давление и шина CAN. Сначала выясните, в каком формате ваш код: SPN с FMI ищите в бесплатной '
+              u'таблице, а остальное — в дилерском разборе по описанию модели.',
+        'en': u'Mercedes-Benz records codes in two ways. The free tables cover {codes} under J1939, where the SPN and the FMI '
+              u'come as a pair. Most records are dealer records, {dealer}: codes of 4 to 7 characters, such as 0004 or MR 9961, '
+              u'and the description names the model (Atego, Actros, Axor) and the component. The most common areas are sensors '
+              u'and electrical circuits, valves and brakes, pressure and the CAN bus. First establish which format your code '
+              u'is in: an SPN with its FMI is in the free table, and anything else is in the dealer list, where you match the '
+              u'model in the description.',
+    },
     'mwm': {
         'ru': u'MWM — {dealer} кодов вида P0105-01, где суффикс обозначает вариант неисправности. Чаще всего встречаются '
               u'топливо, электропитание и смазка. Датчики давления и температуры описаны по каждому варианту отдельно, '

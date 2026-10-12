@@ -573,7 +573,8 @@ def build():
         top = ([] if own_en else
                bp.top_spns(b, per_en, lambda s: s in set(written) and s not in closed,
                            lambda s, _r: is_stop(s),
-                           [t for _, t in (dealer_rows_en or [])]))
+                           [t for _, t in (dealer_rows_en or [])],
+                           exclude=stop_codes))
         secs.insert(0, brand_intro_en(b, nums, top))
         title = MK['titleTpl'] % bname(b)
         h1 = MK['h1Tpl'] % bname(b)

@@ -170,6 +170,28 @@ def own_section_en(spn):
     return u''.join(out)
 
 
+def code_desc_en(spn, name, sysname, names, urgent, how):
+    """Описание английской страницы кода (до 155 знаков). Смысл тот же, что у
+    русского bp.code_desc_ru: номер и название, система, срочность, марки для
+    FMI и, если есть, раздел «how to check it yourself»."""
+    head = (u'SPN %d — %s' % (spn, name)) if name else (u'SPN %d' % spn)
+    sysc = (u': %s system' % sysname) if sysname else u''
+    urg = u'Do not drive.' if urgent else u'Safe to drive to a service.'
+    tail = u', how to check it yourself' if how else u''
+    variants = []
+    for n in (3, 2, 1):
+        if len(names) >= n:
+            pick = names[:n]
+            joined = (u', '.join(pick[:-1]) + u' and ' + pick[-1]) if n > 1 else pick[0]
+            variants.append(u'FMI decoded for %s%s.' % (joined, tail))
+    variants.append(u'FMI decoded against the J1939 standard%s.' % tail)
+    for v in variants:
+        d = u'%s%s. %s %s' % (head, sysc, urg, v)
+        if len(d) <= 155:
+            return d
+    return bp.cut_words(u'%s%s. %s %s' % (head, sysc, urg, variants[-1]))
+
+
 def load_en():
     raw = io.open(os.path.join(ROOT, 'assets', 'dtc.en.js'), encoding='utf-8').read()
     b64 = re.search(r"b64='([^']+)'", raw).group(1)
@@ -392,6 +414,16 @@ def build():
         else:
             page_name = u'SPN %d' % spn
             desc = TX['descNone'] % spn
+        # Описание открытой страницы строим из её данных (см. code_desc_en);
+        # у закрытых от индекса остаётся прежний общий текст.
+        if spn not in info.get('noindex', ()):
+            ordered_b = sorted(makes, key=lambda b: (bp.ЧАСТЫЕ_МАРКИ.index(b)
+                                                     if b in bp.ЧАСТЫЕ_МАРКИ else 99, bname(b)))
+            desc = code_desc_en(spn, name, (i18n.get(SYS_KEY.get(sys_key, 'sysOther'))
+                                            if sys_key != 'other' else None),
+                                [bname(b) for b in ordered_b],
+                                spn in urgent_spn or any(f in urgent_fmi for f in seen),
+                                spn in OWN_EN or bool(i18n.get(ACT_KEY.get(sys_key, ''))))
         title = bp.cut60(page_name)      # без «| codetruck.ru»: см. build_pages.cut60
         rel = 'kody/spn-%d.html' % spn
         canon = '%s/en/%s' % (SITE, rel)
@@ -488,6 +520,14 @@ def build():
             body.append(u'<section><h2>%s</h2><ul class="near">%s</ul></section>'
                         % (TX['nearby'] % bp.esc(i18n.get(SYS_KEY.get(sys_key, 'sysOther'), '')),
                            ''.join(code_link(s, 'spn-%d.html' % s) for s in neigh)))
+
+        # Related codes: 5–8 открытых кодов той же системы, сначала с разделом
+        # «how to check it yourself»; ссылки из «Nearby» не повторяем.
+        similar = bp.similar_codes(spn, [x for x in by_sys.get(sys_key, []) if x in en_set],
+                                   set(neigh), set(OWN_EN))
+        if similar:
+            body.append(u'<section><h2>Related codes</h2><ul class="near">%s</ul></section>'
+                        % ''.join(code_link(s, 'spn-%d.html' % s) for s in similar))
 
         body.append(u'<p class="cta">%s</p>' % TX['cta'])
         body.append(u'</div>\n' + bp.CF_SNIPPET + u'\n</body>\n</html>\n')

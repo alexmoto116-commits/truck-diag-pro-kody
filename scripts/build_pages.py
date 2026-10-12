@@ -1121,13 +1121,16 @@ def is_private_spn(brand, spn):
     return any(b == brand and lo <= spn <= hi for b, lo, hi in PRIVATE_SPN)
 
 
-def top_spns(b, rows_map, open_ok, stop_fn, dealer_texts=(), limit=5):
+def top_spns(b, rows_map, open_ok, stop_fn, dealer_texts=(), limit=5, exclude=()):
     """Частые или важные коды марки, только открытые (open_ok).
 
     У марки с бесплатной SPN-таблицей - сначала коды, при которых ехать нельзя,
     затем самые разобранные по FMI. У дилерской марки без такой таблицы -
-    SPN, которые упомянуты в её текстах (например, «SPN 110»), по частоте."""
-    cands = [s for s in rows_map if b in rows_map[s] and open_ok(s)]
+    SPN, которые упомянуты в её текстах (например, «SPN 110»), по частоте.
+    exclude - коды, уже выведенные ниже на странице (блок «ехать нельзя»):
+    повторять их в начале страницы незачем, берём следующие по частоте."""
+    skip = set(exclude)
+    cands = [s for s in rows_map if b in rows_map[s] and open_ok(s) and s not in skip]
     if cands:
         stops = [s for s in sorted(cands) if stop_fn(s, rows_map[s])]
         rest = sorted([s for s in cands if s not in stops],
@@ -1137,9 +1140,53 @@ def top_spns(b, rows_map, open_ok, stop_fn, dealer_texts=(), limit=5):
     for t in dealer_texts:
         for m in re.findall(r'SPN\s*(\d+)', t or u''):
             s = int(m)
-            if open_ok(s):
+            if open_ok(s) and s not in skip:
                 cnt[s] = cnt.get(s, 0) + 1
     return [s for s, _ in sorted(cnt.items(), key=lambda x: (-x[1], x[0]))][:limit]
+
+
+def cut_words(s, lim=155):
+    """Обрезка по слову: не длиннее lim знаков, без хвоста из обрывка слова."""
+    if len(s) <= lim:
+        return s
+    return s[:lim].rsplit(u' ', 1)[0].rstrip(u' ,;:—-')
+
+
+def similar_codes(spn, bucket, exclude, diy, lo=5, hi=8):
+    """«Похожие коды»: ближайшие по номеру коды той же системы (bucket - открытые).
+    Сначала с разделом проверки (diy), добираем до lo обычными; не больше hi.
+    exclude - то, что уже стоит в «Рядом», повторять не нужно."""
+    pool = sorted((s for s in bucket if s != spn and s not in exclude),
+                  key=lambda s: (abs(s - spn), s))
+    first = [s for s in pool if s in diy][:hi]
+    if len(first) < lo:
+        first += [s for s in pool if s not in diy][:lo - len(first)]
+    return first
+
+
+def code_desc_ru(spn, name, sys_key, makes, brand_names, urgent, how):
+    """Описание страницы кода (до 155 знаков): номер и название, система,
+    срочность, марки для FMI и, если есть, раздел «как проверить».
+    makes - марки без своей нумерации (ZF, Ford сюда не входят)."""
+    head = (u'SPN %d — %s' % (spn, name)) if name else (u'SPN %d' % spn)
+    sysc = (u': система «%s»' % SYS_TITLE[sys_key]) if sys_key in SYS_TITLE and sys_key != 'other' else u''
+    urg = u'Ехать нельзя.' if urgent else u'Можно доехать до сервиса.'
+    ordered = sorted(makes, key=lambda b: (ЧАСТЫЕ_МАРКИ.index(b) if b in ЧАСТЫЕ_МАРКИ else 99,
+                                           brand_names.get(b, b)))
+    names = [brand_names.get(b, b) for b in ordered]
+    tail = u', как проверить своими руками' if how else u''
+    variants = []
+    for n in (3, 2, 1):
+        if len(names) >= n:
+            pick = names[:n]
+            joined = (u', '.join(pick[:-1]) + u' и ' + pick[-1]) if n > 1 else pick[0]
+            variants.append(u'FMI по маркам %s%s.' % (joined, tail))
+    variants.append(u'FMI по стандарту J1939%s.' % tail)
+    for v in variants:
+        d = u'%s%s. %s %s' % (head, sysc, urg, v)
+        if len(d) <= 155:
+            return d
+    return cut_words(u'%s%s. %s %s' % (head, sysc, urg, variants[-1]))
 
 
 def build(en_spns=()):
@@ -1261,6 +1308,10 @@ def build(en_spns=()):
     for spn in open_keep:
         by_sys.setdefault(system_of(spn, std_name(spn)), []).append(spn)
 
+    # коды с разделом «Как проверить своими руками» - в первую очередь в «Похожих»
+    from own_checks import CHECKS as _DIY_CHECKS
+    DIY_KEYS = set(_DIY_CHECKS)
+
     out_dir = os.path.join(ROOT, 'kody')
     for f in glob.glob(os.path.join(out_dir, 'spn-*.html')):
         os.remove(f)
@@ -1336,6 +1387,12 @@ def build(en_spns=()):
             page_name = u'SPN %d' % spn
             desc = (u'SPN %d: что означает код по стандарту J1939, значения FMI '
                     u'и можно ли ехать.' % spn)
+        # Описание открытой страницы строим из её данных (см. code_desc_ru);
+        # у закрытых от индекса оставляем прежний общий текст.
+        if spn not in noindex:
+            desc = code_desc_ru(spn, name, sys_key, makes, brand_names,
+                                urgent_spn_hit or any(f in urgent_fmi for f in seen_all_early),
+                                spn in DIY_KEYS or bool(advice_for(sys_key, seen_all_early)))
         # Сайт в title не пишем: название сайта и так в og:site_name, а лишние
         # знаки уходят из выдачи. Номер SPN в начале делает заголовки разными.
         title = cut60(с_марками(page_name) if std_name(spn) else page_name)
@@ -1462,6 +1519,13 @@ def build(en_spns=()):
             links = ''.join(code_link(s, 'spn-%d.html' % s) for s in neigh)
             body.append(u'<section><h2>Рядом: %s</h2><ul class="near">%s</ul></section>'
                         % (esc(SYS_TITLE.get(sys_key, SYS_TITLE['other'])), links))
+
+        # «Похожие коды»: 5–8 открытых кодов той же системы, сначала с разделом
+        # «Как проверить своими руками»; то, что уже стоит в «Рядом», не повторяем.
+        similar = similar_codes(spn, by_sys.get(sys_key, []), set(neigh), DIY_KEYS)
+        if similar:
+            body.append(u'<section><h2>Похожие коды</h2><ul class="near">%s</ul></section>'
+                        % u''.join(code_link(s, 'spn-%d.html' % s) for s in similar))
 
         body.append(u'<p class="cta">Сканер выдал несколько кодов? '
                     u'<a href="../">Вставьте весь список</a> — покажем первопричину.</p>')
@@ -1737,8 +1801,10 @@ def build(en_spns=()):
                 'dealer': len(dealer_rows) if dealer_rows else 0,
                 'stops': sum(1 for s in mine_open if is_stop(s, per_spn.get(s, {})))}
         open_ok = lambda s: s in set(written) and s not in noindex
+        # Коды из блока «ехать нельзя» ниже на странице сюда не повторяем
         top = ([] if own else
-               top_spns(b, per_spn, open_ok, is_stop, [t for _, t in (dealer_rows or [])]))
+               top_spns(b, per_spn, open_ok, is_stop, [t for _, t in (dealer_rows or [])],
+                        exclude=stop_codes))
         secs.insert(0, brand_intro(b, nums, top))
         path = 'marki/%s.html' % b
         title = u'Коды ошибок %s | codetruck.ru' % bn
