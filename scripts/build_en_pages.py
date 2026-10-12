@@ -69,7 +69,7 @@ OWN_NUMBERING_EN = {
 
 TX = {
     'navUp':      u'&larr; code lookup',
-    'navSection': u'All fault codes',
+    'navSection': u'Codes',
     'fmiStd':     u'What FMI means in J1939',
     'fmiCommon':  u'Common FMI values',
     'canDrive':   u'Can I keep driving',
@@ -284,9 +284,12 @@ def build():
                           TX['casNote']))
         return ''.join(out)
 
-    def nav():
-        return (u'<a href="/en/">%s</a><span class="sep">&middot;</span>'
-                u'<a href="/en/kody/">%s</a>' % (TX['navUp'], TX['navSection']))
+    def nav(here=None):
+        # Видимые крошки «Home › Codes › SPN N», как в JSON-LD
+        items = [u'<a href="/en/">Home</a>', u'<a href="/en/kody/">%s</a>' % TX['navSection']]
+        if here:
+            items.append(u'<span>%s</span>' % bp.esc(here))
+        return u'<span class="sep">&rsaquo;</span>'.join(items)
 
     def alt_links(rel):
         ru, en = '%s/%s' % (SITE, rel), '%s/en/%s' % (SITE, rel)
@@ -296,7 +299,7 @@ def build():
 
     def breadcrumb(name, canon):
         return {'@context': 'https://schema.org', '@type': 'BreadcrumbList', 'itemListElement': [
-            {'@type': 'ListItem', 'position': 1, 'name': 'codetruck.ru', 'item': SITE + '/en/'},
+            {'@type': 'ListItem', 'position': 1, 'name': 'Home', 'item': SITE + '/en/'},
             {'@type': 'ListItem', 'position': 2, 'name': TX['navSection'],
              'item': SITE + '/en/kody/'},
             {'@type': 'ListItem', 'position': 3, 'name': name, 'item': canon},
@@ -389,7 +392,7 @@ def build():
         else:
             page_name = u'SPN %d' % spn
             desc = TX['descNone'] % spn
-        title = page_name + u' | codetruck.ru'
+        title = bp.cut60(page_name)      # без «| codetruck.ru»: см. build_pages.cut60
         rel = 'kody/spn-%d.html' % spn
         canon = '%s/en/%s' % (SITE, rel)
 
@@ -424,7 +427,7 @@ def build():
 
         body = [bp.HEAD.format(title=bp.esc(title), desc=bp.esc(desc), canon=canon,
                                ogtitle=bp.esc(page_name), mid=bp.METRIKA_ID, ld=ld,
-                               nav=nav(), lang='en', locale='en_US', alt=alt_links(rel))]
+                               nav=nav(u'SPN %d' % spn), lang='en', locale='en_US', alt=alt_links(rel))]
         if spn in info.get('noindex', ()):      # те же, что закрыты у русской
             body[0] = body[0].replace(u'<meta charset="utf-8">',
                                       u'<meta charset="utf-8">\n<meta name="robots" content="noindex, follow">', 1)
@@ -519,7 +522,7 @@ def build():
                         'url': canon, 'inLanguage': 'en'})
           + bp.ld_script({'@context': 'https://schema.org', '@type': 'BreadcrumbList',
                           'itemListElement': [
-                              {'@type': 'ListItem', 'position': 1, 'name': 'codetruck.ru',
+                              {'@type': 'ListItem', 'position': 1, 'name': 'Home',
                                'item': SITE + '/en/'},
                               {'@type': 'ListItem', 'position': 2, 'name': TX['hubH1'],
                                'item': canon}]}))
@@ -527,7 +530,7 @@ def build():
     body = [bp.HEAD.format(title=bp.esc(TX['hubTitle']),
                            desc=bp.esc(TX['hubDesc'] % len(written)), canon=canon,
                            ogtitle=bp.esc(TX['hubH1']), mid=bp.METRIKA_ID, ld=ld,
-                           nav=u'<a href="/en/">%s</a>' % TX['navUp'],
+                           nav=u'<a href="/en/">Home</a><span class="sep">&rsaquo;</span><span>%s</span>' % bp.esc(TX['hubH1']),
                            lang='en', locale='en_US', alt=alt_links('kody/'))]
     body.append(u'<h1>%s</h1>' % bp.esc(TX['hubH1']))
     body.append(bp.search_form(None, ph=u'Your code, e.g. 1078/3', action=u'/en/', btn=u'Search', label=u'Fault code'))

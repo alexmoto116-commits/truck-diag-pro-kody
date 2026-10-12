@@ -54,9 +54,9 @@ MID_MODULE_NAMES_EN = {
 }
 
 SECTIONS_EN = {
-    'marki':    (u'All makes', 'en/marki/'),
-    'problemy': (u'Faults by symptom', 'en/problemy/'),
-    'kody':     (u'All fault codes', 'en/kody/'),
+    'marki':    (u'Makes', 'en/marki/'),
+    'problemy': (u'Problems', 'en/problemy/'),
+    'kody':     (u'Codes', 'en/kody/'),
 }
 
 MK = {
@@ -308,16 +308,19 @@ SYMPTOMS_EN = {
 }
 
 
-def nav_en(section=None):
-    up = u'<a href="/en/">&larr; code lookup</a>'
-    if not section:
-        return up
-    name, path = SECTIONS_EN[section]
-    return u'%s<span class="sep">&middot;</span><a href="/%s">%s</a>' % (up, path, name)
+def nav_en(section=None, here=None):
+    # Видимые крошки «Home › Makes › MAN», как в JSON-LD
+    items = [u'<a href="/en/">Home</a>']
+    if section:
+        name, path = SECTIONS_EN[section]
+        items.append(u'<a href="/%s">%s</a>' % (path, name))
+    if here:
+        items.append(u'<span>%s</span>' % bp.esc(here))
+    return u'<span class="sep">&rsaquo;</span>'.join(items)
 
 
 def breadcrumb_en(name, canon, section=None):
-    items = [{'@type': 'ListItem', 'position': 1, 'name': 'codetruck.ru', 'item': SITE + '/en/'}]
+    items = [{'@type': 'ListItem', 'position': 1, 'name': 'Home', 'item': SITE + '/en/'}]
     if section:
         sname, spath = SECTIONS_EN[section]
         items.append({'@type': 'ListItem', 'position': 2, 'name': sname,
@@ -326,7 +329,7 @@ def breadcrumb_en(name, canon, section=None):
     return {'@context': 'https://schema.org', '@type': 'BreadcrumbList', 'itemListElement': items}
 
 
-def page_en(path, title, desc, h1, sub, sections, section=None, rel_ru=None):
+def page_en(path, title, desc, h1, sub, sections, section=None, rel_ru=None, here=None):
     pub = path[:-len('index.html')] if path.endswith('index.html') else path
     canon = '%s/%s' % (SITE, pub)
     # rel_ru кладём той же обрезкой, что и pub - иначе у рубричных index.html
@@ -337,9 +340,10 @@ def page_en(path, title, desc, h1, sub, sections, section=None, rel_ru=None):
     ld = (bp.ld_script({'@context': 'https://schema.org', '@type': 'TechArticle',
                         'headline': title, 'description': desc, 'url': canon,
                         'inLanguage': 'en'})
-          + bp.ld_script(breadcrumb_en(h1, canon, section)))
+          + bp.ld_script(breadcrumb_en(here or h1, canon, section)))
     body = [bp.HEAD.format(title=bp.esc(title), desc=bp.esc(desc), canon=canon,
-                           ogtitle=bp.esc(h1), mid=bp.METRIKA_ID, ld=ld, nav=nav_en(section),
+                           ogtitle=bp.esc(h1), mid=bp.METRIKA_ID, ld=ld,
+                           nav=nav_en(section, here or h1),
                            lang='en', locale='en_US', alt=alt)]
     body.append(u'<h1>%s</h1>' % bp.esc(h1))
     # со страницы марки - поиск сразу с этой маркой, как у русской
@@ -533,7 +537,7 @@ def build():
                u'The reference covers <b>%d %s codes</b> from factory tables — the code and what it '
                u'means. %s numbers faults its own way, not by J1939 SPN.' % (len(own_en), bp.esc(bn), bp.esc(bn)))
         rel = 'marki/%s.html' % b
-        page_en('en/' + rel, title, desc, h1, sub, secs, 'marki', rel_ru=rel)
+        page_en('en/' + rel, title, desc, h1, sub, secs, 'marki', rel_ru=rel, here=bname(b))
         en_marki.add(b)
 
     # --- по маркам с MID-структурой (Mack, Detroit Diesel) ---------
@@ -573,7 +577,7 @@ def build():
         desc = MK['descMid'] % (bn, len(entries))
         sub = MK['subMid'] % (len(entries), bp.esc(bn))
         rel = 'marki/%s.html' % b
-        page_en('en/' + rel, title, desc, h1, sub, secs, 'marki', rel_ru=rel)
+        page_en('en/' + rel, title, desc, h1, sub, secs, 'marki', rel_ru=rel, here=bname(b))
         en_marki.add(b)
 
     # --- дилерские марки (Scania, Caterpillar, ...) -----------------
@@ -600,7 +604,7 @@ def build():
                if b in bp.MID_PCODE_BRANDS
                else MK['dealerSub'] % (len(rows), bp.esc(bn_en), bp.esc(bn_en)))
         rel = 'marki/%s.html' % b
-        page_en('en/' + rel, title, desc, h1, sub, secs, 'marki', rel_ru=rel)
+        page_en('en/' + rel, title, desc, h1, sub, secs, 'marki', rel_ru=rel, here=bname(b))
         en_marki.add(b)
 
     # --- рубрика en/marki/ -------------------------------------------

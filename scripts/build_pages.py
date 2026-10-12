@@ -271,7 +271,7 @@ def causal_rules(spn):
             [r for r in R['causal'] if spn in r['cons']])
 
 
-def risk_section(sys_key, fmis, urgent_fmi, urgent_spn_hit):
+def risk_section(sys_key, fmis, urgent_fmi, urgent_spn_hit, spn=None):
     R = risk_model()
     key, lvl, flag = page_risk(sys_key, fmis, urgent_fmi, urgent_spn_hit)
     if not key or key not in R['tx']:
@@ -293,10 +293,11 @@ def risk_section(sys_key, fmis, urgent_fmi, urgent_spn_hit):
     if flagged and lvl != 'now':
         note += u'<p class="rkn">%s</p>' % esc(R['flag'])
     tier = tier_of(lvl)
+    head = esc(R['title']) + (u' с SPN %d' % spn if spn else u'')
     return (u'<section><h2>%s</h2>'
             u'<div class="risk t-%s"><span class="rkb">Запас времени: %s</span>'
             u'<p>%s</p><p>%s</p>%s</div></section>'
-            % (esc(R['title']), tier, esc(R['h'][lvl]), esc(happens), esc(ends), note))
+            % (head, tier, esc(R['h'][lvl]), esc(happens), esc(ends), note))
 
 
 def system_of(spn, name):
@@ -578,14 +579,14 @@ def neighbors_of(spn, bucket, n=10):
 # врать. Теперь разделы есть (kody/, marki/, problemy/), и третий уровень -
 # уже не выдумка: на него можно кликнуть.
 SECTIONS = {
-    'kody':     (u'Все коды ошибок', 'kody/'),
-    'marki':    (u'Все марки', 'marki/'),
-    'problemy': (u'Неисправности по симптомам', 'problemy/'),
+    'kody':     (u'Коды', 'kody/'),
+    'marki':    (u'Марки', 'marki/'),
+    'problemy': (u'Неисправности', 'problemy/'),
 }
 
 
 def breadcrumb_ld(name, canon, section=None):
-    items = [{'@type': 'ListItem', 'position': 1, 'name': 'codetruck.ru', 'item': SITE + '/'}]
+    items = [{'@type': 'ListItem', 'position': 1, 'name': u'Главная', 'item': SITE + '/'}]
     if section:
         sec_name, sec_path = SECTIONS[section]
         items.append({'@type': 'ListItem', 'position': 2, 'name': sec_name,
@@ -608,12 +609,15 @@ def alt_links(has_en, rel_path):
 
 # Ссылка на раздел в верхней строке страницы: без неё раздел существует
 # только в sitemap, а человеку и обходчику некуда шагнуть вверх.
-def nav_of(section=None):
-    up = u'<a href="/">&larr; поиск по коду</a>'
-    if not section:
-        return up
-    sec_name, sec_path = SECTIONS[section]
-    return u'%s<span class="sep">&middot;</span><a href="/%s">%s</a>' % (up, sec_path, sec_name)
+def nav_of(section=None, here=None):
+    # Видимые крошки «Главная › Коды › SPN N» (та же иерархия, что в JSON-LD).
+    items = [u'<a href="/">Главная</a>']
+    if section:
+        sec_name, sec_path = SECTIONS[section]
+        items.append(u'<a href="/%s">%s</a>' % (sec_path, sec_name))
+    if here:
+        items.append(u'<span>%s</span>' % esc(here))
+    return u'<span class="sep">&rsaquo;</span>'.join(items)
 
 # Строка поиска под заголовком каждой страницы. Человек часто приходит не на
 # свой код (номер тот же, марка другая) или со своим списком со сканера - и
@@ -626,6 +630,20 @@ def search_form(brand=None, ph=u'Ваш код, например 1078/3', action
             u'<input type="search" name="q" placeholder="%s" aria-label="%s" '
             u'autocomplete="off" inputmode="text">%s<button type="submit">%s</button></form>'
             % (action, ph, label, (u'<input type="hidden" name="b" value="%s">' % brand) if brand else u'', btn))
+
+TITLE_MAX = 60
+
+
+def cut60(s, lim=TITLE_MAX):
+    """Заголовок не длиннее lim знаков: режем по слову и ставим многоточие."""
+    if len(s) <= lim:
+        return s
+    cut = s[:lim - 1]
+    k = cut.rfind(u' ')
+    if k > lim // 2:
+        cut = cut[:k]
+    return cut.rstrip(u' ,:;—-') + u'…'
+
 
 HEAD = u"""<!DOCTYPE html>
 <html lang="{lang}">
@@ -1251,16 +1269,19 @@ def build(en_spns=()):
                        u'при которых остановиться нужно при первой безопасной возможности: '
                        u'дальше поедет дороже.')
         else:
-            verdict = (u'<b>Обычно ехать можно</b>, но код нужно показать на ближайшем ТО. '
-                       u'Если вместе с ним горит красная лампа или падает мощность — '
-                       u'останавливайтесь.')
+            # Строку про лампу и мощность даём только срочным кодам (помеченным
+            # заводом или с срочным FMI): у остальных она была одинаковой на 1600 страницах.
+            flagged = urgent_spn_hit or any(f in urgent_fmi for f in seen_all_early)
+            verdict = (u'<b>Обычно ехать можно</b>, но код нужно показать на ближайшем ТО.'
+                       + (u' Если вместе с ним горит красная лампа или падает мощность — '
+                          u'останавливайтесь.' if flagged else u''))
 
         # Заводской номер вне стандарта ищут вместе с маркой («spn 4099 knorr»),
         # поэтому у таких кодов марка стоит прямо в заголовке; у стандартных
         # SPN она там лишняя - имя узла и так однозначно.
         brands_short, brands_all = brand_list(spn, 3), brand_list(spn)
         # Для <title> - частые марки впереди, без ZF/Ford (у них номер другой);
-        # сколько влезет в ~75 знаков. На самой странице заголовок прежний.
+        # сколько влезет в 60 знаков (дальше поисковик обрезает). На самой странице заголовок прежний.
         _т_марки = [b for b in makes if b not in OWN_NUMBERING] or list(makes)
         _т_марки.sort(key=lambda b: (ЧАСТЫЕ_МАРКИ.index(b) if b in ЧАСТЫЕ_МАРКИ else 99,
                                      brand_names.get(b, b)))
@@ -1269,8 +1290,8 @@ def build(en_spns=()):
             for n in (3, 2, 1):
                 if len(_т_марки) >= n:
                     т_ = u'%s: %s' % (осн, u', '.join(brand_names.get(b, b) for b in _т_марки[:n]))
-                    if len(т_) <= 75 or n == 1:
-                        return т_ if len(т_) <= 90 else осн
+                    if len(т_) <= TITLE_MAX:
+                        return т_
             return осн
         if std_name(spn):
             page_name = u'SPN %d — %s' % (spn, name)
@@ -1288,7 +1309,9 @@ def build(en_spns=()):
             page_name = u'SPN %d' % spn
             desc = (u'SPN %d: что означает код по стандарту J1939, значения FMI '
                     u'и можно ли ехать.' % spn)
-        title = (с_марками(page_name) if std_name(spn) else page_name) + u' | codetruck.ru'
+        # Сайт в title не пишем: название сайта и так в og:site_name, а лишние
+        # знаки уходят из выдачи. Номер SPN в начале делает заголовки разными.
+        title = cut60(с_марками(page_name) if std_name(spn) else page_name)
         canon = '%s/kody/spn-%d.html' % (SITE, spn)
 
         faq = [{'@type': 'Question',
@@ -1320,7 +1343,7 @@ def build(en_spns=()):
 
         body = [HEAD.format(title=esc(title), desc=esc(desc), canon=canon,
                             ogtitle=esc(page_name), mid=METRIKA_ID, ld=ld,
-                            nav=nav_of('kody'), lang='ru', locale='ru_RU',
+                            nav=nav_of('kody', u'SPN %d' % spn), lang='ru', locale='ru_RU',
                             alt=alt_links(spn in en_spns, 'kody/spn-%d.html' % spn))]
         if spn in noindex:
             body[0] = body[0].replace(u'<meta charset="utf-8">',
@@ -1336,9 +1359,8 @@ def build(en_spns=()):
         if makes and std_name(spn):
             # Марки называем поимённо: раньше здесь стояло «у 3 марок», и самые
             # нужные человеку слова - названия марок - на странице не звучали.
-            body.append(u'<p class="sub">Код J1939 SPN %d. Ниже — как эту неисправность '
-                        u'формулируют на заводе у %s, и что вторая половина кода (FMI) '
-                        u'означает по стандарту.</p>' % (spn, esc(brands_all)))
+            body.append(u'<p class="sub">Код J1939 SPN %d. Ниже — как его формулируют '
+                        u'на заводе у %s и что значит FMI.</p>' % (spn, esc(brands_all)))
         elif makes:
             body.append(u'<p class="sub">SPN %d — заводской номер вне стандартной таблицы '
                         u'J1939: у разных марок под ним может быть разное. Ниже — как его '
@@ -1388,8 +1410,8 @@ def build(en_spns=()):
         if seen_fmi:
             std_rows = [(f, db['fmi'][str(f)]) for f in seen_fmi if str(f) in db['fmi']]
             if std_rows:
-                body.append(u'<section><h2>Что значит FMI по стандарту J1939</h2>%s</section>'
-                            % fmi_table(std_rows, urgent_fmi, spn))
+                body.append(u'<section><h2>Что значит FMI у SPN %d</h2>%s</section>'
+                            % (spn, fmi_table(std_rows, urgent_fmi, spn)))
         else:
             common = [f for f in (0, 1, 2, 3, 4, 5) if str(f) in db['fmi']]
             body.append(u'<section><h2>Частые значения FMI</h2>%s</section>'
@@ -1398,7 +1420,7 @@ def build(en_spns=()):
         # Вердикт (verdict) и признак stop уже посчитаны выше, до <head> - они
         # нужны были заранее для FAQPage.
         body.append(u'<section><h2>Можно ли ехать</h2><p>%s</p></section>' % verdict)
-        body.append(risk_section(sys_key, seen_all_early, urgent_fmi, urgent_spn_hit))
+        body.append(risk_section(sys_key, seen_all_early, urgent_fmi, urgent_spn_hit, spn))
 
         _совет = advice_for(sys_key, seen_all_early)
         if _совет:
@@ -1414,9 +1436,8 @@ def build(en_spns=()):
             body.append(u'<section><h2>Рядом: %s</h2><ul class="near">%s</ul></section>'
                         % (esc(SYS_TITLE.get(sys_key, SYS_TITLE['other'])), links))
 
-        body.append(u'<p class="cta">Сканер выдал несколько кодов сразу? '
-                    u'<a href="../">Вставьте весь список</a> — покажем, какой из них '
-                    u'первопричина, а какие пришли следом.</p>')
+        body.append(u'<p class="cta">Сканер выдал несколько кодов? '
+                    u'<a href="../">Вставьте весь список</a> — покажем первопричину.</p>')
         body.append(u'</div>\n</body>\n</html>\n')
 
         io.open(os.path.join(out_dir, 'spn-%d.html' % spn), 'w', encoding='utf-8').write(''.join(body))
@@ -1444,10 +1465,11 @@ def build(en_spns=()):
         canon = '%s/%s' % (SITE, pub)
         ld = (ld_script({'@context': 'https://schema.org', '@type': 'TechArticle',
                          'headline': title, 'description': desc, 'url': canon})
-              + ld_script(breadcrumb_ld(h1, canon, section))
+              + ld_script(breadcrumb_ld(brand_names.get(brand, h1) if brand else h1, canon, section))
               + (ld_script(extra_ld) if extra_ld else u''))
         body = [HEAD.format(title=esc(title), desc=esc(desc), canon=canon,
-                            ogtitle=esc(h1), mid=METRIKA_ID, ld=ld, nav=nav_of(section),
+                            ogtitle=esc(h1), mid=METRIKA_ID, ld=ld,
+                            nav=nav_of(section, brand_names.get(brand, h1) if brand else h1),
                             lang='ru', locale='ru_RU', alt=alt)]
         body.append(u'<h1>%s</h1>' % esc(h1))
         # у марки со своей нумерацией пример - её же код, а не SPN/FMI
