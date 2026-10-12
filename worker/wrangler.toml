@@ -13,3 +13,13 @@ kv_namespaces = [
 name = "PCODE_RL"
 namespace_id = "1001"
 simple = { limit = 20, period = 60 }
+
+# Лимит 50 поисков в сутки на адрес (см. DailyLimit в pcode-api.js).
+# Счётчик хранится в Durable Object с SQLite - доступно на бесплатном тарифе.
+[[durable_objects.bindings]]
+name = "DAILY_LIMIT"
+class_name = "DailyLimit"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["DailyLimit"]

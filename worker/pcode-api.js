@@ -4,18 +4,27 @@
  * Отдаёт по одному коду за раз вместо публикации всей таблицы целиком в
  * assets/dtc.enc.js / dtc.en.js. Данные заливаются в PCODE_KV скриптом
  * scripts/build_pcode.py (см. pcode-source/kv-bulk.json + `wrangler kv
- * bulk put`).
+ * bulk put`, а также индекс pcode-source/kv-idx.json - см. ниже).
  *
  * Защита (порядок проверок):
  *  1. User-Agent: пустой или известный бот/библиотека -> 403.
  *  2. Источник: Origin или Referer должны вести на https://codetruck.ru -> 403.
  *     Это отсекает простые скрипты. Браузер с сайта такие заголовки шлёт сам,
- *     но подделать их скрипту ничего не стоит - поэтому дальше ещё лимит.
+ *     но подделать их скрипту ничего не стоит - поэтому дальше ещё лимиты.
  *  3. Ввод: длина кода <= 12, допустимые символы, марка только из
  *     KNOWN_PCODE_BRANDS -> иначе 400.
  *  4. Лимит частоты по IP (CF-Connecting-IP) через привязку Workers Rate
  *     Limiting PCODE_RL: 20 запросов в минуту. Запрос без марки стоит 3
  *     единицы лимита (он проходит все таблицы сразу). Превышение -> 429.
+ *  5. Лимит на сутки по IP: DAILY_LIMIT_PER_DAY поисков в сутки (UTC) на один
+ *     адрес, каждый поиск (с маркой или без) - один. Считает Durable Object
+ *     DailyLimit (по одному объекту на адрес). Превышение -> 429 с
+ *     {error:'daily_limit'} и Retry-After до полуночи UTC. Почему не KV: у
+ *     бесплатного KV всего 1 000 записей в сутки, на счётчик их уйдёт много.
+ *
+ * Поиск без марки идёт по индексу (ключи pcode:_idx:XX, см. shardKey): один
+ * шард на вариант написания вместо чтения всех марок. Пока индекс не залит,
+ * шарда нет - тогда работает запасной путь, перебор всех марок.
  *
  * Все ответы: Cache-Control: no-store и X-Robots-Tag: noindex.
  */
@@ -37,8 +46,13 @@ var BLOCKED_UA = ['curl', 'wget', 'python-requests', 'python-urllib', 'go-http-c
 
 var LIMIT_PER_MINUTE = 20;
 var COST_NO_BRAND = 3;       // запрос без марки проверяет все таблицы сразу
+var DAILY_LIMIT_PER_DAY = 50; // поисков в сутки (UTC) с одного адреса
 var MAX_CODE_LEN = 12;
 var CODE_RE = /^[A-Za-z0-9-]+$/;
+
+// Число шардов индекса без марки. Держать в согласии с SHARDS в
+// scripts/build_pcode.py: там же строится pcode-source/kv-idx.json.
+var INDEX_SHARDS = 64;
 
 function norm(code) {
   return code.toUpperCase().replace(/\s+/g, '');
@@ -82,6 +96,20 @@ function kvKey(brand, code) {
   return 'pcode:' + brand + ':' + norm(code);
 }
 
+/**
+ * Ключ шарда индекса для нормализованного кода: FNV-1a по UTF-8 байтам, mod
+ * INDEX_SHARDS, две hex-цифры. Та же функция стоит в scripts/build_pcode.py
+ * (shard_of) - менять только вместе, иначе индекс не найдёт ни одного кода.
+ */
+function shardKey(code) {
+  var h = 0x811c9dc5;
+  var bytes = new TextEncoder().encode(code);
+  for (var i = 0; i < bytes.length; i++) {
+    h = Math.imul(h ^ bytes[i], 0x01000193) >>> 0;
+  }
+  return 'pcode:_idx:' + (h % INDEX_SHARDS).toString(16).padStart(2, '0');
+}
+
 function pickText(entry, lang) {
   if (lang !== 'ru' && entry.en) return entry.en;
   return entry.ru;
@@ -111,6 +139,18 @@ function json(request, status, body, extra) {
   return new Response(JSON.stringify(body), { status: status, headers: headers });
 }
 
+// Календарный день по UTC в виде YYYY-MM-DD.
+function utcDay() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+// Секунд до ближайшей полуночи UTC (не меньше 1).
+function secondsToMidnightUtc() {
+  var now = new Date();
+  var next = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1);
+  return Math.max(1, Math.ceil((next - now.getTime()) / 1000));
+}
+
 // Проверка User-Agent: пустой или из чёрного списка -> false.
 function uaAllowed(request) {
   var ua = (request.headers.get('User-Agent') || '').trim().toLowerCase();
@@ -127,6 +167,58 @@ function sourceAllowed(request) {
   if (origin) return ALLOWED_ORIGINS.indexOf(origin) >= 0;
   var referer = request.headers.get('Referer') || '';
   return referer === 'https://codetruck.ru' || referer.indexOf('https://codetruck.ru/') === 0;
+}
+
+/**
+ * Поиск без марки по индексу. Читаем шард для каждого варианта написания и
+ * берём только те марки, которые в нём есть (обычно 1-3), затем по одному
+ * чтению на марку - за текстом. Для варианта, которого нет ни в одной марке,
+ * чтение не делаем вовсе.
+ *
+ * Возвращает null, если шарда нет (индекс ещё не залит) - тогда вызывающий
+ * идёт запасным путём. Пустой шард - это настоящий ответ «ничего нет».
+ */
+async function searchByIndex(env, variants, lang) {
+  var found = Object.create(null); // марка -> вариант написания (приоритет по порядку)
+  for (var v = 0; v < variants.length; v++) {
+    var code = variants[v];
+    var raw = await env.PCODE_KV.get(shardKey(code));
+    if (raw === null) return null;
+    var shard = JSON.parse(raw);
+    if (!Object.prototype.hasOwnProperty.call(shard, code)) continue;
+    var list = shard[code];
+    for (var j = 0; j < list.length; j++) {
+      if (!(list[j] in found)) found[list[j]] = code;
+    }
+  }
+
+  var brands = Object.keys(found).sort(function (a, b) {
+    return KNOWN_PCODE_BRANDS.indexOf(a) - KNOWN_PCODE_BRANDS.indexOf(b);
+  });
+  var results = await Promise.all(brands.map(async function (b) {
+    var raw2 = await env.PCODE_KV.get(kvKey(b, found[b]));
+    if (!raw2) return null;
+    return { brand: b, code: found[b], text: pickText(JSON.parse(raw2), lang) };
+  }));
+  return results.filter(Boolean);
+}
+
+/**
+ * Запасной путь: перебор таблиц марок. Нужен, пока индекс не залит, и для
+ * поиска с выбранной маркой (там индекс не нужен - одна марка).
+ */
+async function searchBruteForce(env, brands, variants, lang) {
+  var results = await Promise.all(brands.map(async function (b) {
+    for (var i = 0; i < variants.length; i++) {
+      var raw = await env.PCODE_KV.get(kvKey(b, variants[i]));
+      if (raw) {
+        var entry = JSON.parse(raw);
+        return { brand: b, code: variants[i], text: pickText(entry, lang) };
+      }
+    }
+    return null;
+  }));
+  return results.filter(Boolean);
 }
 
 async function handlePcode(request, env, url) {
@@ -156,26 +248,69 @@ async function handlePcode(request, env, url) {
     return json(request, 429, { error: 'rate_limited' }, { 'Retry-After': '60' });
   }
 
-  var brandsToCheck = brand ? [brand] : KNOWN_PCODE_BRANDS;
-  var variants = codeVariants(code);
+  // Лимит на сутки: каждый поиск, прошедший проверки выше, - один.
+  // Если объект лимита недоступен, поиск не отдаём (лимит - защита).
+  if (env.DAILY_LIMIT) {
+    var verdict;
+    try {
+      var stub = env.DAILY_LIMIT.get(env.DAILY_LIMIT.idFromName(ip));
+      var resp = await stub.fetch('https://daily-limit/take?day=' + utcDay() +
+                                  '&limit=' + DAILY_LIMIT_PER_DAY);
+      verdict = await resp.json();
+    } catch (e) {
+      return json(request, 503, { error: 'limit_unavailable' });
+    }
+    if (!verdict.allowed) {
+      return json(request, 429, { error: 'daily_limit', limit: DAILY_LIMIT_PER_DAY },
+                  { 'Retry-After': String(secondsToMidnightUtc()) });
+    }
+  }
 
-  var results;
+  var variants = codeVariants(code);
+  var hits = null;
   try {
-    results = await Promise.all(brandsToCheck.map(async function (b) {
-      for (var i = 0; i < variants.length; i++) {
-        var raw = await env.PCODE_KV.get(kvKey(b, variants[i]));
-        if (raw) {
-          var entry = JSON.parse(raw);
-          return { brand: b, code: variants[i], text: pickText(entry, lang) };
-        }
-      }
-      return null;
-    }));
+    if (!brand) hits = await searchByIndex(env, variants, lang);
+    if (hits === null) {
+      hits = await searchBruteForce(env, brand ? [brand] : KNOWN_PCODE_BRANDS, variants, lang);
+    }
   } catch (e) {
     return json(request, 502, { error: 'kv_unavailable' });
   }
 
-  return json(request, 200, { hits: results.filter(Boolean) });
+  return json(request, 200, { hits: hits });
+}
+
+/**
+ * Счётчик поисков одного адреса за сутки. Один объект на адрес (idFromName),
+ * хранилище SQLite: одна строка на день. Весь метод синхронный (без await),
+ * поэтому проверка и увеличение счётчика выполняются атомарно даже при
+ * параллельных запросах с одного адреса.
+ */
+export class DailyLimit {
+  constructor(state) {
+    this.sql = state.storage.sql;
+    this.sql.exec('CREATE TABLE IF NOT EXISTS daily (day TEXT PRIMARY KEY, n INTEGER NOT NULL)');
+  }
+
+  fetch(request) {
+    var url = new URL(request.url);
+    var day = url.searchParams.get('day') || '';
+    var limit = parseInt(url.searchParams.get('limit'), 10);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(day) || !(limit > 0)) {
+      return new Response('bad_request', { status: 400 });
+    }
+    // Прошедшие сутки не нужны: держим одну строку - за текущий день.
+    this.sql.exec('DELETE FROM daily WHERE day < ?', day);
+    var row = this.sql.exec('SELECT n FROM daily WHERE day = ?', day).toArray()[0];
+    var n = row ? row.n : 0;
+    if (n >= limit) {
+      return new Response(JSON.stringify({ allowed: false, count: n }),
+                          { headers: { 'Content-Type': 'application/json' } });
+    }
+    this.sql.exec('INSERT INTO daily (day, n) VALUES (?, 1) ON CONFLICT(day) DO UPDATE SET n = n + 1', day);
+    return new Response(JSON.stringify({ allowed: true, count: n + 1 }),
+                        { headers: { 'Content-Type': 'application/json' } });
+  }
 }
 
 export default {

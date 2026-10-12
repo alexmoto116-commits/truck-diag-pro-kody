@@ -24,7 +24,13 @@ GitHub Pages отдаёт наружу любой закоммиченный ф�
         fmi, urgentSpn/Fmi, kamazUrgent - остаются как есть);
       - генерирует pcode-source/kv-bulk.json - файл в формате
         `wrangler kv bulk put`, которым дилерские коды заливаются в
-        Cloudflare KV для API-бэкенда (см. worker/pcode-api.js).
+        Cloudflare KV для API-бэкенда (см. worker/pcode-api.js);
+      - генерирует pcode-source/kv-idx.json - индекс «код -> марки» для
+        поиска без марки, SHARDS шардов (ключи pcode:_idx:XX). Заливать
+        ОТДЕЛЬНО, и только его, когда меняется состав кодов:
+        `wrangler kv bulk put ... kv-idx.json`. Шарды всегда пишутся все,
+        даже пустые: отсутствующий шард воркер считает признаком «индекс
+        ещё не залит».
 
 Запуск из корня репозитория.
 """
@@ -34,6 +40,12 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC_DIR = os.path.join(ROOT, 'pcode-source')
 PCODE_JSON = os.path.join(SRC_DIR, 'pcode.json')
 KV_BULK_JSON = os.path.join(SRC_DIR, 'kv-bulk.json')
+KV_IDX_JSON = os.path.join(SRC_DIR, 'kv-idx.json')
+
+# Число шардов индекса без марки. Держать в согласии с INDEX_SHARDS в
+# worker/pcode-api.js. Записей в KV при заливке - ровно столько же.
+SHARDS = 64
+SHARD_MAX_BYTES = 100 * 1024  # разбор JSON шарда должен укладываться в ~10 мс CPU
 
 RU_PATH = os.path.join(ROOT, 'assets', 'dtc.enc.js')
 EN_PATH = os.path.join(ROOT, 'assets', 'dtc.en.js')
@@ -141,6 +153,35 @@ def norm(code):
     return re.sub(r'\s+', '', code.upper())
 
 
+def shard_of(code):
+    """Шард индекса для нормализованного кода: FNV-1a по UTF-8 байтам mod SHARDS.
+    Зеркало функции shardKey в worker/pcode-api.js - менять только вместе."""
+    h = 0x811c9dc5
+    for b in code.encode('utf-8'):
+        h = ((h ^ b) * 0x01000193) & 0xFFFFFFFF
+    return h % SHARDS
+
+
+def build_code_index(pcode):
+    """Индекс «нормализованный код -> марки» по шардам.
+
+    Ключ - ровно тот, что лежит в KV (norm(code) из kv-bulk.json), поэтому
+    варианты написания воркер строит тем же codeVariants, что и для KV.
+    Возвращает список из SHARDS словарей {код: [марки]}.
+    """
+    shards = [dict() for _ in range(SHARDS)]
+    for brand, table in pcode.items():
+        for code in table:
+            ncode = norm(code)
+            bucket = shards[shard_of(ncode)].setdefault(ncode, [])
+            if brand not in bucket:
+                bucket.append(brand)
+    for shard in shards:
+        for brands in shard.values():
+            brands.sort()
+    return shards
+
+
 # ------------------------------------------------------------- migrate
 
 def cmd_migrate(force):
@@ -219,6 +260,25 @@ def cmd_build():
     total = sum(counts.values())
     summary = ', '.join('%s: %d' % (b, n) for b, n in sorted(counts.items()))
     print('%s -> %d keys (%s)' % (KV_BULK_JSON, total, summary))
+
+    # 3) kv-idx.json: индекс поиска без марки, отдельным файлом
+    shards = build_code_index(pcode)
+    idx_entries = []
+    biggest = 0
+    for n, shard in enumerate(shards):
+        value = json.dumps(shard, ensure_ascii=False, sort_keys=True, separators=(',', ':'))
+        size = len(value.encode('utf-8'))
+        if size > SHARD_MAX_BYTES:
+            raise SystemExit(u'ШАРД pcode:_idx:%02x: %d байт > %d. Увеличьте SHARDS.'
+                             % (n, size, SHARD_MAX_BYTES))
+        biggest = max(biggest, size)
+        idx_entries.append({'key': 'pcode:_idx:%02x' % n, 'value': value})
+
+    io.open(KV_IDX_JSON, 'w', encoding='utf-8').write(
+        json.dumps(idx_entries, ensure_ascii=False, indent=1))
+    indexed = sum(len(s) for s in shards)
+    print('%s -> %d shards, %d codes, largest shard %d bytes'
+          % (KV_IDX_JSON, len(shards), indexed, biggest))
 
 
 if __name__ == '__main__':

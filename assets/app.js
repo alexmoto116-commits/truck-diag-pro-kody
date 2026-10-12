@@ -376,6 +376,7 @@
       pcodeNotFound: 'Дилерский код <b>{code}</b> в справочнике не найден. Такие коды у каждой марки свои — проверьте написание.',
       pcodeSearching: 'Ищем код…',
       pcodeApiError: 'Не удалось получить дилерский код — проверьте связь и попробуйте ещё раз.',
+      dailyLimit: 'Лимит поисков на сегодня исчерпан (50 в сутки). Попробуйте завтра.',
       scanStep: 'номер сканера',
       scanMany: 'Номер <b>{code}</b> отвечает нескольким кодам на щитке — сверьтесь с тем, что показывает панель.',
       stepCode: 'код', stepDecoding: 'расшифровка',
@@ -499,6 +500,7 @@
       pcodeNotFound: 'Dealer code <b>{code}</b> not found in the database. These codes differ by make — double-check the spelling.',
       pcodeSearching: 'Searching…',
       pcodeApiError: 'Couldn’t reach the dealer-code lookup — check your connection and try again.',
+      dailyLimit: 'Daily search limit reached (50 per day). Please try again tomorrow.',
       scanStep: 'scanner code',
       scanMany: 'Code <b>{code}</b> maps to several dash codes — check which one the cluster shows.',
       stepCode: 'code', stepDecoding: 'meaning',
@@ -620,6 +622,7 @@
       pcodeNotFound: 'Händlercode <b>{code}</b> nicht in der Datenbank gefunden. Diese Codes sind je Marke unterschiedlich — Schreibweise prüfen.',
       pcodeSearching: 'Suche läuft…',
       pcodeApiError: 'Händlercode konnte nicht abgerufen werden — Verbindung prüfen und erneut versuchen.',
+      dailyLimit: 'Tageslimit für Suchen erreicht (50 pro Tag). Bitte morgen erneut versuchen.',
       scanStep: 'Scanner-Code',
       scanMany: 'Nummer <b>{code}</b> entspricht mehreren Codes im Kombiinstrument — prüfen Sie, welcher angezeigt wird.',
       stepCode: 'Code', stepDecoding: 'Bedeutung',
@@ -740,6 +743,7 @@
       pcodeNotFound: 'Code constructeur <b>{code}</b> introuvable dans la base. Ces codes diffèrent selon la marque — vérifiez l’orthographe.',
       pcodeSearching: 'Recherche en cours…',
       pcodeApiError: 'Impossible de récupérer le code constructeur — vérifiez votre connexion et réessayez.',
+      dailyLimit: 'Limite quotidienne de recherches atteinte (50 par jour). Réessayez demain.',
       scanStep: 'code de la valise',
       scanMany: 'Le numéro <b>{code}</b> correspond à plusieurs codes au tableau de bord — vérifiez celui qui s’affiche.',
       stepCode: 'code', stepDecoding: 'signification',
@@ -860,6 +864,7 @@
       pcodeNotFound: 'Código de concesionario <b>{code}</b> no encontrado en la base de datos. Estos códigos varían según la marca — revisa la escritura.',
       pcodeSearching: 'Buscando…',
       pcodeApiError: 'No se pudo obtener el código de concesionario — comprueba tu conexión e inténtalo de nuevo.',
+      dailyLimit: 'Se alcanzó el límite diario de búsquedas (50 al día). Inténtalo mañana.',
       scanStep: 'código del escáner',
       scanMany: 'El número <b>{code}</b> corresponde a varios códigos del cuadro — comprueba cuál se muestra.',
       stepCode: 'código', stepDecoding: 'significado',
@@ -980,6 +985,7 @@
       pcodeNotFound: 'Código de concessionária <b>{code}</b> não encontrado no banco de dados. Esses códigos variam por marca — verifique a grafia.',
       pcodeSearching: 'Buscando…',
       pcodeApiError: 'Não foi possível obter o código de concessionária — verifique sua conexão e tente novamente.',
+      dailyLimit: 'Limite diário de pesquisas atingido (50 por dia). Tente novamente amanhã.',
       scanStep: 'código do scanner',
       scanMany: 'O número <b>{code}</b> corresponde a vários códigos no painel — verifique qual aparece.',
       stepCode: 'código', stepDecoding: 'significado',
@@ -1100,6 +1106,7 @@
       pcodeNotFound: 'Kod dealerski <b>{code}</b> nie znaleziony w bazie. Takie kody różnią się między markami — sprawdź zapis.',
       pcodeSearching: 'Szukam…',
       pcodeApiError: 'Nie udało się pobrać kodu dealerskiego — sprawdź połączenie i spróbuj ponownie.',
+      dailyLimit: 'Wyczerpano dzienny limit wyszukiwań (50 dziennie). Spróbuj jutro.',
       scanStep: 'kod ze skanera',
       scanMany: 'Numer <b>{code}</b> odpowiada kilku kodom na zestawie wskaźników — sprawdź, który pokazuje panel.',
       stepCode: 'kod', stepDecoding: 'znaczenie',
@@ -1220,6 +1227,7 @@
       pcodeNotFound: 'Bayi kodu <b>{code}</b> veritabanında bulunamadı. Bu kodlar markaya göre farklıdır — yazımı kontrol edin.',
       pcodeSearching: 'Aranıyor…',
       pcodeApiError: 'Bayi kodu alınamadı — bağlantınızı kontrol edip tekrar deneyin.',
+      dailyLimit: 'Günlük arama limiti doldu (günde 50). Lütfen yarın tekrar deneyin.',
       scanStep: 'tarayıcı kodu',
       scanMany: '<b>{code}</b> numarası gösterge panelindeki birden fazla koda karşılık gelir — hangisinin göründüğünü kontrol edin.',
       stepCode: 'kod', stepDecoding: 'anlam',
@@ -1340,6 +1348,7 @@
       pcodeNotFound: 'डीलर कोड <b>{code}</b> डेटाबेस में नहीं मिला। ये कोड हर ब्रांड में अलग होते हैं — वर्तनी जांचें।',
       pcodeSearching: 'खोजा जा रहा है…',
       pcodeApiError: 'डीलर कोड नहीं मिल सका — अपना कनेक्शन जांचें और फिर से कोशिश करें।',
+      dailyLimit: 'आज की खोज सीमा पूरी हो गई (प्रतिदिन 50)। कृपया कल फिर कोशिश करें।',
       scanStep: 'स्कैनर कोड',
       scanMany: 'नंबर <b>{code}</b> डैश के कई कोड से मेल खाता है — देखें कि पैनल कौन सा दिखा रहा है।',
       stepCode: 'कोड', stepDecoding: 'अर्थ',
@@ -1460,6 +1469,7 @@
       pcodeNotFound: '数据库中未找到经销商代码 <b>{code}</b>。不同品牌的代码不同 — 请检查输入是否正确。',
       pcodeSearching: '正在查询…',
       pcodeApiError: '无法获取经销商代码 — 请检查网络连接后重试。',
+      dailyLimit: '今日搜索次数已用完（每天 50 次）。请明天再试。',
       scanStep: '扫描仪代码',
       scanMany: '代码 <b>{code}</b> 对应仪表盘上的多个代码 — 请核对仪表显示的是哪一个。',
       stepCode: '代码', stepDecoding: '含义',
@@ -2065,10 +2075,25 @@
               '&lang=' + encodeURIComponent(lang) +
               (brand ? '&brand=' + encodeURIComponent(brand) : '');
     return fetch(url).then(function(r){
+      if(r.status === 429){
+        /* Суточный лимит (50 поисков в сутки на адрес) отличаем от
+           минутного: про него человеку нужно сказать прямо, а не «проверьте
+           связь». Тело ответа читаем, чтобы не спутать с rate_limited. */
+        return r.json().catch(function(){ return {}; }).then(function(body){
+          if(body && body.error === 'daily_limit'){
+            var lim = new Error('pcode daily limit');
+            lim.dailyLimit = true;
+            throw lim;
+          }
+          throw new Error('pcode api 429');
+        });
+      }
       if(!r.ok) throw new Error('pcode api ' + r.status);
       return r.json();
     }).then(function(data){ return data.hits || []; });
   }
+
+  function isDailyLimit(e){ return !!(e && e.dailyLimit); }
 
   /* Бэкенд знает только реальные марки, про алиасы ему рассказывать
      незачем: спрашиваем доноров по очереди и склеиваем ответы. Марка не
@@ -2077,7 +2102,12 @@
     var donors = donorsOf(brand);
     if(donors.length < 2) return fetchPcodeOne(donors[0] || '', code, lang);
     return Promise.all(donors.map(function(b){
-      return fetchPcodeOne(b, code, lang).catch(function(){ return []; });
+      /* Суточный лимит не глотаем: он относится к поиску целиком, а не к
+         одной марке-донору, и без него ответ «ничего не найдено» соврал бы. */
+      return fetchPcodeOne(b, code, lang).catch(function(e){
+        if(isDailyLimit(e)) throw e;
+        return [];
+      });
     })).then(function(lists){
       var out = [], seen = {};
       lists.forEach(function(hits){
@@ -2858,8 +2888,8 @@
           });
         });
         render(chain(pSteps.concat(scanStepList(r.mine))), true);
-      }).catch(function(){
-        render(note(t('pcodeApiError')));
+      }).catch(function(e){
+        render(note(t(isDailyLimit(e) ? 'dailyLimit' : 'pcodeApiError')));
       });
       return;
     }
@@ -2966,8 +2996,8 @@
               });
             });
             render(chain(nSteps), true);
-          }).catch(function(){
-            render(note(t('spnNotFound', {spn: p.spn})));
+          }).catch(function(e){
+            render(note(isDailyLimit(e) ? t('dailyLimit') : t('spnNotFound', {spn: p.spn})));
           });
           return;
         }
