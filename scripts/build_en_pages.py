@@ -120,7 +120,43 @@ TX = {
                   u'is wrong with it. The second half of the code is the same for every '
                   u'make — that is the J1939 standard.',
     'hubRange':   u'SPN %d — %d',
+    # раздел «свой разбор» (own_checks_en.py): заголовки, как у русского в build_pages.py
+    'ownH':       u'How to check it yourself',
+    'ownNorm':    u'What it should read',
+    'ownSteps':   u'Check order',
+    'ownCauses':  u'Common causes — from most to least frequent',
 }
+
+
+# Английский свой разбор: данные из own_checks_en.py (тот же SPN и те же поля,
+# что у русского own_checks.py). Вёрстка повторяет own_section() из build_pages.py.
+from own_checks_en import CHECKS as OWN_EN                  # noqa: E402
+
+
+def own_section_en(spn):
+    c = OWN_EN.get(spn)
+    if not c:
+        return u''
+    out = [u'<style>%s</style><section class="diy"><h2>%s</h2>' % (bp.DIY_CSS, TX['ownH']),
+           u'<p>%s</p>' % bp.esc(c['узел'])]
+    if c.get('нормы'):
+        out.append(u'<h3>%s</h3><table class="norm">%s</table>' % (TX['ownNorm'], u''.join(
+            u'<tr><td>%s</td><td><b>%s</b></td></tr>' % (bp.esc(a), bp.esc(b)) for a, b in c['нормы'])))
+    if c.get('шаги'):
+        li = []
+        for s in c['шаги']:
+            m = bp.FMI_PREFIX.match(s)
+            if m:
+                li.append(u'<li><b>%s%s:</b> %s</li>' % (bp.esc(m.group(1)), bp.esc(m.group(2) or u''),
+                                                         bp.esc(s[m.end():])))
+            else:
+                li.append(u'<li>%s</li>' % bp.esc(s))
+        out.append(u'<h3>%s</h3><ol>%s</ol>' % (TX['ownSteps'], u''.join(li)))
+    if c.get('причины'):
+        out.append(u'<h3>%s</h3><ol>%s</ol>' % (TX['ownCauses'], u''.join(
+            u'<li>%s</li>' % bp.esc(p) for p in c['причины'])))
+    out.append(u'</section>')
+    return u''.join(out)
 
 
 def load_en():
@@ -395,6 +431,11 @@ def build():
             body.append(u'<p class="sub">%s</p>'
                         % ((TX['subStd'] if std_name(spn) else TX['subOwn'])
                            % (spn, bp.esc(brands_all))))
+
+        # свой разбор - в том же месте, что и на русской странице (до таблиц марок)
+        own = own_section_en(spn)
+        if own:
+            body.append(own)
 
         ordered = sorted(makes, key=lambda x: bname(x))
         if len(ordered) >= 3:
