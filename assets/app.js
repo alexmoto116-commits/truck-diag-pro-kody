@@ -2120,6 +2120,44 @@
     });
   }
 
+  /* Дилерский код с точкой - «100.1» (Deutz, Caterpillar, Daewoo, Iveco EDC).
+     Разбор по стандарту читает его как SPN 100 / FMI 1, и дилерская таблица
+     при этом не спрашивалась вовсе. Теперь её спрашиваем ДОПОЛНИТЕЛЬНО: ответ
+     по стандарту показываем как раньше, а находки - отдельным блоком, тем же
+     видом, что и остальные дилерские коды. Без марки спрашиваем все таблицы.
+     Пробел вместо точки («100 1») считаем тем же номером только для четырёх
+     марок выше: в остальных это чаще SPN/FMI. Явный «J1939 - SPN/FMI» отменяет
+     дополнительный запрос. */
+  var DOT_CODE_RE = /^[0-9]{1,7}\.[0-9]{1,2}$/;
+  var DOT_BRANDS = {deutz:1, caterpillar:1, daewoo:1, ivecoedc:1};
+  function dealerDotCode(brand, std, raw){
+    if(std === 'spnfmi') return null;
+    var s = normCode(raw);
+    if(DOT_CODE_RE.test(s)) return s;
+    var sp = /^([0-9]{1,7}) ([0-9]{1,2})$/.exec(s);
+    if(sp && DOT_BRANDS[brand]) return sp[1] + '.' + sp[2];
+    return null;
+  }
+  /* Ошибку сети здесь не показываем: ответ по стандарту уже на экране, и
+     пустой блок лучше, чем красная плашка поверх него. Суточный лимит - это
+     другое: человек должен узнать, почему дилерский ответ не пришёл. */
+  function fetchDotDealer(brand, code){
+    return fetchPcode(brand, code, currentLang).then(function(hits){
+      return {hits:hits, limit:false};
+    }, function(e){
+      return {hits:[], limit:isDailyLimit(e)};
+    });
+  }
+  function dealerDotBlock(d, code){
+    if(d.limit) return note(t('dailyLimit'));
+    if(!d.hits.length) return '';
+    var steps = [{st:t('stepCode'), tx:pcodeStep(code, d.hits), cls:'ok'}];
+    d.hits.forEach(function(h){
+      steps.push({st:brandName(h.brand), tx:'<b>' + esc(h.text) + '</b>', cls:'ok'});
+    });
+    return chain(steps);
+  }
+
   function urgent(spn, fmi, brand){
     if(hasNum(DB.urgentSpn, spn)) return true;
     if(hasNum(DB.urgentFmi, fmi)) return true;
@@ -2791,7 +2829,11 @@
      интерфейса, английские описания. */
   function ready(){ return Promise.all([load(), loadEn()]); }
 
+  /* Номер последнего разбора: дополнительный дилерский блок старого запроса
+     не должен лечь поверх нового результата. */
+  var runSeq = 0;
   function run(skipDealer){
+    var mySeq = ++runSeq;
     var brand = sel.value;
     var midBrand = MID_BRANDS[brand];
     var mid = midBrand ? (MID_FIXED[brand] || midSel.value) : null;
@@ -2956,6 +2998,20 @@
       return;
     }
 
+    /* Дилерский код с точкой ищем дополнительно к ответу по стандарту (см.
+       dealerDotCode). Запрос уходит сразу, не дожидаясь справочника. */
+    var dotCode = midBrand ? null : dealerDotCode(brand, std.value, input.value);
+    var dealerP = dotCode ? fetchDotDealer(brand, dotCode) : null;
+    var showFree = function(html){
+      render(html, true);
+      if(!dealerP) return;
+      dealerP.then(function(d){
+        if(mySeq !== runSeq) return;
+        var extra = dealerDotBlock(d, dotCode);
+        if(extra) render(html + extra, true);
+      });
+    };
+
     ready().then(function(){
       if(p.bad){
         render(note(t('badCode')));
@@ -3030,7 +3086,7 @@
         render(chain(sSteps), true);
         return;
       }
-      render(spnFmiHtml(p.spn, p.fmi, brand), true);
+      showFree(spnFmiHtml(p.spn, p.fmi, brand));
     }).catch(function(){
       render(note(t('loadError')));
     });

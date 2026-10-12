@@ -150,7 +150,15 @@ def write_blob(path, data, glob):
 
 
 def norm(code):
-    return re.sub(r'\s+', '', code.upper())
+    """Нормализованный код - ровно тот, что ищет воркер (canonDot в pcode-api.js):
+    без пробелов, заглавными; у кода вида «100.01» ведущие нули дробной части
+    убираются («100.1»). В базе таких нулей нет, так что для текущих данных
+    ничего не меняется."""
+    c = re.sub(r'\s+', '', code.upper())
+    if re.match(r'^[0-9]{1,7}\.[0-9]{1,2}$', c):
+        whole, frac = c.split('.')
+        c = whole + '.' + re.sub(r'^0+(?=[0-9])', '', frac)
+    return c
 
 
 def shard_of(code):

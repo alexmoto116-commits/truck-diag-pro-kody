@@ -11,8 +11,9 @@
  *  2. Источник: Origin или Referer должны вести на https://codetruck.ru -> 403.
  *     Это отсекает простые скрипты. Браузер с сайта такие заголовки шлёт сам,
  *     но подделать их скрипту ничего не стоит - поэтому дальше ещё лимиты.
- *  3. Ввод: длина кода <= 12, допустимые символы, марка только из
- *     KNOWN_PCODE_BRANDS -> иначе 400.
+ *  3. Ввод: длина кода <= 12, допустимые символы (буквы, цифры, дефис, либо
+ *     вид «100.1» с точкой), марка только из KNOWN_PCODE_BRANDS -> иначе 400.
+ *     Неверный ввод до лимитов не доходит и суточный счётчик не трогает.
  *  4. Лимит частоты по IP (CF-Connecting-IP) через привязку Workers Rate
  *     Limiting PCODE_RL: 20 запросов в минуту. Запрос без марки стоит 3
  *     единицы лимита (он проходит все таблицы сразу). Превышение -> 429.
@@ -49,13 +50,29 @@ var COST_NO_BRAND = 3;       // запрос без марки проверяе�
 var DAILY_LIMIT_PER_DAY = 50; // поисков в сутки (UTC) с одного адреса
 var MAX_CODE_LEN = 12;
 var CODE_RE = /^[A-Za-z0-9-]+$/;
+// Дилерский код вида «100.1» (Deutz, Caterpillar, Daewoo, Iveco EDC): цифры,
+// точка, цифры. Точка в прочих форматах не разрешена - P-коды, MID/PID,
+// Volvo B000101 и пары SPN-FMI с дефисом проверяются по CODE_RE, как раньше.
+var DOT_CODE_RE = /^[0-9]{1,7}\.[0-9]{1,2}$/;
 
 // Число шардов индекса без марки. Держать в согласии с SHARDS в
 // scripts/build_pcode.py: там же строится pcode-source/kv-idx.json.
 var INDEX_SHARDS = 64;
 
 function norm(code) {
-  return code.toUpperCase().replace(/\s+/g, '');
+  var c = code.toUpperCase().replace(/\s+/g, '');
+  return DOT_CODE_RE.test(c) ? canonDot(c) : c;
+}
+
+/**
+ * Каноническая запись дилерского кода с точкой: ведущие нули дробной части
+ * убираем («100.01» -> «100.1»), последняя цифра остаётся. В базе таких нулей
+ * нет ни у одного кода (проверено по pcode.json), так что канон совпадает с
+ * ключом KV. «100.0» и «100.00» дают «100.0».
+ */
+function canonDot(c) {
+  var parts = c.split('.');
+  return parts[0] + '.' + parts[1].replace(/^0+(?=[0-9])/, '');
 }
 
 /**
@@ -227,7 +244,7 @@ async function handlePcode(request, env, url) {
   var brand = url.searchParams.get('brand') || '';
 
   if (!code) return json(request, 400, { error: 'missing_code' });
-  if (code.length > MAX_CODE_LEN || !CODE_RE.test(code)) {
+  if (code.length > MAX_CODE_LEN || !(CODE_RE.test(code) || DOT_CODE_RE.test(code))) {
     return json(request, 400, { error: 'bad_code' });
   }
   if (brand && KNOWN_PCODE_BRANDS.indexOf(brand) < 0) {
