@@ -369,6 +369,8 @@
       themeNight: 'Ночная тема',
       footText: 'Справочник показывает, что означает код, а не ставит диагноз — решение всегда за человеком с оборудованием. Вопросы — <a href="mailto:alexdiag116@gmail.com" style="color:inherit">alexdiag116@gmail.com</a>.',
       langAria: 'Язык страницы',
+      copyMail: 'Скопировать адрес',
+      copied: 'Скопировано',
       emptyPrompt: 'Введите код — например <b>SPN 100 FMI 1</b> или просто <b>100/1</b>.',
       badCode: 'Не удалось разобрать этот код в выбранном стандарте. Попробуйте «Определить автоматически» или формат <b>SPN 100 FMI 1</b> / <b>100/1</b> / <b>P2BA7</b>.',
       pcodeNotFound: 'Дилерский код <b>{code}</b> в справочнике не найден. Такие коды у каждой марки свои — проверьте написание.',
@@ -490,6 +492,8 @@
       themeNight: 'Night theme',
       footText: 'This reference explains what a code means — it doesn’t diagnose the truck. The final call is always with a person who has the equipment. Questions — <a href="mailto:alexdiag116@gmail.com" style="color:inherit">alexdiag116@gmail.com</a>.',
       langAria: 'Page language',
+      copyMail: 'Copy address',
+      copied: 'Copied',
       emptyPrompt: 'Enter a code — for example <b>SPN 100 FMI 1</b> or just <b>100/1</b>.',
       badCode: 'Couldn’t parse this code in the selected standard. Try “Detect automatically” or the format <b>SPN 100 FMI 1</b> / <b>100/1</b> / <b>P2BA7</b>.',
       pcodeNotFound: 'Dealer code <b>{code}</b> not found in the database. These codes differ by make — double-check the spelling.',
@@ -609,6 +613,8 @@
       themeNight: 'Nachtmodus',
       footText: 'Dieses Nachschlagewerk erklärt, was ein Code bedeutet — es stellt keine Diagnose. Die Entscheidung trifft immer eine Person mit der passenden Ausrüstung. Fragen — <a href="mailto:alexdiag116@gmail.com" style="color:inherit">alexdiag116@gmail.com</a>.',
       langAria: 'Seitensprache',
+      copyMail: 'Adresse kopieren',
+      copied: 'Kopiert',
       emptyPrompt: 'Code eingeben — zum Beispiel <b>SPN 100 FMI 1</b> oder einfach <b>100/1</b>.',
       badCode: 'Dieser Code konnte im gewählten Standard nicht erkannt werden. Versuchen Sie „Automatisch erkennen“ oder das Format <b>SPN 100 FMI 1</b> / <b>100/1</b> / <b>P2BA7</b>.',
       pcodeNotFound: 'Händlercode <b>{code}</b> nicht in der Datenbank gefunden. Diese Codes sind je Marke unterschiedlich — Schreibweise prüfen.',
@@ -727,6 +733,8 @@
       themeNight: 'Thème sombre',
       footText: 'Ce répertoire explique ce que signifie un code — il ne pose pas de diagnostic. La décision revient toujours à une personne équipée du matériel nécessaire. Questions — <a href="mailto:alexdiag116@gmail.com" style="color:inherit">alexdiag116@gmail.com</a>.',
       langAria: 'Langue de la page',
+      copyMail: 'Copier l’adresse',
+      copied: 'Copié',
       emptyPrompt: 'Entrez un code — par exemple <b>SPN 100 FMI 1</b> ou simplement <b>100/1</b>.',
       badCode: 'Impossible d’analyser ce code dans la norme sélectionnée. Essayez « Détecter automatiquement » ou le format <b>SPN 100 FMI 1</b> / <b>100/1</b> / <b>P2BA7</b>.',
       pcodeNotFound: 'Code constructeur <b>{code}</b> introuvable dans la base. Ces codes diffèrent selon la marque — vérifiez l’orthographe.',
@@ -845,6 +853,8 @@
       themeNight: 'Tema oscuro',
       footText: 'Esta referencia explica qué significa un código — no diagnostica el camión. La decisión final siempre corresponde a una persona con el equipo adecuado. Preguntas — <a href="mailto:alexdiag116@gmail.com" style="color:inherit">alexdiag116@gmail.com</a>.',
       langAria: 'Idioma de la página',
+      copyMail: 'Copiar dirección',
+      copied: 'Copiado',
       emptyPrompt: 'Introduce un código — por ejemplo <b>SPN 100 FMI 1</b> o simplemente <b>100/1</b>.',
       badCode: 'No se pudo interpretar este código en la norma seleccionada. Prueba "Detectar automáticamente" o el formato <b>SPN 100 FMI 1</b> / <b>100/1</b> / <b>P2BA7</b>.',
       pcodeNotFound: 'Código de concesionario <b>{code}</b> no encontrado en la base de datos. Estos códigos varían según la marca — revisa la escritura.',
@@ -963,6 +973,8 @@
       themeNight: 'Tema escuro',
       footText: 'Esta referência explica o que um código significa — não faz diagnóstico do caminhão. A decisão final é sempre de uma pessoa com o equipamento adequado. Dúvidas — <a href="mailto:alexdiag116@gmail.com" style="color:inherit">alexdiag116@gmail.com</a>.',
       langAria: 'Idioma da página',
+      copyMail: 'Copiar endereço',
+      copied: 'Copiado',
       emptyPrompt: 'Digite um código — por exemplo <b>SPN 100 FMI 1</b> ou apenas <b>100/1</b>.',
       badCode: 'Não foi possível interpretar este código na norma selecionada. Tente "Detectar automaticamente" ou o formato <b>SPN 100 FMI 1</b> / <b>100/1</b> / <b>P2BA7</b>.',
       pcodeNotFound: 'Código de concessionária <b>{code}</b> não encontrado no banco de dados. Esses códigos variam por marca — verifique a grafia.',
@@ -1081,6 +1093,8 @@
       themeNight: 'Motyw nocny',
       footText: 'Ta baza wyjaśnia, co oznacza kod — nie stawia diagnozy. Ostateczna decyzja zawsze należy do osoby dysponującej odpowiednim sprzętem. Pytania — <a href="mailto:alexdiag116@gmail.com" style="color:inherit">alexdiag116@gmail.com</a>.',
       langAria: 'Język strony',
+      copyMail: 'Kopiuj adres',
+      copied: 'Skopiowano',
       emptyPrompt: 'Wpisz kod — na przykład <b>SPN 100 FMI 1</b> albo po prostu <b>100/1</b>.',
       badCode: 'Nie udało się rozpoznać tego kodu w wybranym standardzie. Spróbuj „Wykryj automatycznie” lub formatu <b>SPN 100 FMI 1</b> / <b>100/1</b> / <b>P2BA7</b>.',
       pcodeNotFound: 'Kod dealerski <b>{code}</b> nie znaleziony w bazie. Takie kody różnią się między markami — sprawdź zapis.',
@@ -1199,6 +1213,8 @@
       themeNight: 'Gece teması',
       footText: 'Bu rehber kodun ne anlama geldiğini açıklar — teşhis koymaz. Nihai karar her zaman uygun ekipmana sahip bir kişiye aittir. Sorular — <a href="mailto:alexdiag116@gmail.com" style="color:inherit">alexdiag116@gmail.com</a>.',
       langAria: 'Sayfa dili',
+      copyMail: 'Adresi kopyala',
+      copied: 'Kopyalandı',
       emptyPrompt: 'Bir kod girin — örneğin <b>SPN 100 FMI 1</b> veya sadece <b>100/1</b>.',
       badCode: 'Bu kod seçilen standartta çözümlenemedi. "Otomatik algıla" seçeneğini veya <b>SPN 100 FMI 1</b> / <b>100/1</b> / <b>P2BA7</b> biçimini deneyin.',
       pcodeNotFound: 'Bayi kodu <b>{code}</b> veritabanında bulunamadı. Bu kodlar markaya göre farklıdır — yazımı kontrol edin.',
@@ -1317,6 +1333,8 @@
       themeNight: 'रात वाली थीम',
       footText: 'यह संदर्भ पुस्तिका बताती है कि कोड का मतलब क्या है — यह निदान नहीं करती। अंतिम निर्णय हमेशा उपकरण रखने वाले व्यक्ति का होता है। सवाल — <a href="mailto:alexdiag116@gmail.com" style="color:inherit">alexdiag116@gmail.com</a>.',
       langAria: 'पृष्ठ की भाषा',
+      copyMail: 'पता कॉपी करें',
+      copied: 'कॉपी हो गया',
       emptyPrompt: 'एक कोड डालें — उदाहरण के लिए <b>SPN 100 FMI 1</b> या सिर्फ <b>100/1</b>.',
       badCode: 'चुने गए मानक में यह कोड समझ नहीं आया। "स्वतः पहचानें" आज़माएं या <b>SPN 100 FMI 1</b> / <b>100/1</b> / <b>P2BA7</b> प्रारूप का उपयोग करें।',
       pcodeNotFound: 'डीलर कोड <b>{code}</b> डेटाबेस में नहीं मिला। ये कोड हर ब्रांड में अलग होते हैं — वर्तनी जांचें।',
@@ -1435,6 +1453,8 @@
       themeNight: '夜间模式',
       footText: '本查询工具用于解释代码含义，并不能诊断车辆故障。最终判断应由持有专业设备的技师做出。有问题请联系 — <a href="mailto:alexdiag116@gmail.com" style="color:inherit">alexdiag116@gmail.com</a>。',
       langAria: '页面语言',
+      copyMail: '复制地址',
+      copied: '已复制',
       emptyPrompt: '请输入代码 — 例如 <b>SPN 100 FMI 1</b> 或直接输入 <b>100/1</b>。',
       badCode: '无法按所选标准解析该代码。请尝试“自动识别”，或使用 <b>SPN 100 FMI 1</b> / <b>100/1</b> / <b>P2BA7</b> 格式。',
       pcodeNotFound: '数据库中未找到经销商代码 <b>{code}</b>。不同品牌的代码不同 — 请检查输入是否正确。',
@@ -3124,5 +3144,40 @@
     }).catch(function(){});
   }
   setTimeout(startIntroDemo, 1000);
+
+  /* Кнопка «Скопировать адрес» под подвалом: почтовая ссылка не работает
+     там, где нет почтовой программы. Делегирование — кнопка может
+     появиться в DOM позже. */
+  (function(){
+    function fallbackCopy(text){
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed';
+      ta.style.top = '-1000px';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      var ok = false;
+      try { ok = document.execCommand('copy'); } catch(e) { ok = false; }
+      document.body.removeChild(ta);
+      return ok;
+    }
+    function showCopied(btn){
+      btn.textContent = t('copied');
+      clearTimeout(btn._copyTimer);
+      btn._copyTimer = setTimeout(function(){ btn.textContent = t('copyMail'); }, 2000);
+    }
+    document.addEventListener('click', function(e){
+      var btn = e.target.closest && e.target.closest('.copy-mail');
+      if(!btn) return;
+      var mail = btn.getAttribute('data-mail');
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(mail).then(function(){ showCopied(btn); }, function(){
+          if(fallbackCopy(mail)) showCopied(btn);
+        });
+      } else if(fallbackCopy(mail)) showCopied(btn);
+    });
+  })();
 
 })();

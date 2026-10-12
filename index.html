@@ -684,6 +684,13 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
   max-width:660px;margin:0 auto;padding:26px clamp(18px,5vw,28px) 70px;
   font-size:13px;color:var(--ink-3);line-height:1.6;
 }
+.copy-mail{
+  display:inline-block;margin:10px 0 0 10px;padding:4px 12px;
+  font:inherit;font-size:12px;line-height:1.4;color:inherit;
+  background:none;border:1px solid currentColor;border-radius:6px;
+  opacity:.85;cursor:pointer;
+}
+.copy-mail:hover,.copy-mail:focus-visible{opacity:1}
 </style>
 <!-- Yandex.Metrika counter -->
 <script type="text/javascript">
@@ -919,6 +926,7 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
 </nav>
 
 <p class="foot" data-i18n="footText">Справочник показывает, что означает код, а не ставит диагноз — решение всегда за человеком с оборудованием. Вопросы — <a href="mailto:alexdiag116@gmail.com" style="color:inherit">alexdiag116@gmail.com</a>.</p>
+<button type="button" class="copy-mail" data-i18n="copyMail" data-mail="alexdiag116@gmail.com">Скопировать адрес</button>
 
 <script src="/assets/app.js"></script>
 </body>
