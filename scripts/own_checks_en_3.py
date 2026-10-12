@@ -1116,9 +1116,9 @@ _B = {
         'шаги': [
             'FMI 4 (sensor circuit shorted to ground): disconnect the sensor. If the code clears — the wiring to the sensor; if not — the sensor itself.',
             'FMI 5 (sensor circuit open): check the signal and ground wires from the sensor connector to the unit for continuity.',
-            'FMI 7 (mechanical system not holding pressure: leak, valve or circuit): compare with a gauge in the circuit. If the gauge '
-            'shows the pressure falling — look for the leak with soapy water on the pipes, fittings and valves. If the gauge holds the '
-            'pressure and the sensor reads wrongly — the sensor or its connector.',
+            'FMI 7 (by the standard — the mechanical system does not respond; in KamAZ factory data — signal out of range): '
+            'compare the sensor reading with a gauge in the circuit; if the pressure is lower — look for a leak with soapy water, '
+            'check the circuit valve; if the pressure is normal but there is no reading — the sensor or the connector.',
         ],
         'причины': [
             'Open circuit or short to ground in the sensor wiring.',
