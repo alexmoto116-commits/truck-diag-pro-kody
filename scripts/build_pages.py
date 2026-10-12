@@ -666,7 +666,9 @@ HEAD = u"""<!DOCTYPE html>
 <meta property="og:locale" content="{locale}">
 <meta property="og:title" content="{ogtitle}">
 <meta property="og:description" content="{desc}">
-<meta property="og:image" content="https://codetruck.ru/assets/tyagach-noch.jpg">
+<meta property="og:image" content="https://codetruck.ru/assets/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <!-- Yandex.Metrika counter -->
 <script type="text/javascript">
@@ -850,12 +852,26 @@ def sample_rows(rows, n=15):
 # чекауте все даты обнулятся разом и мы вернёмся к тому же вранью).
 LASTMOD_DB = 'sitemap-lastmod.json'
 
-# Русские и английские адреса разнесены по двум картам под общим
-# индексом: в Search Console охват показывается по каждому файлу
-# отдельно, и сразу видно, какую половину сайта робот берёт, а какую
-# нет. Одним файлом это неразличимо.
+# Полные карты ru и en (как раньше, Google их уже знает) и карты по
+# разделам: в Search Console охват виден по каждому файлу, и сразу
+# понятно, какой раздел робот берёт, а какой нет. Общий индекс
+# sitemap.xml ссылается только на карты разделов (вложенные индексы
+# по протоколу запрещены, поэтому полные ru/en в индекс не входят).
 SITEMAPS = [('sitemap-ru.xml', lambda u: '/en/' not in u),
             ('sitemap-en.xml', lambda u: '/en/' in u)]
+MAP_SECTIONS = ['kody', 'marki', 'problemy', 'main']
+SECTION_DIRS = ('kody', 'marki', 'problemy')
+
+
+def section_of(u):
+    """Раздел адреса: kody / marki / problemy, а главная и оглавления - main."""
+    rest = u[len(SITE):]
+    if '/en/' in u:
+        rest = rest[len('/en'):]
+    parts = rest.strip('/').split('/')
+    if len(parts) >= 2 and parts[0] in SECTION_DIRS:
+        return parts[0]
+    return 'main'
 
 
 def url_to_file(url):
@@ -894,9 +910,16 @@ def write_sitemap(urls=None):
             fresh[u] = {'h': h, 'd': today}
             changed += 1
 
+    # (имя файла, адреса, входит ли в индекс sitemap.xml)
+    jobs = [(name, [u for u in urls if keep(u)], False) for name, keep in SITEMAPS]
+    for lang in ('ru', 'en'):
+        for sec in MAP_SECTIONS:
+            part = [u for u in urls
+                    if ('/en/' in u) == (lang == 'en') and section_of(u) == sec]
+            jobs.append(('sitemap-%s-%s.xml' % (lang, sec), part, True))
+
     written_files = []
-    for name, keep in SITEMAPS:
-        part = [u for u in urls if keep(u)]
+    for name, part, in_index in jobs:
         if not part:
             continue
         sm = ['<?xml version="1.0" encoding="UTF-8"?>',
@@ -906,7 +929,8 @@ def write_sitemap(urls=None):
                       % (u, fresh[u]['d']))
         sm.append('</urlset>')
         io.open(os.path.join(ROOT, name), 'w', encoding='utf-8').write('\n'.join(sm))
-        written_files.append(name)
+        if in_index:
+            written_files.append(name)
 
     idx = ['<?xml version="1.0" encoding="UTF-8"?>',
            '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
