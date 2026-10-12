@@ -409,6 +409,7 @@ def build():
     info = bp.build(en_spns=en_set)
     written = [s for s in info['written'] if s in en_set]
     sys_of, stop_of, by_sys = info['sys'], info['stop'], info['by_sys']
+    closed = set(info.get('noindex', ()))  # закрыты от индекса - на них не ссылаемся
 
     # Марки, чьё имя в базе записано кириллицей, на английских страницах
     # берём из I18N (КамАЗ, ЯМЗ, ...), а если ключа там нет - из того же
@@ -470,6 +471,7 @@ def build():
         mine_en = sorted({s for s in per_en if b in per_en[s]})
         if not mine_en:
             continue
+        mine_open = [s for s in mine_en if s not in closed]
         bn = bname(b)
         # ZF AS-Tronic и Ford: номер свой, не SPN - как у русской страницы,
         # свой список с заводским описанием и якорем у каждого кода.
@@ -477,7 +479,7 @@ def build():
         if b in bp.OWN_NUMBERING:
             own_en = {k: v for k, v in (en_db.get('brands', {}).get(b) or {}).items()
                       if v and k.split('.')[0].isdigit()}
-        stop_codes = [] if own_en else [s for s in mine_en if is_stop(s)][:12]
+        stop_codes = [] if own_en else [s for s in mine_open if is_stop(s)][:12]
         secs = []
         if own_en:
             def _кл(k):
@@ -492,7 +494,7 @@ def build():
             secs.append(u'<section><h2>%s</h2><ul class="near">%s</ul></section>'
                         % (MK['stopHead'], code_links(stop_codes)))
         by_sys_brand = {}
-        for s in ([] if own_en else mine_en):
+        for s in ([] if own_en else mine_open):
             by_sys_brand.setdefault(sys_of.get(s, 'other'), []).append(s)
         for key in bp.SYS_ORDER_BRAND:
             bucket = by_sys_brand.get(key)
@@ -643,7 +645,7 @@ def build():
     # --- проблемы (симптомы) ----------------------------------------
     ru_symptoms = {row[0]: row for row in bp.SYMPTOMS}
     sym_index = []
-    have = set(written)
+    have = set(written) - closed  # симптомы ссылаются только на открытые коды
     for slug, (title_h, h1, intro) in SYMPTOMS_EN.items():
         row = ru_symptoms.get(slug)
         if not row:
@@ -654,7 +656,7 @@ def build():
         elif sys_key:
             pool = [s for s in by_sys.get(sys_key, [])]
         else:
-            pool = [s for s in written if is_stop(s)]
+            pool = [s for s in written if s in have and is_stop(s)]
         stop_codes = [s for s in pool if is_stop(s)][:12]
         rest = [s for s in pool if s not in stop_codes][:12]
         if not (stop_codes or rest):

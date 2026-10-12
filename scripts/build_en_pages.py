@@ -175,6 +175,8 @@ def build():
     written = [s for s in info['written'] if s in en_set]
     sys_of, stop_of, by_sys = info['sys'], info['stop'], info['by_sys']
     lvl_of = info['lvl']
+    # закрытые от индекса (их ровно столько же, сколько у русской версии)
+    closed_en = set(info.get('noindex', ()))
 
     brand_names = ru_db['brandNames']
 
@@ -220,12 +222,12 @@ def build():
     def causal_section(spn):
         as_root, as_cons = bp.causal_rules(spn)
         out = []
-        causes = sorted(({s for r in as_cons for s in r['root']} & en_set) - {spn})
+        causes = sorted(({s for r in as_cons for s in r['root']} & (en_set - closed_en)) - {spn})
         if causes:
             out.append(u'<section><h2>%s</h2><p>%s</p><ul class="near">%s</ul></section>'
                        % (TX['casStart'], TX['casStartP'],
                           ''.join(code_link(s, 'spn-%d.html' % s) for s in causes)))
-        follow = sorted(({s for r in as_root for s in r['cons']} & en_set) - {spn})
+        follow = sorted(({s for r in as_root for s in r['cons']} & (en_set - closed_en)) - {spn})
         if follow:
             out.append(u'<section><h2>%s</h2><p>%s</p><ul class="near">%s</ul>'
                        u'<p>%s</p></section>'

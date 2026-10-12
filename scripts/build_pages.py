@@ -1141,6 +1141,11 @@ def build(en_spns=()):
         return (not std_name(spn) and len(std) == 1
                 and len(next(iter(std.values()))) == 1)
     noindex = {s for s in keep if тонкая(s)}
+    # Открытые коды: только на них ведут ссылки со страниц, которые сами открыты
+    # (блок «Рядом», «по системе», оглавление, марки, симптомы). Закрытые от индекса
+    # страницы остаются по адресу, но с открытых страниц на них не ссылаемся: иначе
+    # обход и ссылочный вес уходят в noindex.
+    open_keep = [s for s in keep if s not in noindex]
 
     def name_of(spn):
         return std_name(spn) or derived.get(spn) or u''
@@ -1158,7 +1163,7 @@ def build(en_spns=()):
     # заодно чинится и внутренняя перелинковка этих 48 адресов.
     def causal_section(spn):
         as_root, as_cons = causal_rules(spn)
-        page = set(keep)
+        page = set(open_keep)
         out = []
         causes = sorted(({s for r in as_cons for s in r['root']} & page) - {spn})
         if causes:
@@ -1197,7 +1202,7 @@ def build(en_spns=()):
 
     # соседи по системе - для перелинковки
     by_sys = {}
-    for spn in keep:
+    for spn in open_keep:
         by_sys.setdefault(system_of(spn, std_name(spn)), []).append(spn)
 
     out_dir = os.path.join(ROOT, 'kody')
@@ -1546,7 +1551,9 @@ def build(en_spns=()):
         if not mine:
             continue
         marki_built.add(b)
-        stop_codes = [s for s in mine if is_stop(s, per_spn.get(s, {}))][:12]
+        # ссылки на коды - только открытые; сам счётчик «N кодов» по mine не меняем
+        mine_open = [s for s in mine if s not in noindex]
+        stop_codes = [s for s in mine_open if is_stop(s, per_spn.get(s, {}))][:12]
         # У ZF AS-Tronic и Ford номер свой: «SPN 19» у ZF - не давление масла.
         # Раньше список подписывался стандартным названием J1939 и по нему же
         # раскладывался («Смазка», «Топливо») и помечался «ехать нельзя» -
@@ -1569,7 +1576,7 @@ def build(en_spns=()):
         # Дилерские pcode.* сюда не попадают физически: у них своя ветка ниже,
         # с выборкой примеров (см. load_pcode и sample_rows). Не объединять.
         by_sys_brand = {}
-        for s in ([] if own else mine):
+        for s in ([] if own else mine_open):
             by_sys_brand.setdefault(system_of(s, std_name(s)), []).append(s)
         if own:
             def own_key(k):
@@ -1714,7 +1721,7 @@ def build(en_spns=()):
     # SYMPTOMS - теперь модульная константа, см. выше файла.
 
     sym_index = []
-    have = set(written)
+    have = set(written) - noindex  # симптомы ссылаются только на открытые коды
     for slug, title_h, h1, intro, sys_key, adv, spns in SYMPTOMS:
         if spns:
             # Кураторский список: порядок задан руками, от самого частого
@@ -1723,7 +1730,7 @@ def build(en_spns=()):
         elif sys_key:
             pool = [s for s in by_sys.get(sys_key, [])]
         else:
-            pool = [s for s in written if is_stop(s, per_spn.get(s, {}))]
+            pool = [s for s in written if s in have and is_stop(s, per_spn.get(s, {}))]
         stop_codes = [s for s in pool if is_stop(s, per_spn.get(s, {}))][:12]
         rest = [s for s in pool if s not in stop_codes][:12]
 
