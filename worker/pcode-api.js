@@ -8,7 +8,9 @@
  *
  * Защита (порядок проверок):
  *  1. User-Agent: пустой или известный бот/библиотека -> 403.
- *  2. Источник: Origin или Referer должны вести на https://codetruck.ru -> 403.
+ *  2. Источник: Origin или Referer должны вести на один из адресов
+ *     РАЗРЕШЁННЫЕ_ИСТОЧНИКИ (сайт codetruck.ru и локальное приложение на
+ *     localhost:8765 / 127.0.0.1:8765) -> иначе 403.
  *     Это отсекает простые скрипты. Браузер с сайта такие заголовки шлёт сам,
  *     но подделать их скрипту ничего не стоит - поэтому дальше ещё лимиты.
  *  3. Ввод: длина кода <= 12, допустимые символы (буквы, цифры, дефис, либо
@@ -38,7 +40,11 @@ var KNOWN_PCODE_BRANDS = ['volvo', 'mercedes', 'scania', 'shacman', 'tata', 'ash
                           'planar', 'webasto', 'eberspacher', 'daewoo', 'cumminsisf',
                           'eaton', 'hyundai', 'haldex', 'allison', 'weichai', 'volkswagen', 'mwm', 'isuzu', 'baw',
                           'ivecoedc', 'ivecoeurotronic', 'iveco', 'daf', 'manzbr2', 'manebs', 'man', 'mack', 'yamz', 'volvomid', 'jingwei', 'gaz'];
-var ALLOWED_ORIGINS = ['https://codetruck.ru'];
+// Адреса, с которых пускаем запросы (Origin / Referer): сайт и локальное
+// приложение «Каталог 3D». Точное совпадение, без слеша в конце. Чтобы добавить
+// адрес выкладки приложения - дописать сюда и развернуть воркер.
+var РАЗРЕШЁННЫЕ_ИСТОЧНИКИ = ['https://codetruck.ru', 'http://localhost:8765', 'http://127.0.0.1:8765'];
+var ALLOWED_ORIGINS = РАЗРЕШЁННЫЕ_ИСТОЧНИКИ;
 
 // Подстроки User-Agent (в нижнем регистре), по которым отсекаем ботов и библиотеки.
 var BLOCKED_UA = ['curl', 'wget', 'python-requests', 'python-urllib', 'go-http-client', 'java', 'okhttp',
@@ -153,6 +159,8 @@ function corsHeaders(request) {
   var headers = {
     'Access-Control-Allow-Methods': 'GET, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type',
+    // Ответ зависит от Origin: кэш не должен отдать один источник другому.
+    'Vary': 'Origin',
   };
   if (ALLOWED_ORIGINS.indexOf(origin) >= 0) headers['Access-Control-Allow-Origin'] = origin;
   return headers;
@@ -186,12 +194,16 @@ function uaAllowed(request) {
   return true;
 }
 
-// Запрос пришёл с сайта codetruck.ru: по Origin или по Referer.
+// Запрос пришёл с разрешённого источника: по Origin или по Referer.
 function sourceAllowed(request) {
   var origin = request.headers.get('Origin');
   if (origin) return ALLOWED_ORIGINS.indexOf(origin) >= 0;
   var referer = request.headers.get('Referer') || '';
-  return referer === 'https://codetruck.ru' || referer.indexOf('https://codetruck.ru/') === 0;
+  for (var i = 0; i < ALLOWED_ORIGINS.length; i++) {
+    var o = ALLOWED_ORIGINS[i];
+    if (referer === o || referer.indexOf(o + '/') === 0) return true;
+  }
+  return false;
 }
 
 /**
