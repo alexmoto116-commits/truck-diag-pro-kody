@@ -174,7 +174,7 @@ function corsHeaders(request) {
   var headers = {
     'Access-Control-Allow-Methods': 'GET, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, X-Codetruck-Key',
-    'Access-Control-Expose-Headers': 'X-Remaining',
+    'Access-Control-Expose-Headers': 'X-Remaining, X-Plan',
     // Ответ зависит от Origin: кэш не должен отдать один источник другому.
     'Vary': 'Origin',
   };
@@ -247,7 +247,9 @@ async function checkKey(env, key) {
   if (rec['до'] && rec['до'] < utcDay()) return { error: 'key_expired', status: 403 };
   var lim = parseInt(rec['лимит'], 10);
   if (!(lim > 0)) lim = DAILY_LIMIT_PER_DAY;
-  return { rec: rec, limit: lim };
+  // Тариф: 'демо' (рекламный) или 'платный' (по умолчанию). Пока на поиск не влияет.
+  var plan = rec['тариф'] === 'демо' ? 'demo' : 'platnyi';
+  return { rec: rec, limit: lim, plan: plan };
 }
 
 /**
@@ -368,7 +370,9 @@ async function handlePcode(request, env, url, who) {
     return json(request, 502, { error: 'kv_unavailable' });
   }
 
-  var extra = remaining === null ? null : { 'X-Remaining': String(remaining) };
+  var extra = {};
+  if (remaining !== null) extra['X-Remaining'] = String(remaining);
+  if (who.plan) extra['X-Plan'] = who.plan;
   return json(request, 200, { hits: hits }, extra);
 }
 
@@ -438,7 +442,7 @@ export default {
         return json(request, 503, { error: 'kv_unavailable' });
       }
       if (check.error) return json(request, check.status, { error: check.error });
-      who = { daily: 'key:' + key, limit: check.limit };
+      who = { daily: 'key:' + key, limit: check.limit, plan: check.plan };
     }
     return handlePcode(request, env, url, who);
   },

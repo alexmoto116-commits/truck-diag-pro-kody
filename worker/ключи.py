@@ -37,6 +37,8 @@ PREFIX = 'apikey:'
 KEY_RE = re.compile(r'^ct_[a-z0-9]{24}$')
 ALPHABET = 'abcdefghijklmnopqrstuvwxyz0123456789'
 DEFAULT_LIMIT = 50  # совпадает с DAILY_LIMIT_PER_DAY в pcode-api.js
+TARIFFS = ('платный', 'демо')
+DEFAULT_TARIFF = 'платный'
 
 
 def fail(msg):
@@ -58,6 +60,12 @@ def check_date(value):
         datetime.date.fromisoformat(value)
     except ValueError:
         fail('дата должна быть в формате ГГГГ-ММ-ДД, а не «%s»' % value)
+    return value
+
+
+def check_tariff(value):
+    if value not in TARIFFS:
+        fail('тариф должен быть «платный» или «демо», а не «%s»' % value)
     return value
 
 
@@ -159,11 +167,13 @@ def cmd_create(args):
         fail('имя ключа не может быть пустым')
     limit = check_limit(args.лимит) if args.лимит is not None else DEFAULT_LIMIT
     until = check_date(args.до) if args.до else None
+    tariff = check_tariff(args.тариф)
     key = new_key()
     record = {
         'имя': name,
         'лимит': limit,
         'до': until,
+        'тариф': tariff,
         'активен': True,
         'создан': datetime.date.today().isoformat(),
     }
@@ -177,7 +187,7 @@ def cmd_create(args):
     print()
     print('      ' + key)
     print()
-    print('  лимит: %d поисков в сутки, до: %s' % (limit, until or 'без срока'))
+    print('  лимит: %d поисков в сутки, до: %s, тариф: %s' % (limit, until or 'без срока', tariff))
     print('  Передайте ключ приложению (заголовок X-Codetruck-Key). Сохраните его: в базе он хранится открыто.')
     print(line)
 
@@ -190,14 +200,15 @@ def cmd_list(args):
     if not keys:
         print('Ключей нет.')
         return
-    print('%-28s %-24s %8s %-12s %s' % ('ключ', 'имя', 'лимит', 'до', 'активен'))
+    print('%-28s %-24s %8s %-12s %-9s %s' % ('ключ', 'имя', 'лимит', 'до', 'тариф', 'активен'))
     for key in keys:
         rec = get_record(key, False) or {}
-        print('%-28s %-24s %8s %-12s %s' % (
+        print('%-28s %-24s %8s %-12s %-9s %s' % (
             key,
             str(rec.get('имя', '?'))[:24],
             rec.get('лимит', DEFAULT_LIMIT),
             rec.get('до') or 'без срока',
+            rec.get('тариф', DEFAULT_TARIFF),
             'да' if rec.get('активен', True) else 'нет'))
 
 
@@ -230,6 +241,11 @@ def cmd_extend(args):
     change(args, 'до', until, 'ключ %s действует до %s' % (args.ключ, until))
 
 
+def cmd_tariff(args):
+    tariff = check_tariff(args.тариф)
+    change(args, 'тариф', tariff, 'ключ %s: тариф %s' % (args.ключ, tariff))
+
+
 def cmd_limit(args):
     limit = check_limit(args.N)
     change(args, 'лимит', limit, 'ключ %s: лимит %d поисков в сутки' % (args.ключ, limit))
@@ -247,6 +263,7 @@ def build_parser():
     c.add_argument('имя', help='название приложения или человека')
     c.add_argument('--лимит', type=str, default=None, help='поисков в сутки (по умолчанию 50)')
     c.add_argument('--до', type=str, default=None, help='срок ГГГГ-ММ-ДД (по умолчанию без срока)')
+    c.add_argument('--тариф', type=str, default=DEFAULT_TARIFF, help='платный (по умолчанию) или демо')
     c.set_defaults(func=cmd_create)
 
     s = sub.add_parser('список', parents=[common], help='показать ключи')
@@ -264,6 +281,11 @@ def build_parser():
     x.add_argument('ключ')
     x.add_argument('дата', help='ГГГГ-ММ-ДД')
     x.set_defaults(func=cmd_extend)
+
+    tf = sub.add_parser('тариф', parents=[common], help='поменять тариф ключа (платный или демо)')
+    tf.add_argument('ключ')
+    tf.add_argument('тариф', help='платный или демо')
+    tf.set_defaults(func=cmd_tariff)
 
     lm = sub.add_parser('лимит', parents=[common], help='поменять суточный лимит ключа')
     lm.add_argument('ключ')
