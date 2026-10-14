@@ -2,11 +2,15 @@
 # -*- coding: utf-8 -*-
 """Ключи доступа приложений к воркеру codetruck-pcode-api (PCODE_KV).
 
-Ключ хранится в KV: apikey:<ключ> -> {"имя", "лимит", "до", "активен", "создан"}.
+Ключ хранится в KV: apikey:<ключ> -> {"имя", "лимит", "до", "тариф", "модели", "служебный",
+"активен", "создан"}. "модели" - список ключей моделей: обычный ключ держит одну модель
+(["6520"]), служебный - несколько или ["*"] (все).
 Воркер (pcode-api.js) читает запись и считает поиски по ключу.
 
 Команды (запускать из папки worker):
-  python ключи.py создать "<имя>" [--лимит 50] [--до ГГГГ-ММ-ДД]
+  python ключи.py создать "<имя>" --модель 6520 [--тариф платный|демо] [--лимит 50] [--до ГГГГ-ММ-ДД]
+  python ключи.py создать "<имя>" --служебный --модель 6520,43118|*   (несколько моделей или все)
+  python ключи.py модель <ключ> <ключ_модели>   (смена модели; служебному - список или *)
   python ключи.py список
   python ключи.py отключить <ключ>
   python ключи.py включить <ключ>
@@ -77,6 +81,45 @@ def check_limit(value):
     if n <= 0:
         fail('лимит должен быть больше нуля')
     return n
+
+
+MODEL_RE = re.compile(r'^[A-Za-z0-9]{1,16}$')
+
+
+def check_model(value):
+    if not MODEL_RE.match(value):
+        fail('ключ модели должен быть из латиницы и цифр, до 16 знаков: «%s»' % value)
+    return value
+
+
+def parse_models(text, service):
+    """Разбирает модель ключа. Обычный ключ - ровно одна модель. Несколько моделей
+    или «*» (все) - только у служебного ключа (--служебный)."""
+    text = (text or '').strip()
+    if not text:
+        fail('не указана модель')
+    if text == '*':
+        if not service:
+            fail('«*» (все модели) - только для служебного ключа: добавьте --служебный')
+        return ['*']
+    models = [check_model(m.strip()) for m in text.split(',') if m.strip()]
+    if not models:
+        fail('не указана модель')
+    if len(set(models)) != len(models):
+        fail('модель указана дважды')
+    if len(models) > 1 and not service:
+        fail('несколько моделей - только для служебного ключа (--служебный)')
+    return models
+
+
+def describe_models(models, service):
+    """Текст для вывода: модель(и) ключа и пометка «служебный»."""
+    if not models:
+        return 'нет (только база кодов)'
+    text = 'все' if models == ['*'] else ', '.join(str(m) for m in models)
+    if service:
+        text += ' «служебный»'
+    return text
 
 
 def wrangler(*args):
@@ -168,12 +211,21 @@ def cmd_create(args):
     limit = check_limit(args.лимит) if args.лимит is not None else DEFAULT_LIMIT
     until = check_date(args.до) if args.до else None
     tariff = check_tariff(args.тариф)
+    service = bool(args.служебный)
+    if args.модель is None:
+        if not service:
+            fail('укажите модель: --модель <ключ_модели>, например 6520')
+        models = []
+    else:
+        models = parse_models(args.модель, service)
     key = new_key()
     record = {
         'имя': name,
         'лимит': limit,
         'до': until,
         'тариф': tariff,
+        'модели': models,
+        'служебный': service,
         'активен': True,
         'создан': datetime.date.today().isoformat(),
     }
@@ -187,7 +239,8 @@ def cmd_create(args):
     print()
     print('      ' + key)
     print()
-    print('  лимит: %d поисков в сутки, до: %s, тариф: %s' % (limit, until or 'без срока', tariff))
+    print('  модель: %s' % describe_models(models, service))
+    print('  лимит: %d пакетов/поисков в сутки, до: %s, тариф: %s' % (limit, until or 'без срока', tariff))
     print('  Передайте ключ приложению (заголовок X-Codetruck-Key). Сохраните его: в базе он хранится открыто.')
     print(line)
 
@@ -200,15 +253,19 @@ def cmd_list(args):
     if not keys:
         print('Ключей нет.')
         return
-    print('%-28s %-24s %8s %-12s %-9s %s' % ('ключ', 'имя', 'лимит', 'до', 'тариф', 'активен'))
+    print('%-28s %-24s %8s %-12s %-9s %-34s %s' % ('ключ', 'имя', 'лимит', 'до', 'тариф', 'модель', 'активен'))
     for key in keys:
         rec = get_record(key, False) or {}
-        print('%-28s %-24s %8s %-12s %-9s %s' % (
+        models = rec.get('модели', [])
+        if not isinstance(models, list):
+            models = []
+        print('%-28s %-24s %8s %-12s %-9s %-34s %s' % (
             key,
             str(rec.get('имя', '?'))[:24],
             rec.get('лимит', DEFAULT_LIMIT),
             rec.get('до') or 'без срока',
             rec.get('тариф', DEFAULT_TARIFF),
+            describe_models(models, bool(rec.get('служебный', False)))[:34],
             'да' if rec.get('активен', True) else 'нет'))
 
 
@@ -251,6 +308,25 @@ def cmd_limit(args):
     change(args, 'лимит', limit, 'ключ %s: лимит %d поисков в сутки' % (args.ключ, limit))
 
 
+def cmd_model(args):
+    """Смена модели ключа (например, при ошибке продажи). Для служебного - список или «*»."""
+    key = args.ключ.strip()
+    check_key(key)
+    need_token(args.показать)
+    if args.показать:
+        print('  чтение записи:')
+        get_record(key, True)
+        print('  запись с изменением (смена модели ключа):')
+        put_record(key, {'изменено': 'модель'}, True)
+        return
+    rec = get_record(key, False)
+    service = bool(rec.get('служебный', False))
+    models = parse_models(args.ключ_модели, service)
+    rec['модели'] = models
+    put_record(key, rec, False)
+    print('Готово: ключ %s, модель: %s' % (key, describe_models(models, service)))
+
+
 def build_parser():
     common = argparse.ArgumentParser(add_help=False)
     common.add_argument('--показать', action='store_true',
@@ -261,6 +337,10 @@ def build_parser():
 
     c = sub.add_parser('создать', parents=[common], help='создать новый ключ')
     c.add_argument('имя', help='название приложения или человека')
+    c.add_argument('--модель', type=str, default=None,
+                   help='ключ модели, например 6520 (служебный: список через запятую или *)')
+    c.add_argument('--служебный', action='store_true',
+                   help='служебный ключ: несколько моделей или * (все). Для проверок Алекса')
     c.add_argument('--лимит', type=str, default=None, help='поисков в сутки (по умолчанию 50)')
     c.add_argument('--до', type=str, default=None, help='срок ГГГГ-ММ-ДД (по умолчанию без срока)')
     c.add_argument('--тариф', type=str, default=DEFAULT_TARIFF, help='платный (по умолчанию) или демо')
@@ -291,6 +371,11 @@ def build_parser():
     lm.add_argument('ключ')
     lm.add_argument('N', help='поисков в сутки')
     lm.set_defaults(func=cmd_limit)
+
+    mo = sub.add_parser('модель', parents=[common], help='сменить модель ключа')
+    mo.add_argument('ключ')
+    mo.add_argument('ключ_модели', help='например 6520; для служебного - список через запятую или *')
+    mo.set_defaults(func=cmd_model)
     return p
 
 

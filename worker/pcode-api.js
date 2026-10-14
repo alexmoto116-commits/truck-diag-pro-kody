@@ -36,6 +36,11 @@
  * шард на вариант написания вместо чтения всех марок. Пока индекс не залит,
  * шарда нет - тогда работает запасной путь, перебор всех марок.
  *
+ * Пакеты моделей КАМАЗ: GET /pack?model=<модель> с ключом (X-Codetruck-Key, для всех
+ * источников, сайт тоже). Модель должна быть в записи ключа (поле "модели": одна модель,
+ * или ["*"] для служебного). Лимит 20 пакетов в сутки на ключ. Пакет лежит в KV pack:<модель>,
+ * на выдаче в него вшивается метка ключа (блок «Пакеты моделей» ниже).
+ *
  * Все ответы: Cache-Control: no-store и X-Robots-Tag: noindex.
  */
 
@@ -409,6 +414,159 @@ export class DailyLimit {
   }
 }
 
+// ---- Пакеты моделей (/pack) ----
+// Пакет - данные одной модели (каталог, предохранители, щиток, ТО), лежит в KV pack:<модель>.
+// Выдаётся только по ключу, где модель есть (поле "модели"). Каждая выдача несёт метку ключа:
+//  - верхнее поле "_выдано": {"м": модель, "к": первые 12 hex SHA-256 от ключа, "д": дата UTC};
+//  - скрытая метка: 8 единиц из "единицы" (выбраны по хешу ключа) получают в конце названия "т"
+//    по четыре невидимых символа (U+200B = 0, U+200C = 1): 32 бита отпечатка ключа.
+var MODEL_RE = /^[A-Za-z0-9]{1,16}$/;
+var PACK_LIMIT_PER_DAY = 20;
+var PACK_CACHE_S = 300;   // чтение пакета из KV кэшируется на 5 минут
+var PACK_MARK_UNITS = 8;  // единиц с меткой (по 4 бита)
+var ZW0 = '​';
+var ZW1 = '‌';
+
+function modelsOf(rec) {
+  var m = rec ? rec['модели'] : null;
+  return Array.isArray(m) ? m : [];
+}
+
+async function keyHash(key) {
+  var buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(key));
+  return new Uint8Array(buf);
+}
+
+function hexOf(bytes, n) {
+  var s = '';
+  for (var i = 0; i < n; i++) s += bytes[i].toString(16).padStart(2, '0');
+  return s;
+}
+
+// 32 бита отпечатка: первые 4 байта хеша.
+function fingerprint32(hash) {
+  return ((hash[0] << 24) | (hash[1] << 16) | (hash[2] << 8) | hash[3]) >>> 0;
+}
+
+// Номера единиц с меткой, по возрастанию, выбраны по хешу (ЛКГ от байтов 4..7).
+// null, если подходящих единиц меньше восьми: тогда только поле _выдано.
+function pickMarkUnits(hash, units) {
+  var eligible = [];
+  for (var i = 0; i < units.length; i++) {
+    if (units[i] && typeof units[i]['т'] === 'string') eligible.push(i);
+  }
+  if (eligible.length < PACK_MARK_UNITS) return null;
+  var seed = ((hash[4] << 24) | (hash[5] << 16) | (hash[6] << 8) | hash[7]) >>> 0;
+  var chosen = [];
+  while (chosen.length < PACK_MARK_UNITS) {
+    seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
+    var idx = eligible[seed % eligible.length];
+    if (chosen.indexOf(idx) < 0) chosen.push(idx);
+  }
+  return chosen.sort(function (a, b) { return a - b; });
+}
+
+function nibbleMark(n) {
+  var s = '';
+  for (var b = 3; b >= 0; b--) s += ((n >> b) & 1) ? ZW1 : ZW0;
+  return s;
+}
+
+function stampUnits(pack, hash) {
+  var units = pack['единицы'];
+  if (!Array.isArray(units)) return;
+  var idxs = pickMarkUnits(hash, units);
+  if (!idxs) return;
+  var fp = fingerprint32(hash);
+  for (var j = 0; j < PACK_MARK_UNITS; j++) {
+    var u = units[idxs[j]];
+    u['т'] = u['т'] + nibbleMark((fp >>> (28 - 4 * j)) & 0xF);
+  }
+}
+
+// Метка пакета: поле _выдано и скрытые биты (8 hex, или null, если меток меньше восьми).
+export function извлечьМетку(пакет) {
+  var выдано = (пакет && пакет['_выдано']) || null;
+  var units = (пакет && Array.isArray(пакет['единицы'])) ? пакет['единицы'] : [];
+  var tails = [];
+  for (var i = 0; i < units.length; i++) {
+    var t = units[i] && units[i]['т'];
+    if (typeof t !== 'string' || t.length < 4) continue;
+    var tail = t.slice(-4);
+    if (/^[​‌]{4}$/.test(tail)) tails.push(tail);
+  }
+  var скрыто = null;
+  if (tails.length >= PACK_MARK_UNITS) {
+    var v = 0;
+    for (var j = 0; j < PACK_MARK_UNITS; j++) {
+      var n = 0;
+      for (var c = 0; c < 4; c++) n = (n << 1) | (tails[j].charAt(c) === ZW1 ? 1 : 0);
+      v = (v << 4) | n;
+    }
+    скрыто = (v >>> 0).toString(16).padStart(8, '0');
+  }
+  return { выдано: выдано, скрыто: скрыто, помечено: tails.length };
+}
+
+// Пакет из KV с меткой ключа.
+async function stampPack(raw, model, key) {
+  var pack = JSON.parse(raw);
+  var hash = await keyHash(key);
+  pack['_выдано'] = { 'м': model, 'к': hexOf(hash, 6), 'д': utcDay() };
+  stampUnits(pack, hash);
+  return JSON.stringify(pack);
+}
+
+/**
+ * Выдача пакета. check - результат checkKey (ключ верный). Порядок ответов:
+ * bad_model 400 -> model_not_in_key 403 -> лимит IP -> no_pack 404 -> pack_limit 429 -> 200.
+ * Счётчик pack:<ключ> растёт только при выдаче (404 и ошибки ввода его не трогают).
+ */
+async function handlePack(request, env, url, key, check) {
+  var model = (url.searchParams.get('model') || '').trim();
+  if (!MODEL_RE.test(model)) return json(request, 400, { error: 'bad_model' });
+  var models = modelsOf(check.rec);
+  if (models.indexOf('*') < 0 && models.indexOf(model) < 0) {
+    return json(request, 403, { error: 'model_not_in_key' });
+  }
+  var ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+  if (env.PCODE_RL) {
+    var rl = await env.PCODE_RL.limit({ key: ip });
+    if (!rl.success) return json(request, 429, { error: 'rate_limited' }, { 'Retry-After': '60' });
+  }
+  var raw;
+  try {
+    raw = await env.PCODE_KV.get('pack:' + model, { cacheTtl: PACK_CACHE_S });
+  } catch (e) {
+    return json(request, 503, { error: 'kv_unavailable' });
+  }
+  if (raw === null || raw === undefined) return json(request, 404, { error: 'no_pack' });
+  // Лимит пакетов в сутки. Без объекта лимита пакет не отдаём (лимит - защита).
+  if (!env.DAILY_LIMIT) return json(request, 503, { error: 'limit_unavailable' });
+  var verdict;
+  try {
+    var stub = env.DAILY_LIMIT.get(env.DAILY_LIMIT.idFromName('pack:' + key));
+    var resp = await stub.fetch('https://daily-limit/take?day=' + utcDay() +
+                                '&limit=' + PACK_LIMIT_PER_DAY);
+    verdict = await resp.json();
+  } catch (e) {
+    return json(request, 503, { error: 'limit_unavailable' });
+  }
+  if (!verdict.allowed) {
+    return json(request, 429, { error: 'pack_limit', limit: PACK_LIMIT_PER_DAY },
+                { 'Retry-After': String(secondsToMidnightUtc()) });
+  }
+  var body;
+  try {
+    body = await stampPack(raw, model, key);
+  } catch (e) {
+    return json(request, 502, { error: 'bad_pack' });
+  }
+  var headers = Object.assign({ 'Content-Type': 'application/json; charset=utf-8' },
+                              baseHeaders(), corsHeaders(request), { 'X-Plan': check.plan });
+  return new Response(body, { status: 200, headers: headers });
+}
+
 export default {
   async fetch(request, env) {
     var url = new URL(request.url);
@@ -419,7 +577,7 @@ export default {
     if (request.method !== 'GET') {
       return json(request, 405, { error: 'method_not_allowed' });
     }
-    if (url.pathname !== '/pcode') {
+    if (url.pathname !== '/pcode' && url.pathname !== '/pack') {
       return json(request, 404, { error: 'not_found' });
     }
     var src = sourceOf(request);
@@ -430,6 +588,17 @@ export default {
     // Ключ. Сайт работает без него (по IP). Приложения - только с ключом.
     // Если сайт прислал ключ, он проверяется так же, как у приложения.
     var key = (request.headers.get('X-Codetruck-Key') || '').trim();
+    if (url.pathname === '/pack') {
+      if (!key) return json(request, 401, { error: 'need_key' });
+      var pcheck;
+      try {
+        pcheck = await checkKey(env, key);
+      } catch (e) {
+        return json(request, 503, { error: 'kv_unavailable' });
+      }
+      if (pcheck.error) return json(request, pcheck.status, { error: pcheck.error });
+      return handlePack(request, env, url, key, pcheck);
+    }
     var who;
     if (!key && src === SITE_ORIGIN) {
       who = { daily: request.headers.get('CF-Connecting-IP') || 'unknown', limit: DAILY_LIMIT_PER_DAY };
