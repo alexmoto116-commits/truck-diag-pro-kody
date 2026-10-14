@@ -8,13 +8,13 @@
 Воркер (pcode-api.js) читает запись и считает поиски по ключу.
 
 Команды (запускать из папки worker):
-  python ключи.py создать "<имя>" --модель 6520 [--тариф платный|демо] [--лимит 50] [--до ГГГГ-ММ-ДД]
+  python ключи.py создать "<имя>" --модель 6520 [--тариф платный|демо] [--лимит 50] [--до ГГГГ-ММ-ДД|бессрочно]
   python ключи.py создать "<имя>" --служебный --модель 6520,43118|*   (несколько моделей или все)
   python ключи.py модель <ключ> <ключ_модели>   (смена модели; служебному - список или *)
   python ключи.py список
   python ключи.py отключить <ключ>
   python ключи.py включить <ключ>
-  python ключи.py продлить <ключ> ГГГГ-ММ-ДД
+  python ключи.py продлить <ключ> ГГГГ-ММ-ДД|бессрочно   (бессрочно: поле "до" = null, без срока)
   python ключи.py лимит <ключ> <N>
 
 Флаг --показать (в любой команде) только печатает команды wrangler, ничего не выполняя.
@@ -65,6 +65,16 @@ def check_date(value):
     except ValueError:
         fail('дата должна быть в формате ГГГГ-ММ-ДД, а не «%s»' % value)
     return value
+
+
+NO_LIMIT = 'бессрочно'  # значение «до» без срока: в KV пишется null
+
+
+def parse_until(value):
+    """Срок действия: дата ГГГГ-ММ-ДД или «бессрочно» (None = без срока)."""
+    if value.strip().lower() == NO_LIMIT:
+        return None
+    return check_date(value)
 
 
 def check_tariff(value):
@@ -209,7 +219,7 @@ def cmd_create(args):
     if not name:
         fail('имя ключа не может быть пустым')
     limit = check_limit(args.лимит) if args.лимит is not None else DEFAULT_LIMIT
-    until = check_date(args.до) if args.до else None
+    until = parse_until(args.до) if args.до else None
     tariff = check_tariff(args.тариф)
     service = bool(args.служебный)
     if args.модель is None:
@@ -294,8 +304,11 @@ def cmd_enable(args):
 
 
 def cmd_extend(args):
-    until = check_date(args.дата)
-    change(args, 'до', until, 'ключ %s действует до %s' % (args.ключ, until))
+    until = parse_until(args.дата)
+    if until is None:
+        change(args, 'до', None, 'ключ %s без срока' % args.ключ)
+    else:
+        change(args, 'до', until, 'ключ %s действует до %s' % (args.ключ, until))
 
 
 def cmd_tariff(args):
@@ -342,7 +355,7 @@ def build_parser():
     c.add_argument('--служебный', action='store_true',
                    help='служебный ключ: несколько моделей или * (все). Для проверок Алекса')
     c.add_argument('--лимит', type=str, default=None, help='поисков в сутки (по умолчанию 50)')
-    c.add_argument('--до', type=str, default=None, help='срок ГГГГ-ММ-ДД (по умолчанию без срока)')
+    c.add_argument('--до', type=str, default=None, help='срок ГГГГ-ММ-ДД или бессрочно (по умолчанию без срока)')
     c.add_argument('--тариф', type=str, default=DEFAULT_TARIFF, help='платный (по умолчанию) или демо')
     c.set_defaults(func=cmd_create)
 
@@ -357,9 +370,9 @@ def build_parser():
     e.add_argument('ключ')
     e.set_defaults(func=cmd_enable)
 
-    x = sub.add_parser('продлить', parents=[common], help='поставить срок действия')
+    x = sub.add_parser('продлить', parents=[common], help='поставить срок действия (или бессрочно)')
     x.add_argument('ключ')
-    x.add_argument('дата', help='ГГГГ-ММ-ДД')
+    x.add_argument('дата', help='ГГГГ-ММ-ДД или бессрочно')
     x.set_defaults(func=cmd_extend)
 
     tf = sub.add_parser('тариф', parents=[common], help='поменять тариф ключа (платный или демо)')
