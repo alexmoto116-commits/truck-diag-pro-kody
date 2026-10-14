@@ -19,11 +19,18 @@
  *  4. Лимит частоты по IP (CF-Connecting-IP) через привязку Workers Rate
  *     Limiting PCODE_RL: 20 запросов в минуту. Запрос без марки стоит 3
  *     единицы лимита (он проходит все таблицы сразу). Превышение -> 429.
- *  5. Лимит на сутки по IP: DAILY_LIMIT_PER_DAY поисков в сутки (UTC) на один
- *     адрес, каждый поиск (с маркой или без) - один. Считает Durable Object
- *     DailyLimit (по одному объекту на адрес). Превышение -> 429 с
- *     {error:'daily_limit'} и Retry-After до полуночи UTC. Почему не KV: у
+ *  5. Лимит на сутки: каждый поиск (с маркой или без) - один. Считает Durable
+ *     Object DailyLimit. Сайт без ключа - по IP, DAILY_LIMIT_PER_DAY в сутки
+ *     (UTC). Приложение - по ключу (объект key:<ключ>), лимит из записи ключа
+ *     (по умолчанию DAILY_LIMIT_PER_DAY). Превышение -> 429 с {error:
+ *     'daily_limit', limit} и Retry-After до полуночи UTC. Почему не KV: у
  *     бесплатного KV всего 1 000 записей в сутки, на счётчик их уйдёт много.
+ *  6. Ключ приложений (заголовок X-Codetruck-Key, формат ct_ + 24 символа):
+ *     обязателен для всех разрешённых адресов, кроме сайта codetruck.ru.
+ *     Запись в KV: apikey:<ключ> -> {имя, лимит, до, активен, создан}. Нет
+ *     ключа -> 401 need_key; неверный или отключён -> 403 bad_key; срок прошёл
+ *     -> 403 key_expired. При успехе - заголовок X-Remaining (поисков осталось
+ *     сегодня). Ключи выдаёт worker/ключи.py.
  *
  * Поиск без марки идёт по индексу (ключи pcode:_idx:XX, см. shardKey): один
  * шард на вариант написания вместо чтения всех марок. Пока индекс не залит,
@@ -45,6 +52,14 @@ var KNOWN_PCODE_BRANDS = ['volvo', 'mercedes', 'scania', 'shacman', 'tata', 'ash
 // адрес выкладки приложения - дописать сюда и развернуть воркер.
 var РАЗРЕШЁННЫЕ_ИСТОЧНИКИ = ['https://codetruck.ru', 'http://localhost:8765', 'http://127.0.0.1:8765'];
 var ALLOWED_ORIGINS = РАЗРЕШЁННЫЕ_ИСТОЧНИКИ;
+// Сайт: для него ключ не нужен (лимит по IP). Все остальные разрешённые адреса -
+// приложения, им нужен ключ в заголовке X-Codetruck-Key.
+var SITE_ORIGIN = 'https://codetruck.ru';
+// Формат ключа: ct_ + 24 символа [a-z0-9] (генерирует worker/ключи.py).
+var KEY_RE = /^ct_[a-z0-9]{24}$/;
+// Запись ключа (KV apikey:<ключ>) кэшируется в памяти изолята на 60 с.
+var KEY_CACHE_MS = 60000;
+var keyCache = new Map(); // ключ -> { t: время проверки, rec: запись или null }
 
 // Подстроки User-Agent (в нижнем регистре), по которым отсекаем ботов и библиотеки.
 var BLOCKED_UA = ['curl', 'wget', 'python-requests', 'python-urllib', 'go-http-client', 'java', 'okhttp',
@@ -158,7 +173,8 @@ function corsHeaders(request) {
   var origin = request.headers.get('Origin');
   var headers = {
     'Access-Control-Allow-Methods': 'GET, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Headers': 'Content-Type, X-Codetruck-Key',
+    'Access-Control-Expose-Headers': 'X-Remaining',
     // Ответ зависит от Origin: кэш не должен отдать один источник другому.
     'Vary': 'Origin',
   };
@@ -194,16 +210,44 @@ function uaAllowed(request) {
   return true;
 }
 
-// Запрос пришёл с разрешённого источника: по Origin или по Referer.
-function sourceAllowed(request) {
+// Источник запроса (один из ALLOWED_ORIGINS) по Origin или по Referer, иначе null.
+function sourceOf(request) {
   var origin = request.headers.get('Origin');
-  if (origin) return ALLOWED_ORIGINS.indexOf(origin) >= 0;
+  if (origin) return ALLOWED_ORIGINS.indexOf(origin) >= 0 ? origin : null;
   var referer = request.headers.get('Referer') || '';
   for (var i = 0; i < ALLOWED_ORIGINS.length; i++) {
     var o = ALLOWED_ORIGINS[i];
-    if (referer === o || referer.indexOf(o + '/') === 0) return true;
+    if (referer === o || referer.indexOf(o + '/') === 0) return o;
   }
-  return false;
+  return null;
+}
+
+/**
+ * Проверка ключа приложения. Возвращает { rec } для верного ключа или
+ * { error, status } для отказа. Запись читается из KV (apikey:<ключ>) и
+ * кэшируется в памяти изолята на KEY_CACHE_MS. Ошибку чтения KV не глотаем:
+ * она уходит наверх и даёт 503.
+ */
+async function checkKey(env, key) {
+  if (!KEY_RE.test(key)) return { error: 'bad_key', status: 403 };
+  var now = Date.now();
+  var c = keyCache.get(key);
+  var rec;
+  if (c && now - c.t < KEY_CACHE_MS) {
+    rec = c.rec;
+  } else {
+    var raw = await env.PCODE_KV.get('apikey:' + key);
+    rec = null;
+    if (raw) {
+      try { rec = JSON.parse(raw); } catch (e) { rec = null; }
+    }
+    keyCache.set(key, { t: now, rec: rec });
+  }
+  if (!rec || rec['активен'] === false) return { error: 'bad_key', status: 403 };
+  if (rec['до'] && rec['до'] < utcDay()) return { error: 'key_expired', status: 403 };
+  var lim = parseInt(rec['лимит'], 10);
+  if (!(lim > 0)) lim = DAILY_LIMIT_PER_DAY;
+  return { rec: rec, limit: lim };
 }
 
 /**
@@ -258,7 +302,12 @@ async function searchBruteForce(env, brands, variants, lang) {
   return results.filter(Boolean);
 }
 
-async function handlePcode(request, env, url) {
+/**
+ * who - кто платит за поиск: { daily: имя объекта DailyLimit, limit: лимит в
+ * сутки }. Для сайта без ключа это IP и DAILY_LIMIT_PER_DAY, для приложения -
+ * ключ (key:<ключ>) и лимит из его записи.
+ */
+async function handlePcode(request, env, url, who) {
   var code = (url.searchParams.get('code') || '').trim();
   var lang = url.searchParams.get('lang') || 'ru';
   var brand = url.searchParams.get('brand') || '';
@@ -290,20 +339,22 @@ async function handlePcode(request, env, url) {
 
   // Лимит на сутки: каждый поиск, прошедший проверки выше, - один.
   // Если объект лимита недоступен, поиск не отдаём (лимит - защита).
+  var remaining = null;
   if (env.DAILY_LIMIT) {
     var verdict;
     try {
-      var stub = env.DAILY_LIMIT.get(env.DAILY_LIMIT.idFromName(ip));
+      var stub = env.DAILY_LIMIT.get(env.DAILY_LIMIT.idFromName(who.daily));
       var resp = await stub.fetch('https://daily-limit/take?day=' + utcDay() +
-                                  '&limit=' + DAILY_LIMIT_PER_DAY);
+                                  '&limit=' + who.limit);
       verdict = await resp.json();
     } catch (e) {
       return json(request, 503, { error: 'limit_unavailable' });
     }
     if (!verdict.allowed) {
-      return json(request, 429, { error: 'daily_limit', limit: DAILY_LIMIT_PER_DAY },
+      return json(request, 429, { error: 'daily_limit', limit: who.limit },
                   { 'Retry-After': String(secondsToMidnightUtc()) });
     }
+    remaining = Math.max(0, who.limit - verdict.count);
   }
 
   var variants = codeVariants(code);
@@ -317,7 +368,8 @@ async function handlePcode(request, env, url) {
     return json(request, 502, { error: 'kv_unavailable' });
   }
 
-  return json(request, 200, { hits: hits });
+  var extra = remaining === null ? null : { 'X-Remaining': String(remaining) };
+  return json(request, 200, { hits: hits }, extra);
 }
 
 /**
@@ -366,9 +418,28 @@ export default {
     if (url.pathname !== '/pcode') {
       return json(request, 404, { error: 'not_found' });
     }
-    if (!uaAllowed(request) || !sourceAllowed(request)) {
+    var src = sourceOf(request);
+    if (!uaAllowed(request) || src === null) {
       return json(request, 403, { error: 'forbidden' });
     }
-    return handlePcode(request, env, url);
+
+    // Ключ. Сайт работает без него (по IP). Приложения - только с ключом.
+    // Если сайт прислал ключ, он проверяется так же, как у приложения.
+    var key = (request.headers.get('X-Codetruck-Key') || '').trim();
+    var who;
+    if (!key && src === SITE_ORIGIN) {
+      who = { daily: request.headers.get('CF-Connecting-IP') || 'unknown', limit: DAILY_LIMIT_PER_DAY };
+    } else {
+      if (!key) return json(request, 401, { error: 'need_key' });
+      var check;
+      try {
+        check = await checkKey(env, key);
+      } catch (e) {
+        return json(request, 503, { error: 'kv_unavailable' });
+      }
+      if (check.error) return json(request, check.status, { error: check.error });
+      who = { daily: 'key:' + key, limit: check.limit };
+    }
+    return handlePcode(request, env, url, who);
   },
 };
