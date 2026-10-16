@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# устарел: K-line теперь в brands.kamaz5490 (16.10.2026)
 """КамАЗ-5490 по-английски: те же 311 кодов, что в kamaz5490.py.
 
 Переводим не источник, а уже вычищенные русские формулировки — таблицей, как
@@ -262,6 +263,8 @@ FAULT = {
 
 
 if __name__ == '__main__':
+    print('устарел: K-line теперь в brands.kamaz5490 (16.10.2026). Скрипт больше ничего не пишет в brands.kamaz; номера сканера собирает scripts/build_pcode.py из brands.kamaz5490.')
+    sys.exit(1)
     путь = os.path.join(K.ROOT, 'assets', 'dtc.en.js')
     сырой = io.open(путь, encoding='utf-8').read()
     b64 = re.search(r"b64='([^']+)'", сырой).group(1)

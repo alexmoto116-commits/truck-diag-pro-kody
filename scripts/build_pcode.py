@@ -85,13 +85,22 @@ KNOWN_PCODE_BRANDS = ['volvo', 'mercedes', 'scania', 'shacman', 'tata', 'ashokle
 # найтись английский.
 SCAN_PATTERNS = [
     # (язык, зачем, регулярка)
-    (u'ru', u'КамАЗ-5490, старый сканер по K-line', re.compile(u'Код по K-line на КамАЗ-5490: (?:ADM3|MR2) ([0-9]+)')),
     (u'ru', u'Ford, собственная нумерация FODP',    re.compile(r'Код FODP \(сканер\): ([A-Z0-9-]+)')),
     (u'ru', u'SITRAK/Dongfeng/Foton, обычный OBD',  re.compile(u'Код сканера: ([A-Z0-9-]+)')),
-    (u'en', u'KamAZ-5490 K-line',                   re.compile(u'K-line code on KamAZ-5490: (?:ADM3|MR2) ([0-9]+)')),
     (u'en', u'Ford FODP',                           re.compile(r'FODP code \(scan tool\): ([A-Z0-9-]+)')),
     (u'en', u'SITRAK/Dongfeng/Foton OBD',           re.compile(u'Scan tool code: ([A-Z0-9-]+)')),
 ]
+
+# K-line КамАЗ-5490 живёт ТОЛЬКО в разделе brands.kamaz5490 (16.10.2026).
+# Номера сканера - все «ADM3 N» / «MR2 N» из текста записи: и в хвосте
+# «Код по K-line на КамАЗ-5490: ADM3 10514, MR2 12020.», и в скобках у
+# вариантов внутри описания: «... (MR2 10101); ... (MR2 10149)». Каждый номер
+# даёт ссылку «kamaz5490|SPN.FMI» на ключ записи. Раньше номера брались из
+# brands.kamaz; теперь brands.kamaz (J1939) хвостов не содержит, и
+# build_scan_index это проверяет.
+KLINE_BRAND = 'kamaz5490'
+KLINE_NUM = re.compile(r'(?:ADM3|MR2) ([0-9]+)')
+KLINE_WHY = u'КамАЗ-5490, старый сканер по K-line (brands.kamaz5490)'
 
 
 def build_scan_index(blobs):
@@ -103,19 +112,29 @@ def build_scan_index(blobs):
     """
     idx = {}
     stats = {}
+
+    def add(num, ref, why, brand):
+        bucket = idx.setdefault(norm(num), [])
+        if ref not in bucket:
+            bucket.append(ref)
+        stats[(why, brand)] = stats.get((why, brand), 0) + 1
+
     for blob in blobs:
         for brand, table in (blob.get('brands') or {}).items():
             for key, text in table.items():
                 if not isinstance(text, str):
                     continue
+                ref = '%s|%s' % (brand, key)
+                if brand == KLINE_BRAND:
+                    for num in KLINE_NUM.findall(text):
+                        add(num, ref, KLINE_WHY, brand)
+                elif 'K-line на КамАЗ-5490' in text or 'K-line code on KamAZ-5490' in text:
+                    raise SystemExit(
+                        u'K-line КамАЗ-5490 в разделе %r (ключ %s): номера сканера ведутся '
+                        u'только в brands.kamaz5490. Перенесите запись туда.' % (brand, key))
                 for lang, why, rx in SCAN_PATTERNS:
                     for m in rx.finditer(text):
-                        num = norm(m.group(1))
-                        ref = '%s|%s' % (brand, key)
-                        bucket = idx.setdefault(num, [])
-                        if ref not in bucket:
-                            bucket.append(ref)
-                        stats[(why, brand)] = stats.get((why, brand), 0) + 1
+                        add(m.group(1), ref, why, brand)
     for bucket in idx.values():
         bucket.sort()
     if not idx:

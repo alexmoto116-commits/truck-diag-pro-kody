@@ -129,6 +129,8 @@
        двигателя - ответ выходил общий по J1939 вместо заводского. Ставим
        последним, чтобы четыре пересечения по шине CAN (630.2, 630.12,
        639.2, 639.12) по-прежнему отвечали своей таблицей КамАЗа. */
+    /* КамАЗ с реестром блоков (DB.blocks) ищется по блокам, см. blockHits().
+       Этот список - запасной путь для базы без реестра. */
     kamaz:       ['kamaz', 'mercedes', 'cumminsisb', 'wabco'],
     ural:        ['yamz', 'kamaz'],
     kraz:        ['yamz'],
@@ -378,6 +380,10 @@
       pcodeApiError: 'Нет связи с базой кодов — проверьте интернет и попробуйте ещё раз.',
       dailyLimit: 'Лимит поисков на сегодня исчерпан (50 в сутки). Попробуйте завтра.',
       scanStep: 'номер сканера',
+      fmiOwn: 'FMI по таблице производителя блока',
+      blinkLimit: 'Ограничение', blinkCode: 'блинк {n}',
+      blinkNotFound: 'Блинк-код <b>{n}</b> в таблице КамАЗ Евро-3 (Bosch MS 6.1) не найден.',
+      cumminsFcLabel: 'Cummins ISB 6.7, код FC {n}',
       scanMany: 'Номер <b>{code}</b> отвечает нескольким кодам на щитке — сверьтесь с тем, что показывает панель.',
       stepCode: 'код', stepDecoding: 'расшифровка',
       factorySource: 'фирменная таблица {brand}', standardSource: 'стандарт J1939',
@@ -502,6 +508,10 @@
       pcodeApiError: 'No connection to the code database — check your internet and try again.',
       dailyLimit: 'Daily search limit reached (50 per day). Please try again tomorrow.',
       scanStep: 'scanner code',
+      fmiOwn: 'FMI per the unit maker\'s table',
+      blinkLimit: 'Limit', blinkCode: 'blink {n}',
+      blinkNotFound: 'Blink code <b>{n}</b> not found in the KAMAZ Euro-3 (Bosch MS 6.1) table.',
+      cumminsFcLabel: 'Cummins ISB 6.7, FC code {n}',
       scanMany: 'Code <b>{code}</b> maps to several dash codes — check which one the cluster shows.',
       stepCode: 'code', stepDecoding: 'meaning',
       factorySource: 'factory table — {brand}', standardSource: 'J1939 standard',
@@ -2039,8 +2049,202 @@
     return s2 ? spnLookup(s2, brand) : found;
   }
 
+  /* ============================================================
+     БЛОКИ МАШИНЫ
+
+     КамАЗ - это несколько блоков управления под одним шильдиком:
+     двигатель (J1939), тормоза EBS3 WABCO, подвеска ECAS, коробка ZF,
+     ретардер, а у 5490 ещё старый блок Mercedes по K-line. Каждый
+     отдаёт свои коды, и один и тот же SPN.FMI у разных блоков значит
+     разное. Поэтому для марки с реестром DB.blocks ищем по всем блокам
+     по порядку и показываем ВСЕ попадания, каждое с подписью блока.
+
+     Блоки с ownFmi (свой FMI, таблица производителя блока): номер FMI
+     там не стандартный J1939, поэтому подсказку по FMI, срочность по
+     urgentSpn/urgentFmi и горизонт по FMI не применяем. Электрику и
+     критичность определяем по тексту записи.
+     ============================================================ */
+  function blockItemIn(lists, id){
+    var found = null;
+    Object.keys(lists || {}).some(function(b){
+      return lists[b].some(function(x){
+        if(x.id === id){ found = x; return true; }
+        return false;
+      });
+    });
+    return found;
+  }
+  function blockItem(id){ return blockItemIn(DB.blocks, id); }
+  function isBlockId(id){ return !!blockItem(id); }
+  /* Реестр марки (список блоков по порядку) или null, если марка без реестра. */
+  function blockReg(brand){
+    var E = en();
+    return (E && E.blocks && E.blocks[brand]) || (DB.blocks && DB.blocks[brand]) || null;
+  }
+  function blockIds(brand){
+    var reg = blockReg(brand);
+    return reg ? reg.map(function(b){ return b.id; }) : null;
+  }
+  function blockLabel(id){
+    var E = en();
+    var n = (E && E.blockNames && E.blockNames[id]) || (DB.blockNames && DB.blockNames[id]);
+    if(n) return n;
+    var it = (E && E.blocks && blockItemIn(E.blocks, id)) || blockItem(id);
+    return it ? it.label : id;
+  }
+  function blockText(id, key){
+    var E = en();
+    return (E && E.brands[id] && E.brands[id][key]) || (DB.brands[id] && DB.brands[id][key]) || null;
+  }
+  /* Ключи SPN.FMI: точный и без ведущих нулей - как в describe(). */
+  function keysOf(spn, fmi){
+    var spnS = String(spn), fmiS = String(fmi);
+    var spnAlt = stripZero(spnS), fmiAlt = stripZero(fmiS);
+    var keys = [spnS + '.' + fmiS];
+    if(spnAlt) keys.push(spnAlt + '.' + fmiS);
+    if(fmiAlt) keys.push(spnS + '.' + fmiAlt);
+    if(spnAlt && fmiAlt) keys.push(spnAlt + '.' + fmiAlt);
+    return keys;
+  }
+  /* Электрика по тексту записи блока с ownFmi: обрыв, КЗ, масса, плюс,
+     напряжение, ток (русский и английский текст). */
+  var ELEC_TEXT = /обрыв|замыкан|(^|[^а-яё])кз([^а-яё]|$)|на массу|на плюс|напряжен|(^|[^а-яё])ток([^а-яё]|$)|open|short|voltage|current|ground|circuit/;
+  /* Критично по тексту записи блока с ownFmi. */
+  var CRIT_TEXT = /давление масла слишком низк|перегрев|температур[^.]*высок|oil pressure too low|overheat|temperature[^.]*high/;
+
+  /* Одно попадание в блок. Для блока с ownFmi текст берём как есть,
+     без подсказки по FMI; для обычного блока - как раньше. */
+  function blockHitOf(id, spn, fmi, ownFmi, keys){
+    for(var j = 0; j < keys.length; j++){
+      var tx = blockText(id, keys[j]);
+      if(!tx) continue;
+      var h = {id:id, label:blockLabel(id), k:keys[j], spn:spn, fmi:fmi, ownFmi:!!ownFmi};
+      if(ownFmi){
+        var low = tx.toLowerCase();
+        h.text = tx;
+        h.elec = ELEC_TEXT.test(low);
+        h.urgent = (id === 'kamaz5490' && (DB.kamaz5490Urgent || []).indexOf(keys[j]) >= 0) ||
+                   CRIT_TEXT.test(low);
+      } else {
+        h.text = withFmiHint(tx, fmi);
+        h.urgent = urgent(spn, fmi, 'kamaz');
+      }
+      return h;
+    }
+    return null;
+  }
+  /* Все попадания по реестру марки; null - марка без реестра. */
+  function blockHits(brand, spn, fmi){
+    var reg = blockReg(brand);
+    if(!reg) return null;
+    var keys = keysOf(spn, fmi), out = [];
+    reg.forEach(function(b){
+      var h = blockHitOf(b.id, spn, fmi, b.ownFmi, keys);
+      if(h) out.push(h);
+    });
+    return out;
+  }
+  /* Попадание в один конкретный блок (номер сканера знает свой блок). */
+  function blockHitOne(id, spn, fmi){
+    var it = blockItem(id);
+    return blockHitOf(id, spn, fmi, !!(it && it.ownFmi), keysOf(spn, fmi));
+  }
+  /* Система для анализа и риска: у блока с ownFmi SPN другой, поэтому
+     систему определяем только по тексту. */
+  function hitSys(h){ return systemOf(h.ownFmi ? null : h.spn, h.text); }
+
+  function ownNote(h){
+    return h.ownFmi ? '<div class="st" style="margin-top:7px">' + esc(t('fmiOwn')) + '</div>' : '';
+  }
+  function scanBlockStep(h){
+    var bh = blockHitOne(h.brand, h.spn, h.fmi);
+    return {st: bh ? bh.label : blockLabel(h.brand),
+      tx: '<span class="mono">' + codeLabel(h.spn) + ' · FMI ' + esc(h.fmi) + '</span>' +
+          (bh ? ownNote(bh) : '') + '<br><b>' + esc(bh ? bh.text : '') + '</b>', cls:'ok'};
+  }
+
+  /* Вывод попаданий: одно - карточка как обычно, подпись блока в источнике;
+     несколько - список «подпись блока: текст» и карточка риска на каждое. */
+  function blockHitsHtml(spn, fmi, hits, lead){
+    var steps = lead ? [lead] : [];
+    var multi = hits.length > 1, h0 = hits[0], shown = h0.k.split('.');
+    steps.push({st:t('stepCode'), tx:'<span class="mono">' + codeLabel(shown[0]) + ' · FMI ' + shown[1] + '</span>' +
+      (multi ? '' : ownNote(h0)), cls:'ok'});
+    hits.forEach(function(h){
+      if(!multi){
+        steps.push({st:t('stepDecoding'), tx:'<b>' + esc(h.text) + '</b>' +
+          '<div class="st" style="margin-top:7px">' + esc(t('sourceLabel', {src: h.label})) + '</div>', cls:'ok'});
+        steps.push(h.urgent ? {st:t('stepUrgency'), tx:t('urgentText'), cls:'hit'}
+                            : {st:t('stepUrgency'), tx:t('notUrgentText')});
+      } else {
+        steps.push({st:h.label, tx:'<b>' + esc(h.text) + '</b>' + ownNote(h) +
+          '<div class="st" style="margin-top:7px">' + (h.urgent ? t('urgentText') : t('notUrgentText')) + '</div>', cls:'ok'});
+      }
+    });
+    var html = chain(steps);
+    hits.forEach(function(h){
+      html += '<div class="card">' + riskBlock({spn:spn, fmi:fmi, sys:hitSys(h), urgent:h.urgent,
+        ownFmi:h.ownFmi, elec:h.elec}, multi ? ' · ' + h.label : '') + '</div>';
+    });
+    return html;
+  }
+
+  /* Дополнительные попадания строки анализа и первопричины. */
+  function altHtml(c){
+    return (c.alt || []).map(function(h){
+      return '<div class="st" style="margin-top:7px">' + esc(h.label) + ': ' + esc(h.text) + '</div>';
+    }).join('');
+  }
+  function codeText(c){
+    return (c.label ? '<i>' + esc(c.label) + ':</i> ' : '') + esc(c.text) + altHtml(c);
+  }
+
+  /* Особые вводы: FC-номер Cummins («FC 111») и блинк-код КамАЗ Bosch MS 6.1
+     («блинк 21»). Это не SPN и не дилерский код, поэтому смотрим их до разбора.
+     Только для КамАЗ и без марки. */
+  function specialKind(raw){
+    var up = String(raw || '').toUpperCase().replace(/\s+/g, ' ').trim();
+    var fc = normCode(raw).replace(/\s+/g, '').match(/^(?:FC|FK|ФC|ФK)-?(\d{1,4})$/);
+    if(fc) return {kind:'fc', num:fc[1]};
+    var bl = up.match(/^(?:БЛИНК|BLINK|МИГАЕТ|МИГАНИЕ|МИГАЮТ|ВСПЫШКИ|ВСПЫШКА)\s*(\d)\s*-?\s*(\d)$/);
+    if(bl) return {kind:'blink', code:bl[1] + bl[2]};
+    return null;
+  }
+  /* html, либо null, если в индексе такого номера нет (тогда идём обычным путём). */
+  function specialHtml(sp){
+    if(sp.kind === 'fc'){
+      var keys = ((DB.cumminsFc && DB.cumminsFc[sp.num]) || []).filter(function(k){
+        return blockText('cumminsisb', k);
+      });
+      if(!keys.length) return null;
+      var steps = [{st:t('stepCode'), tx:'<span class="mono">FC ' + esc(sp.num) + '</span>', cls:'ok'}];
+      keys.forEach(function(k){
+        var p = k.split('.');
+        steps.push({st:t('cumminsFcLabel', {n: sp.num}),
+          tx:'<span class="mono">' + codeLabel(p[0]) + ' · FMI ' + esc(p[1]) + '</span><br><b>' +
+             esc(blockText('cumminsisb', k)) + '</b>', cls:'ok'});
+      });
+      return chain(steps);
+    }
+    var E = en(), B = (E && E.kamazBlinkMs61) || DB.kamazBlinkMs61;
+    var c = B && B.codes && B.codes[sp.code];
+    if(!c) return note(t('blinkNotFound', {n: sp.code}));
+    return chain([
+      {st:t('stepCode'), tx:'<span class="mono">' + esc(t('blinkCode', {n: sp.code})) + '</span>', cls:'ok'},
+      {st:B.label, tx:'<b>' + esc(c.description) + '</b>' +
+        '<div class="st" style="margin-top:7px">' + esc(t('blinkLimit')) + ': ' + esc(c.limit) + '</div>' +
+        (c.source ? '<div class="st" style="margin-top:7px">' + esc(t('sourceLabel', {src: c.source})) + '</div>' : ''),
+        cls:'ok'}
+    ]);
+  }
+
+  /* Для марки с реестром - все попадания по блокам; без реестра - как раньше. */
   function describe(spn, fmi, brand){
-    if(brand){
+    var hits = blockHits(brand, spn, fmi);
+    if(hits && hits.length){
+      return {text:hits[0].text, src:hits[0].label, k:hits[0].k, hits:hits};
+    }
+    if(brand && !hits){
       var E = en();
       var spnS = String(spn), fmiS = String(fmi);
       var spnAlt = stripZero(spnS), fmiAlt = stripZero(fmiS);
@@ -2200,6 +2404,7 @@
      из чего мы этот код взяли. */
   function spnFmiHtml(spn, fmi, brand, lead){
     var d = describe(spn, fmi, brand);
+    if(d.hits && d.hits.length) return blockHitsHtml(spn, fmi, d.hits, lead);
     var u = urgent(spn, fmi, brand);
     /* Подпись - в той форме, что лежит в справочнике: ввод «0636/011» по
        ключу 636.11 показываем как SPN 636 · FMI 11, без ведущих нулей. Если
@@ -2256,7 +2461,7 @@
     if(!DB || !DB.scan) return [];
     var refs = DB.scan[normCode(code).replace(/\s+/g, '')];
     if(!refs) return [];
-    var donors = donorsOf(brand);
+    var donors = blockIds(brand) || donorsOf(brand);
     var out = [];
     refs.forEach(function(ref){
       var cut = ref.indexOf('|');
@@ -2273,6 +2478,7 @@
      человека, какой из них горит именно у него, мы не можем. */
   function scanStepList(hits){
     return hits.map(function(h){
+      if(isBlockId(h.brand)) return scanBlockStep(h);
       var E = en(), key = h.spn + '.' + h.fmi;
       var txt = (E && E.brands[h.brand] && E.brands[h.brand][key]) ||
                 (DB.brands[h.brand] && DB.brands[h.brand][key]) || '';
@@ -2285,6 +2491,8 @@
     var lead = {st:t('scanStep'),
                 tx:'<span class="mono">' + esc(typed) + '</span>', cls:'ok'};
     if(hits.length === 1){
+      var bh = isBlockId(hits[0].brand) ? blockHitOne(hits[0].brand, hits[0].spn, hits[0].fmi) : null;
+      if(bh) return blockHitsHtml(hits[0].spn, hits[0].fmi, [bh], lead);
       return spnFmiHtml(hits[0].spn, hits[0].fmi, hits[0].brand, lead);
     }
     return chain([lead].concat(scanStepList(hits))) +
@@ -2437,13 +2645,18 @@
   var FMI_RANGE   = [0,1,15,16,17,18];   // величина реально вне нормы
   var FMI_ELEC    = [3,4,5,6];           // электрика самого датчика
   var FMI_DERIVED = [2,9,10,11,19,20,21,31]; // расчётное, производное
+  /* Признаки кода. У блока с ownFmi электрику дают тексты записи (c.elec),
+     а не номер FMI; физической величиной считаем всё не электрическое. */
+  function isElec(c){ return c.ownFmi ? !!c.elec : hasNum(FMI_ELEC, c.fmi); }
+  function isPhysFmi(c){ return c.ownFmi ? !c.elec : hasNum(FMI_RANGE, c.fmi); }
+  function isDerived(c){ return !c.ownFmi && hasNum(FMI_DERIVED, c.fmi); }
   function rootScore(c){
     if(c.sys === 'prot')  return 90;
     if(c.sys === 'power') return 10;
     if(c.sys === 'can')   return 15;
-    if(hasNum(FMI_RANGE, c.fmi))   return 30;
-    if(hasNum(FMI_ELEC, c.fmi))    return 50;
-    if(hasNum(FMI_DERIVED, c.fmi)) return 70;
+    if(isPhysFmi(c))   return 30;
+    if(isElec(c))      return 50;
+    if(isDerived(c))   return 70;
     return 60;
   }
 
@@ -2468,6 +2681,11 @@
   function analyze(codes, brand){
     var list = codes.map(function(c){
       var d = describe(c.spn, c.fmi, brand);
+      if(d.hits && d.hits.length){
+        var h0 = d.hits[0];
+        return {spn:c.spn, fmi:c.fmi, text:h0.text, sys:hitSys(h0), urgent:h0.urgent,
+                ownFmi:h0.ownFmi, elec:h0.elec, label:h0.label, alt:d.hits.slice(1)};
+      }
       return {spn:c.spn, fmi:c.fmi, text:d.text, sys:systemOf(c.spn, d.text),
               urgent:urgent(c.spn, c.fmi, brand)};
     });
@@ -2483,8 +2701,7 @@
                      .sort(function(a, b){ return rootScore(a) - rootScore(b); })[0];
     if(supply){
       best = {root:supply, cons:list.filter(function(c){
-        return c !== supply &&
-               (hasNum(FMI_ELEC, c.fmi) || hasNum(FMI_DERIVED, c.fmi));
+        return c !== supply && (isElec(c) || isDerived(c));
       })};
     }
 
@@ -2500,7 +2717,7 @@
              а оборванный провод датчика перегрева - нет: это разные
              неисправности, и путать их нельзя. */
           if(root || !hasNum(rule.root, c.spn)) return;
-          if(rule.phys && !hasNum(FMI_RANGE, c.fmi)) return;
+          if(rule.phys && !isPhysFmi(c)) return;
           root = c;
         });
         if(!root) return;
@@ -2550,7 +2767,8 @@
 
   function codeLine(c){
     return '<span class="mono">' + codeLabel(c.spn) + '/' + c.fmi + '</span>' +
-           '<span>' + esc(c.text) + '</span>';
+           (c.ownFmi ? '<small>' + esc(t('fmiOwn')) + '</small>' : '') +
+           '<span>' + codeText(c) + '</span>';
   }
   function group(label, items, cls){
     if(!items.length) return '';
@@ -2692,9 +2910,11 @@
     /* Для охлаждения «недостоверные данные» (FMI 2 и родственные) - тоже не
        физический перегрев: датчик или вентилятор врут, двигатель не греется.
        Иначе 1639.2 (частота вентилятора) давало «Минуты: перегрев». */
-    var nonPhys = hasNum(FMI_ELEC, c.fmi) || (c.sys === 'cool' && hasNum(FMI_DERIVED, c.fmi));
-    if(m) pick = (m.elec && nonPhys) ? m.elec : m.any;
-    else if(hasNum(FMI_ELEC, c.fmi)) pick = ['elecGen','watch'];
+    var elec = isElec(c);
+    var nonPhys = elec || (c.sys === 'cool' && isDerived(c));
+    if(c.ownFmi && elec) pick = (m && m.elec) ? m.elec : ['elecGen','watch'];
+    else if(m) pick = (m.elec && nonPhys) ? m.elec : m.any;
+    else if(elec) pick = ['elecGen','watch'];
     else pick = c.urgent ? ['genUrgent','short'] : ['gen','plan'];
 
     var lvl = pick[1], flag = false;
@@ -2734,7 +2954,7 @@
               '<div class="root">' +
                 '<div class="rcode"><span class="mono">' + codeLabel(a.root.spn) + '/' + a.root.fmi + '</span>' +
                   '<span class="sys">' + esc(t('sys' + a.root.sys.charAt(0).toUpperCase() + a.root.sys.slice(1))) + '</span></div>' +
-                '<div class="rtext">' + esc(a.root.text) + '</div>' +
+                '<div class="rtext">' + codeText(a.root) + '</div>' +
                 '<div class="rwhy">' + esc(a.cons.length ? t('casWhyChain') : t('casWhySingle')) + '</div>' +
               '</div></div>';
 
@@ -2867,7 +3087,7 @@
   /* Номер последнего разбора: дополнительный дилерский блок старого запроса
      не должен лечь поверх нового результата. */
   var runSeq = 0;
-  function run(skipDealer){
+  function run(skipDealer, noSpecial){
     var mySeq = ++runSeq;
     var brand = sel.value;
     var midBrand = MID_BRANDS[brand];
@@ -2882,6 +3102,19 @@
        с номера блока, без выбранного модуля его не собрать. */
     if(midBrand && !mid && (MID_PCODE_BRANDS[brand] || !midObdCode(input.value))){
       render(note(t('needMid')));
+      return;
+    }
+
+    /* FC Cummins и блинк КамАЗ - свои индексы; нет в индексе - обычный путь. */
+    var special = (!midBrand && (brand === 'kamaz' || !brand) && !noSpecial) ? specialKind(input.value) : null;
+    if(special){
+      ready().then(function(){
+        var sh = specialHtml(special);
+        if(sh === null){ run(skipDealer, true); return; }
+        render(sh, true);
+      }).catch(function(){
+        render(note(t('loadError')));
+      });
       return;
     }
 
@@ -2936,7 +3169,7 @@
            бросить и синхронно (нет сети у движка, запрещённый URL), а тогда
            .catch ниже просто не успевает навеситься - исключение улетает
            мимо и человек с готовым ответом в памяти видит «проверьте связь». */
-        var net = Promise.resolve()
+        var net = (brand === 'kamaz' && mine.length) ? Promise.resolve([]) : Promise.resolve()
           .then(function(){ return fetchPcode(brand, p.pcode, currentLang); })
           .catch(function(e){ if(mine.length) return []; throw e; });
         /* Английские описания тянем ТОЛЬКО когда ответ будет свой: текст от

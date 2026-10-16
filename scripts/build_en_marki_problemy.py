@@ -48,6 +48,17 @@ SYS_KEY = be.SYS_KEY
 ACT_KEY = be.ACT_KEY
 BRAND_LBL = be.BRAND_LBL
 
+# Как искать код КамАЗ - та же подсказка, что на русской странице марки.
+TIPS_KAMAZ_EN = (
+    u'<section><h2>How to look a code up</h2>'
+    u'<p>KAMAZ-5490 (Mercedes, K-line): the scan tool shows the K-line code as '
+    u'&quot;ADM3 10514&quot; or &quot;MR2 12020&quot;. In the table these numbers sit on the '
+    u'SPN 100 FMI 14 row (KAMAZ-5490 block below).</p>'
+    u'<p>Cummins ISB 6.7: a code like &quot;FC 111&quot; corresponds to SPN 629 FMI 12.</p>'
+    u'<p>KAMAZ Euro-3 (Bosch MS 6.1): &quot;blink 21&quot; is the number of lamp flashes; '
+    u'21 is the high-pressure fuel pump. The full list of blink codes is in the table below.</p>'
+    u'</section>')
+
 MID_MODULE_NAMES_EN = {
     'mack':          {'128': u'Engine (EECU)', '142': u'Chassis/dash (VECU)',
                        '143': u'Engine, secondary module'},
@@ -509,7 +520,14 @@ def build():
     # --- по маркам: SPN/FMI (стандарт) -----------------------------
     brands = ru_db['brands']
     for b in sorted(brands, key=lambda x: bname(x)):
-        mine_en = sorted({s for s in per_en if b in per_en[s]})
+        if b in bp.BLOCK_ONLY:
+            continue
+        # КамАЗ - это все его блоки (как и в build_pages.py)
+        members = bp.KAMAZ_GROUP if b == 'kamaz' else [b]
+        # только коды, у которых есть страница (как в русской сборке): приватные
+        # номера КамАЗ 7000-7199 в per_en есть, а страниц kody нет - ссылки бы вели в 404
+        mine_en = sorted({s for s in per_en if any(m in per_en[s] for m in members)
+                          and s in set(written)})
         if not mine_en:
             continue
         mine_open = [s for s in mine_en if s not in closed]
@@ -522,6 +540,8 @@ def build():
                       if v and k.split('.')[0].isdigit()}
         stop_codes = [] if own_en else [s for s in mine_open if is_stop(s)][:12]
         secs = []
+        if b == 'kamaz':
+            secs.append(TIPS_KAMAZ_EN)
         if own_en:
             def _кл(k):
                 a, _, f = k.partition('.')
@@ -535,8 +555,25 @@ def build():
             secs.append(u'<section><h2>%s</h2><ul class="near">%s</ul></section>'
                         % (MK['stopHead'], code_links(stop_codes)))
         by_sys_brand = {}
-        for s in ([] if own_en else mine_open):
+        for s in ([] if own_en or b == 'kamaz' else mine_open):
             by_sys_brand.setdefault(sys_of.get(s, 'other'), []).append(s)
+        if b == 'kamaz':
+            # по блокам: у каждого свой список систем, свой заголовок
+            for m in bp.KAMAZ_GROUP:
+                ms = [s for s in mine_open if m in per_en.get(s, {})]
+                if not ms:
+                    continue
+                msys = {}
+                for s in ms:
+                    msys.setdefault(sys_of.get(s, 'other'), []).append(s)
+                parts = [u'<h3>%s — %d codes</h3><ul class="near">%s</ul>'
+                         % (bp.esc(i18n.get(SYS_KEY[k], k)), len(msys[k]), code_links(msys[k]))
+                         for k in bp.SYS_ORDER_BRAND if msys.get(k)]
+                secs.append(u'<section id="blk-%s"><h2>%s — %d codes</h2>%s</section>'
+                            % (m, bp.esc(be.BLOCK_LABEL_EN[m]), len(ms), u''.join(parts)))
+            secs.append(u'<section><h2>ZF AS-Tronic gearbox</h2><p>ZF numbers its faults its own '
+                        u'way, not by the J1939 SPN standard, so the gearbox has its own page: '
+                        u'<a href="zfastronic.html">ZF AS-Tronic fault codes</a>.</p></section>')
         for key in bp.SYS_ORDER_BRAND:
             bucket = by_sys_brand.get(key)
             if not bucket:
@@ -552,6 +589,13 @@ def build():
             secs.append(u'<section><h2>%s</h2><p>%s</p></section>' % (MK['howHead'], MK['howBody']))
         if b != 'zfastronic':
             secs.append(u'<section><h2>%s</h2><p>%s</p></section>' % (MK['multiHead'], MK['multiBody'].replace(u'href="/en/"', u'href="/en/?b=%s"' % b)))
+
+        if b == 'kamaz':
+            secs.append(bp.blink_section(
+                en_db['kamazBlinkMs61'], u'KAMAZ Euro-3 blink codes (Bosch MS 6.1)',
+                u'Source: avtozam.com, fault code table for the Bosch MS6.1 ECU, Euro-3 engines. '
+                + en_db['kamazBlinkMs61'].get('range_note', u''),
+                (u'Code (flashes)', u'Fault', u'Limit')))
 
         # Зеркало фикса из build_pages.py: марка может иметь одновременно
         # свою бесплатную SPN/FMI-таблицу (выше) и отдельную дилерскую

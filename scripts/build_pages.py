@@ -32,7 +32,41 @@ CF_SNIPPET = u"<!-- Cloudflare Web Analytics --><script type='module' src='https
 def load_db():
     raw = io.open(os.path.join(ROOT, 'assets', 'dtc.enc.js'), encoding='utf-8').read()
     b64 = re.search(r"b64='([^']+)'", raw).group(1)
-    return json.loads(base64.b64decode(b64).decode('utf-8'))
+    db = json.loads(base64.b64decode(b64).decode('utf-8'))
+    for k, v in BLOCK_SHORT.items():
+        db['brandNames'].setdefault(k, v)
+    return db
+
+
+def block_head(b, names):
+    """Заголовок блока на странице кода: «Тормоза EBS3 WABCO», а не «КамАЗ»."""
+    return BLOCK_LABEL.get(b) or names.get(b, b)
+
+
+KAMAZ_TIPS_RU = (
+    u'<section><h2>Как искать</h2>'
+    u'<p>КамАЗ-5490 (Mercedes, K-line): сканер показывает код по K-line — «ADM3 10514» или '
+    u'«MR2 12020». В таблице эти номера стоят у строки SPN 100 FMI 14 (блок КамАЗ-5490 ниже).</p>'
+    u'<p>Cummins ISB 6.7: код вида «FC 111» соответствует SPN 629 FMI 12.</p>'
+    u'<p>КамАЗ Евро-3 (Bosch MS 6.1): «блинк 21» — число вспышек лампы; 21 — топливный насос '
+    u'высокого давления. Полный список блинк-кодов — в таблице ниже.</p></section>')
+
+
+def blink_section(bl, head, lead, th):
+    """Таблица блинк-кодов (kamazBlinkMs61 из assets): код вспышек, неисправность, ограничение."""
+    rows = sorted(bl['codes'].items(), key=lambda kv: int(kv[0]))
+    t = [u'<table><tr><th>%s</th><th>%s</th><th>%s</th></tr>' % (esc(th[0]), esc(th[1]), esc(th[2]))]
+    for c, v in rows:
+        t.append(u'<tr><td class="fmi">%s</td><td>%s</td><td>%s</td></tr>'
+                 % (esc(c), esc(v.get('description', '')), esc(v.get('limit', ''))))
+    t.append(u'</table>')
+    return u'<section><h2>%s</h2><p>%s</p>%s</section>' % (esc(head), esc(lead), u''.join(t))
+
+
+def own_fmi_blocks(db):
+    """Блоки со своей таблицей FMI (db['blocks'][...][i]['ownFmi'])."""
+    return {b['id'] for lst in db.get('blocks', {}).values() for b in lst if b.get('ownFmi')}
+
 
 # Дилерские коды (pcode-source/pcode.json) не в git - см. .gitignore: полную
 # таблицу отдавать одним файлом нельзя, для этого и сделан Worker, который
@@ -77,6 +111,29 @@ OWN_NUMBERING = {
                   u'таблице ниже — внутренний код ZF, а не SPN по стандарту '
                   u'J1939. С названием этой страницы он совпадает только '
                   u'цифрой, но означает другое.',
+}
+
+# Блоки КАМАЗ. Это не марки: блочные базы заводских кодов одной машины
+# (двигатель, тормоза EBS3, подвеска ECAS, ретардер, КПП ZF). Страниц
+# marki/<блок>.html у них нет, в kody/ строки выводятся под подписью блока.
+KAMAZ_GROUP = ['kamaz', 'kamaz5490', 'cumminsisb', 'kamazebs', 'kamazecas', 'zfintarder']
+# Блоки, которых нет в brandNames: страниц марки для них не строим.
+BLOCK_ONLY = {'kamaz5490', 'kamazebs', 'kamazecas', 'zfintarder'}
+BLOCK_LABEL = {
+    'kamaz': u'Двигатель КАМАЗ (J1939)',
+    'kamaz5490': u'КамАЗ-5490 (Mercedes, K-line)',
+    'cumminsisb': u'Двигатель Cummins ISB 6.7',
+    'kamazebs': u'Тормоза EBS3 WABCO',
+    'kamazecas': u'Подвеска ECAS (КамАЗ-5490)',
+    'zfintarder': u'Ретардер ZF Intarder',
+    'zfastronic': u'Коробка ZF AS-Tronic',
+}
+# Короткие имена блоков (заголовки, ссылки, списки марок)
+BLOCK_SHORT = {
+    'kamaz5490': u'КамАЗ-5490',
+    'kamazebs': u'КамАЗ EBS3',
+    'kamazecas': u'КамАЗ ECAS',
+    'zfintarder': u'ZF Intarder',
 }
 
 # Дилерские марки, у которых код собирается из номера блока: MID (кто
@@ -1224,6 +1281,7 @@ def build(en_spns=()):
     brands, brand_names = db['brands'], db['brandNames']
     urgent_fmi = set(db['urgentFmi'])
     urgent_spn = set(db['urgentSpn'])
+    own_fmi = own_fmi_blocks(db)
 
     # какие FMI разобраны у каждого SPN и какими марками
     per_spn = {}
@@ -1352,6 +1410,14 @@ def build(en_spns=()):
         if any(b not in OWN_NUMBERING for b in makes):
             own_here = {b: r for b, r in makes.items() if b in OWN_NUMBERING}
             makes = {b: r for b, r in makes.items() if b not in OWN_NUMBERING}
+        # На странице с блоком КАМАЗ строка ZF AS-Tronic выводится текстом под
+        # своей подписью (с пометкой о нумерации), а не только ссылкой. В
+        # заголовок и вердикт она по-прежнему не входит - см. makes выше.
+        shown = dict(makes)
+        if 'zfastronic' in own_here and any(b in KAMAZ_GROUP for b in makes):
+            shown['zfastronic'] = own_here.pop('zfastronic')
+        # FMI для таблицы J1939 и вопросов FAQ - только от блоков со стандартной нумерацией
+        seen_std = sorted({f for m, rows in makes.items() if m not in own_fmi for f, _ in rows})
 
         # Вердикт и риск нужны заранее - они уходят в FAQPage в <head>,
         # а не только в тело страницы ниже.
@@ -1435,7 +1501,7 @@ def build(en_spns=()):
         # Спрашивают не «что такое SPN 100», а «что такое 100.1»: половина кода
         # без второй половины ничего не решает. Берём сначала те FMI, что уже
         # помечены срочными - на них и приходят с горящей лампой.
-        for f in (sorted(seen_all_early, key=lambda x: (x not in urgent_fmi, x))[:2]):
+        for f in (sorted(seen_std, key=lambda x: (x not in urgent_fmi, x))[:2]):
             if str(f) not in db['fmi']:
                 continue
             faq.append({'@type': 'Question',
@@ -1487,16 +1553,18 @@ def build(en_spns=()):
         # заводские таблицы - это и есть уникальная часть страницы
         # На странице с десятком марок человек ищет свою. Строка переходов
         # экономит ему всю прокрутку - он приходит сюда по запросу с маркой.
-        ordered = sorted(makes, key=lambda x: brand_names.get(x, x))
+        ordered = sorted(shown, key=lambda x: brand_names.get(x, x))
         if len(ordered) >= 3:
             body.append(u'<p class="jump">%s</p>' % u''.join(
                 u'<a href="#mk-%s">%s</a>' % (b, esc(brand_names.get(b, b)))
                 for b in ordered))
         for b in ordered:
-            rows = sorted(makes[b], key=lambda r: r[0])
+            rows = sorted(shown[b], key=lambda r: r[0])
             note = OWN_NUMBERING.get(b)
+            if b in own_fmi:
+                note = u'FMI — по таблице производителя блока, не по таблице J1939 ниже.'
             body.append(u'<section><h2 class="mk" id="mk-%s">%s</h2>%s%s</section>'
-                        % (b, esc(brand_names.get(b, b)),
+                        % (b, esc(block_head(b, brand_names)),
                            (u'<p class="sub">%s</p>' % esc(note)) if note else u'',
                            fmi_table(rows, urgent_fmi)))
 
@@ -1514,13 +1582,12 @@ def build(en_spns=()):
                             u'а смысл другой.</p><ul class="near">%s</ul></section>' % u''.join(пункты))
 
         # стандартную таблицу печатаем только по встреченным FMI
-        seen_fmi = sorted({f for rows in makes.values() for f, _ in rows})
-        if seen_fmi:
-            std_rows = [(f, db['fmi'][str(f)]) for f in seen_fmi if str(f) in db['fmi']]
+        if seen_std:
+            std_rows = [(f, db['fmi'][str(f)]) for f in seen_std if str(f) in db['fmi']]
             if std_rows:
                 body.append(u'<section><h2>Что значит FMI у SPN %d</h2>%s</section>'
                             % (spn, fmi_table(std_rows, urgent_fmi, spn)))
-        else:
+        elif not makes:
             common = [f for f in (0, 1, 2, 3, 4, 5) if str(f) in db['fmi']]
             body.append(u'<section><h2>Частые значения FMI</h2>%s</section>'
                         % fmi_table([(f, db['fmi'][str(f)]) for f in common], urgent_fmi, spn))
@@ -1724,8 +1791,12 @@ def build(en_spns=()):
 
     marki_built = set()
     for b in sorted(brands, key=lambda x: brand_names.get(x, x)):
+        if b in BLOCK_ONLY:
+            continue
         bn = brand_names.get(b, b)
-        mine = sorted({int(k.split('.')[0]) for k in brands[b]
+        # КамАЗ - это все его блоки (двигатель, K-line, EBS3, ECAS, ретардер, Cummins)
+        members = KAMAZ_GROUP if b == 'kamaz' else [b]
+        mine = sorted({int(k.split('.')[0]) for m in members for k in brands.get(m, {})
                        if k.split('.')[0].isdigit()})
         mine = [s for s in mine if s in set(written)]
         if not mine:
@@ -1745,6 +1816,8 @@ def build(en_spns=()):
             stop_codes = []
 
         secs = []
+        if b == 'kamaz':
+            secs.append(KAMAZ_TIPS_RU)
         if stop_codes:
             secs.append(u'<section><h2>С этими кодами ехать нельзя</h2>'
                         u'<ul class="near">%s</ul></section>' % code_links(stop_codes))
@@ -1756,8 +1829,24 @@ def build(en_spns=()):
         # Дилерские pcode.* сюда не попадают физически: у них своя ветка ниже,
         # с выборкой примеров (см. load_pcode и sample_rows). Не объединять.
         by_sys_brand = {}
-        for s in ([] if own else mine_open):
+        for s in ([] if own or b == 'kamaz' else mine_open):
             by_sys_brand.setdefault(system_of(s, std_name(s)), []).append(s)
+        if b == 'kamaz':
+            for m in KAMAZ_GROUP:
+                ms = [s for s in mine_open if m in per_spn.get(s, {})]
+                if not ms:
+                    continue
+                msys = {}
+                for s in ms:
+                    msys.setdefault(system_of(s, std_name(s)), []).append(s)
+                parts = [u'<h3>%s — %s</h3><ul class="near">%s</ul>'
+                         % (esc(SYS_TITLE[k]), n_codes(len(msys[k])), code_links(msys[k]))
+                         for k in SYS_ORDER_BRAND if msys.get(k)]
+                secs.append(u'<section id="blk-%s"><h2>%s — %s</h2>%s</section>'
+                            % (m, esc(BLOCK_LABEL[m]), n_codes(len(ms)), u''.join(parts)))
+            secs.append(u'<section><h2>Коробка ZF AS-Tronic</h2><p>Номера ZF свои, не SPN J1939, '
+                        u'поэтому коробка описана на отдельной странице: '
+                        u'<a href="zfastronic.html">коды ошибок ZF AS-Tronic</a>.</p></section>')
         if own:
             def own_key(k):
                 a, _, f = k.partition('.')
@@ -1799,6 +1888,13 @@ def build(en_spns=()):
             u'даёт ошибку уровня, потом прерванное дозирование, следом превышение NOx '
             u'и ограничение момента. Чинить нужно первопричину, остальное погаснет само. '
             u'<a href="../?b=%s">Вставьте весь список</a> — покажем, какой код корневой.</p></section>' % b)
+
+        if b == 'kamaz':
+            secs.append(blink_section(
+                db['kamazBlinkMs61'], u'Блинк-коды КАМАЗ Евро-3 (Bosch MS 6.1)',
+                u'Источник: avtozam.com, таблица «Коды ошибок для ЭБУ BOSCH MS6.1 двигателей '
+                u'экокласса евро-3». ' + db['kamazBlinkMs61'].get('range_note', u''),
+                (u'Код (вспышки)', u'Неисправность', u'Ограничение')))
 
         # У марки МОЖЕТ одновременно быть и своя бесплатная SPN/FMI-таблица
         # (выше), и отдельная дилерская pcode.* (другой формат кода - у

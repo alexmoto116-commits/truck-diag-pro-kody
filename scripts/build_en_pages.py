@@ -46,6 +46,23 @@ BRAND_LBL = {'kamaz': 'brandKamazLbl', 'yamz': 'brandYamzLbl', 'gaz': 'brandGazL
              'maz': 'brandMazLbl', 'kraz': 'brandKrazLbl', 'ural': 'brandUralLbl',
              'planar': 'brandPlanarLbl', 'teplostar': 'brandTeplostarLbl'}
 
+# Блоки КАМАЗ (см. BLOCK_LABEL в build_pages.py): английские подписи.
+BLOCK_LABEL_EN = {
+    'kamaz': u'KAMAZ engine (J1939)',
+    'kamaz5490': u'KAMAZ-5490 (Mercedes, K-line)',
+    'cumminsisb': u'Cummins ISB 6.7 engine',
+    'kamazebs': u'EBS3 brakes (WABCO)',
+    'kamazecas': u'ECAS air suspension (KAMAZ-5490)',
+    'zfintarder': u'ZF Intarder retarder',
+    'zfastronic': u'ZF AS-Tronic gearbox',
+}
+BLOCK_SHORT_EN = {
+    'kamaz5490': u'KAMAZ-5490',
+    'kamazebs': u'KAMAZ EBS3',
+    'kamazecas': u'KAMAZ ECAS',
+    'zfintarder': u'ZF Intarder',
+}
+
 # Названия систем и совет «что проверить» - ключи того же I18N.
 SYS_KEY = {'scr': 'sysScr', 'oil': 'sysOil', 'cool': 'sysCool', 'fuel': 'sysFuel',
            'air': 'sysAir', 'power': 'sysPower', 'can': 'sysCan', 'brake': 'sysBrake',
@@ -226,6 +243,7 @@ def build():
     per_en = per_spn_en(en_db)
     urgent_fmi = set(ru_db['urgentFmi'])
     urgent_spn = set(ru_db['urgentSpn'])
+    own_fmi = bp.own_fmi_blocks(ru_db)
 
     def en_std(spn):
         s = str(spn)
@@ -257,6 +275,8 @@ def build():
     brand_en = extract_js_object('BRAND_OVERRIDE')
 
     def bname(b):
+        if b in BLOCK_SHORT_EN:
+            return BLOCK_SHORT_EN[b]
         key = BRAND_LBL.get(b)
         return ((i18n.get(key) if key else None) or brand_en.get(b)
                 or brand_names.get(b, b))
@@ -388,11 +408,18 @@ def build():
         makes = per_en.get(spn, {})
         # как у русской: ZF/Ford со своей нумерацией не смешиваем с обычными
         # марками - есть обычные, их блоки не печатаем
+        own_here_en = {}
         if any(b not in OWN_NUMBERING_EN for b in makes):
+            own_here_en = {b: r for b, r in makes.items() if b in OWN_NUMBERING_EN}
             makes = {b: r for b, r in makes.items() if b not in OWN_NUMBERING_EN}
+        # Как в русской сборке: на странице с блоком КАМАЗ строка ZF выводится текстом.
+        shown = dict(makes)
+        if 'zfastronic' in own_here_en and any(b in bp.KAMAZ_GROUP for b in makes):
+            shown['zfastronic'] = own_here_en['zfastronic']
         # Какие FMI вообще встречаются у этого кода - нужно и в FAQ (вопрос
         # про конкретное сочетание), и ниже в таблице, поэтому считаем сразу.
         seen = sorted({f for rows in makes.values() for f, _ in rows})
+        seen_std = sorted({f for m, rows in makes.items() if m not in own_fmi for f, _ in rows})
         sys_key = sys_of.get(spn, 'other')
         name = name_of(spn)
         brands_short, brands_all = brand_list(spn, 3), brand_list(spn)
@@ -441,7 +468,7 @@ def build():
                         'name': u'What happens if I keep driving with SPN %d?' % spn,
                         'acceptedAnswer': {'@type': 'Answer', 'text': happens + u' ' + ends}})
 
-        for f in sorted(seen, key=lambda x: (x not in urgent_fmi, x))[:2]:
+        for f in sorted(seen_std, key=lambda x: (x not in urgent_fmi, x))[:2]:
             if str(f) not in fmi_en:
                 continue
             faq.append({'@type': 'Question',
@@ -483,24 +510,27 @@ def build():
         if own:
             body.append(own)
 
-        ordered = sorted(makes, key=lambda x: bname(x))
+        ordered = sorted(shown, key=lambda x: bname(x))
         if len(ordered) >= 3:
             body.append(u'<p class="jump">%s</p>' % u''.join(
                 u'<a href="#mk-%s">%s</a>' % (b, bp.esc(bname(b))) for b in ordered))
         for b in ordered:
             # См. OWN_NUMBERING в build_pages.py: у ZF номер свой, не SPN.
             note = OWN_NUMBERING_EN.get(b)
+            if b in own_fmi:
+                note = u"FMI is per the block maker's own table, not the J1939 table below."
+            head = BLOCK_LABEL_EN.get(b) or bname(b)
             body.append(u'<section><h2 class="mk" id="mk-%s">%s</h2>%s%s</section>'
-                        % (b, bp.esc(bname(b)),
+                        % (b, bp.esc(head),
                            (u'<p class="sub">%s</p>' % bp.esc(note)) if note else u'',
-                           fmi_table(sorted(makes[b], key=lambda r: r[0]))))
+                           fmi_table(sorted(shown[b], key=lambda r: r[0]))))
 
-        if seen:
-            std_rows = [(f, fmi_en[str(f)]) for f in seen if str(f) in fmi_en]
+        if seen_std:
+            std_rows = [(f, fmi_en[str(f)]) for f in seen_std if str(f) in fmi_en]
             if std_rows:
                 body.append(u'<section><h2>%s</h2>%s</section>'
                             % (TX['fmiStd'], fmi_table(std_rows, spn)))
-        else:
+        elif not makes:
             common = [(f, fmi_en[str(f)]) for f in (0, 1, 2, 3, 4, 5) if str(f) in fmi_en]
             body.append(u'<section><h2>%s</h2>%s</section>'
                         % (TX['fmiCommon'], fmi_table(common, spn)))
@@ -566,7 +596,7 @@ def build():
                                'item': SITE + '/en/'},
                               {'@type': 'ListItem', 'position': 2, 'name': TX['hubH1'],
                                'item': canon}]}))
-    n_brands = len({b for spn in written for b in per_en.get(spn, {})})
+    n_brands = len({b for spn in written for b in per_en.get(spn, {})} - bp.BLOCK_ONLY)
     body = [bp.HEAD.format(title=bp.esc(TX['hubTitle']),
                            desc=bp.esc(TX['hubDesc'] % len(written)), canon=canon,
                            ogtitle=bp.esc(TX['hubH1']), mid=bp.METRIKA_ID, ld=ld,
