@@ -381,6 +381,7 @@
       dailyLimit: 'Лимит поисков на сегодня исчерпан (50 в сутки). Попробуйте завтра.',
       scanStep: 'номер сканера',
       fmiOwn: 'FMI по таблице производителя блока',
+      j1939Caption: 'По стандарту J1939 (двигатели Bosch и другие блоки со стандартной нумерацией)',
       blinkLimit: 'Ограничение', blinkCode: 'блинк {n}',
       blinkNotFound: 'Блинк-код <b>{n}</b> в таблице КамАЗ Евро-3 (Bosch MS 6.1) не найден.',
       cumminsFcLabel: 'Cummins ISB 6.7, код FC {n}',
@@ -509,6 +510,7 @@
       dailyLimit: 'Daily search limit reached (50 per day). Please try again tomorrow.',
       scanStep: 'scanner code',
       fmiOwn: 'FMI per the unit maker\'s table',
+      j1939Caption: 'Per J1939 standard (Bosch engines and other units with standard numbering)',
       blinkLimit: 'Limit', blinkCode: 'blink {n}',
       blinkNotFound: 'Blink code <b>{n}</b> not found in the KAMAZ Euro-3 (Bosch MS 6.1) table.',
       cumminsFcLabel: 'Cummins ISB 6.7, FC code {n}',
@@ -2268,6 +2270,12 @@
         }
       }
     }
+    return stdDecode(spn, fmi, brand);
+  }
+
+  /* Общий смысл по стандарту (SPN из универсальной таблицы + FMI). Так же
+     расшифровывается и код без попаданий по блокам. */
+  function stdDecode(spn, fmi, brand){
     /* У Freightliner нет заводской построчной таблицы кодов - есть
        только имена компонентов (MID/PID/SID). Готового текста для
        конкретной комбинации нет, но сама комбинация осмысленна -
@@ -2284,6 +2292,10 @@
     if(!name) name = codeLabel(spn);
     var f = fmiText(fmi) || t('fmiNonstandard', {fmi:fmi});
     return {text:name + ' — ' + f, src:known ? t('standardSource') : null, unknown:!known};
+  }
+  /* Все попадания - из блоков с ownFmi (свой FMI): общий смысл по J1939 тоже показываем. */
+  function onlyOwnFmi(hits){
+    return !!hits && hits.length > 0 && hits.every(function(h){ return h.ownFmi; });
   }
 
   /* Дилерский код ищем через API (worker/pcode-api.js), а не в памяти -
@@ -2404,7 +2416,14 @@
      из чего мы этот код взяли. */
   function spnFmiHtml(spn, fmi, brand, lead){
     var d = describe(spn, fmi, brand);
-    if(d.hits && d.hits.length) return blockHitsHtml(spn, fmi, d.hits, lead);
+    if(d.hits && d.hits.length){
+      var bhtml = blockHitsHtml(spn, fmi, d.hits, lead);
+      if(onlyOwnFmi(d.hits)){
+        var std = stdDecode(spn, fmi, brand);
+        bhtml += chain([{st:t('j1939Caption'), tx:'<b>' + esc(std.text) + '</b>', cls:'ok'}]);
+      }
+      return bhtml;
+    }
     var u = urgent(spn, fmi, brand);
     /* Подпись - в той форме, что лежит в справочнике: ввод «0636/011» по
        ключу 636.11 показываем как SPN 636 · FMI 11, без ведущих нулей. Если
