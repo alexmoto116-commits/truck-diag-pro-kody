@@ -375,7 +375,7 @@
       badCode: 'Не удалось разобрать этот код в выбранном стандарте. Попробуйте «Определить автоматически» или формат <b>SPN 100 FMI 1</b> / <b>100/1</b> / <b>P2BA7</b>.',
       pcodeNotFound: 'Дилерский код <b>{code}</b> в справочнике не найден. Такие коды у каждой марки свои — проверьте написание.',
       pcodeSearching: 'Ищем код…',
-      pcodeApiError: 'Не удалось получить дилерский код — проверьте связь и попробуйте ещё раз.',
+      pcodeApiError: 'Нет связи с базой кодов — проверьте интернет и попробуйте ещё раз.',
       dailyLimit: 'Лимит поисков на сегодня исчерпан (50 в сутки). Попробуйте завтра.',
       scanStep: 'номер сканера',
       scanMany: 'Номер <b>{code}</b> отвечает нескольким кодам на щитке — сверьтесь с тем, что показывает панель.',
@@ -499,7 +499,7 @@
       badCode: 'Couldn’t parse this code in the selected standard. Try “Detect automatically” or the format <b>SPN 100 FMI 1</b> / <b>100/1</b> / <b>P2BA7</b>.',
       pcodeNotFound: 'Dealer code <b>{code}</b> not found in the database. These codes differ by make — double-check the spelling.',
       pcodeSearching: 'Searching…',
-      pcodeApiError: 'Couldn’t reach the dealer-code lookup — check your connection and try again.',
+      pcodeApiError: 'No connection to the code database — check your internet and try again.',
       dailyLimit: 'Daily search limit reached (50 per day). Please try again tomorrow.',
       scanStep: 'scanner code',
       scanMany: 'Code <b>{code}</b> maps to several dash codes — check which one the cluster shows.',
@@ -1880,7 +1880,14 @@
   /* Нормализация написания: регистр и пробелы (в т.ч. неразрывные,
      двойные, табы) не должны влиять на распознавание кода. */
   function normCode(t){
-    return t.toUpperCase().replace(/\s+/g, ' ').trim();
+    var u = t.toUpperCase().replace(/\s+/g, ' ').trim();
+    /* Слова СПН/ФМИ по-русски и буквы-двойники латиницы в коде: «Р0340»
+       пишут русской Р, а P - это та же буква для сканера. Замена только
+       по верхнему регистру уже приведённой строки. */
+    u = u.replace(/СПН/g, 'SPN').replace(/ФМИ/g, 'FMI');
+    return u.replace(/[РСАЕОХВМТНК]/g, function(c){
+      return {'Р':'P','С':'C','А':'A','Е':'E','О':'O','Х':'X','В':'B','М':'M','Т':'T','Н':'H','К':'K'}[c];
+    });
   }
 
   /* SPN/FMI почти всегда чисто десятичные (стандарт J1939), но у
@@ -1919,6 +1926,9 @@
      hasNum() - тот же поиск по массиву целых чисел: сначала как есть
      (без стоимости для всех остальных марок), и только если не нашлось -
      в раздетом виде. */
+  /* FMI по стандарту J1939 - число 0..31. Больше - это не FMI, а соседнее
+     число: в «636 11, 190 2» без этой проверки выходил SPN 11 / FMI 190. */
+  function fmiOk(v){ return !/^\d+$/.test(String(v)) || parseInt(v, 10) <= 31; }
   function stripZero(s){
     return (typeof s === 'string' && /^0\d+$/.test(s)) ? String(parseInt(s, 10)) : null;
   }
@@ -1930,6 +1940,11 @@
 
   function parseAuto(t){
     var up = normCode(t);
+    /* Номер блока КамАЗ-5490 пишут с приставкой ("ADM3 10203", "MR2-12420").
+       Приставка - не часть кода в сканере; ищем по цифрам как по обычному
+       дилерскому номеру (DB.scan). Без этого "ADM310203" не находилось. */
+    var blk = up.match(/^(?:ADM3|MR2)\s*-?\s*(\d{4,6})$/);
+    if(blk) return {pcode: blk[1]};
     // Панель показывает код вместе с порядковым номером ошибки
     // ("2 03043-00"), поэтому ищем код с разделителем где угодно
     // в строке, а не только когда это весь ввод целиком. Слово SPN
@@ -1958,6 +1973,7 @@
     var m = up.match(/(?:SPN\s*[:\-]?\s*)?([0-9A-F]{1,6})\D{0,20}FMI\s*[:\-]?\s*([0-9A-F]{1,3})/);
     if(!m) m = up.match(/([0-9A-F]{1,6})\s*[\/\-.,]\s*([0-9A-F]{1,3})(?![0-9A-F])/);
     if(!m) m = up.match(/^([0-9A-F]{1,6})\s+([0-9A-F]{1,3})$/);
+    if(m && !fmiOk(m[2])) m = null;
     if(m) return {spn:codeVal(m[1]), fmi:codeVal(m[2])};
     var only = up.match(/^SPN\s*[:\-]?\s*(\d{1,6})$/) || up.match(/^(\d{1,6})$/);
     if(only) return {spn:codeVal(only[1]), fmi:null};
@@ -1982,6 +1998,7 @@
       var m = up.match(/(?:SPN\s*[:\-]?\s*)?([0-9A-F]{1,6})\D{0,20}FMI\s*[:\-]?\s*([0-9A-F]{1,3})/)
            || up.match(/([0-9A-F]{1,6})\s*[\/\-.,]\s*([0-9A-F]{1,3})(?![0-9A-F])/)
            || up.match(/^([0-9A-F]{1,6})\s+([0-9A-F]{1,3})$/);
+      if(m && !fmiOk(m[2])) m = null;
       if(m) return {spn:codeVal(m[1]), fmi:codeVal(m[2])};
       var only = up.match(/^SPN\s*[:\-]?\s*(\d{1,6})$/) || up.match(/^(\d{1,6})$/);
       if(only) return {spn:codeVal(only[1]), fmi:null};
@@ -2043,7 +2060,7 @@
         for(var j = 0; j < keys.length; j++){
           var exact = (E && E.brands[d] && E.brands[d][keys[j]])
                    || (DB.brands[d] && DB.brands[d][keys[j]]);
-          if(exact) return {text:withFmiHint(exact, fmi), src:t('factorySource', {brand: brandName(d)})};
+          if(exact) return {text:withFmiHint(exact, fmi), src:t('factorySource', {brand: brandName(d)}), k:keys[j]};
         }
       }
     }
@@ -2101,14 +2118,19 @@
   function fetchPcode(brand, code, lang){
     var donors = donorsOf(brand);
     if(donors.length < 2) return fetchPcodeOne(donors[0] || '', code, lang);
+    var failed = null, dead = 0;
     return Promise.all(donors.map(function(b){
       /* Суточный лимит не глотаем: он относится к поиску целиком, а не к
          одной марке-донору, и без него ответ «ничего не найдено» соврал бы. */
       return fetchPcodeOne(b, code, lang).catch(function(e){
         if(isDailyLimit(e)) throw e;
+        dead++; failed = failed || e;
         return [];
       });
     })).then(function(lists){
+      /* Ни один донор не ответил (нет сети): это не «код не найден», а отсутствие
+         связи - ошибку отдаём наверх, там она станет сообщением о связи. */
+      if(dead === donors.length) throw failed;
       var out = [], seen = {};
       lists.forEach(function(hits){
         hits.forEach(function(h){
@@ -2132,6 +2154,7 @@
   var DOT_BRANDS = {deutz:1, caterpillar:1, daewoo:1, ivecoedc:1};
   function dealerDotCode(brand, std, raw){
     if(std === 'spnfmi') return null;
+    if(brand && !DOT_BRANDS[brand]) return null;
     var s = normCode(raw);
     if(DOT_CODE_RE.test(s)) return s;
     var sp = /^([0-9]{1,7}) ([0-9]{1,2})$/.exec(s);
@@ -2178,7 +2201,12 @@
   function spnFmiHtml(spn, fmi, brand, lead){
     var d = describe(spn, fmi, brand);
     var u = urgent(spn, fmi, brand);
-    var code = codeLabel(spn) + ' · FMI ' + fmi;
+    /* Подпись - в той форме, что лежит в справочнике: ввод «0636/011» по
+       ключу 636.11 показываем как SPN 636 · FMI 11, без ведущих нулей. Если
+       ключа в справочнике нет, показываем ввод как есть: приборка пишет
+       «03043-00» с нулями намеренно (см. codeVal). */
+    var shown = d.k ? d.k.split('.') : [spn, fmi];
+    var code = codeLabel(shown[0]) + ' · FMI ' + shown[1];
     var steps = lead ? [lead] : [];
     steps.push({st:t('stepCode'), tx:'<span class="mono">' + code + '</span>', cls:'ok'});
     steps.push({st:t('stepDecoding'), tx:'<b>' + esc(d.text) + '</b>' +
@@ -2235,7 +2263,7 @@
       var b = ref.slice(0, cut), key = ref.slice(cut + 1);
       if(donors.length && donors.indexOf(b) < 0) return;
       var dot = key.lastIndexOf('.');
-      out.push({brand:b, spn:key.slice(0, dot), fmi:key.slice(dot + 1)});
+      out.push({brand:b, spn:codeVal(key.slice(0, dot)), fmi:codeVal(key.slice(dot + 1))});
     });
     return out;
   }
@@ -2423,8 +2451,11 @@
      приходит и через запятую, и в столбик, и с номерами строк. */
   function parseAll(raw){
     var up = normCode(raw), out = [], seen = {}, m;
-    var re = /(?:SPN\s*[:\-]?\s*)?([0-9A-F]{1,6})\s*(?:\D{0,12}?FMI\s*[:\-]?\s*|[\/\-.,]\s*)([0-9A-F]{1,3})(?![0-9A-F])/g;
+    var re = /(?:SPN\s*[:\-]?\s*)?([0-9A-F]{1,6})\s*(?:\D{0,12}?FMI\s*[:\-]?\s*|[\/\-.,]\s*|\s+)([0-9A-F]{1,3})(?![0-9A-F])/g;
     while((m = re.exec(up))){
+      /* Пара с FMI вне 0..31 не пара: сдвигаемся на символ и ищем дальше
+         ("1 636 11" - пара 636/11, а не 1/636). */
+      if(!fmiOk(m[2])){ re.lastIndex = m.index + 1; continue; }
       var spn = codeVal(m[1]), fmi = codeVal(m[2]), k = spn + '.' + fmi;
       if(!seen[k]){ seen[k] = 1; out.push({spn:spn, fmi:fmi}); }
     }
@@ -2658,7 +2689,11 @@
 
   function riskOf(c){
     var m = RISK_MAP[c.sys], pick;
-    if(m) pick = (m.elec && hasNum(FMI_ELEC, c.fmi)) ? m.elec : m.any;
+    /* Для охлаждения «недостоверные данные» (FMI 2 и родственные) - тоже не
+       физический перегрев: датчик или вентилятор врут, двигатель не греется.
+       Иначе 1639.2 (частота вентилятора) давало «Минуты: перегрев». */
+    var nonPhys = hasNum(FMI_ELEC, c.fmi) || (c.sys === 'cool' && hasNum(FMI_DERIVED, c.fmi));
+    if(m) pick = (m.elec && nonPhys) ? m.elec : m.any;
     else if(hasNum(FMI_ELEC, c.fmi)) pick = ['elecGen','watch'];
     else pick = c.urgent ? ['genUrgent','short'] : ['gen','plan'];
 

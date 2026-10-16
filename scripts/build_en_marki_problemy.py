@@ -353,9 +353,9 @@ def page_en(path, title, desc, h1, sub, sections, section=None, rel_ru=None, her
     body.append(bp.search_form(_марка, ph=u'Your code, e.g. 1078/3', action=u'/en/', btn=u'Search', label=u'Fault code'))
     body.append(u'<p class="sub">%s</p>' % sub)
     body.extend(sections)
-    body.append(u'<p class="cta">Know the code number? <a href="/en/">Type it into the '
+    body.append(u'<p class="cta">Know the code number? <a href="%s">Type it into the '
                 u'search</a> — or paste the whole list from the scanner and we will '
-                u'show which fault is the real one.</p>')
+                u'show which fault is the real one.</p>' % (u'/en/?b=%s' % _марка if _марка else u'/en/'))
     body.append(u'</div>\n' + bp.CF_SNIPPET + u'\n</body>\n</html>\n')
     full = os.path.join(ROOT, path)
     d = os.path.dirname(full)
@@ -551,7 +551,7 @@ def build():
         else:
             secs.append(u'<section><h2>%s</h2><p>%s</p></section>' % (MK['howHead'], MK['howBody']))
         if b != 'zfastronic':
-            secs.append(u'<section><h2>%s</h2><p>%s</p></section>' % (MK['multiHead'], MK['multiBody']))
+            secs.append(u'<section><h2>%s</h2><p>%s</p></section>' % (MK['multiHead'], MK['multiBody'].replace(u'href="/en/"', u'href="/en/?b=%s"' % b)))
 
         # Зеркало фикса из build_pages.py: марка может иметь одновременно
         # свою бесплатную SPN/FMI-таблицу (выше) и отдельную дилерскую
