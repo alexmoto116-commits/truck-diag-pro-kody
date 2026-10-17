@@ -195,6 +195,39 @@ function codeVariants(code) {
 }
 
 /**
+ * Вторая очередь вариантов: короткий цифровой код дополняем нулями до двух и до
+ * трёх знаков («1» -> «01», «001»; «0» -> «00», «000»; «34» -> «034»). В частях
+ * «NN/NN» и «NN-NN» дополняем каждую часть: VW «27/04» -> «0027/04». Такие
+ * варианты пробуются только тогда, когда основные ничего не дали (см. runSearch),
+ * поэтому уже найденные коды не меняются.
+ */
+function padVariantsOf(c) {
+  var out = [];
+  var m;
+  if (/^[0-9]{1,2}$/.test(c)) {
+    if (c.length < 2) out.push(('00' + c).slice(-2));
+    out.push(('000' + c).slice(-3));
+    return out;
+  }
+  if ((m = /^([0-9]{1,4})([-\/])([0-9]{1,2})$/.exec(c))) {
+    var aParts = [m[1]];
+    for (var len = m[1].length + 1; len <= 4; len++) aParts.push(('0000' + m[1]).slice(-len));
+    var bParts = [m[3]];
+    if (m[3].length < 2) bParts.push(('00' + m[3]).slice(-2));
+    var seps = [m[2], m[2] === '/' ? '-' : '/'];
+    for (var s = 0; s < seps.length; s++) {
+      for (var a = 0; a < aParts.length; a++) {
+        for (var b = 0; b < bParts.length; b++) {
+          var f = aParts[a] + seps[s] + bParts[b];
+          if (f !== c && shapeOk(f) && out.indexOf(f) < 0) out.push(f);
+        }
+      }
+    }
+  }
+  return out;
+}
+
+/**
  * Варианты записи введённого кода с разделителями. Ключи в базе пишутся по-разному:
  * VW «0027/04», MWM «P0105-01», Mercedes «MR 0101» (с пробелом), DAF «84-9».
  * Человек вводит то же самое своими словами: «0027-04», «0027 04», «MR-0101»,
@@ -214,7 +247,10 @@ function candidateForms(s) {
   if (/[-\/]/.test(nospace)) {
     // Дефис после букв («MR-0101», «P-0121») - разделитель, его убираем.
     // Между цифрами («84-9», «1-32») дефис - это SPN-FMI, его не трогаем.
-    if (/^[A-Z]+[-\/][0-9]/.test(nospace)) forms.push(nospace.replace(/[-\/]/g, ''));
+    if (/^[A-Z]+[-\/][0-9]/.test(nospace)) {
+      forms.push(nospace.replace(/^([A-Z]+)[-\/]/, '$1')); // P-0105-01 -> P0105-01
+      forms.push(nospace.replace(/[-\/]/g, ''));           // P-0105-01 -> P010501 (прежняя форма)
+    }
     forms.push(nospace.replace(/-/g, '/'), nospace.replace(/\//g, '-'));
   }
   var out = [];
@@ -245,25 +281,29 @@ function pad3(digits) {
 
 /**
  * План поиска по вводу (raw - как пришёл с сайта, уже без лишних пробелов по краям).
- * Возвращает { forms, brands, fallback } или null, если форма ввода не подходит.
+ * Возвращает { forms, brands, fallback, pads } или null, если форма ввода не подходит.
  *  forms    - варианты ключа для поиска (по порядку);
  *  brands   - если задано, поиск только по этим маркам (префиксы модулей/FC/отопителей);
- *  fallback - запасной поиск {forms, brands}, если основной ничего не дал (только без марки).
+ *  fallback - запасной поиск {forms, brands}, если основной ничего не дал (только без марки);
+ *  pads     - вторая очередь: дополнения нулями (см. padVariantsOf), если и она пуста.
  */
 function planSearch(raw) {
   var s = cleanInput(raw);
   var m;
   if ((m = SCANIA_MODULE_RE.exec(s))) {
-    return { forms: searchForms([m[2]]), brands: ['scania'], fallback: null };
+    return { forms: searchForms([m[2]]), brands: ['scania'], fallback: null, pads: [] };
   }
   if ((m = CUMMINS_FC_RE.exec(s))) {
-    return { forms: searchForms([m[1]]), brands: CUMMINS_BRANDS, fallback: null };
+    return { forms: searchForms([m[1]]), brands: CUMMINS_BRANDS, fallback: null, pads: [] };
   }
   if ((m = WEBASTO_RE.exec(s))) {
-    return { forms: searchForms([m[1]]), brands: ['webasto'], fallback: null };
+    return { forms: searchForms([m[1]]), brands: ['webasto'], fallback: null, pads: [] };
   }
   if ((m = EBERSPACHER_DASH_RE.exec(s))) {
-    return { forms: searchForms([pad3(m[1])]), brands: ['eberspacher'], fallback: null };
+    // E-05: Eberspächer пишет 005, SITRAK (jingwei) - E05. Ищем обе формы в обеих марках.
+    var dforms = [pad3(m[1])];
+    if (m[1].length === 2) dforms.push('E' + m[1]);
+    return { forms: searchForms(dforms), brands: ['eberspacher', 'jingwei'], fallback: null, pads: [] };
   }
   var cand = candidateForms(s);
   if (!cand.length) return null;
@@ -271,7 +311,15 @@ function planSearch(raw) {
   if ((m = EBERSPACHER_PLAIN_RE.exec(s))) {
     fallback = { forms: searchForms([pad3(m[1])]), brands: ['eberspacher'] };
   }
-  return { forms: searchForms(cand), brands: null, fallback: fallback };
+  var forms = searchForms(cand);
+  var pads = [];
+  for (var c = 0; c < cand.length; c++) {
+    var pv = padVariantsOf(cand[c]);
+    for (var q = 0; q < pv.length; q++) {
+      if (forms.indexOf(pv[q]) < 0 && pads.indexOf(pv[q]) < 0) pads.push(pv[q]);
+    }
+  }
+  return { forms: forms, brands: null, fallback: fallback, pads: pads };
 }
 
 function kvKey(brand, code) {
@@ -488,18 +536,28 @@ async function searchBruteForce(env, brands, variants, lang) {
  */
 async function runSearch(env, plan, brand, lang) {
   var fb = plan.fallback;
+  var pads = plan.pads || [];
   if (brand) {
     var own = await searchBruteForce(env, [brand], plan.forms, lang);
     if (own.length === 0 && fb && fb.brands.indexOf(brand) >= 0) {
       own = await searchBruteForce(env, [brand], fb.forms, lang);
     }
+    if (own.length === 0 && pads.length) own = await searchBruteForce(env, [brand], pads, lang);
     return own;
   }
-  if (plan.brands) return searchBruteForce(env, plan.brands, plan.forms, lang);
+  if (plan.brands) {
+    var pb = await searchBruteForce(env, plan.brands, plan.forms, lang);
+    if (pb.length === 0 && pads.length) pb = await searchBruteForce(env, plan.brands, pads, lang);
+    return pb;
+  }
   var hits = await searchByIndex(env, plan.forms, lang);
   if (hits === null) hits = await searchBruteForce(env, KNOWN_PCODE_BRANDS, plan.forms, lang);
   if (hits.length === 0 && fb) {
     hits = await searchBruteForce(env, fb.brands, fb.forms, lang);
+  }
+  if (hits.length === 0 && pads.length) {
+    var ph = await searchByIndex(env, pads, lang);
+    hits = ph === null ? await searchBruteForce(env, KNOWN_PCODE_BRANDS, pads, lang) : ph;
   }
   return hits;
 }
