@@ -263,7 +263,13 @@ def build():
     sys_of, stop_of, by_sys = info['sys'], info['stop'], info['by_sys']
     lvl_of = info['lvl']
     # закрытые от индекса (их ровно столько же, сколько у русской версии)
-    closed_en = set(info.get('noindex', ()))
+    closed_en = set(info.get('noindex_en', ()))
+    # Соседние, похожие и рубричные коды en-страниц берём из открытых en-страниц,
+    # а не из русского списка открытых (по нему на en-страницах могли бы оказаться
+    # ссылки на закрытые en-адреса). Порядок тот же, что у русской сборки: по номеру.
+    by_sys_en = {}
+    for s in sorted((en_set & set(sys_of)) - closed_en):
+        by_sys_en.setdefault(sys_of[s], []).append(s)
 
     brand_names = ru_db['brandNames']
 
@@ -443,7 +449,7 @@ def build():
             desc = TX['descNone'] % spn
         # Описание открытой страницы строим из её данных (см. code_desc_en);
         # у закрытых от индекса остаётся прежний общий текст.
-        if spn not in info.get('noindex', ()):
+        if spn not in info.get('noindex_en', ()):
             ordered_b = sorted(makes, key=lambda b: (bp.ЧАСТЫЕ_МАРКИ.index(b)
                                                      if b in bp.ЧАСТЫЕ_МАРКИ else 99, bname(b)))
             desc = code_desc_en(spn, name, (i18n.get(SYS_KEY.get(sys_key, 'sysOther'))
@@ -487,7 +493,7 @@ def build():
         body = [bp.HEAD.format(title=bp.esc(title), desc=bp.esc(desc), canon=canon,
                                ogtitle=bp.esc(page_name), mid=bp.METRIKA_ID, ld=ld,
                                nav=nav(u'SPN %d' % spn), lang='en', locale='en_US', alt=alt_links(rel))]
-        if spn in info.get('noindex', ()):      # те же, что закрыты у русской
+        if spn in info.get('noindex_en', ()):      # закрыты по своему адресу en/kody/
             body[0] = body[0].replace(u'<meta charset="utf-8">',
                                       u'<meta charset="utf-8">\n<meta name="robots" content="noindex, follow">', 1)
         body.append(u'<h1>%s</h1>' % bp.esc(page_name))
@@ -544,8 +550,7 @@ def build():
 
         body.append(causal_section(spn))
 
-        neigh = [s for s in bp.neighbors_of(spn, [x for x in by_sys.get(sys_key, [])
-                                                  if x in en_set])]
+        neigh = [s for s in bp.neighbors_of(spn, by_sys_en.get(sys_key, []))]
         if neigh:
             body.append(u'<section><h2>%s</h2><ul class="near">%s</ul></section>'
                         % (TX['nearby'] % bp.esc(i18n.get(SYS_KEY.get(sys_key, 'sysOther'), '')),
@@ -553,7 +558,7 @@ def build():
 
         # Related codes: 5–8 открытых кодов той же системы, сначала с разделом
         # «how to check it yourself»; ссылки из «Nearby» не повторяем.
-        similar = bp.similar_codes(spn, [x for x in by_sys.get(sys_key, []) if x in en_set],
+        similar = bp.similar_codes(spn, by_sys_en.get(sys_key, []),
                                    set(neigh), set(OWN_EN))
         if similar:
             body.append(u'<section><h2>Related codes</h2><ul class="near">%s</ul></section>'
@@ -570,7 +575,7 @@ def build():
                fmi_table(sorted(((int(f), t) for f, t in fmi_en.items()))))]
     for key in ['oil', 'cool', 'fuel', 'air', 'scr', 'power', 'can',
                 'brake', 'trans', 'prot', 'other']:
-        bucket = [s for s in by_sys.get(key, []) if s in en_set]
+        bucket = by_sys_en.get(key, [])
         if not bucket:
             continue
         head = u'%s — %d' % (i18n.get(SYS_KEY[key], key), len(bucket))

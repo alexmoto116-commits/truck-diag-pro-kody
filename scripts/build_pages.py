@@ -86,6 +86,22 @@ def load_pcode():
         return {}
     return json.loads(io.open(path, encoding='utf-8').read())
 
+
+# Какие страницы кодов индексируются: scripts/index_keep.json (пересчёт - index_plan.py).
+# Возвращает два множества номеров SPN - ru и en - или (None, None), если файла нет.
+def load_index_keep():
+    path = os.path.join(ROOT, 'scripts', 'index_keep.json')
+    if not os.path.isfile(path):
+        return None, None
+    pages = json.loads(io.open(path, encoding='utf-8').read())['страницы']
+    ru, en = set(), set()
+    for p in pages:
+        m = re.match(r'^(en/)?kody/spn-(\d+)\.html$', p)
+        if not m:
+            raise SystemExit('index_keep.json: неверный адрес страницы кода: ' + p)
+        (en if m.group(1) else ru).add(int(m.group(2)))
+    return ru, en
+
 # ------------------------------------------------------- система по SPN
 # Раскладка живёт в assets/app.js (SYS_SPN, SYS_WORD, SYS_WORD_EXCLUDE) и
 # читается оттуда - см. system_of(). Здесь её копии больше нет: она тут
@@ -1351,7 +1367,16 @@ def build(en_spns=()):
             return True
         return (not std_name(spn) and len(std) == 1
                 and len(next(iter(std.values()))) == 1)
-    noindex = {s for s in keep if тонкая(s)}
+    # Если есть scripts/index_keep.json, страница кода индексируется тогда и только
+    # тогда, когда её адрес в списке: ru и en отдельно, каждый по своему адресу.
+    # Прежнее правило «тонкая» решает только без файла.
+    index_ru, index_en = load_index_keep()
+    if index_ru is None:
+        noindex = {s for s in keep if тонкая(s)}
+        noindex_en = noindex
+    else:
+        noindex = {s for s in keep if s not in index_ru}
+        noindex_en = {s for s in en_spns if s not in index_en}
     # Открытые коды: только на них ведут ссылки со страниц, которые сами открыты
     # (блок «Рядом», «по системе», оглавление, марки, симптомы). Закрытые от индекса
     # страницы остаются по адресу, но с открытых страниц на них не ссылаемся: иначе
@@ -1796,7 +1821,8 @@ def build(en_spns=()):
                                        'dealer': len(dealer_rows) if dealer_rows else 0}, []))
         path = 'marki/%s.html' % b
         title = u'Коды ошибок %s | codetruck.ru' % bn
-        total_n = len(entries) + (len(dealer_rows) if dealer_rows else 0)
+        # Как и у SPN-марок: описание считает только MID-коды, дилерские названы отдельно.
+        total_n = len(entries)
         desc = (u'Расшифровка кодов неисправностей %s: %s по модулям управления '
                 u'(MID), с параметром и типом неисправности.' % (bn, n_codes(total_n)))
         sub = (u'В справочнике разобрано <b>%s %s</b> по заводским таблицам, '
@@ -1965,7 +1991,9 @@ def build(en_spns=()):
         secs.insert(0, brand_intro(b, nums, top))
         path = 'marki/%s.html' % b
         title = u'Коды ошибок %s | codetruck.ru' % bn
-        total_n = (len(own_rows) if own else len(mine)) + (len(dealer_rows) if dealer_rows else 0)
+        # Описание и оглавление считают те же коды, что текст «разобрано» и «по системам»:
+        # дилерский формат назван отдельно ниже (так же, как в английской версии).
+        total_n = len(own_rows) if own else len(mine)
         desc = (u'Все коды неисправностей %s: %s по системам — какие требуют '
                 u'немедленной остановки, что означает каждый и можно ли ехать.'
                 % (bn, n_codes(total_n)))
@@ -2201,7 +2229,7 @@ def build(en_spns=()):
             + ['%s/kody/spn-%d.html' % (SITE, s) for s in written if s not in noindex]
             + (['%s/en/kody/' % SITE] if en_spns else [])
             + ['%s/en/kody/spn-%d.html' % (SITE, s)
-               for s in written if s in en_spns and s not in noindex])
+               for s in written if s in en_spns and s not in noindex_en])
     write_sitemap(urls)
 
     print('страниц собрано: %d' % len(written))
@@ -2212,6 +2240,7 @@ def build(en_spns=()):
     # иначе два языка одного сайта начнут расходиться в советах.
     return {'written': written,
             'noindex': set(written) & noindex,
+            'noindex_en': set(written) & noindex_en,
             'sys': dict((s, system_of(s, std_name(s))) for s in written),
             'stop': dict((s, is_stop(s, per_spn.get(s, {}))) for s in written),
             'lvl': dict((s, page_risk(system_of(s, std_name(s)),

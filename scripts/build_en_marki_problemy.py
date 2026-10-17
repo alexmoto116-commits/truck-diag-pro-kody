@@ -434,7 +434,11 @@ def build():
     info = bp.build(en_spns=en_set)
     written = [s for s in info['written'] if s in en_set]
     sys_of, stop_of, by_sys = info['sys'], info['stop'], info['by_sys']
-    closed = set(info.get('noindex', ()))  # закрыты от индекса - на них не ссылаемся
+    closed = set(info.get('noindex_en', ()))  # закрыты от индекса (en-адреса) - на них не ссылаемся
+    # Разбивка только по открытым en-страницам: симптомы не должны ссылаться на закрытые
+    by_sys_en = {}
+    for s in sorted(set(written) - closed):
+        by_sys_en.setdefault(sys_of.get(s, 'other'), []).append(s)
 
     # Марки, чьё имя в базе записано кириллицей, на английских страницах
     # берём из I18N (КамАЗ, ЯМЗ, ...), а если ключа там нет - из того же
@@ -769,7 +773,7 @@ def build():
         if spns:
             pool = [s for s in spns if s in have]
         elif sys_key:
-            pool = [s for s in by_sys.get(sys_key, [])]
+            pool = [s for s in by_sys_en.get(sys_key, [])]
         else:
             pool = [s for s in written if s in have and is_stop(s)]
         stop_codes = [s for s in pool if is_stop(s)][:12]
