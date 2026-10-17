@@ -1073,7 +1073,7 @@ SYMPTOMS = [
      u'заведётся обратно с обочины. Коды по рампе и ТНВД показывают, доедете вы '
      u'до сервиса своим ходом или нет.',
      'fuel', 'fuel', (94, 157, 156, 1076, 1077, 1078, 164, 190, 723)),
-    ('troit-dvigatel', u'Двигатель троит на грузовике — пропуски воспламенения',
+    ('troit-dvigatel', u'Троит двигатель грузовика — пропуски воспламенения',
      u'Троит двигатель, пропуски воспламенения',
      u'Пропуски электроника считает по каждому цилиндру отдельно, поэтому код сразу '
      u'называет виновника. Чаще всего это форсунка, реже — компрессия или проводка. '
@@ -1099,7 +1099,7 @@ SYMPTOMS = [
      u'причина — уплотнения турбины: масло тянет через неё прямо во впуск. Проверяют '
      u'уровень и давление масла, а заодно слушают турбину на выбеге.',
      'oil', 'oil', (100, 98, 175, 104, 103, 99)),
-    ('bolshoy-rashod-topliva', u'Большой расход топлива на грузовике — коды и причины',
+    ('bolshoy-rashod-topliva', u'Большой расход топлива грузовика — коды и причины',
      u'Вырос расход топлива',
      u'Расход растёт, когда двигатель работает не в своём режиме: не хватает воздуха, '
      u'льёт форсунка, забит сажевый фильтр. Электроника видит это по своим датчикам '
@@ -1790,8 +1790,19 @@ def build(en_spns=()):
             os.remove(f)
 
     marki_built = set()
+
+    # --- по маркам с MID-структурой кода (Mack, Detroit Diesel) -----
+    # Идёт ДО цикла по SPN: марка, построенная здесь, в SPN-цикл не попадает.
+    # Раньше обе страницы строились одна за другой (файл перезаписывался, а
+    # адрес уходил в карту сайта и в список марок дважды - detroitdiesel).
+    for b in sorted(MID_MODULE_NAMES, key=lambda x: brand_names.get(x, x)):
+        built = mid_brand_page(b, MID_MODULE_NAMES[b])
+        if built:
+            extra.append(built)
+            marki_built.add(b)
+
     for b in sorted(brands, key=lambda x: brand_names.get(x, x)):
-        if b in BLOCK_ONLY:
+        if b in BLOCK_ONLY or b in marki_built:
             continue
         bn = brand_names.get(b, b)
         # КамАЗ - это все его блоки (двигатель, K-line, EBS3, ECAS, ретардер, Cummins)
@@ -1946,13 +1957,6 @@ def build(en_spns=()):
         brand_index.append((path, bn, total_n, 'spn'))
         extra.append(page(path, title, desc,
                           u'Коды ошибок %s' % bn, sub, secs, 'marki', brand=b))
-
-    # --- по маркам с MID-структурой кода (Mack, Detroit Diesel) -----
-    for b in sorted(MID_MODULE_NAMES, key=lambda x: brand_names.get(x, x)):
-        built = mid_brand_page(b, MID_MODULE_NAMES[b])
-        if built:
-            extra.append(built)
-            marki_built.add(b)
 
     # --- дилерские марки без своей SPN/FMI-таблицы (Scania, Caterpillar,
     # Cummins и т.п.) ------------------------------------------------

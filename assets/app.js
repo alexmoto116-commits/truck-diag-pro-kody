@@ -370,7 +370,7 @@
      их перевести можно и нужно: это половина каждого ответа. */
   var I18N = {
     ru: {
-      pageTitle: 'Код неисправности грузовика — расшифровка SPN/FMI и дилерских кодов',
+      pageTitle: 'Код неисправности грузовика — SPN/FMI и дилерские коды',
       langOffer: 'Эта страница есть на русском',
       metaDescription: 'Бесплатная расшифровка кодов неисправностей грузовиков: стандарт J1939 (SPN/FMI) и заводские таблицы 12 марок. Введите код со сканера или с приборной панели.',
       h1: 'Загорелась лампа <em>Check&nbsp;Engine</em> — что означает код?',
@@ -906,7 +906,7 @@
       brandTeplostarLbl: "Teplostar"
     },
     es: {
-      pageTitle: 'Código de avería de camión — decodificación SPN/FMI y códigos de concesionario',
+      pageTitle: 'Código de avería de camión — SPN/FMI y códigos de concesionario',
       langOffer: 'Esta página está disponible en español',
       metaDescription: 'Decodificación gratuita de códigos de avería de camiones: norma J1939 (SPN/FMI) y tablas de fábrica de 12 marcas. Introduce el código del escáner o del salpicadero.',
       h1: 'Se ha encendido el testigo <em>Check&nbsp;Engine</em> — ¿qué significa el código?',
@@ -1036,7 +1036,7 @@
       brandTeplostarLbl: "Teplostar"
     },
     pt: {
-      pageTitle: 'Código de falha de caminhão — decodificação SPN/FMI e códigos de concessionária',
+      pageTitle: 'Código de falha de caminhão — SPN/FMI e códigos de concessionária',
       langOffer: 'Esta página está disponível em português',
       metaDescription: 'Decodificação gratuita de códigos de falha de caminhões: norma J1939 (SPN/FMI) e tabelas de fábrica de 12 marcas. Digite o código do scanner ou do painel.',
       h1: 'A luz de <em>Check&nbsp;Engine</em> acendeu — o que significa o código?',
@@ -1166,7 +1166,7 @@
       brandTeplostarLbl: "Teplostar"
     },
     pl: {
-      pageTitle: 'Kod usterki ciężarówki — rozszyfrowanie SPN/FMI i kodów dealerskich',
+      pageTitle: 'Kod usterki ciężarówki — SPN/FMI i kody dealerskie',
       langOffer: 'Ta strona jest dostępna po polsku',
       metaDescription: 'Darmowe rozszyfrowanie kodów usterek ciężarówek: norma J1939 (SPN/FMI) i tabele fabryczne 12 marek. Wpisz kod ze skanera lub z deski rozdzielczej.',
       h1: 'Zapaliła się kontrolka <em>Check&nbsp;Engine</em> — co oznacza kod?',

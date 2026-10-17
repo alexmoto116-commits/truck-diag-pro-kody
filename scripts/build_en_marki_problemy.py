@@ -156,13 +156,13 @@ SYMPTOMS_EN = {
         u'shutdown usually follow. It is important to tell a real overheat apart from '
         u'a failed sensor — the FMI shows which.'),
     'zabit-sazhevyy-filtr': (
-        u'Clogged DPF (diesel particulate filter) — signs and codes',
+        u'Clogged DPF (particulate filter) — signs and codes',
         u'Clogged particulate filter (DPF)',
         u'The filter clogs when the truck spends a lot of time idling or driving in the '
         u'city — regeneration never gets a chance to run. Back pressure rises '
         u'first, then power drops.'),
     'problemy-s-toplivom': (
-        u'Water in the fuel and a clogged filter — truck codes',
+        u'Water in fuel and clogged filter — truck codes',
         u'Water in the fuel, clogged filter',
         u'In winter, diesel waxing adds to the problem. Fuel-system codes often come '
         u'together with power loss and hard starting.'),
@@ -197,35 +197,35 @@ SYMPTOMS_EN = {
         u'Do not keep driving like this — unburned fuel goes into the exhaust '
         u'and fouls the catalyst along with the particulate filter.'),
     'chernyy-dym': (
-        u'Black smoke from a truck exhaust — causes and codes',
+        u'Black smoke from truck exhaust — causes and codes',
         u'Black exhaust smoke',
         u'Black smoke means too much fuel or not enough air. Check the intake: a '
         u'clogged filter, a leak in the ducting, a failed turbo or its variable '
         u'geometry. Power usually drops and fuel consumption rises along with the '
         u'smoke.'),
     'belyy-dym': (
-        u'White smoke from a truck exhaust — causes and codes',
+        u'White smoke from truck exhaust — causes and codes',
         u'White exhaust smoke',
         u'White vapor on a cold start is normal. White smoke on a warmed-up engine '
         u'means either unburned fuel from a bad injector, or coolant in the cylinders. '
         u'The second is more serious — you are losing coolant, and the head '
         u'gasket usually follows.'),
     'siniy-dym': (
-        u'Blue smoke from a truck exhaust — oil in the cylinders',
+        u'Blue smoke from truck exhaust — oil in cylinders',
         u'Blue smoke, oil in the exhaust',
         u'Bluish smoke means oil is entering the combustion chamber. On higher-mileage '
         u'trucks the usual cause is worn turbo seals — oil gets pulled through '
         u'the turbo straight into the intake. Check the oil level and pressure, and '
         u'listen to the turbo as it spins down.'),
     'bolshoy-rashod-topliva': (
-        u'High fuel consumption on a truck — codes and causes',
+        u'High fuel use on a truck — codes and causes',
         u'Fuel consumption has gone up',
         u'Consumption rises when the engine is not running in its intended range: not '
         u'enough air, a leaking injector, a clogged particulate filter. The '
         u'electronics see this through their sensors before you notice the number on '
         u'the trip computer.'),
     'ne-idet-regeneratsiya': (
-        u'DPF regeneration will not run — particulate filter codes',
+        u'DPF regeneration will not run — filter codes',
         u'DPF regeneration will not run',
         u'Regeneration will not start if the truck idles a lot or the system cannot '
         u'raise exhaust temperature. Back pressure rises, and a power derate follows. '
@@ -311,7 +311,7 @@ SYMPTOMS_EN = {
         u'speed limiter. The cause is more often the sensor on the gearbox and its '
         u'wiring than the instrument itself.'),
     'ne-rabotaet-motornyy-tormoz': (
-        u'Engine (compression) brake not working — truck codes',
+        u'Compression brake not working — truck codes',
         u'Engine brake not working',
         u'The engine (compression) brake shuts itself off if the exhaust flap or its '
         u'actuator is faulty. On a descent this immediately shifts the whole braking '
