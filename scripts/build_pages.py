@@ -699,11 +699,18 @@ def nav_of(section=None, here=None):
 # уже понимает код из адреса (?q=, марку - ?b=), поэтому форма простая, без
 # скриптов.
 def search_form(brand=None, ph=u'Ваш код, например 1078/3', action=u'/', btn=u'Найти',
-                label=u'Код неисправности'):
+                label=u'Код неисправности', mode=None):
+    # mode - скрытое поле ?mode=... (у GET-формы параметры из адреса action
+    # браузер отбрасывает, поэтому режим передаём полем, а не в action).
+    hidden = u''
+    if mode:
+        hidden += u'<input type="hidden" name="mode" value="%s">' % mode
+    if brand:
+        hidden += u'<input type="hidden" name="b" value="%s">' % brand
     return (u'<form class="sf" action="%s" method="get" role="search">'
             u'<input type="search" name="q" placeholder="%s" aria-label="%s" '
             u'autocomplete="off" inputmode="text">%s<button type="submit">%s</button></form>'
-            % (action, ph, label, (u'<input type="hidden" name="b" value="%s">' % brand) if brand else u'', btn))
+            % (action, ph, label, hidden, btn))
 
 TITLE_MAX = 60
 

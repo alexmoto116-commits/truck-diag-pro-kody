@@ -11,7 +11,8 @@
 Вызывается из scripts/build_pages.py (build() передаёт сюда свой pcode и берёт
 список адресов для карт). Отдельно запускать не нужно.
 """
-import io, os, re, sys
+import io, json, os, re, sys
+from datetime import date
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import build_pages as bp                                    # noqa: E402
@@ -22,6 +23,12 @@ NAME_RU = {'eberspacher': u'Eberspächer', 'webasto': u'Webasto', 'planar': u'П
 NAME_EN = {'eberspacher': u'Eberspächer', 'webasto': u'Webasto', 'planar': u'Planar'}
 UNCONFIRMED = u'не подтверждено'
 ROBOTS_NOINDEX = u'<meta name="robots" content="noindex,follow">\n'
+
+# Выпуск частями: страница кода создаётся только для кода из партии с датой
+# не позже даты сборки. Партии - в scripts/heater_release.json.
+RELEASE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'heater_release.json')
+HEATER_EXAMPLE_RU = u'031'
+HEATER_EXAMPLE_EN = u'031'
 
 # Общие советы по типу неисправности. Подбираются по словам в русском тексте
 # кода: по одному совету на тему, не больше четырёх, в порядке списка.
@@ -62,7 +69,7 @@ TOPICS = [
 FALLBACK = [
     (u'Запишите код, время появления и условия: холодный пуск, работа на ходу или стоянка.',
      u'Note the code, when it appeared and the conditions: cold start, driving or idling.'),
-    (u'Осмотрите разъёмы этого узла: окисление и слабые клеммы - частая причина.',
+    (u'Осмотрите разъёмы этого узла: окисление и слабые клеммы — частая причина.',
      u'Inspect the connectors of this part: corrosion and loose terminals are a common cause.'),
 ]
 ZERO_NOTE = (u'Это не ошибка: строка означает, что неисправностей нет. Если отопитель не работает, '
@@ -89,6 +96,19 @@ def _slug(brand, code):
 
 def _unconfirmed(entry):
     return UNCONFIRMED in (entry.get('ru') or '')
+
+
+def load_release():
+    """Партии из heater_release.json: {'planar:1': '2026-10-17', ...}.
+    Код в двух партиях - ошибка данных, падаем сразу."""
+    batches = json.loads(io.open(RELEASE_FILE, encoding='utf-8').read())
+    out = {}
+    for batch in batches:
+        for key in batch['keys']:
+            if key in out:
+                raise ValueError(u'код в двух партиях: %s' % key)
+            out[key] = batch['date']
+    return out
 
 
 def make_title(prefix, short, lang_sep=u' — '):
@@ -143,18 +163,20 @@ def render(lang, rel, title, desc, h1, sub, sections, here, brand=None, noindex=
         head = head.replace(u'<meta name="theme-color"', ROBOTS_NOINDEX + u'<meta name="theme-color"', 1)
     body = [head, u'<h1>%s</h1>' % bp.esc(h1)]
     if ru:
-        body.append(bp.search_form(brand, ph=(u'Код %s, например %s' % (NAME_RU[brand], brand_example(brand))
-                                              if brand else u'Ваш код, например 1078/3')))
+        body.append(bp.search_form(brand, mode='heater',
+                                   ph=(u'Код %s, например %s' % (NAME_RU[brand], brand_example(brand))
+                                       if brand else u'Код отопителя, например %s' % HEATER_EXAMPLE_RU)))
         cta = (u'<p class="cta">Знаете номер кода? <a href="%s">Введите его в поиск</a> — или вставьте '
                u'сразу весь список со сканера, покажем, какая поломка настоящая.</p>'
-               % (u'/?b=%s' % brand if brand else u'/'))
+               % (u'/?mode=heater&amp;b=%s' % brand if brand else u'/?mode=heater'))
     else:
-        body.append(bp.search_form(brand, ph=(u'Your %s code, e.g. %s' % (NAME_EN[brand], brand_example(brand))
-                                              if brand else u'Your code, e.g. 1078/3'),
-                                   action=u'/en/', btn=u'Search', label=u'Fault code'))
+        body.append(bp.search_form(brand, mode='heater',
+                                   ph=(u'Your %s code, e.g. %s' % (NAME_EN[brand], brand_example(brand))
+                                       if brand else u'Heater code, e.g. %s' % HEATER_EXAMPLE_EN),
+                                   action=u'/en/', btn=u'Search', label=u'Heater fault code'))
         cta = (u'<p class="cta">Know the code number? <a href="%s">Type it into the search</a> — or paste '
                u'the whole list from the scanner and we will show which fault is the real one.</p>'
-               % (u'/en/?b=%s' % brand if brand else u'/en/'))
+               % (u'/en/?mode=heater&amp;b=%s' % brand if brand else u'/en/?mode=heater'))
     body.append(u'<p class="sub">%s</p>' % sub)
     body.extend(sections)
     body.append(cta)
@@ -202,7 +224,7 @@ def _code_page(lang, b, code, entry, prev_c, next_c):
     desc = make_desc(lang, prefix, short)
     rel = ('otopiteli/%s.html' if ru else 'en/otopiteli/%s.html') % _slug(b, code)
     if ru:
-        sub = (u'Код <b>%s</b> отопителя %s. Текст из заводской таблицы; ниже - что проверить '
+        sub = (u'Код <b>%s</b> отопителя %s. Текст из заводской таблицы; ниже — что проверить '
                u'на месте и соседние коды.' % (esc_c(code), esc_c(name)))
         s_what, s_check, s_near, s_more = u'Что означает код', u'Что проверить', u'Соседние коды', u'Где ещё смотреть'
         near_lbl = (u'Предыдущий код', u'Следующий код')
@@ -228,19 +250,23 @@ def _code_page(lang, b, code, entry, prev_c, next_c):
         items = advice(lang, entry.get('ru') or '')
         checks = u'<ul>%s</ul>' % u''.join(u'<li>%s</li>' % bp.esc(t) for t in items)
     sections.append(u'<section><h2>%s</h2>%s</section>' % (s_check, checks))
+    # Соседи - только выпущенные (prev_c/next_c уже отфильтрованы в build()).
+    # Строка как в kody/: номер в колонке span.mono, текст в span.nm.
     near = []
-    for lbl, c in ((near_lbl[0], prev_c), (near_lbl[1], next_c)):
-        if c is None:
-            continue
-        cp = (u'/otopiteli/%s.html' if ru else u'/en/otopiteli/%s.html') % _slug(b, c)
-        ctext = _short(c_text(b, c, lang))
-        near.append(u'<li>%s: <a href="%s">%s %s</a> - %s</li>'
-                    % (lbl, cp, bp.esc(c), bp.esc(name), bp.esc(ctext)))
+    if prev_c is not None:
+        cp = (u'/otopiteli/%s.html' if ru else u'/en/otopiteli/%s.html') % _slug(b, prev_c)
+        near.append(u'<li><a href="%s"><span class="mono">← %s</span><span class="nm">%s</span></a></li>'
+                    % (cp, bp.esc(prev_c), bp.esc(_short(c_text(b, prev_c, lang)))))
+    if next_c is not None:
+        cn = (u'/otopiteli/%s.html' if ru else u'/en/otopiteli/%s.html') % _slug(b, next_c)
+        near.append(u'<li><a href="%s"><span class="mono">%s</span><span class="nm">%s →</span></a></li>'
+                    % (cn, bp.esc(next_c), bp.esc(_short(c_text(b, next_c, lang)))))
     if near:
         sections.append(u'<section><h2>%s</h2><ul class="near">%s</ul></section>'
                         % (s_near, u''.join(near)))
     sections.append(u'<section><h2>%s</h2><ul class="near">%s</ul></section>'
-                    % (s_more, u''.join(u'<li><a href="%s">%s</a></li>' % (h, bp.esc(t)) for h, t in more)))
+                    % (s_more, u''.join(u'<li><a href="%s"><span class="nm">%s</span></a></li>'
+                                        % (h, bp.esc(t)) for h, t in more)))
     noindex = _unconfirmed(entry)
     html = render(lang, rel, title, desc, h1, sub, sections, here=h1, brand=b, noindex=noindex)
     return rel, html, noindex
@@ -259,7 +285,7 @@ def esc_c(t):
     return bp.esc(t)
 
 
-def _index_page(lang, codes_by):
+def _index_page(lang, codes_by, is_live):
     ru = lang == 'ru'
     total = sum(len(v) for v in codes_by.values())
     if ru:
@@ -287,9 +313,14 @@ def _index_page(lang, codes_by):
         head = (h_tpl % (name, len(rows))) if not ru else (u'%s — %s' % (name, bp.n_codes(len(rows))))
         tr = []
         for code, entry in rows:
+            text = bp.esc(_short(entry.get(lang) or entry.get('ru') or ''))
+            if not is_live(b, code):
+                # Код видно текстом, страницы пока нет - ссылки нет.
+                tr.append(u'<tr><td class="fmi">%s</td><td>%s</td></tr>' % (bp.esc(code), text))
+                continue
             cp = (u'/otopiteli/%s.html' if ru else u'/en/otopiteli/%s.html') % _slug(b, code)
             tr.append(u'<tr><td class="fmi"><a href="%s">%s</a></td><td>%s</td></tr>'
-                      % (cp, bp.esc(code), bp.esc(_short(entry.get(lang) or entry.get('ru') or ''))))
+                      % (cp, bp.esc(code), text))
         mk = (u'/marki/%s.html' if ru else u'/en/marki/%s.html') % b
         sections.append(u'<section id="%s"><h2>%s</h2><p class="lead"><a href="%s">%s</a></p>'
                         u'<table>%s</table></section>'
@@ -298,12 +329,20 @@ def _index_page(lang, codes_by):
     return rel, render(lang, rel, title, desc, h1, sub, sections, here=h1)
 
 
-def build(root=None, pcode=None):
-    """Пишет все страницы отопителей в root (по умолчанию корень сайта).
-    Возвращает адреса для карт сайта (без noindex) и список noindex-страниц."""
+def _rel(lang, b, code):
+    return ('otopiteli/%s.html' if lang == 'ru' else 'en/otopiteli/%s.html') % _slug(b, code)
+
+
+def build(root=None, pcode=None, today=None):
+    """Пишет страницы отопителей в root (по умолчанию корень сайта): только коды
+    из партий с датой не позже today (по умолчанию - сегодня). Файлы невыпущенных
+    кодов удаляет, если остались от прошлой сборки. Оглавления пишет всегда.
+    Возвращает адреса для карт сайта (только выпущенные, без noindex),
+    список записанных файлов, noindex-страницы и удалённые файлы."""
     root = root or bp.ROOT
     if pcode is None:
         pcode = bp.load_pcode()
+    today = (today or date.today()).isoformat()
     codes_by = {}
     for b in BRANDS:
         src = pcode.get(b) or {}
@@ -312,12 +351,23 @@ def build(root=None, pcode=None):
         if items:
             codes_by[b] = items
     if not codes_by:
-        return {'urls': [], 'written': [], 'noindex': []}
+        return {'urls': [], 'written': [], 'noindex': [], 'removed': []}
     _CUR['codes'] = {b: dict(v) for b, v in codes_by.items()}
     for b, items in codes_by.items():
         _EXAMPLES[b] = items[0][0]
 
-    urls, written, noindex = [], [], []
+    # Партии: каждый ключ должен существовать в pcode.json.
+    release = load_release()
+    known = set('%s:%s' % (b, c) for b, items in codes_by.items() for c, _ in items)
+    missing = sorted(k for k in release if k not in known)
+    if missing:
+        raise ValueError(u'в партиях есть коды, которых нет в pcode.json: %s' % u', '.join(missing))
+    live = set(k for k, d in release.items() if d <= today)
+
+    def is_live(b, code):
+        return '%s:%s' % (b, code) in live
+
+    urls, written, noindex, removed = [], [], [], []
     slugs = set()
     for lang in ('ru', 'en'):
         for b, items in codes_by.items():
@@ -326,8 +376,15 @@ def build(root=None, pcode=None):
                 if slug in slugs:
                     raise ValueError(u'повтор адреса: %s %s' % slug)
                 slugs.add(slug)
-                prev_c = items[i - 1][0] if i > 0 else None
-                next_c = items[i + 1][0] if i + 1 < len(items) else None
+                if not is_live(b, code):
+                    # Файла быть не должно: если остался от прошлой сборки - убираем.
+                    stale = os.path.join(root, _rel(lang, b, code).replace('/', os.sep))
+                    if os.path.isfile(stale):
+                        os.remove(stale)
+                        removed.append(_rel(lang, b, code))
+                    continue
+                prev_c = items[i - 1][0] if i > 0 and is_live(b, items[i - 1][0]) else None
+                next_c = items[i + 1][0] if i + 1 < len(items) and is_live(b, items[i + 1][0]) else None
                 rel, html, is_no = _code_page(lang, b, code, entry, prev_c, next_c)
                 _write(root, rel, html)
                 written.append(rel)
@@ -335,8 +392,8 @@ def build(root=None, pcode=None):
                     noindex.append(rel)
                 else:
                     urls.append('%s/%s' % (SITE, rel))
-        rel, html = _index_page(lang, codes_by)
+        rel, html = _index_page(lang, codes_by, is_live)
         _write(root, rel, html)
         written.append(rel)
         urls.append('%s/%s' % (SITE, rel[:-len('index.html')]))
-    return {'urls': urls, 'written': written, 'noindex': noindex}
+    return {'urls': urls, 'written': written, 'noindex': noindex, 'removed': removed}

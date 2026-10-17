@@ -400,6 +400,15 @@ def add_hreflang_to_ru(rel_path):
     return True
 
 
+def heater_section_en(b, bn):
+    """Блок на странице марки-отопителя: ссылка на его коды в английском оглавлении.
+    Ставится и в цикле по SPN, и в цикле дилерских марок (как в build_pages.py)."""
+    return (u'<section><h2>%s codes, one by one</h2><p class="lead">Every code has its '
+            u'own page: what it means, what to check and the neighbouring codes. '
+            u'<a href="/en/otopiteli/#%s">Index of %s codes</a>.</p></section>'
+            % (bp.esc(bn), b, bp.esc(bn)))
+
+
 def build():
     ru_db = bp.load_db()
     en_db = be.load_en()
@@ -621,10 +630,7 @@ def build():
                            exclude=stop_codes))
         secs.insert(0, brand_intro_en(b, nums, top))
         if b in bp.HEATER_BRANDS:
-            secs.append(u'<section><h2>%s codes, one by one</h2><p class="lead">Every code has its '
-                        u'own page: what it means, what to check and the neighbouring codes. '
-                        u'<a href="/en/otopiteli/#%s">Index of %s codes</a>.</p></section>'
-                        % (bp.esc(bname(b)), b, bp.esc(bname(b))))
+            secs.append(heater_section_en(b, bname(b)))
         title = MK['titleTpl'] % bname(b)
         h1 = MK['h1Tpl'] % bname(b)
         desc = MK['descStd'] % (bn, len(own_en) if own_en else len(mine_en))
@@ -697,6 +703,8 @@ def build():
             bp.top_spns(b, per_en, lambda s: s in set(written) and s not in closed,
                         lambda s, _r: is_stop(s), [t for _, t in rows])))
 
+        if b in bp.HEATER_BRANDS:
+            secs.append(heater_section_en(b, bn_en))
         title = MK['titleTpl'] % bn_en
         h1 = MK['h1Tpl'] % bn_en
         desc = MK['dealerDesc'] % (bn_en, len(rows))
