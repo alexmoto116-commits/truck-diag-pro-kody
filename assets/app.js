@@ -294,6 +294,11 @@
     midSel.style.display = list ? '' : 'none';
     if(std) std.style.display = MID_BRANDS[brand] ? 'none' : '';
     if(input) input.placeholder = MID_BRANDS[brand] ? 'P100 FMI 4' : 'SPN 100 FMI 1';
+    /* Выбор стандарта и подсказка поля зависят и от режима: эта функция
+       вызывается при старте уже после applyLang, и без повторного
+       applyModeUi отопитель и тахограф получали бы пример SPN/FMI и
+       выбор стандарта. */
+    applyModeUi();
   }
 
   /* Свободный ввод для этих марок - не SPN, а PID/SID: "P100 FMI 4"
