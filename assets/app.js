@@ -109,6 +109,11 @@
      ветка включается только по этому списку. */
   var SPN_PCODE_BRANDS = {renault:1};
 
+  /* Марки, у которых дилерские коды бывают короткими hex-кодами из одного-трёх
+     знаков с буквой A-F («9A», «A7», «C0»): это ключи их таблицы, а не SPN.
+     Такой ввод уходит в дилерскую базу, как и буквенно-цифровой код. */
+  var HEX_KEY_BRANDS = {haldex:1};
+
   var NUM_PCODE_BRANDS = {thermoking:1, carrier:1, planar:1, webasto:1,
                           eberspacher:1, daewoo:1, eaton:1, volkswagen:1,
                           /* Подсистемы Iveco: у ivecoedc код мигания
@@ -310,8 +315,10 @@
   function midObdCode(raw){
     var up = normCode(raw);
     if(/FMI/.test(up)) return null;
-    var m = up.match(/\b([PUBC][0-9A-F]{4})\b/);
-    return m ? m[1] : null;
+    /* Пробел или дефис после буквы допускаем: «P 0016», «P-040A» - так Mack
+       и пишут на приборке. В ответ уходит слитная запись «P0016». */
+    var m = up.match(/\b([PUBC])\s*-?\s*([0-9A-F]{4})\b/);
+    return m ? m[1] + m[2] : null;
   }
 
   /* Volvo пишет коды четырьмя семействами: PID и SID - это стандарт
@@ -325,7 +332,9 @@
   /* MID-код по частям: модуль (MID) в начале, внутри или через дефис -
      "MID 144 PID 97 FMI 2", "M128-P100.1", "128-100-1". */
   function midSplit(up){
-    var m = /^M?(\d{3})\s*[-\/]\s*((?:(?:PPID|PSID|PID|SID|PP|PS|P|S)\s*)?\d{1,4}\s*[.\-\/,]\s*\d{1,2})$/.exec(up);
+    /* «M 128-P100.1», «M-128-P100.1» - пробел и дефис после M допустимы;
+       между номером параметра и FMI может стоять просто пробел («P100 1»). */
+    var m = /^M?\s*-?\s*(\d{3})\s*[-\/]\s*((?:(?:PPID|PSID|PID|SID|PP|PS|P|S)\s*)?\d{1,4}(?:\s*[.\-\/,]\s*|\s+)\d{1,2})$/.exec(up);
     if(m) return {mid:m[1], body:m[2]};
     m = /\bMID\s*(\d{3})\b\s*[-\/,]?\s*/.exec(up);
     if(m) return {mid:m[1], body:(up.slice(0, m.index) + ' ' + up.slice(m.index + m[0].length)).trim()};
@@ -336,7 +345,7 @@
   function parseMidBody(body){
     var F = 'PPID|PSID|PID|SID|PP|PS|P|S';
     var m = new RegExp('\\b(' + F + ')\\s*(\\d{1,4})(?:\\s*-\\s*\\d{1,4})?\\D{0,20}?FMI\\s*[:\\-]?\\s*(\\d{1,2})(?!\\d)').exec(body);
-    if(!m) m = new RegExp('\\b(' + F + ')\\s*(\\d{1,4})(?:\\s*-\\s*\\d{1,4})?\\s*[.\\-\\/,]\\s*(\\d{1,2})(?!\\d)').exec(body);
+    if(!m) m = new RegExp('\\b(' + F + ')\\s*(\\d{1,4})(?:\\s*-\\s*\\d{1,4})?(?:\\s*[.\\-\\/,]\\s*|\\s+)(\\d{1,2})(?!\\d)').exec(body);
     if(!m) m = /^()(\d{1,4})\s*(?:FMI\s*[:\-]?\s*|[.\-\/,]\s*|\s+)(\d{1,2})$/.exec(body);
     if(!m) return null;
     return {letter: MID_FAMILY[m[1]] || m[1] || 'P', num: m[2], fmi: parseInt(m[3], 10)};
@@ -443,13 +452,18 @@
       spnNotFound: '<b>SPN {spn}</b> в справочнике не найден — скорее всего, код фирменный. Попробуйте выбрать марку выше или добавьте FMI: например <b>{spn}/1</b>.',
       stepParam: 'параметр', knownFailures: 'известные отказы {brand}',
       stepNeedFmi: 'нужен FMI',
-      needFmiText: 'FMI — вторая половина кода, она говорит <b>что именно</b> с этим параметром не так. Введите её вместе с номером: например <span class="mono">{spn}/1</span>.',
+      needFmiText: 'Это вторая половина кода, она говорит <b>что именно</b> с этим параметром не так. Введите её вместе с номером: например <span class="mono">{spn}/1</span>.',
       stepUrgency: 'срочность',
       urgentText: '<span class="crit">Критично</span> — остановиться при первой безопасной возможности, не тянуть.',
       notUrgentText: '<span class="warn">Ехать можно</span> — но показать код на ближайшем ТО.',
       unknownSpnNote: 'Этого SPN нет в справочнике — скорее всего, код фирменный. Попробуйте выбрать марку выше.',
-      loadError: 'Справочник не загрузился — проверьте, что рядом со страницей лежит папка <b>32-sait-assets</b>.',
-      sourceLabel: 'источник: {src}', fmiNonstandard: 'FMI {fmi} (нестандартное значение)',
+      loadError: 'Не загрузился словарь — обновите страницу.',
+      spnTooBig: 'SPN {spn} — такого SPN нет в J1939 (номера бывают до 524287).',
+      needSpnFmi: 'Введите SPN и FMI, например <b>100.1</b> или <b>SPN 100 FMI 1</b>.',
+      notParsed: 'не разобрали: {items}',
+      dealerAtBrands: 'у марок: {brands}',
+      sysEnginebrake: 'моторный тормоз',
+      sourceLabel: 'источник: {src}', fmiNonstandard: 'FMI {fmi}: значение не стандартное — смотрите расшифровку марки',
       commonTitle: 'Частые коды неисправностей',
       bySituation: 'Если номера кода нет',
       byBrand: 'По маркам',
@@ -602,8 +616,13 @@
       urgentText: '<span class="crit">Critical</span> — stop as soon as it’s safe to do so, don’t keep driving.',
       notUrgentText: '<span class="warn">Safe to drive</span> — but have the code checked at the next service.',
       unknownSpnNote: 'This SPN isn’t in the database — likely a manufacturer-specific code. Try selecting a make above.',
-      loadError: 'The database failed to load — make sure the <b>32-sait-assets</b> folder is next to this page.',
-      sourceLabel: 'source: {src}', fmiNonstandard: 'FMI {fmi} (non-standard value)',
+      loadError: 'The dictionary did not load — refresh the page.',
+      spnTooBig: 'SPN {spn} — there is no such SPN in J1939 (numbers go up to 524287).',
+      needSpnFmi: 'Enter the SPN and the FMI, for example <b>100.1</b> or <b>SPN 100 FMI 1</b>.',
+      notParsed: 'not parsed: {items}',
+      dealerAtBrands: 'at makes: {brands}',
+      sysEnginebrake: 'engine brake',
+      sourceLabel: 'source: {src}', fmiNonstandard: 'FMI {fmi}: non-standard value — see the make’s decoding',
       commonTitle: 'Common fault codes',
       bySituation: 'If you don’t have a code number',
       byBrand: 'By make',
@@ -732,7 +751,7 @@
       urgentText: '<span class="crit">Kritisch</span> — bei nächster sicherer Gelegenheit anhalten, nicht weiterfahren.',
       notUrgentText: '<span class="warn">Weiterfahrt möglich</span> — Code aber beim nächsten Service prüfen lassen.',
       unknownSpnNote: 'Dieser SPN ist nicht in der Datenbank — vermutlich ein herstellerspezifischer Code. Wählen Sie oben eine Marke.',
-      loadError: 'Die Datenbank konnte nicht geladen werden — prüfen Sie, ob der Ordner <b>32-sait-assets</b> neben dieser Seite liegt.',
+      loadError: 'Das Wörterbuch wurde nicht geladen — bitte Seite neu laden.',
       sourceLabel: 'Quelle: {src}', fmiNonstandard: 'FMI {fmi} (nicht standardisierter Wert)',
       commonTitle: 'Häufige Fehlercodes',
       bySituation: 'Wenn Sie keine Codenummer haben',
@@ -862,7 +881,7 @@
       urgentText: '<span class="crit">Critique</span> — arrêtez-vous dès que possible en sécurité, ne continuez pas à rouler.',
       notUrgentText: '<span class="warn">Vous pouvez rouler</span> — mais faites vérifier le code lors du prochain entretien.',
       unknownSpnNote: 'Ce SPN n’est pas dans la base — probablement un code propre au constructeur. Essayez de choisir une marque ci-dessus.',
-      loadError: 'La base n’a pas pu être chargée — vérifiez que le dossier <b>32-sait-assets</b> se trouve à côté de cette page.',
+      loadError: 'Le dictionnaire ne s’est pas chargé — actualisez la page.',
       sourceLabel: 'source : {src}', fmiNonstandard: 'FMI {fmi} (valeur non standard)',
       commonTitle: 'Codes défaut fréquents',
       bySituation: 'Si vous n’avez pas de numéro de code',
@@ -992,7 +1011,7 @@
       urgentText: '<span class="crit">Crítico</span> — detente en cuanto sea seguro hacerlo, no sigas conduciendo.',
       notUrgentText: '<span class="warn">Se puede seguir conduciendo</span> — pero revisa el código en el próximo mantenimiento.',
       unknownSpnNote: 'Este SPN no está en la base de datos — probablemente un código específico del fabricante. Prueba a elegir una marca arriba.',
-      loadError: 'No se pudo cargar la base de datos — comprueba que la carpeta <b>32-sait-assets</b> esté junto a esta página.',
+      loadError: 'El diccionario no se ha cargado — actualiza la página.',
       sourceLabel: 'fuente: {src}', fmiNonstandard: 'FMI {fmi} (valor no estándar)',
       commonTitle: 'Códigos de avería frecuentes',
       bySituation: 'Si no tiene el número del código',
@@ -1122,7 +1141,7 @@
       urgentText: '<span class="crit">Crítico</span> — pare assim que for seguro fazê-lo, não continue dirigindo.',
       notUrgentText: '<span class="warn">Pode continuar dirigindo</span> — mas verifique o código na próxima revisão.',
       unknownSpnNote: 'Este SPN não está no banco de dados — provavelmente um código específico do fabricante. Tente selecionar uma marca acima.',
-      loadError: 'Não foi possível carregar o banco de dados — verifique se a pasta <b>32-sait-assets</b> está junto a esta página.',
+      loadError: 'O dicionário não foi carregado — atualize a página.',
       sourceLabel: 'fonte: {src}', fmiNonstandard: 'FMI {fmi} (valor não padrão)',
       commonTitle: 'Códigos de falha frequentes',
       bySituation: 'Se não tiver o número do código',
@@ -1252,7 +1271,7 @@
       urgentText: '<span class="crit">Krytyczne</span> — zatrzymaj się przy najbliższej bezpiecznej okazji, nie jedź dalej.',
       notUrgentText: '<span class="warn">Można jechać dalej</span> — ale pokaż kod przy najbliższym przeglądzie.',
       unknownSpnNote: 'Tego SPN nie ma w bazie — prawdopodobnie kod producenta. Spróbuj wybrać markę powyżej.',
-      loadError: 'Baza się nie wczytała — sprawdź, czy folder <b>32-sait-assets</b> jest obok tej strony.',
+      loadError: 'Słownik się nie wczytał — odśwież stronę.',
       sourceLabel: 'źródło: {src}', fmiNonstandard: 'FMI {fmi} (wartość niestandardowa)',
       commonTitle: 'Częste kody usterek',
       bySituation: 'Jeśli nie masz numeru kodu',
@@ -1382,7 +1401,7 @@
       urgentText: '<span class="crit">Kritik</span> — güvenli olan ilk fırsatta durun, sürmeye devam etmeyin.',
       notUrgentText: '<span class="warn">Yola devam edilebilir</span> — ancak kodu bir sonraki serviste gösterin.',
       unknownSpnNote: 'Bu SPN veritabanında yok — muhtemelen üreticiye özel bir kod. Yukarıdan bir marka seçmeyi deneyin.',
-      loadError: 'Veritabanı yüklenemedi — <b>32-sait-assets</b> klasörünün bu sayfanın yanında olduğundan emin olun.',
+      loadError: 'Sözlük yüklenemedi — sayfayı yenileyin.',
       sourceLabel: 'kaynak: {src}', fmiNonstandard: 'FMI {fmi} (standart olmayan değer)',
       commonTitle: 'Sık görülen arıza kodları',
       bySituation: 'Kod numarası yoksa',
@@ -1512,7 +1531,7 @@
       urgentText: '<span class="crit">गंभीर</span> — जैसे ही सुरक्षित हो, रुक जाएं, गाड़ी चलाना जारी न रखें।',
       notUrgentText: '<span class="warn">गाड़ी चलाना सुरक्षित है</span> — लेकिन अगली सर्विस में कोड जरूर दिखाएं।',
       unknownSpnNote: 'यह SPN डेटाबेस में नहीं है — संभवतः यह निर्माता-विशिष्ट कोड है। ऊपर ब्रांड चुनकर देखें।',
-      loadError: 'डेटाबेस लोड नहीं हो पाया — जांचें कि <b>32-sait-assets</b> फ़ोल्डर इस पेज के पास मौजूद है।',
+      loadError: 'शब्दकोश लोड नहीं हुआ — पेज रीफ़्रेश करें।',
       sourceLabel: 'स्रोत: {src}', fmiNonstandard: 'FMI {fmi} (गैर-मानक मान)',
       commonTitle: 'आम फॉल्ट कोड',
       bySituation: 'अगर कोड नंबर नहीं है',
@@ -1642,7 +1661,7 @@
       urgentText: '<span class="crit">紧急</span> — 请在安全的情况下尽快停车，不要继续行驶。',
       notUrgentText: '<span class="warn">可以继续行驶</span> — 但请在下次保养时检查该代码。',
       unknownSpnNote: '数据库中没有该 SPN — 可能是厂商专有代码。请在上方选择品牌后重试。',
-      loadError: '数据库加载失败 — 请确认 <b>32-sait-assets</b> 文件夹与本页面位于同一目录下。',
+      loadError: '词典未能加载 — 请刷新页面。',
       sourceLabel: '来源：{src}', fmiNonstandard: 'FMI {fmi}（非标准值）',
       commonTitle: '常见故障代码',
       bySituation: '如果没有代码编号',
@@ -1878,7 +1897,8 @@
      своего перевода берём английский, а не русский. */
   var EN_FALLBACK = {modeGroup:1, modeMotor:1, modeHeater:1, modeTacho:1, heaterHint:1, heaterEmpty:1,
     heaterBadCode:1, heaterNotFound:1, heaterNotFoundOne:1, brandGroupHeaters:1, brandGroupTacho:1,
-    tachoHint:1, tachoPickBrand:1, tachoNotFound:1, tachoNone:1, codeEmpty:1};
+    tachoHint:1, tachoPickBrand:1, tachoNotFound:1, tachoNone:1, codeEmpty:1,
+    spnTooBig:1, needSpnFmi:1, notParsed:1, dealerAtBrands:1, sysEnginebrake:1};
   function t(key, vars){
     var dict = I18N[currentLang] || I18N.ru;
     var s = dict[key] != null ? dict[key] : (EN_FALLBACK[key] ? I18N.en[key] : I18N.ru[key]);
@@ -1893,6 +1913,13 @@
     var tbl = FMI_I18N[currentLang];
     if(tbl && tbl[f] != null) return tbl[f];
     return DB.fmi[f];
+  }
+  /* FMI из стандарта и описанный в словаре (0-31). Всё остальное - нестандартное. */
+  function fmiKnown(fmi){
+    var f = String(fmi);
+    if(!fmiOk(f)) return false;
+    var f0 = stripZero(f) || f;
+    return fmiLookup(f0) != null || fmiLookup(f) != null;
   }
   function fmiText(fmi){
     var f = String(fmi), v = fmiLookup(f);
@@ -2039,9 +2066,16 @@
     s = s.replace(/[АВЕКМНОРСТХ]/g, function(c){
       return {'А':'A','В':'B','Е':'E','К':'K','М':'M','Н':'H','О':'O','Р':'P','С':'C','Т':'T','Х':'X'}[c];
     });
-    s = s.replace(/^[EF][-:.]?/, '');
+    /* Префикс снимаем по таблице. Eberspächer пишет E и три цифры. Webasto - либо
+       две цифры, либо F и два hex-знака («F09»): «E0», «F0», «EA» у Webasto не код,
+       и обрезать первую букву у них нельзя (получалось «00 - Ошибок нет»). */
+    if(table === 'eberspacher') s = s.replace(/^E[-:.]?/, '');
+    else if(table === 'webasto'){
+      if(/^F[-:.]?[0-9A-F]{2}$/.test(s)) s = s.replace(/^F[-:.]?/, '');
+    }
+    else s = s.replace(/^[EF][-:.]?/, '');
     if(table === 'eberspacher') return /^\d{1,3}$/.test(s) ? ('000' + s).slice(-3) : null;
-    if(table === 'webasto') return /^[0-9A-F]{1,2}$/.test(s) ? ('0' + s).slice(-2) : null;
+    if(table === 'webasto') return /^\d{1,2}$/.test(s) ? ('0' + s).slice(-2) : null;
     if(table === 'planar') return /^\d{1,3}$/.test(s) ? String(parseInt(s, 10)) : null;
     return null;
   }
@@ -2073,6 +2107,8 @@
     if(brand === 'vdo' && /^\d{1,3}$/.test(c)) return ('00' + c).slice(-3);
     if((brand === 'mercury' || brand === 'shtrih') && /^\d{1,2}$/.test(c)) return ('0' + c).slice(-2);
     if(brand === 'kasbi' && /^[0-9a-f][0-9a-fx]{3}$/.test(c)) return c.toUpperCase();
+    /* «0x6A82» - hex с приставкой 0x: ключ таблицы тот же, что у «6A82». */
+    if(brand === 'kasbi' && /^0x[0-9a-f]{4}$/.test(c)) return c.slice(2).toUpperCase();
     return 't:' + t;
   }
   /* Поиск по словам: каждое слово запроса - начало какого-нибудь слова записи
@@ -2353,8 +2389,31 @@
     return s ? arr.indexOf(parseInt(s, 10)) >= 0 : false;
   }
 
+  /* Пара SPN/FMI внутри уже нормализованной строки. Границы чисел соблюдаются:
+     «1234567.1» - это число вне диапазона, а не SPN 234567 (раньше пару
+     отрезали с середины числа). Число слева от пары («2 100.1») или
+     разделитель с числом справа («100.1.1», «1.1.1.1») - не пара, а
+     склейка чужих чисел: такой ввод отказом, без догадок. Знаки и слова
+     после пары («100.0!!», «12401-20 шт») - лишний хвост, отбрасываем. */
+  function pairFind(up){
+    var rx = [
+      /(^|[^0-9A-F])(?:SPN\s*[:\-]?\s*)?([0-9A-F]{1,10})\D{0,20}FMI\s*[:\-]?\s*([0-9A-F]{1,3})/,
+      /(^|[^0-9A-F])([0-9A-F]{1,10})\s*[\/\-.,]\s*([0-9A-F]{1,3})(?![0-9A-F])/,
+      /(^|[^0-9A-F])([0-9A-F]{1,10})\s+([0-9A-F]{1,3})$/
+    ];
+    var m = null;
+    for(var i = 0; i < rx.length && !m; i++) m = rx[i].exec(up);
+    if(!m || !fmiOk(m[3])) return null;
+    if(/\d/.test(up.slice(0, m.index + m[1].length))) return {bad:true};
+    if(/^\s*[.\-\/,]\s*\d/.test(up.slice(m.index + m[0].length))) return {bad:true};
+    if(/^\d+$/.test(m[2]) && parseInt(m[2], 10) > 524287) return {bigSpn: m[2]};
+    return {spn:codeVal(m[2]), fmi:codeVal(m[3])};
+  }
+
   function parseAuto(t){
-    var up = normCode(t);
+    /* Знаки восклицания, точка и вопрос в самом конце - хвост («0000!!», «SPN45.»),
+       код от него не меняется. Слова после кода обрабатывает разбор ниже. */
+    var up = normCode(t).replace(/\s*[!?.;:]+\s*$/, '');
     /* Номер блока КамАЗ-5490 пишут с приставкой ("ADM3 10203", "MR2-12420").
        Приставка - не часть кода в сканере; ищем по цифрам как по обычному
        дилерскому номеру (DB.scan). Без этого "ADM310203" не находилось. */
@@ -2381,17 +2440,30 @@
     // Буква в начале - надёжная примета заводского кода, SPN и FMI всегда
     // числа. Слова SPN/FMI в строке правило отменяют: "97FMI3" и "SPN16" -
     // это ввод по стандарту, а не марочный код.
+    /* Первый токен с буквой впереди - дилерский код, всё после него (слова,
+       точка, «шт», «!!») - хвост от списка или заметок. «P0105-01 Датчик
+       давления», «P0105-01.», «P0105/01» (слеш у дефисного кода = дефис)
+       читаются одинаково. Токен нужен с цифрой и длиной от четырёх знаков;
+       если сразу после него идёт «-число» или «.число», это не конец кода -
+       дальше разбираем как SPN/FMI (и там такой ввод отказ). */
     var lead = up.replace(/\s+/g, '');
-    if(/^[A-Z]/.test(lead) && !/SPN|FMI/.test(lead) && /^[A-Z0-9-]{4,10}$/.test(lead)){
-      return {pcode:up.replace(/\s+/g, ' ')};
+    var lt = /^([A-Z][A-Z0-9]*(?:[-\/][A-Z0-9]+)*)/.exec(lead);
+    if(lt && lt[1].length >= 4 && lt[1].length <= 12 && /\d|[-\/]/.test(lt[1]) &&
+       !/SPN|FMI/.test(lead) && !/^[.\-\/,]\d/.test(lead.slice(lt[1].length))){
+      return {pcode: lt[1].replace('/', '-')};
     }
-    var m = up.match(/(?:SPN\s*[:\-]?\s*)?([0-9A-F]{1,6})\D{0,20}FMI\s*[:\-]?\s*([0-9A-F]{1,3})/);
-    if(!m) m = up.match(/([0-9A-F]{1,6})\s*[\/\-.,]\s*([0-9A-F]{1,3})(?![0-9A-F])/);
-    if(!m) m = up.match(/^([0-9A-F]{1,6})\s+([0-9A-F]{1,3})$/);
-    if(m && !fmiOk(m[2])) m = null;
-    if(m) return {spn:codeVal(m[1]), fmi:codeVal(m[2])};
-    var only = up.match(/^SPN\s*[:\-]?\s*(\d{1,6})$/) || up.match(/^(\d{1,6})$/);
-    if(only) return {spn:codeVal(only[1]), fmi:null};
+    var pm = pairFind(up);
+    if(pm) return pm;
+    var only = up.match(/^SPN\s*[:\-]?\s*(\d{1,10})$/) || up.match(/^(\d{1,10})$/);
+    if(only){
+      /* Номер больше 524287 - не SPN. Но и не обязательно обрывок: у марок с
+         дилерскими номерами из семи цифр он может быть ключом их таблицы.
+         Поэтому это ещё и дилерский код; если его нигде нет - ответ «нет в J1939». */
+      if(parseInt(only[1], 10) > 524287) return {pcode: only[1], bigSpn: only[1]};
+      return {spn:codeVal(only[1]), fmi:null};
+    }
+    /* Слово FMI без номера SPN («FMI 1», «100 FMI») - обрывок, а не дилерский код. */
+    if(/FMI/.test(up)) return {bad:true, fmiOnly:true};
     // Дилерские коды в справочнике очень разной формы: P2BA7, B000101,
     // 00100, "AA 9999", 9A9A99, P0115-01 (MWM), P1204-1196 (BAW, P-код +
     // внутренний номер Bosch, до 10 символов). Общее у них одно - короткий
@@ -2410,13 +2482,13 @@
     if(standard === 'pcode') return {pcode:normCode(t)};
     if(standard === 'spnfmi'){
       var up = normCode(t);
-      var m = up.match(/(?:SPN\s*[:\-]?\s*)?([0-9A-F]{1,6})\D{0,20}FMI\s*[:\-]?\s*([0-9A-F]{1,3})/)
-           || up.match(/([0-9A-F]{1,6})\s*[\/\-.,]\s*([0-9A-F]{1,3})(?![0-9A-F])/)
-           || up.match(/^([0-9A-F]{1,6})\s+([0-9A-F]{1,3})$/);
-      if(m && !fmiOk(m[2])) m = null;
-      if(m) return {spn:codeVal(m[1]), fmi:codeVal(m[2])};
-      var only = up.match(/^SPN\s*[:\-]?\s*(\d{1,6})$/) || up.match(/^(\d{1,6})$/);
-      if(only) return {spn:codeVal(only[1]), fmi:null};
+      var pm = pairFind(up);
+      if(pm) return pm;
+      var only = up.match(/^SPN\s*[:\-]?\s*(\d{1,10})$/) || up.match(/^(\d{1,10})$/);
+      if(only){
+        if(parseInt(only[1], 10) > 524287) return {bigSpn: only[1]};
+        return {spn:codeVal(only[1]), fmi:null};
+      }
       return {bad:true};
     }
     return parseAuto(t);
@@ -2471,6 +2543,15 @@
         || (brand && DB.spnNameRu[brand] && DB.spnNameRu[brand][s])
         || (brand && DB.spnNameEn[brand] && DB.spnNameEn[brand][s])
         || DB.universal[s];
+  }
+  /* Русское имя параметра - та же лестница, что у spnLookup, но без английского:
+     по нему определяем систему, и она не должна зависеть от языка страницы. */
+  function ruSpnName(spn, brand){
+    var s = String(spn), s2 = stripZero(s);
+    function one(k){
+      return DB.spn[k] || (brand && DB.spnNameRu[brand] && DB.spnNameRu[brand][k]) || DB.universal[k];
+    }
+    return one(s) || (s2 ? one(s2) : null) || null;
   }
   function spnName(spn, brand){
     var s = String(spn), found = spnLookup(s, brand);
@@ -2548,7 +2629,8 @@
     for(var j = 0; j < keys.length; j++){
       var tx = blockText(id, keys[j]);
       if(!tx) continue;
-      var h = {id:id, label:blockLabel(id), k:keys[j], spn:spn, fmi:fmi, ownFmi:!!ownFmi};
+      var h = {id:id, label:blockLabel(id), k:keys[j], spn:spn, fmi:fmi, ownFmi:!!ownFmi,
+               ru:(DB.brands[id] && DB.brands[id][keys[j]]) || tx};
       if(ownFmi){
         var low = tx.toLowerCase();
         h.text = tx;
@@ -2581,7 +2663,7 @@
   }
   /* Система для анализа и риска: у блока с ownFmi SPN другой, поэтому
      систему определяем только по тексту. */
-  function hitSys(h){ return systemOf(h.ownFmi ? null : h.spn, h.text); }
+  function hitSys(h){ return systemOf(h.ownFmi ? null : h.spn, h.ru || h.text); }
 
   function ownNote(h){
     return h.ownFmi ? '<div class="st" style="margin-top:7px">' + esc(t('fmiOwn')) + '</div>' : '';
@@ -2722,7 +2804,7 @@
   function describe(spn, fmi, brand){
     var hits = blockHits(brand, spn, fmi);
     if(hits && hits.length){
-      return {text:hits[0].text, src:hits[0].label, k:hits[0].k, hits:hits};
+      return {text:hits[0].text, src:hits[0].label, k:hits[0].k, hits:hits, ru:hits[0].ru || hits[0].text};
     }
     if(brand && !hits){
       var E = en();
@@ -2744,7 +2826,8 @@
         for(var j = 0; j < keys.length; j++){
           var exact = (E && E.brands[d] && E.brands[d][keys[j]])
                    || (DB.brands[d] && DB.brands[d][keys[j]]);
-          if(exact) return {text:withFmiHint(exact, fmi, d), src:t('factorySource', {brand: brandName(d)}), k:keys[j]};
+          if(exact) return {text:withFmiHint(exact, fmi, d), src:t('factorySource', {brand: brandName(d)}), k:keys[j],
+                            ru:(DB.brands[d] && DB.brands[d][keys[j]]) || exact};
         }
       }
     }
@@ -2769,7 +2852,8 @@
     var known = !!name;
     if(!name) name = codeLabel(spn);
     var f = fmiHintOf(brand, fmi) || t('fmiNonstandard', {fmi:fmi});
-    return {text:name + ' — ' + f, src:known ? t('standardSource') : null, unknown:!known};
+    return {text:name + ' — ' + f, src:known ? t('standardSource') : null, unknown:!known,
+            ru:ruSpnName(spn, brand) || name};
   }
   /* Все попадания - из блоков с ownFmi (свой FMI): общий смысл по J1939 тоже показываем. */
   function onlyOwnFmi(hits){
@@ -2949,6 +3033,9 @@
 
   function urgent(spn, fmi, brand){
     if(OWN_FMI[brand]) return hasNum(DB.urgentSpn, spn);
+    /* FMI вне 0-31 или не описанный в словаре: по одному SPN «Критично» не ставим -
+       значение нестандартное, и смысл его знает только марка. */
+    if(!fmiKnown(fmi)) return false;
     if(hasNum(DB.urgentSpn, spn)) return true;
     if(hasNum(DB.urgentFmi, fmi)) return true;
     if(brand !== 'kamaz') return false;
@@ -2991,7 +3078,7 @@
     var html = chain(steps);
     if(!quiet && !d.unknown && !OWN_FMI[brand]){
       html += '<div class="card">' + riskBlock({
-        spn:spn, fmi:fmi, sys:systemOf(spn, d.text), urgent:u
+        spn:spn, fmi:fmi, sys:systemOf(spn, d.ru || d.text), urgent:u
       }) + '</div>';
     }
     if(d.unknown) html += note(t('unknownSpnNote'));
@@ -3127,18 +3214,28 @@
   };
   /* Если SPN нет в списках - определяем систему по названию: база
      русская и слова в ней устойчивые. */
+  /* Английские слова - для текста записи на английском языке: система должна
+     быть та же, что по русскому тексту (иначе язык менял уровень риска). */
   var SYS_WORD = {
-    scr  :['adblue','мочевин','реаген','nox','scr','сажев','катализат','dpf','выхлоп','отработавш'],
-    oil  :['масл','смазк'],
-    cool :['охлажд','антифриз','радиатор','вентилятор',' ож'],
-    fuel :['топлив','форсунк','рампе','рампы','рампа','тнвд','впрыск','солярк'],
-    air  :['наддув','турбо','воздуш','впуск','интеркул','дроссел'],
-    power:['бортовой сети','аккумул','генерат','питани','реле'],
+    scr  :['adblue','мочевин','реаген','nox','scr','сажев','катализат','dpf','выхлоп','отработавш',
+           'urea','exhaust','particulate','catalyst'],
+    oil  :['масл','смазк','oil','lubric'],
+    cool :['охлажд','антифриз','радиатор','вентилятор',' ож','coolant','cooling','radiator','fan'],
+    fuel :['топлив','форсунк','рампе','рампы','рампа','тнвд','впрыск','солярк',
+           'fuel','injector','injection','rail'],
+    air  :['наддув','турбо','воздуш','впуск','интеркул','дроссел',
+           'boost','turbo','intake','intercooler','throttle'],
+    power:['бортовой сети','аккумул','генерат','питани','реле',
+           'battery','alternator','charging','power supply','relay'],
     can  :['can','шина','сообщени','связ'],
-    brake:['тормоз','abs','ebs','ресивер','пневмо'],
-    trans:['коробк','сцеплен','передач','кпп','трансмисс'],
-    prot :['ограничен','защит','останов двигател','дерейт']
+    brake:['тормоз','abs','ebs','ресивер','пневмо','brake','air reservoir'],
+    trans:['коробк','сцеплен','передач','кпп','трансмисс',
+           'gearbox','transmission','clutch','gear'],
+    prot :['ограничен','защит','останов двигател','дерейт','protection','derate','shutdown']
   };
+  /* Моторный (выхлопной) тормоз и ретардер - не колёсные тормоза: своя система.
+     Проверяем раньше SYS_WORD, иначе «тормоз» в тексте уводил их к колёсным. */
+  var ENG_BRAKE_RE = /моторн[а-яё]*\s+тормоз|тормоз[а-яё]*\s+двигател|горн[а-яё]*\s+тормоз|ретардер|retarder|engine\s+brake|exhaust\s+brake|compression\s+brake/i;
   /* Слово нашлось, но по случайной подстроке, а не по смыслу - проверено
      на реальных данных всего справочника: «пасса[жи]р» содержит «сажи»
      (счётчик пассажиров попадал в сажевый фильтр), «ожида[ем]ого»
@@ -3176,6 +3273,7 @@
   function systemOf(spn, name){
     var k;
     for(k in SYS_SPN){ if(hasNum(SYS_SPN[k], spn)) return k; }
+    if(ENG_BRAKE_RE.test(name || '')) return 'enginebrake';
     var low = (name || '').toLowerCase();
     for(k in SYS_WORD){
       if(SYS_WORD[k].some(function(w){
@@ -3251,7 +3349,7 @@
         return {spn:c.spn, fmi:c.fmi, text:h0.text, sys:hitSys(h0), urgent:h0.urgent,
                 ownFmi:h0.ownFmi, elec:h0.elec, label:h0.label, alt:d.hits.slice(1)};
       }
-      return {spn:c.spn, fmi:c.fmi, text:d.text, sys:systemOf(c.spn, d.text),
+      return {spn:c.spn, fmi:c.fmi, text:d.text, sys:systemOf(c.spn, d.ru || d.text),
               urgent:urgent(c.spn, c.fmi, brand)};
     });
     var id = function(c){ return c.spn + '.' + c.fmi; };
@@ -3379,6 +3477,7 @@
     oil  :{elec:['oilElec','watch'],  any:['oilPhys','now']},
     cool :{elec:['coolElec','watch'], any:['coolPhys','now']},
     brake:{                           any:['brake','now']},
+    enginebrake:{                     any:['engBrake','watch']},
     scr  :{                           any:['scr','base']},
     power:{                           any:['power','short']},
     can  :{                           any:['can','base']},
@@ -3413,6 +3512,8 @@
                 'Дальше — пробитая прокладка ГБЦ, повреждённая головка, в худшем случае трещина в блоке. Заглушить и дать остыть; крышку расширительного бачка на горячую не открывать.'],
       coolElec:['Код электрический: врёт датчик или его проводка, а не система охлаждения.',
                 'Стрелка температуры теперь ненадёжна, а вентилятор может не включиться вовремя. Следи за уровнем ОЖ и не держи двигатель в нагрузке на затяжном подъёме.'],
+      engBrake:['Моторный (выхлопной) тормоз или ретардер не работает: машина едет, но на спуске тормозит только колёсная система. Колёсные тормоза при этом работают штатно.',
+                'На длинных спусках держи пониженную передачу и тормози колёсами короткими торможениями, давая им остыть. Привод и пневмоклапан моторного тормоза проверь на ближайшей стоянке.'],
       brake:['Часть тормозного контура или ABS/EBS вышла из работы. Педаль при этом может ощущаться нормально — до первого экстренного торможения или спуска.',
              'Дальше — увеличенный тормозной путь, занос на скользком, отказ на затяжном спуске. Это тот случай, когда «доеду потихоньку» не работает.'],
       scr:['Дозирование мочевины прервано, и блок это считает. Сначала лампа, потом срез момента, потом принудительное ограничение до скорости пешехода — ступени включаются по наработке, а не разом.',
@@ -3445,6 +3546,8 @@
                 'Next comes a blown head gasket, a damaged head and, at worst, a cracked block. Shut it down and let it cool — never open the expansion tank cap while hot.'],
       coolElec:['This is an electrical fault: the sensor or its wiring is lying, not the cooling system.',
                 'The temperature gauge is unreliable now and the fan may not kick in on time. Watch the coolant level and keep the engine off load on long climbs.'],
+      engBrake:['The engine (exhaust) brake or retarder is not working: the truck still drives, but on a descent only the wheel brakes slow it. The wheel brakes themselves work normally.',
+                'On long descents use a lower gear and short wheel-brake applications to let them cool. Check the engine brake actuator and its air valve at the next stop.'],
       brake:['Part of the brake circuit or ABS/EBS is out of service. The pedal may still feel normal — until the first emergency stop or descent.',
              'Next comes longer stopping distance, a skid on a slick surface, failure on a long downgrade. This is the case where "I will take it slow" does not work.'],
       scr:['Urea dosing is interrupted and the ECU is counting. First the lamp, then a torque cut, then a forced crawl speed — the stages come in by engine hours, not all at once.',
@@ -3653,21 +3756,50 @@
   /* Номер последнего разбора: дополнительный дилерский блок старого запроса
      не должен лечь поверх нового результата. */
   var runSeq = 0;
+  /* Без марки код читается по стандарту, а дилерский номер может значить другое
+     у каждой марки. Поэтому дилерскую базу без марки спрашиваем один раз (это
+     один запрос к воркеру): если номер известен у марок, их тексты идут блоком
+     «у марок: …» под стандартным смыслом. Нет связи - остаётся стандартный ответ. */
+  function brandlessExtra(typed, skip){
+    if(skip || !/^\d{1,7}(?:[ \-\/.,]\d{1,3})?$/.test(typed)) return Promise.resolve('');
+    return fetchPcodeOne('', typed, currentLang).then(function(hits){
+      if(!hits || !hits.length) return '';
+      var names = [], texts = [];
+      hits.forEach(function(h){
+        var nm = brandName(h.brand) || h.brand;
+        if(names.indexOf(nm) < 0) names.push(nm);
+        /* Текст воркера уже начинается с названия марки («Volkswagen — …») - второй раз не пишем. */
+        texts.push('<b>' + esc(h.text) + '</b>');
+      });
+      return chain([{st: t('dealerAtBrands', {brands: esc(names.join(', '))}), tx: texts.join('<br>'), cls:'ok'}]);
+    }).catch(function(){ return ''; });
+  }
+
   function run(skipDealer, noSpecial, noOpen){
     /* Отопитель и тахограф - свои пути разбора, SPN/FMI и блинки сюда не идут. */
     if(MODE !== 'main') return runMode();
     var mySeq = ++runSeq;
-    var typed = String(input.value || '').trim().replace(/\s+/g, ' ');
+    /* Хвост из знаков восклицания и точки в конце не влияет на код («0104!!» = «0104»):
+       срезаем его здесь, чтобы маршрут (дилерская база, SPN, MID) выбирался по коду. */
+    var typed = String(input.value || '').trim().replace(/\s+/g, ' ').replace(/\s*[!?.;:]+$/, '');
     var up = normCode(typed);
     var brand = sel.value;
     var midNote = '';
     /* Volvo: MID, SID, PSID или PPID в коде - таблица модулей (volvomid), а не SPN.
        Без MID берём модуль двигателя 128. */
-    var fromVolvo = brand === 'volvo' && (/\bMID\s*\d{3}\b/.test(up) || /\b(SID|PSID|PPID)\s*\d/.test(up));
+    /* MID-код Volvo вида «M128-P100.1» (с пробелом или дефисом у M) узнаём по
+       шаблону, а не только по слову MID: такой код - MID-код при любой марке
+       и без марки. Detroit/Western Star и Mack/Freightliner свою схему держат. */
+    var midLike = /^M\s*-?\s*\d{3}\s*[-\/]?\s*(?:PPID|PSID|PID|SID|PP|PS|P|S)\s*\d/.test(up);
+    var fromVolvo = (brand === 'volvo' && (/\bMID\s*\d{3}\b/.test(up) || /\b(SID|PSID|PPID)\s*\d/.test(up))) ||
+                    (midLike && brand !== 'freightliner' && brand !== 'mack' &&
+                     brand !== 'detroitdiesel' && brand !== 'westernstar');
     if(fromVolvo) brand = 'volvomid';
     var midBrand = !!MID_BRANDS[brand];
-    /* Detroit/Western Star с явным SPN - обычный SPN/FMI, а не MID/PID. */
-    if(midBrand && MID_FIXED[brand] && /\bSPN\b/.test(up)) midBrand = false;
+    /* Detroit/Western Star с явным SPN - обычный SPN/FMI, а не MID/PID.
+       Так же и с шестизначным SPN и FMI через точку, дефис или пробел
+       («520199.19»): у этих марок такой код - не MID, а SPN/FMI. */
+    if(midBrand && MID_FIXED[brand] && (/SPN/.test(up) || /^\d{1,7}\s*[-.\/,\s]\s*\d{1,3}(?![-.\/,\s]\s*\d)(?!\d)/.test(up))) midBrand = false;
     var mid = null;
     if(midBrand){
       var typedMid = midSplit(up).mid;
@@ -3734,6 +3866,39 @@
       return;
     }
 
+    /* Список через запятую у марки с закрытой базой (DAF, Volvo, Mercedes, MWM):
+       каждый элемент разбираем так же, как одиночный ввод этой марки - дилерская
+       база первой, потом стандарт J1939. Элемент, который не разобрали, показываем
+       строкой «не разобрали», а не отбрасываем молча. */
+    var items = (!midBrand && isClosedBrand(brand) && !skipDealer && std.value !== 'spnfmi' &&
+                 !/\b(SPN|FMI)\b/.test(up) && /[,;]/.test(typed)) ? typed.split(/\s*[,;]\s*/).filter(Boolean) : null;
+    if(items && items.length >= 2){
+      var unparsed = [];
+      ready().then(function(){
+        return Promise.all(items.map(function(it){
+          var ip = parse(it, 'auto');
+          if(!ip || ip.bad || ip.bigSpn){ unparsed.push(it); return ''; }
+          var code = ip.pcode ? ip.pcode : normCode(it);
+          return closedLookup(brand, code).then(function(r){
+            if(r.net.length || r.mine.length) return closedHtml(code, r, brand);
+            if(ip.pcode) return note(t('pcodeNotFound', {code: esc(code)}));
+            /* Нет в дилерской базе - тот же стандартный ответ, что у одиночного ввода. */
+            if(ip.fmi == null){
+              var nm = spnName(ip.spn, brand);
+              return nm ? spnOnlyHtml(ip.spn, brand, nm, false) : note(t('spnNotFound', {spn: esc(ip.spn)}));
+            }
+            return spnFmiHtml(ip.spn, ip.fmi, brand, null, false);
+          }, function(e){ return pcodeErrorText(e, brand); });
+        }));
+      }).then(function(parts){
+        if(mySeq !== runSeq) return;
+        var html = parts.join('');
+        if(unparsed.length) html += note(t('notParsed', {items: esc(unparsed.join(', '))}));
+        rnd(html, true);
+      }).catch(function(){ if(mySeq === runSeq) rnd(note(t('loadError'))); });
+      return;
+    }
+
     /* Два кода и больше - выгрузка со сканера: разбираем целиком по стандарту. */
     var numPcode = !!NUM_PCODE_BRANDS[brand] && std.value !== 'spnfmi' && !/FMI/.test(up);
     var many = midBrand ? (MID_PCODE_BRANDS[brand] ? [] : parseAllMid(typed, mid))
@@ -3752,9 +3917,10 @@
     var isLetterIn = !midBrand && /^[A-Z]{1,4}[ \-]?\d{1,5}$/.test(up) && !/SPN|FMI|MID|SID|PID/.test(up);
     var renSingle = !!SPN_PCODE_BRANDS[brand] && /^\d{1,7}$/.test(typed) && std.value !== 'spnfmi';
     var closed = !midBrand && isClosedBrand(brand) && !skipDealer && std.value !== 'spnfmi' && !renSingle;
+    var shortHex = !!HEX_KEY_BRANDS[brand] && /^[0-9A-F]{1,3}$/.test(up) && /[A-F]/.test(up);
     var p;
     if(midBrand) p = parseMidCode(typed, mid, brand);
-    else if(numPcode || (closed && isLetterIn)) p = {pcode: normCode(typed)};
+    else if(numPcode || (closed && (isLetterIn || shortHex))) p = {pcode: normCode(typed)};
     else if(closed && isNumIn) p = {pcode: normCode(typed), fallback: std.value !== 'pcode'};
     else p = parse(typed, std.value);
     if(!p){ rnd(note(t('emptyPrompt'))); return; }
@@ -3766,6 +3932,7 @@
       closedLookup(brand, p.pcode).then(function(r){
         if(mySeq !== runSeq) return;
         if(!r.net.length && !r.mine.length){
+          if(p.bigSpn){ rnd(note(t('spnTooBig', {spn: esc(p.bigSpn)}))); return; }
           if(p.fallback && !parse(typed, 'auto').bad){ run(true); return; }
           rnd(note(t('pcodeNotFound', {code: esc(p.pcode)})));
           return;
@@ -3801,7 +3968,8 @@
     }
 
     ready().then(function(){
-      if(p.bad){ rnd(note(t('badCode'))); return; }
+      if(p.bigSpn){ rnd(note(t('spnTooBig', {spn: esc(p.bigSpn)}))); return; }
+      if(p.bad){ rnd(note(p.fmiOnly ? t('needSpnFmi') : t('badCode'))); return; }
       /* SPN без FMI: имя параметра, либо дилерская таблица тем же числом. */
       if(p.fmi === null){
         var nm = spnName(p.spn, brand);
@@ -3829,10 +3997,14 @@
           });
           return;
         }
-        rnd(cap + spnOnlyHtml(p.spn, brand, nm, false), true);
+        brandlessExtra(typed, skipDealer || !!brand).then(function(x){
+          if(mySeq === runSeq) rnd(cap + spnOnlyHtml(p.spn, brand, nm, false) + x, true);
+        });
         return;
       }
-      rnd(cap + spnFmiHtml(p.spn, p.fmi, brand, null, false), true);
+      brandlessExtra(typed, skipDealer || !!brand).then(function(x){
+        if(mySeq === runSeq) rnd(cap + spnFmiHtml(p.spn, p.fmi, brand, null, false) + x, true);
+      });
     }).catch(function(){
       rnd(note(t('loadError')));
     });
