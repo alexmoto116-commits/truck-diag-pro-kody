@@ -13,9 +13,11 @@
  *     localhost:8765 / 127.0.0.1:8765) -> иначе 403.
  *     Это отсекает простые скрипты. Браузер с сайта такие заголовки шлёт сам,
  *     но подделать их скрипту ничего не стоит - поэтому дальше ещё лимиты.
- *  3. Ввод: длина кода <= 12, допустимые символы (буквы, цифры, дефис, либо
- *     вид «100.1» с точкой), марка только из KNOWN_PCODE_BRANDS -> иначе 400.
- *     Неверный ввод до лимитов не доходит и суточный счётчик не трогает.
+ *  3. Ввод: сначала нормализуется (пробелы, кириллические двойники, префиксы
+ *     модулей, запятая как точка - см. planSearch), потом проверяется форма
+ *     (буквы, цифры, дефис/слеш/точка по шаблонам). Марка только из
+ *     KNOWN_PCODE_BRANDS -> иначе 400. Неверный ввод до лимитов не доходит и
+ *     суточный счётчик не трогает.
  *  4. Лимит частоты по IP (CF-Connecting-IP) через привязку Workers Rate
  *     Limiting PCODE_RL: 20 запросов в минуту. Запрос без марки стоит 3
  *     единицы лимита (он проходит все таблицы сразу). Превышение -> 429.
@@ -93,10 +95,53 @@ var SLASH_CODE_RE = /^[0-9]{3,4}\/[0-9]{2}$/;
 // scripts/build_pcode.py: там же строится pcode-source/kv-idx.json.
 var INDEX_SHARDS = 64;
 
+// Кириллические двойники латинских букв (верхний регистр). Держать в согласии с
+// homoglyphs в scripts/build_pcode.py: ключи KV и индекс строятся тем же norm.
+var CYR_HOMO = 'АВСЕНКМОРТХУ'; // А В С Е Н К М О Р Т Х У
+var LAT_HOMO = 'ABCEHKMOPTXY';
+
+function homoglyphs(s) {
+  return s.replace(/[АВСЕНКМОРТХУ]/g,
+                   function (ch) { return LAT_HOMO.charAt(CYR_HOMO.indexOf(ch)); });
+}
+
+/**
+ * Нормализация ключа (и введённого кода без разделителей): пробелы убираем,
+ * заглавные, кириллические двойники -> латиница, у «100.01» ведущие нули
+ * дробной части убираем. Так же строится ключ KV в build_pcode.py (norm).
+ */
 function norm(code) {
-  var c = code.toUpperCase().replace(/\s+/g, '');
+  var c = homoglyphs(code.toUpperCase().replace(/\s+/g, ''));
   return DOT_CODE_RE.test(c) ? canonDot(c) : c;
 }
+
+/**
+ * Очистка ввода: пробелы схлопнуть до одного, заглавные, кириллические
+ * двойники -> латиница, запятая как точка («100,1» -> «100.1»).
+ */
+function cleanInput(raw) {
+  var s = homoglyphs(String(raw).trim().replace(/\s+/g, ' ').toUpperCase());
+  if (/^[0-9]{1,7},[0-9]{1,2}$/.test(s)) s = s.replace(',', '.');
+  return s;
+}
+
+// Код, который может лежать в KV (проверка формы ввода). Длина считается без пробелов.
+function shapeOk(form) {
+  return (form.length <= MAX_CODE_LEN && CODE_RE.test(form)) ||
+         DOT_CODE_RE.test(form) || MID_CODE_RE.test(form) || SLASH_CODE_RE.test(form);
+}
+
+// Префиксы, которые сканер или документация пишут перед номером.
+// Модули Scania (acu.su): ключ - только номер, модуль отбрасывается.
+var SCANIA_MODULE_RE = /^(EMS|BMS|GMS|COO|LAS|EEC|SMS|VIS|ICL|AHS|TCO|RET|APS|BWS|CCS)[ -]?([0-9]{1,6})$/;
+// Cummins FC 415 -> 415: ищем во всех Cummins-таблицах.
+var CUMMINS_FC_RE = /^FC[ -]?([0-9]{1,6})$/;
+var CUMMINS_BRANDS = ['cumminsisb', 'cumminsisf', 'cumminsislisc', 'cumminsism', 'cumminsisx'];
+// Отопители: Webasto F09 -> ключ «09»; Eberspächer E-05 -> ключ «005».
+var WEBASTO_RE = /^F[ -]?([0-9]{2})$/;
+var EBERSPACHER_DASH_RE = /^E[ -]([0-9]{2,3})$/;
+// E05 без разделителя: сначала ключ Jingwei E05 (он существует), затем Eberspächer.
+var EBERSPACHER_PLAIN_RE = /^E([0-9]{2})$/;
 
 /**
  * Каноническая запись дилерского кода с точкой: ведущие нули дробной части
@@ -120,7 +165,8 @@ function canonDot(c) {
  * по точному совпадению ключа, поэтому такой ввод не находил ничего.
  *
  * Что делаем. Для чисто цифрового ввода пробуем две записи: как ввели и
- * дополненную нулями до пяти знаков. Точное совпадение выигрывает, дополнение -
+ * дополненную нулями до четырёх и до пяти знаков (Iveco «0111» при вводе «111»).
+ * Точное совпадение выигрывает, дополнение -
  * запасной ход. Для всего остального (P-коды, семизначные UDS Volvo, коды с
  * дефисом) вариант ровно один, лишних чтений KV не появляется.
  *
@@ -136,6 +182,11 @@ function canonDot(c) {
 function codeVariants(code) {
   var c = norm(code);
   var out = [c];
+  // До четырёх знаков: Iveco «0111» при вводе «111».
+  if (/^\d{1,3}$/.test(c)) {
+    var p4 = ('0000' + c).slice(-4);
+    if (out.indexOf(p4) < 0) out.push(p4);
+  }
   if (/^\d{1,4}$/.test(c)) {
     var padded = ('00000' + c).slice(-5);
     if (out.indexOf(padded) < 0) out.push(padded);
@@ -143,8 +194,93 @@ function codeVariants(code) {
   return out;
 }
 
+/**
+ * Варианты записи введённого кода с разделителями. Ключи в базе пишутся по-разному:
+ * VW «0027/04», MWM «P0105-01», Mercedes «MR 0101» (с пробелом), DAF «84-9».
+ * Человек вводит то же самое своими словами: «0027-04», «0027 04», «MR-0101»,
+ * «P0105 01». Берём введённую форму (пробелы убраны) и, если в ней был пробел,
+ * его заменой на «-», «/», «.»; если разделитель есть - также форму без него и
+ * с заменённым «-»/«/». Форма, не похожая на код, в список не попадает.
+ */
+function candidateForms(s) {
+  var nospace = s.replace(/ /g, '');
+  var forms = [];
+  // «100 1», «1 32» - пара SPN/FMI (вторая группа 1-2 знака): слитно («1001») не
+  // склеиваем, дало бы чужие коды. «10 004» (вторая группа 3+ знака) - номер Scania.
+  if (!/[0-9] [0-9]{1,2}$/.test(s)) forms.push(nospace);
+  if (s.indexOf(' ') >= 0) {
+    forms.push(s.replace(/ /g, '-'), s.replace(/ /g, '/'), s.replace(/ /g, '.'));
+  }
+  if (/[-\/]/.test(nospace)) {
+    // Дефис после букв («MR-0101», «P-0121») - разделитель, его убираем.
+    // Между цифрами («84-9», «1-32») дефис - это SPN-FMI, его не трогаем.
+    if (/^[A-Z]+[-\/][0-9]/.test(nospace)) forms.push(nospace.replace(/[-\/]/g, ''));
+    forms.push(nospace.replace(/-/g, '/'), nospace.replace(/\//g, '-'));
+  }
+  var out = [];
+  for (var i = 0; i < forms.length; i++) {
+    if (shapeOk(forms[i]) && out.indexOf(forms[i]) < 0) out.push(forms[i]);
+  }
+  return out;
+}
+
+/**
+ * Варианты для поиска: ввод (с его разделительными формами) через codeVariants.
+ * Дубли отбрасываются, порядок сохраняется (точное совпадение первым).
+ */
+function searchForms(forms) {
+  var out = [];
+  for (var i = 0; i < forms.length; i++) {
+    var vs = codeVariants(forms[i]);
+    for (var j = 0; j < vs.length; j++) {
+      if (out.indexOf(vs[j]) < 0) out.push(vs[j]);
+    }
+  }
+  return out;
+}
+
+function pad3(digits) {
+  return ('000' + digits).slice(-3);
+}
+
+/**
+ * План поиска по вводу (raw - как пришёл с сайта, уже без лишних пробелов по краям).
+ * Возвращает { forms, brands, fallback } или null, если форма ввода не подходит.
+ *  forms    - варианты ключа для поиска (по порядку);
+ *  brands   - если задано, поиск только по этим маркам (префиксы модулей/FC/отопителей);
+ *  fallback - запасной поиск {forms, brands}, если основной ничего не дал (только без марки).
+ */
+function planSearch(raw) {
+  var s = cleanInput(raw);
+  var m;
+  if ((m = SCANIA_MODULE_RE.exec(s))) {
+    return { forms: searchForms([m[2]]), brands: ['scania'], fallback: null };
+  }
+  if ((m = CUMMINS_FC_RE.exec(s))) {
+    return { forms: searchForms([m[1]]), brands: CUMMINS_BRANDS, fallback: null };
+  }
+  if ((m = WEBASTO_RE.exec(s))) {
+    return { forms: searchForms([m[1]]), brands: ['webasto'], fallback: null };
+  }
+  if ((m = EBERSPACHER_DASH_RE.exec(s))) {
+    return { forms: searchForms([pad3(m[1])]), brands: ['eberspacher'], fallback: null };
+  }
+  var cand = candidateForms(s);
+  if (!cand.length) return null;
+  var fallback = null;
+  if ((m = EBERSPACHER_PLAIN_RE.exec(s))) {
+    fallback = { forms: searchForms([pad3(m[1])]), brands: ['eberspacher'] };
+  }
+  return { forms: searchForms(cand), brands: null, fallback: fallback };
+}
+
 function kvKey(brand, code) {
   return 'pcode:' + brand + ':' + norm(code);
+}
+
+// Блинк-алиас: номер мигающего кода -> список ключей марки (см. build_pcode.py).
+function aliasKey(brand, form) {
+  return 'pcode:_alias:' + brand + ':' + norm(form);
 }
 
 /**
@@ -267,7 +403,9 @@ async function checkKey(env, key) {
  * идёт запасным путём. Пустой шард - это настоящий ответ «ничего нет».
  */
 async function searchByIndex(env, variants, lang) {
-  var found = Object.create(null); // марка -> вариант написания (приоритет по порядку)
+  // Записи шарда: «марка» - прямой ключ; «марка>ключ» - блинк-алиас (см. build_pcode.py).
+  var direct = Object.create(null); // марка -> ключ (первый вариант написания по порядку)
+  var alias = Object.create(null);  // марка -> [ключи, на которые указывает блинк]
   for (var v = 0; v < variants.length; v++) {
     var code = variants[v];
     var raw = await env.PCODE_KV.get(shardKey(code));
@@ -276,17 +414,38 @@ async function searchByIndex(env, variants, lang) {
     if (!Object.prototype.hasOwnProperty.call(shard, code)) continue;
     var list = shard[code];
     for (var j = 0; j < list.length; j++) {
-      if (!(list[j] in found)) found[list[j]] = code;
+      var item = list[j];
+      var gt = item.indexOf('>');
+      if (gt < 0) {
+        if (!(item in direct)) direct[item] = code;
+      } else {
+        var ab = item.slice(0, gt);
+        (alias[ab] = alias[ab] || []).push(item.slice(gt + 1));
+      }
     }
   }
 
-  var brands = Object.keys(found).sort(function (a, b) {
-    return KNOWN_PCODE_BRANDS.indexOf(a) - KNOWN_PCODE_BRANDS.indexOf(b);
+  // Блинк-алиас учитываем, только если у марки нет прямого ключа на этот номер.
+  var pairs = [];
+  Object.keys(direct).forEach(function (b) { pairs.push([b, direct[b]]); });
+  Object.keys(alias).forEach(function (b) {
+    if (b in direct) return;
+    alias[b].forEach(function (k) { pairs.push([b, k]); });
   });
-  var results = await Promise.all(brands.map(async function (b) {
-    var raw2 = await env.PCODE_KV.get(kvKey(b, found[b]));
+  pairs.sort(function (x, y) {
+    var d = KNOWN_PCODE_BRANDS.indexOf(x[0]) - KNOWN_PCODE_BRANDS.indexOf(y[0]);
+    if (d !== 0) return d;
+    return x[1] < y[1] ? -1 : (x[1] > y[1] ? 1 : 0);
+  });
+  // Один ключ мог прийти с двух вариантов написания (21 и 2-1): оставляем один.
+  pairs = pairs.filter(function (p, i) {
+    return i === 0 || p[0] !== pairs[i - 1][0] || p[1] !== pairs[i - 1][1];
+  });
+
+  var results = await Promise.all(pairs.map(async function (p) {
+    var raw2 = await env.PCODE_KV.get(kvKey(p[0], p[1]));
     if (!raw2) return null;
-    return { brand: b, code: found[b], text: pickText(JSON.parse(raw2), lang) };
+    return { brand: p[0], code: p[1], text: pickText(JSON.parse(raw2), lang) };
   }));
   return results.filter(Boolean);
 }
@@ -296,17 +455,53 @@ async function searchByIndex(env, variants, lang) {
  * поиска с выбранной маркой (там индекс не нужен - одна марка).
  */
 async function searchBruteForce(env, brands, variants, lang) {
-  var results = await Promise.all(brands.map(async function (b) {
+  var per = await Promise.all(brands.map(async function (b) {
+    // Прямой ключ важнее блинк-алиаса; внутри марки первый вариант написания.
     for (var i = 0; i < variants.length; i++) {
       var raw = await env.PCODE_KV.get(kvKey(b, variants[i]));
       if (raw) {
         var entry = JSON.parse(raw);
-        return { brand: b, code: variants[i], text: pickText(entry, lang) };
+        return [{ brand: b, code: variants[i], text: pickText(entry, lang) }];
       }
     }
-    return null;
+    for (var a = 0; a < variants.length; a++) {
+      var araw = await env.PCODE_KV.get(aliasKey(b, variants[a]));
+      if (!araw) continue;
+      var targets = JSON.parse(araw);
+      var hits = await Promise.all(targets.map(async function (t) {
+        var traw = await env.PCODE_KV.get(kvKey(b, t));
+        if (!traw) return null;
+        return { brand: b, code: t, text: pickText(JSON.parse(traw), lang) };
+      }));
+      return hits.filter(Boolean);
+    }
+    return [];
   }));
-  return results.filter(Boolean);
+  return [].concat.apply([], per);
+}
+
+/**
+ * Поиск по плану planSearch. Явная марка - только её таблица. Префикс (модули
+ * Scania, FC, отопители) - только таблицы его марок. Без марки и без префикса -
+ * индекс; если индекс не залит - перебор всех марок. Запасной ход (E05 -> Eberspächer)
+ * только если без марки ничего не нашлось.
+ */
+async function runSearch(env, plan, brand, lang) {
+  var fb = plan.fallback;
+  if (brand) {
+    var own = await searchBruteForce(env, [brand], plan.forms, lang);
+    if (own.length === 0 && fb && fb.brands.indexOf(brand) >= 0) {
+      own = await searchBruteForce(env, [brand], fb.forms, lang);
+    }
+    return own;
+  }
+  if (plan.brands) return searchBruteForce(env, plan.brands, plan.forms, lang);
+  var hits = await searchByIndex(env, plan.forms, lang);
+  if (hits === null) hits = await searchBruteForce(env, KNOWN_PCODE_BRANDS, plan.forms, lang);
+  if (hits.length === 0 && fb) {
+    hits = await searchBruteForce(env, fb.brands, fb.forms, lang);
+  }
+  return hits;
 }
 
 /**
@@ -320,10 +515,10 @@ async function handlePcode(request, env, url, who) {
   var brand = url.searchParams.get('brand') || '';
 
   if (!code) return json(request, 400, { error: 'missing_code' });
-  var up = code.toUpperCase();
-  var shapeOk = (code.length <= MAX_CODE_LEN && CODE_RE.test(up)) ||
-                DOT_CODE_RE.test(up) || MID_CODE_RE.test(up) || SLASH_CODE_RE.test(up);
-  if (!shapeOk) {
+  // Сначала нормализуем ввод (пробелы, кириллица, префиксы), потом проверяем форму.
+  // Неверный ввод отвечает 400 {error:'bad_code'} до лимитов.
+  var plan = code.length <= 40 ? planSearch(code) : null;
+  if (!plan) {
     return json(request, 400, { error: 'bad_code' });
   }
   if (brand && KNOWN_PCODE_BRANDS.indexOf(brand) < 0) {
@@ -364,13 +559,9 @@ async function handlePcode(request, env, url, who) {
     remaining = Math.max(0, who.limit - verdict.count);
   }
 
-  var variants = codeVariants(code);
   var hits = null;
   try {
-    if (!brand) hits = await searchByIndex(env, variants, lang);
-    if (hits === null) {
-      hits = await searchBruteForce(env, brand ? [brand] : KNOWN_PCODE_BRANDS, variants, lang);
-    }
+    hits = await runSearch(env, plan, brand, lang);
   } catch (e) {
     return json(request, 502, { error: 'kv_unavailable' });
   }

@@ -168,12 +168,23 @@ def write_blob(path, data, glob):
     io.open(path, 'w', encoding='utf-8', newline='\n').write(TEMPLATE.format(b64=b64, glob=glob))
 
 
+# Кириллические двойники латинских букв (верхний регистр). Держать в согласии с
+# homoglyphs в worker/pcode-api.js.
+CYR_HOMO = u'АВСЕНКМОРТХУ'  # А В С Е Н К М О Р Т Х У
+LAT_HOMO = u'ABCEHKMOPTXY'
+HOMO_TABLE = str.maketrans(CYR_HOMO, LAT_HOMO)
+
+# Блинк-коды: «Мигающий код: 2-1» (Isuzu, Hino, Ashok Leyland), «Flash code: 68» (HOWO).
+BLINK_RE = re.compile(
+    r'(?:Мигающий код|Flash code|Blink code|Blink-код|Flashing code)\s*:?\s*([0-9][0-9 -]*[0-9]|[0-9])',
+    re.I)
+
+
 def norm(code):
-    """Нормализованный код - ровно тот, что ищет воркер (canonDot в pcode-api.js):
-    без пробелов, заглавными; у кода вида «100.01» ведущие нули дробной части
-    убираются («100.1»). В базе таких нулей нет, так что для текущих данных
-    ничего не меняется."""
-    c = re.sub(r'\s+', '', code.upper())
+    """Нормализованный код - ровно тот, что ищет воркер (norm в pcode-api.js):
+    без пробелов, заглавными, кириллические двойники заменены латиницей; у кода
+    вида «100.01» ведущие нули дробной части убираются («100.1»)."""
+    c = re.sub(r'\s+', '', code.upper()).translate(HOMO_TABLE)
     if re.match(r'^[0-9]{1,7}\.[0-9]{1,2}$', c):
         whole, frac = c.split('.')
         c = whole + '.' + re.sub(r'^0+(?=[0-9])', '', frac)
@@ -189,12 +200,41 @@ def shard_of(code):
     return h % SHARDS
 
 
-def build_code_index(pcode):
+def build_blink_aliases(pcode):
+    """Алиасы блинк-кодов: {марка: {алиас: [ключи]}}.
+
+    Алиас - номер мигающего кода из текста записи («Мигающий код: 2-1» у
+    Isuzu C0201). Две формы: с дефисом («2-1») и без («21»). Если номер
+    совпадает с собственным ключом марки, алиас не нужен и не пишется.
+    Один номер часто указывает на несколько кодов (одна флэш-группа) - тогда
+    список ключей длиннее одного, воркер вернёт все.
+    """
+    out = {}
+    for brand, table in pcode.items():
+        direct = set(norm(c) for c in table)
+        amap = {}
+        for code, texts in table.items():
+            for lang in ('ru', 'en'):
+                s = (texts or {}).get(lang) or ''
+                for m in BLINK_RE.finditer(s):
+                    tok = norm(m.group(1))
+                    for form in (tok, tok.replace('-', '')):
+                        if form in direct:
+                            continue
+                        amap.setdefault(form, set()).add(norm(code))
+        if amap:
+            out[brand] = {f: sorted(keys) for f, keys in amap.items()}
+    return out
+
+
+def build_code_index(pcode, aliases):
     """Индекс «нормализованный код -> марки» по шардам.
 
     Ключ - ровно тот, что лежит в KV (norm(code) из kv-bulk.json), поэтому
     варианты написания воркер строит тем же codeVariants, что и для KV.
-    Возвращает список из SHARDS словарей {код: [марки]}.
+    Значение - список записей: «марка» для прямого ключа и «марка>ключ» для
+    блинк-алиаса (ключ, на который указывает алиас). Возвращает список из
+    SHARDS словарей {код: [записи]}.
     """
     shards = [dict() for _ in range(SHARDS)]
     for brand, table in pcode.items():
@@ -203,9 +243,16 @@ def build_code_index(pcode):
             bucket = shards[shard_of(ncode)].setdefault(ncode, [])
             if brand not in bucket:
                 bucket.append(brand)
+    for brand, amap in aliases.items():
+        for form, keys in amap.items():
+            bucket = shards[shard_of(form)].setdefault(form, [])
+            for key in keys:
+                entry = '%s>%s' % (brand, key)
+                if entry not in bucket:
+                    bucket.append(entry)
     for shard in shards:
-        for brands in shard.values():
-            brands.sort()
+        for entries in shard.values():
+            entries.sort()
     return shards
 
 
@@ -281,15 +328,31 @@ def cmd_build():
             value = json.dumps({'ru': texts.get('ru'), 'en': texts.get('en')}, ensure_ascii=False)
             entries.append({'key': 'pcode:%s:%s' % (brand, norm(code)), 'value': value})
 
+    # Блинк-алиасы: pcode:_alias:<марка>:<алиас> -> список ключей.
+    aliases = build_blink_aliases(pcode)
+    alias_pairs = 0
+    alias_ambiguous = 0
+    for brand, amap in sorted(aliases.items()):
+        for form, keys in sorted(amap.items()):
+            alias_pairs += len(keys)
+            if len(keys) > 1:
+                alias_ambiguous += 1
+            entries.append({'key': 'pcode:_alias:%s:%s' % (brand, form),
+                            'value': json.dumps(keys, ensure_ascii=False)})
+
     io.open(KV_BULK_JSON, 'w', encoding='utf-8').write(
         json.dumps(entries, ensure_ascii=False, indent=1))
 
     total = sum(counts.values())
     summary = ', '.join('%s: %d' % (b, n) for b, n in sorted(counts.items()))
     print('%s -> %d keys (%s)' % (KV_BULK_JSON, total, summary))
+    alias_total = sum(len(a) for a in aliases.values())
+    print('блинк-алиасы: %d алиасов (%d неоднозначных), %d пар алиас->ключ, марок: %d'
+          % (alias_total, alias_ambiguous, alias_pairs, len(aliases)))
+    print('всего записей в kv-bulk.json: %d' % len(entries))
 
     # 3) kv-idx.json: индекс поиска без марки, отдельным файлом
-    shards = build_code_index(pcode)
+    shards = build_code_index(pcode, aliases)
     idx_entries = []
     biggest = 0
     for n, shard in enumerate(shards):

@@ -60,10 +60,33 @@
      что человек всё-таки вводит SPN - например, чтобы получить общую
      J1939-расшифровку, она работает для любой марки. Спорить с прямо
      высказанным намерением не надо. */
-  /* Марки, у которых дилерский номер пишется как пара «номер-FMI» и
-     потому неотличим от SPN/FMI. См. ветку в run(): для них дилерская
-     таблица спрашивается ПЕРВОЙ. */
-  var PCODE_FMI_BRANDS = {daf:1};
+  /* Закрытые базы: марки, чьи дилерские коды ищутся на воркере (pcode-api).
+     Список совпадает с KNOWN_PCODE_BRANDS в worker/pcode-api.js - менять вместе.
+     КамАЗ сюда не входит: у него свой реестр блоков (blockHits), хотя один из
+     его доноров - Mercedes.
+
+     Номер или пара «номер-номер» у такой марки почти всегда дилерский код, а не
+     SPN/FMI: у Scania «100» - дилерский, у DAF «84-9» тоже. Поэтому сначала
+     спрашиваем закрытую базу, а стандарт J1939 показываем ниже с подписью. */
+  var CLOSED_BRANDS = {volvo:1, mercedes:1, scania:1, shacman:1, tata:1, ashokleyland:1, howo:1, faw:1, jac:1,
+    international:1, powerstroke:1, cumminsisb:1, cumminsislisc:1, cumminsism:1, cumminsisx:1, paccarmx13:1,
+    hino:1, renault:1, caterpillar:1, mahindra:1, deutz:1, fuso:1, thermoking:1, carrier:1, planar:1, webasto:1,
+    eberspacher:1, daewoo:1, cumminsisf:1, eaton:1, hyundai:1, haldex:1, allison:1, weichai:1, volkswagen:1,
+    mwm:1, isuzu:1, baw:1, ivecoedc:1, ivecoeurotronic:1, iveco:1, daf:1, manzbr2:1, manebs:1, man:1, mack:1,
+    yamz:1, volvomid:1, jingwei:1, gaz:1};
+  /* Марка с закрытой базой - напрямую или через свой алиас (см. BRAND_ALIAS). */
+  function isClosedBrand(brand){
+    return !!brand && brand !== 'kamaz' && donorsOf(brand).some(function(d){ return !!CLOSED_BRANDS[d]; });
+  }
+
+  /* Марки с блинк-кодами (код вспышек мигающей лампы): «2-1», «2-4-3», «21»,
+     «131». Такой ввод - не SPN/FMI: в J1939 он не уходит и срочности не получает.
+     Если кода нет ни в открытом словаре, ни в закрытой базе - «не найден». */
+  var BLINK_BRANDS = {isuzu:1, maz:1, yamz:1, shacman:1, weichai:1, ivecoedc:1, iveco:1, kamaz:1};
+  /* Марки со своей нумерацией FMI (не стандарт J1939): подсказку берём из
+     раздела fmiBrand словаря, срочность по FMI не считаем. У MAN легенда из
+     SD 812a; у Renault легенды нет - пишем номер со ссылкой на таблицу марки. */
+  var OWN_FMI = {man:'man', manebs:'man', manzbr2:'man', renault:'renault'};
 
   /* Марки, у которых дилерский номер записан САМИМ СЛОВОМ "SPN" плюс число.
 
@@ -294,36 +317,34 @@
      ПЕРВЫМИ: иначе "PSID42" развалится на букву и число неправильно. */
   var MID_FAMILY = {PID:'P', SID:'S', PPID:'PP', PSID:'PS'};
 
+  /* MID-код по частям: модуль (MID) в начале, внутри или через дефис -
+     "MID 144 PID 97 FMI 2", "M128-P100.1", "128-100-1". */
+  function midSplit(up){
+    var m = /^M?(\d{3})\s*[-\/]\s*((?:(?:PPID|PSID|PID|SID|PP|PS|P|S)\s*)?\d{1,4}\s*[.\-\/,]\s*\d{1,2})$/.exec(up);
+    if(m) return {mid:m[1], body:m[2]};
+    m = /\bMID\s*(\d{3})\b\s*[-\/,]?\s*/.exec(up);
+    if(m) return {mid:m[1], body:(up.slice(0, m.index) + ' ' + up.slice(m.index + m[0].length)).trim()};
+    return {mid:null, body:up};
+  }
+  /* Тело кода: «PID 97 FMI 2», «SID 1-6 FMI 5» (диапазон - берём первый номер),
+     «PID 100.1», «P100 FMI 4», «100 1», «100 FMI 1». Без семейства - PID. */
+  function parseMidBody(body){
+    var F = 'PPID|PSID|PID|SID|PP|PS|P|S';
+    var m = new RegExp('\\b(' + F + ')\\s*(\\d{1,4})(?:\\s*-\\s*\\d{1,4})?\\D{0,20}?FMI\\s*[:\\-]?\\s*(\\d{1,2})(?!\\d)').exec(body);
+    if(!m) m = new RegExp('\\b(' + F + ')\\s*(\\d{1,4})(?:\\s*-\\s*\\d{1,4})?\\s*[.\\-\\/,]\\s*(\\d{1,2})(?!\\d)').exec(body);
+    if(!m) m = /^()(\d{1,4})\s*(?:FMI\s*[:\-]?\s*|[.\-\/,]\s*|\s+)(\d{1,2})$/.exec(body);
+    if(!m) return null;
+    return {letter: MID_FAMILY[m[1]] || m[1] || 'P', num: m[2], fmi: parseInt(m[3], 10)};
+  }
   function parseMidCode(t, mid, brand){
-    var up = normCode(t);
-    var m = up.match(/\b(PPID|PSID|PID|SID)\s*(\d{1,4})\D{0,20}FMI\s*[:\-]?\s*(\d{1,2})/);
-    var letter, num, fmi;
-    if(m){ letter = MID_FAMILY[m[1]]; num = m[2]; fmi = m[3]; }
-    else if((m = up.match(/\b(PP|PS|P|S)\s*(\d{1,4})\D{0,20}FMI\s*[:\-]?\s*(\d{1,2})/))){
-      letter = m[1]; num = m[2]; fmi = m[3];
+    var b = parseMidBody(midSplit(normCode(t)).body);
+    if(!b){
+      /* FMI нет вовсе, но код похож на OBD-II ("P0016") - дилерская таблица марки. */
+      var obd = midObdCode(t);
+      return obd ? {pcode:obd} : {bad:true};
     }
-    else{
-      m = up.match(/\b(\d{1,4})\D{0,20}FMI\s*[:\-]?\s*(\d{1,2})/);
-      if(!m){
-        /* FMI нет вовсе, но код похож на OBD-II ("P0016", "P02CD",
-           "U0100") - значит человек читает не PID/SID, а дилерскую
-           таблицу марки. У Mack это её единственный формат: строка
-           стандарта для MID-марок скрыта, выбрать "дилерский код"
-           руками нельзя, и без этой ветки таблица была бы
-           недоступна. Ветка срабатывает только там, где раньше был
-           отказ, поэтому ничего из работавшего сломать не может. */
-        var obd = midObdCode(t);
-        if(obd) return {pcode:obd};
-        return {bad:true};
-      }
-      letter = 'P'; num = m[1]; fmi = m[2];
-    }
-    /* У Volvo та же запись кода ведёт не в бесплатную таблицу, а в
-       дилерскую: ключ собираем сами и отдаём его pcode-ветке. */
-    if(MID_PCODE_BRANDS[brand]){
-      return {pcode:'M' + mid + '-' + letter + num + '.' + parseInt(fmi, 10)};
-    }
-    return {spn:'M' + mid + '-' + letter + num, fmi:parseInt(fmi, 10)};
+    if(MID_PCODE_BRANDS[brand]) return {pcode:'M' + mid + '-' + b.letter + b.num + '.' + b.fmi};
+    return {spn:'M' + mid + '-' + b.letter + b.num, fmi:b.fmi};
   }
 
   function parseAllMid(raw, mid){
@@ -388,6 +409,13 @@
       scanMany: 'Номер <b>{code}</b> отвечает нескольким кодам на щитке — сверьтесь с тем, что показывает панель.',
       stepCode: 'код', stepDecoding: 'расшифровка',
       factorySource: 'фирменная таблица {brand}', standardSource: 'стандарт J1939',
+      blinkNotFoundFor: 'Блинк-код {n} не найден в таблице {brand}.',
+      j1939ForBrand: 'По стандарту J1939 — у {brand} номер может значить другое',
+      badCodeFor: 'Код не распознан в таблице {brand}, проверьте формат.',
+      pcodeServerError: 'База кодов временно недоступна — попробуйте позже.',
+      fmiTable: 'FMI {fmi} по таблице {brand}',
+      midDefault: 'MID в коде не указан — считаем модулем двигателя, MID 128.',
+      midTyped: 'В коде указан MID {mid} — используем его, а не выбранный в списке ({sel}).',
       composedSource: 'собрано из таблиц компонентов {brand}',
       spnNotFound: '<b>SPN {spn}</b> в справочнике не найден — скорее всего, код фирменный. Попробуйте выбрать марку выше или добавьте FMI: например <b>{spn}/1</b>.',
       stepParam: 'параметр', knownFailures: 'известные отказы {brand}',
@@ -517,6 +545,13 @@
       scanMany: 'Code <b>{code}</b> maps to several dash codes — check which one the cluster shows.',
       stepCode: 'code', stepDecoding: 'meaning',
       factorySource: 'factory table — {brand}', standardSource: 'J1939 standard',
+      blinkNotFoundFor: 'Blink code {n} not found in the {brand} table.',
+      j1939ForBrand: 'Per J1939 standard — for {brand} this number may mean something else',
+      badCodeFor: 'Code not recognised in the {brand} table — check the format.',
+      pcodeServerError: 'The code database is temporarily unavailable — try again later.',
+      fmiTable: 'FMI {fmi} per the {brand} table',
+      midDefault: 'No MID in the code — taking the engine module, MID 128.',
+      midTyped: 'The code has MID {mid} — using it instead of the one selected ({sel}).',
       composedSource: 'assembled from {brand} component tables',
       spnNotFound: '<b>SPN {spn}</b> not found in the database — likely a manufacturer-specific code. Try selecting a make above, or add the FMI: e.g. <b>{spn}/1</b>.',
       stepParam: 'parameter', knownFailures: 'known faults — {brand}',
@@ -639,6 +674,13 @@
       scanMany: 'Nummer <b>{code}</b> entspricht mehreren Codes im Kombiinstrument — prüfen Sie, welcher angezeigt wird.',
       stepCode: 'Code', stepDecoding: 'Bedeutung',
       factorySource: 'Werkstabelle — {brand}', standardSource: 'J1939-Standard',
+      blinkNotFoundFor: 'Blinkcode {n} in der Tabelle {brand} nicht gefunden.',
+      j1939ForBrand: 'Nach J1939-Standard — bei {brand} kann diese Nummer etwas anderes bedeuten',
+      badCodeFor: 'Code in der Tabelle {brand} nicht erkannt — Format prüfen.',
+      pcodeServerError: 'Die Codedatenbank ist vorübergehend nicht verfügbar — später erneut versuchen.',
+      fmiTable: 'FMI {fmi} laut Tabelle {brand}',
+      midDefault: 'Kein MID im Code — angenommen wird das Motormodul, MID 128.',
+      midTyped: 'Der Code enthält MID {mid} — verwendet wird dieser statt der Auswahl ({sel}).',
       spnNotFound: '<b>SPN {spn}</b> nicht in der Datenbank gefunden — vermutlich ein herstellerspezifischer Code. Wählen Sie oben eine Marke, oder ergänzen Sie den FMI: z. B. <b>{spn}/1</b>.',
       stepParam: 'Parameter', knownFailures: 'bekannte Fehler — {brand}',
       stepNeedFmi: 'FMI erforderlich',
@@ -760,6 +802,13 @@
       scanMany: 'Le numéro <b>{code}</b> correspond à plusieurs codes au tableau de bord — vérifiez celui qui s’affiche.',
       stepCode: 'code', stepDecoding: 'signification',
       factorySource: 'table constructeur — {brand}', standardSource: 'norme J1939',
+      blinkNotFoundFor: 'Code clignotant {n} introuvable dans la table {brand}.',
+      j1939ForBrand: 'Selon la norme J1939 — chez {brand} ce numéro peut signifier autre chose',
+      badCodeFor: 'Code non reconnu dans la table {brand} — vérifiez le format.',
+      pcodeServerError: 'La base de codes est momentanément indisponible — réessayez plus tard.',
+      fmiTable: 'FMI {fmi} selon la table {brand}',
+      midDefault: 'Aucun MID dans le code — on prend le module moteur, MID 128.',
+      midTyped: 'Le code indique MID {mid} — on l’utilise au lieu du choix ({sel}).',
       spnNotFound: '<b>SPN {spn}</b> introuvable dans la base — probablement un code propre au constructeur. Essayez de choisir une marque ci-dessus, ou ajoutez le FMI : par ex. <b>{spn}/1</b>.',
       stepParam: 'paramètre', knownFailures: 'pannes connues — {brand}',
       stepNeedFmi: 'FMI requis',
@@ -881,6 +930,13 @@
       scanMany: 'El número <b>{code}</b> corresponde a varios códigos del cuadro — comprueba cuál se muestra.',
       stepCode: 'código', stepDecoding: 'significado',
       factorySource: 'tabla de fábrica — {brand}', standardSource: 'norma J1939',
+      blinkNotFoundFor: 'Código de parpadeo {n} no encontrado en la tabla de {brand}.',
+      j1939ForBrand: 'Según la norma J1939 — en {brand} este número puede significar otra cosa',
+      badCodeFor: 'Código no reconocido en la tabla de {brand} — revisa el formato.',
+      pcodeServerError: 'La base de códigos no está disponible ahora — inténtalo más tarde.',
+      fmiTable: 'FMI {fmi} según la tabla de {brand}',
+      midDefault: 'El código no indica MID — se toma el módulo del motor, MID 128.',
+      midTyped: 'El código indica MID {mid} — se usa en lugar del seleccionado ({sel}).',
       spnNotFound: '<b>SPN {spn}</b> no encontrado en la base de datos — probablemente un código específico del fabricante. Prueba a elegir una marca arriba, o añade el FMI: p. ej. <b>{spn}/1</b>.',
       stepParam: 'parámetro', knownFailures: 'averías conocidas — {brand}',
       stepNeedFmi: 'falta el FMI',
@@ -1002,6 +1058,13 @@
       scanMany: 'O número <b>{code}</b> corresponde a vários códigos no painel — verifique qual aparece.',
       stepCode: 'código', stepDecoding: 'significado',
       factorySource: 'tabela de fábrica — {brand}', standardSource: 'norma J1939',
+      blinkNotFoundFor: 'Código de pisca {n} não encontrado na tabela {brand}.',
+      j1939ForBrand: 'Pela norma J1939 — na {brand} este número pode significar outra coisa',
+      badCodeFor: 'Código não reconhecido na tabela {brand} — verifique o formato.',
+      pcodeServerError: 'A base de códigos está indisponível no momento — tente mais tarde.',
+      fmiTable: 'FMI {fmi} conforme a tabela {brand}',
+      midDefault: 'O código não indica MID — considera-se o módulo do motor, MID 128.',
+      midTyped: 'O código indica MID {mid} — usamos esse em vez do selecionado ({sel}).',
       spnNotFound: '<b>SPN {spn}</b> não encontrado no banco de dados — provavelmente um código específico do fabricante. Tente selecionar uma marca acima, ou adicione o FMI: ex. <b>{spn}/1</b>.',
       stepParam: 'parâmetro', knownFailures: 'falhas conhecidas — {brand}',
       stepNeedFmi: 'falta o FMI',
@@ -1123,6 +1186,13 @@
       scanMany: 'Numer <b>{code}</b> odpowiada kilku kodom na zestawie wskaźników — sprawdź, który pokazuje panel.',
       stepCode: 'kod', stepDecoding: 'znaczenie',
       factorySource: 'tabela fabryczna — {brand}', standardSource: 'norma J1939',
+      blinkNotFoundFor: 'Kodu migania {n} nie znaleziono w tabeli {brand}.',
+      j1939ForBrand: 'Według normy J1939 — u marki {brand} ten numer może znaczyć co innego',
+      badCodeFor: 'Kodu nie rozpoznano w tabeli {brand} — sprawdź format.',
+      pcodeServerError: 'Baza kodów jest chwilowo niedostępna — spróbuj później.',
+      fmiTable: 'FMI {fmi} wg tabeli {brand}',
+      midDefault: 'Brak MID w kodzie — przyjęto moduł silnika, MID 128.',
+      midTyped: 'Kod zawiera MID {mid} — użyto go zamiast wybranego ({sel}).',
       spnNotFound: '<b>SPN {spn}</b> nie znaleziony w bazie — prawdopodobnie kod producenta. Spróbuj wybrać markę powyżej albo dodaj FMI: np. <b>{spn}/1</b>.',
       stepParam: 'parametr', knownFailures: 'znane usterki — {brand}',
       stepNeedFmi: 'potrzebny FMI',
@@ -1244,6 +1314,13 @@
       scanMany: '<b>{code}</b> numarası gösterge panelindeki birden fazla koda karşılık gelir — hangisinin göründüğünü kontrol edin.',
       stepCode: 'kod', stepDecoding: 'anlam',
       factorySource: 'fabrika tablosu — {brand}', standardSource: 'J1939 standardı',
+      blinkNotFoundFor: '{brand} tablosunda {n} yanıp sönme kodu bulunamadı.',
+      j1939ForBrand: 'J1939 standardına göre — {brand} markasında bu numara farklı bir anlam taşıyabilir',
+      badCodeFor: '{brand} tablosunda kod tanınmadı — biçimi kontrol edin.',
+      pcodeServerError: 'Kod veritabanı geçici olarak kullanılamıyor — daha sonra deneyin.',
+      fmiTable: 'FMI {fmi}, {brand} tablosuna göre',
+      midDefault: 'Kodda MID yok — motor modülü, MID 128 alındı.',
+      midTyped: 'Kodda MID {mid} var — seçilen ({sel}) yerine bu kullanıldı.',
       spnNotFound: '<b>SPN {spn}</b> veritabanında bulunamadı — muhtemelen üreticiye özel bir kod. Yukarıdan bir marka seçin veya FMI ekleyin: örn. <b>{spn}/1</b>.',
       stepParam: 'parametre', knownFailures: 'bilinen arızalar — {brand}',
       stepNeedFmi: 'FMI gerekli',
@@ -1365,6 +1442,13 @@
       scanMany: 'नंबर <b>{code}</b> डैश के कई कोड से मेल खाता है — देखें कि पैनल कौन सा दिखा रहा है।',
       stepCode: 'कोड', stepDecoding: 'अर्थ',
       factorySource: 'फैक्ट्री तालिका — {brand}', standardSource: 'J1939 मानक',
+      blinkNotFoundFor: '{brand} तालिका में ब्लिंक कोड {n} नहीं मिला।',
+      j1939ForBrand: 'J1939 मानक के अनुसार — {brand} में यह संख्या कुछ और अर्थ रख सकती है',
+      badCodeFor: '{brand} तालिका में कोड नहीं पहचाना गया — प्रारूप जांचें।',
+      pcodeServerError: 'कोड डेटाबेस अस्थायी रूप से उपलब्ध नहीं है — बाद में प्रयास करें।',
+      fmiTable: 'FMI {fmi} — {brand} तालिका के अनुसार',
+      midDefault: 'कोड में MID नहीं है — इंजन मॉड्यूल, MID 128 लिया गया।',
+      midTyped: 'कोड में MID {mid} है — चयनित ({sel}) की जगह यही लिया गया।',
       spnNotFound: '<b>SPN {spn}</b> डेटाबेस में नहीं मिला — संभवतः यह निर्माता-विशिष्ट कोड है। ऊपर ब्रांड चुनें, या FMI जोड़ें: जैसे <b>{spn}/1</b>.',
       stepParam: 'पैरामीटर', knownFailures: 'ज्ञात खराबियां — {brand}',
       stepNeedFmi: 'FMI चाहिए',
@@ -1486,6 +1570,13 @@
       scanMany: '代码 <b>{code}</b> 对应仪表盘上的多个代码 — 请核对仪表显示的是哪一个。',
       stepCode: '代码', stepDecoding: '含义',
       factorySource: '原厂代码表 — {brand}', standardSource: 'J1939 标准',
+      blinkNotFoundFor: '在{brand}表中未找到闪码{n}。',
+      j1939ForBrand: '按J1939标准 — {brand}的该编号可能含义不同',
+      badCodeFor: '在{brand}表中无法识别该代码 — 请检查格式。',
+      pcodeServerError: '代码数据库暂时不可用 — 请稍后再试。',
+      fmiTable: 'FMI {fmi}，按{brand}表',
+      midDefault: '代码中没有MID — 按发动机模块MID 128处理。',
+      midTyped: '代码中的MID为{mid} — 使用它而非所选的({sel})。',
       spnNotFound: '数据库中未找到 <b>SPN {spn}</b> — 可能是厂商专有代码。请在上方选择品牌，或补充 FMI，例如 <b>{spn}/1</b>。',
       stepParam: '参数', knownFailures: '已知故障 — {brand}',
       stepNeedFmi: '需要 FMI',
@@ -2023,10 +2114,26 @@
                  'недостовер','не поступ','отсутств','нет сигнал','неисправ',
                  'перегрев','малое','низк','высок','больше','меньше','утечк','заклин'];
 
-  function withFmiHint(desc, fmi){
-    var f = fmiText(fmi);
+  /* Подсказка по FMI: своя легенда марки (MAN, Renault) или стандарт J1939. */
+  function fmiHintOf(owner, fmi){
+    var own = owner && OWN_FMI[owner];
+    if(!own) return fmiText(fmi);
+    if(own === 'renault') return t('fmiTable', {brand: brandName('renault'), fmi: fmi});
+    return ownLegend(own, fmi);
+  }
+  function ownLegend(key, fmi){
+    var E = en();
+    var tbl = (E && E.fmiBrand && E.fmiBrand[key]) || (DB.fmiBrand && DB.fmiBrand[key]);
+    if(!tbl) return null;
+    var v = tbl[String(fmi)];
+    if(v == null) v = tbl[stripZero(String(fmi))];
+    return v != null ? v : null;
+  }
+  function withFmiHint(desc, fmi, owner){
+    var f = fmiHintOf(owner, fmi);
     if(!f) return desc;
     var low = desc.toLowerCase();
+    if(owner && OWN_FMI[owner] && low.indexOf(f.toLowerCase()) >= 0) return desc;
     if(desc.length > 60 && MEANING.some(function(w){ return low.indexOf(w) >= 0; })) return desc;
     return desc + ' — ' + f;
   }
@@ -2204,12 +2311,62 @@
   /* Особые вводы: FC-номер Cummins («FC 111») и блинк-код КамАЗ Bosch MS 6.1
      («блинк 21»). Это не SPN и не дилерский код, поэтому смотрим их до разбора.
      Только для КамАЗ и без марки. */
-  function specialKind(raw){
-    var up = String(raw || '').toUpperCase().replace(/\s+/g, ' ').trim();
+  /* Блинк-код: «2-1», «2-4-3», «21», «131», «блинк 21». Нулей в блинк-кодах
+     не бывает, поэтому «100» сюда не попадает. dash - разделитель именно «-». */
+  function blinkCode(raw){
+    var s = String(raw || '').toUpperCase().replace(/\s+/g, ' ').trim();
+    var m = /^(БЛИНК|BLINK|МИГАЕТ|МИГАНИЕ|МИГАЮТ|ВСПЫШКИ|ВСПЫШКА)?\s*([1-9])\s*([-.\/,]?)\s*([1-9])(?:\s*([-.\/,]?)\s*([1-9]))?$/.exec(s);
+    if(!m) return null;
+    return {code: m[2] + m[4] + (m[6] || ''), prefix: !!m[1], dash: m[3] === '-' || m[5] === '-'};
+  }
+  /* Индекс «марка|блинк-код» -> ключи словаря, строится по тексту записи
+     «Мигающий код: 2-4-3» (ru) и «Blink code: 6-6-3» (en). */
+  var BLINK_IDX = null;
+  function blinkIndex(){
+    if(BLINK_IDX) return BLINK_IDX;
+    BLINK_IDX = {};
+    [DB, DB_EN].forEach(function(D){
+      if(!D || !D.brands) return;
+      Object.keys(D.brands).forEach(function(b){
+        var m = D.brands[b];
+        Object.keys(m).forEach(function(k){
+          var r = /(?:Мигающий код|Blink code):\s*([0-9][0-9-]*)/.exec(m[k]);
+          if(!r) return;
+          var id = b + '|' + r[1].replace(/-/g, '');
+          var list = BLINK_IDX[id] = BLINK_IDX[id] || [];
+          if(list.indexOf(k) < 0) list.push(k);
+        });
+      });
+    });
+    return BLINK_IDX;
+  }
+  /* Ответ из открытого словаря по блинк-коду; null - такого кода в словаре нет. */
+  function blinkOpen(brand, code, typed){
+    var idx = blinkIndex(), E = en(), hit = null;
+    donorsOf(brand).some(function(d){
+      var list = idx[d + '|' + code];
+      if(!list || !list.length) return false;
+      hit = {donor:d, keys:list};
+      return true;
+    });
+    if(!hit) return null;
+    var steps = [{st:t('stepCode'), tx:'<span class="mono">' + esc(typed) + '</span>', cls:'ok'}];
+    hit.keys.forEach(function(k){
+      var txt = (E && E.brands[hit.donor] && E.brands[hit.donor][k]) || (DB.brands[hit.donor] && DB.brands[hit.donor][k]) || '';
+      var pr = k.split('.');
+      steps.push({st:t('factorySource', {brand: brandName(hit.donor)}),
+        tx:'<span class="mono">' + codeLabel(pr[0]) + ' · FMI ' + esc(pr[1]) + '</span><br><b>' + esc(txt) + '</b>', cls:'ok'});
+    });
+    return chain(steps);
+  }
+
+  /* Особые вводы: FC-номер Cummins («FC 111») и блинк-код КамАЗ Bosch MS 6.1.
+     Только для КамАЗ и без марки. Блинк КамАЗ - с «блинк» или через «-». */
+  function specialKind(raw, brand){
     var fc = normCode(raw).replace(/\s+/g, '').match(/^(?:FC|FK|ФC|ФK)-?(\d{1,4})$/);
     if(fc) return {kind:'fc', num:fc[1]};
-    var bl = up.match(/^(?:БЛИНК|BLINK|МИГАЕТ|МИГАНИЕ|МИГАЮТ|ВСПЫШКИ|ВСПЫШКА)\s*(\d)\s*-?\s*(\d)$/);
-    if(bl) return {kind:'blink', code:bl[1] + bl[2]};
+    var bc = blinkCode(raw);
+    if(bc && (bc.prefix || (brand === 'kamaz' && bc.dash))) return {kind:'blink', code:bc.code};
     return null;
   }
   /* html, либо null, если в индексе такого номера нет (тогда идём обычным путём). */
@@ -2266,7 +2423,7 @@
         for(var j = 0; j < keys.length; j++){
           var exact = (E && E.brands[d] && E.brands[d][keys[j]])
                    || (DB.brands[d] && DB.brands[d][keys[j]]);
-          if(exact) return {text:withFmiHint(exact, fmi), src:t('factorySource', {brand: brandName(d)}), k:keys[j]};
+          if(exact) return {text:withFmiHint(exact, fmi, d), src:t('factorySource', {brand: brandName(d)}), k:keys[j]};
         }
       }
     }
@@ -2290,7 +2447,7 @@
     var name = spnName(spn, brand);
     var known = !!name;
     if(!name) name = codeLabel(spn);
-    var f = fmiText(fmi) || t('fmiNonstandard', {fmi:fmi});
+    var f = fmiHintOf(brand, fmi) || t('fmiNonstandard', {fmi:fmi});
     return {text:name + ' — ' + f, src:known ? t('standardSource') : null, unknown:!known};
   }
   /* Все попадания - из блоков с ownFmi (свой FMI): общий смысл по J1939 тоже показываем. */
@@ -2298,54 +2455,52 @@
     return !!hits && hits.length > 0 && hits.every(function(h){ return h.ownFmi; });
   }
 
-  /* Дилерский код ищем через API (worker/pcode-api.js), а не в памяти -
-     таблицы Volvo/Mercedes/Scania больше не публикуются на сайте целиком.
-     Марку выбирать по-прежнему необязательно: без неё бэкенд сам
-     проверяет все дилерские таблицы и говорит, чья это марка. Пробелы
-     в написании кода ("AA 9999" / "AA9999") нормализует бэкенд. */
+  /* Дилерский код ищем через API (worker/pcode-api.js). Ввод уходит почти как
+     набран: пробелы и разделители нормализует воркер. */
   function fetchPcodeOne(brand, code, lang){
     var url = PCODE_API + '/pcode?code=' + encodeURIComponent(code) +
               '&lang=' + encodeURIComponent(lang) +
               (brand ? '&brand=' + encodeURIComponent(brand) : '');
-    return fetch(url).then(function(r){
+    return fetch(url).catch(function(){
+      var ne = new Error('pcode network'); ne.network = true; throw ne;
+    }).then(function(r){
       if(r.status === 429){
-        /* Суточный лимит (50 поисков в сутки на адрес) отличаем от
-           минутного: про него человеку нужно сказать прямо, а не «проверьте
-           связь». Тело ответа читаем, чтобы не спутать с rate_limited. */
         return r.json().catch(function(){ return {}; }).then(function(body){
           if(body && body.error === 'daily_limit'){
-            var lim = new Error('pcode daily limit');
-            lim.dailyLimit = true;
-            throw lim;
+            var lim = new Error('pcode daily limit'); lim.dailyLimit = true; throw lim;
           }
           throw new Error('pcode api 429');
+        });
+      }
+      if(r.status === 400){
+        return r.json().catch(function(){ return {}; }).then(function(body){
+          if(body && body.error === 'bad_code'){
+            var bc = new Error('pcode bad code'); bc.badCode = true; throw bc;
+          }
+          return {hits: []};   /* unknown_brand и прочие 400 - ответа нет, это не ошибка */
         });
       }
       if(!r.ok) throw new Error('pcode api ' + r.status);
       return r.json();
     }).then(function(data){ return data.hits || []; });
   }
-
   function isDailyLimit(e){ return !!(e && e.dailyLimit); }
 
-  /* Бэкенд знает только реальные марки, про алиасы ему рассказывать
-     незачем: спрашиваем доноров по очереди и склеиваем ответы. Марка не
-     выбрана - один запрос без brand, бэкенд сам пройдёт по всем. */
+  /* В воркер - только доноры из KNOWN_PCODE_BRANDS. Без марки - один запрос без brand.
+     Если закрытых доноров нет - запроса не делаем. */
   function fetchPcode(brand, code, lang){
-    var donors = donorsOf(brand);
-    if(donors.length < 2) return fetchPcodeOne(donors[0] || '', code, lang);
-    var failed = null, dead = 0;
+    if(!brand) return fetchPcodeOne('', code, lang);
+    var donors = donorsOf(brand).filter(function(d){ return !!CLOSED_BRANDS[d]; });
+    if(!donors.length) return Promise.resolve([]);
+    if(donors.length === 1) return fetchPcodeOne(donors[0], code, lang);
+    var failed = null, dead = 0, bad = null;
     return Promise.all(donors.map(function(b){
-      /* Суточный лимит не глотаем: он относится к поиску целиком, а не к
-         одной марке-донору, и без него ответ «ничего не найдено» соврал бы. */
       return fetchPcodeOne(b, code, lang).catch(function(e){
         if(isDailyLimit(e)) throw e;
-        dead++; failed = failed || e;
-        return [];
+        if(e.badCode){ bad = bad || e; return []; }
+        dead++; failed = failed || e; return [];
       });
     })).then(function(lists){
-      /* Ни один донор не ответил (нет сети): это не «код не найден», а отсутствие
-         связи - ошибку отдаём наверх, там она станет сообщением о связи. */
       if(dead === donors.length) throw failed;
       var out = [], seen = {};
       lists.forEach(function(hits){
@@ -2354,50 +2509,88 @@
           if(!seen[k]){ seen[k] = 1; out.push(h); }
         });
       });
+      if(!out.length && bad) throw bad;
       return out;
     });
   }
 
-  /* Дилерский код с точкой - «100.1» (Deutz, Caterpillar, Daewoo, Iveco EDC).
-     Разбор по стандарту читает его как SPN 100 / FMI 1, и дилерская таблица
-     при этом не спрашивалась вовсе. Теперь её спрашиваем ДОПОЛНИТЕЛЬНО: ответ
-     по стандарту показываем как раньше, а находки - отдельным блоком, тем же
-     видом, что и остальные дилерские коды. Без марки спрашиваем все таблицы.
-     Пробел вместо точки («100 1») считаем тем же номером только для четырёх
-     марок выше: в остальных это чаще SPN/FMI. Явный «J1939 - SPN/FMI» отменяет
-     дополнительный запрос. */
-  var DOT_CODE_RE = /^[0-9]{1,7}\.[0-9]{1,2}$/;
-  var DOT_BRANDS = {deutz:1, caterpillar:1, daewoo:1, ivecoedc:1};
-  function dealerDotCode(brand, std, raw){
-    if(std === 'spnfmi') return null;
-    if(brand && !DOT_BRANDS[brand]) return null;
-    var s = normCode(raw);
-    if(DOT_CODE_RE.test(s)) return s;
-    var sp = /^([0-9]{1,7}) ([0-9]{1,2})$/.exec(s);
-    if(sp && DOT_BRANDS[brand]) return sp[1] + '.' + sp[2];
-    return null;
-  }
-  /* Ошибку сети здесь не показываем: ответ по стандарту уже на экране, и
-     пустой блок лучше, чем красная плашка поверх него. Суточный лимит - это
-     другое: человек должен узнать, почему дилерский ответ не пришёл. */
-  function fetchDotDealer(brand, code){
-    return fetchPcode(brand, code, currentLang).then(function(hits){
-      return {hits:hits, limit:false};
-    }, function(e){
-      return {hits:[], limit:isDailyLimit(e)};
+  /* Закрытая база по коду: свой индекс номеров сканера (DB.scan) плюс воркер.
+     Сеть не обязана отвечать, если свой ответ уже есть. */
+  function closedLookup(brand, code){
+    return load().then(function(){
+      var mine = scanRefs(brand, code);
+      var net = (brand === 'kamaz' && mine.length) ? Promise.resolve([]) : Promise.resolve()
+        .then(function(){ return fetchPcode(brand, code, currentLang); })
+        .catch(function(e){ if(mine.length) return []; throw e; });
+      return Promise.all([net, mine.length ? loadEn() : null])
+        .then(function(a){ return {net:a[0], mine:mine}; });
     });
   }
-  function dealerDotBlock(d, code){
-    if(d.limit) return note(t('dailyLimit'));
-    if(!d.hits.length) return '';
-    var steps = [{st:t('stepCode'), tx:pcodeStep(code, d.hits), cls:'ok'}];
-    d.hits.forEach(function(h){
-      steps.push({st:brandName(h.brand), tx:'<b>' + esc(h.text) + '</b>', cls:'ok'});
+  function closedHtml(code, r, brand){
+    if(!r.net.length) return scanHtml(code, r.mine);
+    var pSteps = [{st:t('stepCode'), tx:pcodeStep(code, r.net), cls:'ok'}];
+    r.net.forEach(function(h){
+      pSteps.push({st: r.net.length > 1 || r.mine.length || !brand ? brandName(h.brand) : t('stepDecoding'),
+        tx:'<b>' + esc(h.text) + '</b>', cls:'ok'});
     });
-    return chain(steps);
+    return chain(pSteps.concat(scanStepList(r.mine)));
+  }
+  /* Сеть - «нет связи»; 400 bad_code - код не из этой таблицы; прочее - сервер. */
+  function pcodeErrorText(e, brand){
+    if(e && e.badCode) return note(brand ? t('badCodeFor', {brand: brandName(brand) || brand}) : t('badCode'));
+    if(isDailyLimit(e)) return note(t('dailyLimit'));
+    if(e && e.network) return note(t('pcodeApiError'));
+    return note(t('pcodeServerError'));
+  }
+  function stLine(s){ return '<div class="st" style="margin:0 0 8px">' + esc(s) + '</div>'; }
+  function j1939Caption(brand){ return stLine(t('j1939ForBrand', {brand: brandName(brand) || brand})); }
+
+  /* SPN без FMI с известным именем: параметр и известные отказы марки. */
+  function spnOnlyHtml(spn, brand, nm, quiet){
+    var known = [], tblBrand = null;
+    donorsOf(brand).some(function(d){
+      if(DB.brands[d]){ tblBrand = d; return true; }
+      return false;
+    });
+    if(tblBrand){
+      Object.keys(DB.brands[tblBrand]).forEach(function(k){
+        var pair = k.split('.');
+        if(pair[0] === String(spn) && pair.length === 2) known.push(pair[1]);
+      });
+      known.sort(function(a,b){ return a - b; });
+    }
+    var sSteps = [{st:t('stepParam'), tx:'<span class="mono">SPN ' + spn + '</span> — <b>' + esc(nm) + '</b>', cls:'ok'}];
+    if(known.length){
+      sSteps.push({st:t('knownFailures', {brand: brandName(tblBrand)}),
+        tx: known.map(function(f){
+          var E = en(), bk = spn + '.' + f;
+          var txt = (E && E.brands[tblBrand] && E.brands[tblBrand][bk]) || DB.brands[tblBrand][bk];
+          return '<span class="mono">' + spn + '/' + f + '</span> — ' + esc(txt);
+        }).join('<br>'), cls:'ok'});
+    }
+    if(!quiet) sSteps.push({st:t('stepNeedFmi'), tx:t('needFmiText', {spn: spn})});
+    return chain(sSteps);
+  }
+  /* Стандарт J1939 под ответом закрытой базы: без срочности и горизонта. */
+  function j1939Quiet(raw, brand){
+    var p = parse(raw, 'auto');
+    if(!p || p.bad || p.pcode) return '';
+    var html;
+    if(p.fmi == null){
+      var nm = spnName(p.spn, brand);
+      if(!nm) return '';
+      html = spnOnlyHtml(p.spn, brand, nm, true);
+    } else {
+      html = spnFmiHtml(p.spn, p.fmi, brand, null, true);
+    }
+    return j1939Caption(brand) + html;
+  }
+  function safeQuiet(raw, brand){
+    try { return j1939Quiet(raw, brand); } catch(e){ return ''; }
   }
 
   function urgent(spn, fmi, brand){
+    if(OWN_FMI[brand]) return hasNum(DB.urgentSpn, spn);
     if(hasNum(DB.urgentSpn, spn)) return true;
     if(hasNum(DB.urgentFmi, fmi)) return true;
     if(brand !== 'kamaz') return false;
@@ -2414,7 +2607,7 @@
      получить ту же карточку, что и человек с кодом с приборки, а не сухую
      строчку. lead - необязательный шаг ПЕРЕД «кодом»: им подписывается,
      из чего мы этот код взяли. */
-  function spnFmiHtml(spn, fmi, brand, lead){
+  function spnFmiHtml(spn, fmi, brand, lead, quiet){
     var d = describe(spn, fmi, brand);
     if(d.hits && d.hits.length){
       var bhtml = blockHitsHtml(spn, fmi, d.hits, lead);
@@ -2424,31 +2617,26 @@
       }
       return bhtml;
     }
-    var u = urgent(spn, fmi, brand);
-    /* Подпись - в той форме, что лежит в справочнике: ввод «0636/011» по
-       ключу 636.11 показываем как SPN 636 · FMI 11, без ведущих нулей. Если
-       ключа в справочнике нет, показываем ввод как есть: приборка пишет
-       «03043-00» с нулями намеренно (см. codeVal). */
+    /* Срочность - только по известному SPN. Незнакомый код и тихий режим
+       (ответ закрытой базы) «критично» не получают. */
+    var u = (quiet || d.unknown) ? false : urgent(spn, fmi, brand);
     var shown = d.k ? d.k.split('.') : [spn, fmi];
     var code = codeLabel(shown[0]) + ' · FMI ' + shown[1];
     var steps = lead ? [lead] : [];
     steps.push({st:t('stepCode'), tx:'<span class="mono">' + code + '</span>', cls:'ok'});
     steps.push({st:t('stepDecoding'), tx:'<b>' + esc(d.text) + '</b>' +
       (d.src ? '<div class="st" style="margin-top:7px">' + esc(t('sourceLabel', {src:d.src})) + '</div>' : ''), cls:'ok'});
-    steps.push(u
-      ? {st:t('stepUrgency'), tx:t('urgentText'), cls:'hit'}
-      : {st:t('stepUrgency'), tx:t('notUrgentText')});
+    if(!quiet && !d.unknown){
+      steps.push(u ? {st:t('stepUrgency'), tx:t('urgentText'), cls:'hit'}
+                   : {st:t('stepUrgency'), tx:t('notUrgentText')});
+    }
     var html = chain(steps);
-    /* Для нерасшифрованного кода горизонт не строим: срок можно
-       назвать, только зная, что именно сломалось. */
-    if(!d.unknown){
+    if(!quiet && !d.unknown && !OWN_FMI[brand]){
       html += '<div class="card">' + riskBlock({
         spn:spn, fmi:fmi, sys:systemOf(spn, d.text), urgent:u
       }) + '</div>';
     }
-    if(d.unknown){
-      html += note(t('unknownSpnNote'));
-    }
+    if(d.unknown) html += note(t('unknownSpnNote'));
     return html;
   }
 
@@ -3108,170 +3296,116 @@
   var runSeq = 0;
   function run(skipDealer, noSpecial){
     var mySeq = ++runSeq;
+    var typed = String(input.value || '').trim().replace(/\s+/g, ' ');
+    var up = normCode(typed);
     var brand = sel.value;
-    var midBrand = MID_BRANDS[brand];
-    var mid = midBrand ? (MID_FIXED[brand] || midSel.value) : null;
+    var midNote = '';
+    /* Volvo: MID, SID, PSID или PPID в коде - таблица модулей (volvomid), а не SPN.
+       Без MID берём модуль двигателя 128. */
+    var fromVolvo = brand === 'volvo' && (/\bMID\s*\d{3}\b/.test(up) || /\b(SID|PSID|PPID)\s*\d/.test(up));
+    if(fromVolvo) brand = 'volvomid';
+    var midBrand = !!MID_BRANDS[brand];
+    /* Detroit/Western Star с явным SPN - обычный SPN/FMI, а не MID/PID. */
+    if(midBrand && MID_FIXED[brand] && /\bSPN\b/.test(up)) midBrand = false;
+    var mid = null;
+    if(midBrand){
+      var typedMid = midSplit(up).mid;
+      var listMid = MID_FIXED[brand] || midSel.value || null;
+      mid = typedMid || listMid;
+      if(!typedMid && fromVolvo){ mid = '128'; midNote = stLine(t('midDefault')); }
+      else if(typedMid && listMid && typedMid !== listMid && !MID_FIXED[brand]){
+        midNote = stLine(t('midTyped', {mid: typedMid, sel: listMid}));
+      }
+    }
+    function rnd(h, printable){ render(midNote + h, printable); }
 
-    /* Freightliner/Mack без выбранного модуля - код неоднозначен: один
-       и тот же PID/SID под разными MID означает разное. Дальше не идём. */
-    /* Дилерская таблица марки (у Mack это 175 OBD-кодов) от модуля
-       не зависит: код там один на всю машину. Поэтому требование
-       выбрать модуль снимается, когда во вводе OBD-код. */
-    /* У Volvo обходного пути нет вовсе: ключ дилерской таблицы начинается
-       с номера блока, без выбранного модуля его не собрать. */
-    if(midBrand && !mid && (MID_PCODE_BRANDS[brand] || !midObdCode(input.value))){
-      render(note(t('needMid')));
-      return;
+    /* Freightliner/Mack без модуля - код неоднозначен. Исключение: OBD-код. */
+    if(midBrand && !mid && (MID_PCODE_BRANDS[brand] || !midObdCode(typed))){
+      rnd(note(t('needMid'))); return;
     }
 
     /* FC Cummins и блинк КамАЗ - свои индексы; нет в индексе - обычный путь. */
-    var special = (!midBrand && (brand === 'kamaz' || !brand) && !noSpecial) ? specialKind(input.value) : null;
+    var special = (!midBrand && (brand === 'kamaz' || !brand) && !noSpecial) ? specialKind(typed, brand) : null;
     if(special){
       ready().then(function(){
         var sh = specialHtml(special);
         if(sh === null){ run(skipDealer, true); return; }
-        render(sh, true);
-      }).catch(function(){
-        render(note(t('loadError')));
-      });
+        rnd(sh, true);
+      }).catch(function(){ rnd(note(t('loadError'))); });
       return;
     }
 
-    /* См. NUM_PCODE_BRANDS: у навесного оборудования числовой код -
-       дилерский, а не SPN, поэтому в режиме автоопределения ведём их
-       по ветке дилерских кодов. */
-    var numPcode = !!NUM_PCODE_BRANDS[brand] && std.value !== 'spnfmi' &&
-                   !/FMI/.test(normCode(input.value));
+    /* Блинк-код марки с блинками: сначала открытый словарь, затем закрытая база.
+       J1939 здесь не показываем - это не SPN/FMI. */
+    var bc = (!midBrand && brand !== 'kamaz' && BLINK_BRANDS[brand]) ? blinkCode(typed) : null;
+    if(bc){
+      rnd(note(t('pcodeSearching')));
+      ready().then(function(){
+        var hit = blinkOpen(brand, bc.code, typed);
+        if(hit){ rnd(hit, true); return; }
+        if(!isClosedBrand(brand)){ rnd(note(t('blinkNotFoundFor', {n: bc.code, brand: brandName(brand) || brand}))); return; }
+        return closedLookup(brand, typed).then(function(r){
+          if(mySeq !== runSeq) return;
+          if(!r.net.length && !r.mine.length){ rnd(note(t('blinkNotFoundFor', {n: bc.code, brand: brandName(brand) || brand}))); return; }
+          rnd(closedHtml(typed, r, brand), true);
+        });
+      }).catch(function(e){ if(mySeq === runSeq) rnd(pcodeErrorText(e, brand)); });
+      return;
+    }
 
-    /* Два кода и больше - это выгрузка со сканера, а не один вопрос.
-       Такой список разбираем целиком: ищем первопричину. */
-    /* Разбор списком (поиск первопричины) работает по бесплатным таблицам,
-       которые лежат в памяти. У дилерской MID-марки каждый код - отдельный
-       запрос к API, поэтому список не собираем: разбираем первый код. */
-    var many = midBrand ? (MID_PCODE_BRANDS[brand] ? [] : parseAllMid(input.value, mid))
-             : ((std.value === 'pcode' || numPcode) ? [] : parseAll(input.value));
+    /* Два кода и больше - выгрузка со сканера: разбираем целиком по стандарту. */
+    var numPcode = !!NUM_PCODE_BRANDS[brand] && std.value !== 'spnfmi' && !/FMI/.test(up);
+    var many = midBrand ? (MID_PCODE_BRANDS[brand] ? [] : parseAllMid(typed, mid))
+             : ((std.value === 'pcode' || numPcode) ? [] : parseAll(typed));
     if(many.length >= 2){
       ready().then(function(){
-        var a = analyze(many, brand);
-        render(cascade(a), true);
-      }).catch(function(){
-        render(note(t('loadError')));
-      });
+        rnd(cascade(analyze(many, brand)), true);
+      }).catch(function(){ rnd(note(t('loadError'))); });
       return;
     }
 
-    var p = midBrand ? parseMidCode(input.value, mid, brand)
-          : parse(input.value, numPcode ? 'pcode' : std.value);
+    /* Номер или пара «номер-номер» у закрытой марки - сначала её база (fallback:
+       если там пусто, идём в стандарт J1939 тем же run(true)). Буквенно-цифровые
+       коды (E00, F09, EMS 11, P0340) тоже уходят в базу без стандарта. */
+    var isNumIn = /^\d{1,7}(?:[ \-\/.,]\d{1,3})?$/.test(typed);
+    var isLetterIn = !midBrand && /^[A-Z]{1,4}[ \-]?\d{1,5}$/.test(up) && !/SPN|FMI|MID|SID|PID/.test(up);
+    var renSingle = !!SPN_PCODE_BRANDS[brand] && /^\d{1,7}$/.test(typed) && std.value !== 'spnfmi';
+    var closed = !midBrand && isClosedBrand(brand) && !skipDealer && std.value !== 'spnfmi' && !renSingle;
+    var p;
+    if(midBrand) p = parseMidCode(typed, mid, brand);
+    else if(numPcode || (closed && isLetterIn)) p = {pcode: normCode(typed)};
+    else if(closed && isNumIn) p = {pcode: normCode(typed), fallback: std.value !== 'pcode'};
+    else p = parse(typed, std.value);
+    if(!p){ rnd(note(t('emptyPrompt'))); return; }
+    /* Подпись «по стандарту J1939 - у марки номер может значить другое». */
+    var cap = (!midBrand && isClosedBrand(brand) && isNumIn) ? j1939Caption(brand) : '';
 
-    if(!p){
-      render(note(t('emptyPrompt')));
-      return;
-    }
-
-    /* Дилерский код обрабатываем отдельно от ready(): ему не нужен
-       loadEn() (язык бэкенд резолвит сам), только DB.brandNames для
-       подписи марки. p.pcode и p.bad взаимоисключающи, так что
-       выносить эту ветку перед ready() безопасно. */
     if(p.pcode){
-      render(note(t('pcodeSearching')));
-      load().then(function(){
-        /* Индекс номеров сканера (DB.scan) лежит в памяти, дилерская
-           таблица - за сетью. Спрашиваем оба: у одного и того же номера
-           бывают оба ответа, и они не спорят, а дополняют друг друга.
-           "P0521" - это и наш SITRAK/Dongfeng (номер дешёвого OBD-сканера
-           к коду на щитке), и настоящий дилерский код JAC и Mack. Показать
-           только один из них значит соврать половине спросивших.
-           Сеть при этом не обязана отвечать: если она отпала, а свой ответ
-           из памяти есть - отдаём его, а не ошибку связи. */
-        var mine = scanRefs(brand, p.pcode);
-        /* Promise.resolve().then вокруг запроса не для красоты: fetch может
-           бросить и синхронно (нет сети у движка, запрещённый URL), а тогда
-           .catch ниже просто не успевает навеситься - исключение улетает
-           мимо и человек с готовым ответом в памяти видит «проверьте связь». */
-        var net = (brand === 'kamaz' && mine.length) ? Promise.resolve([]) : Promise.resolve()
-          .then(function(){ return fetchPcode(brand, p.pcode, currentLang); })
-          .catch(function(e){ if(mine.length) return []; throw e; });
-        /* Английские описания тянем ТОЛЬКО когда ответ будет свой: текст от
-           дилерского API приходит уже на нужном языке (ветка нарочно обходила
-           loadEn(), чтобы не грузить полмегабайта на обочине), а вот ответ по
-           индексу номеров сканера читается из нашей же таблицы - без
-           dtc.en.js он вышел бы по-русски у англичанина. */
-        return Promise.all([net, mine.length ? loadEn() : null])
-          .then(function(a){ return {net:a[0], mine:mine}; });
-      }).then(function(r){
+      rnd(note(t('pcodeSearching')));
+      closedLookup(brand, p.pcode).then(function(r){
+        if(mySeq !== runSeq) return;
         if(!r.net.length && !r.mine.length){
-          render(note(t('pcodeNotFound', {code: esc(p.pcode)})));
+          if(p.fallback && !parse(typed, 'auto').bad){ run(true); return; }
+          rnd(note(t('pcodeNotFound', {code: esc(p.pcode)})));
           return;
         }
-        /* Ответ только наш - показываем полной карточкой (а при одном
-           совпадении ещё и с «можно ли ехать»), это ценнее строчки. */
-        if(!r.net.length){
-          render(scanHtml(p.pcode, r.mine), true);
-          return;
-        }
-        var pSteps = [{st:t('stepCode'), tx:pcodeStep(p.pcode, r.net), cls:'ok'}];
-        r.net.forEach(function(h){
-          pSteps.push({
-            st: r.net.length > 1 || r.mine.length || !brand ? brandName(h.brand) : t('stepDecoding'),
-            tx: '<b>' + esc(h.text) + '</b>', cls:'ok'
-          });
-        });
-        render(chain(pSteps.concat(scanStepList(r.mine))), true);
+        rnd(closedHtml(p.pcode, r, brand) + (p.fallback ? safeQuiet(typed, brand) : ''), true);
       }).catch(function(e){
-        render(note(t(isDailyLimit(e) ? 'dailyLimit' : 'pcodeApiError')));
+        if(mySeq !== runSeq) return;
+        rnd(pcodeErrorText(e, brand) + (p.fallback ? safeQuiet(typed, brand) : ''));
       });
       return;
     }
 
-    /* У части марок дилерский код по написанию неотличим от пары SPN/FMI:
-       у DAF это «1-2», «84-9», и означает он своё в каждой системе - у
-       ABS-E «1-2» это датчик проскальзывания колеса F512, на шине это
-       отсутствие сообщения EEC1, у подушек безопасности - внутренняя
-       ошибка блока D926. Разбор выше уводит такой ввод в стандарт J1939,
-       и до дилерской таблицы дело не доходило вовсе: её спрашивают только
-       для номера БЕЗ FMI (см. ветку p.fmi === null ниже).
-       Поэтому для таких марок сначала спрашиваем дилерскую таблицу, и
-       только если там пусто - идём в стандарт тем же run(true). Марка
-       выбрана человеком, так что заводской ответ для неё вернее общего.
-       Чужие марки это не задевает: ветка включается только по списку. */
-    if(PCODE_FMI_BRANDS[brand] && !skipDealer && p.spn != null && p.fmi != null){
-      var dcode = p.spn + '-' + p.fmi;
-      render(note(t('pcodeSearching')));
-      load().then(function(){
-        return fetchPcode(brand, dcode, currentLang);
-      }).then(function(hits){
-        if(!hits.length){ run(true); return; }
-        var dSteps = [{st:t('stepCode'), tx:pcodeStep(dcode, hits), cls:'ok'}];
-        hits.forEach(function(h){
-          dSteps.push({
-            st: hits.length > 1 ? brandName(h.brand) : t('stepDecoding'),
-            tx: '<b>' + esc(h.text) + '</b>', cls:'ok'
-          });
-        });
-        render(chain(dSteps), true);
-      }).catch(function(){ run(true); });
-      return;
-    }
-
-    /* Renault: заводской номер записан словом «SPN» плюс число (см.
-       SPN_PCODE_BRANDS). Разбор выше уводит такой ввод в стандарт J1939 -
-       и до заводской таблицы марки дело не доходило вовсе, хотя лежит там
-       85 кодов из 91. Спрашиваем её первой, при промахе идём в стандарт
-       тем же run(true).
-
-       Ловим и «SPN 16», и голое «16»: ключ в таблице один и тот же, а
-       человек списывает то, что видит - со словом или без.
-
-       Явно выбранный «J1939 - SPN/FMI» отменяет подмену: это прямо
-       высказанное намерение получить общую расшифровку, спорить с ним
-       не надо (то же правило, что у NUM_PCODE_BRANDS). */
-    if(SPN_PCODE_BRANDS[brand] && !skipDealer && std.value !== 'spnfmi' &&
-       p.spn != null && p.fmi == null){
+    /* Renault: заводской номер записан словом «SPN» плюс число (см. SPN_PCODE_BRANDS).
+       Сначала заводская таблица, при промахе - стандарт тем же run(true). */
+    if(SPN_PCODE_BRANDS[brand] && !skipDealer && std.value !== 'spnfmi' && p.spn != null && p.fmi == null){
       var rcode = 'SPN' + p.spn;
-      render(note(t('pcodeSearching')));
+      rnd(note(t('pcodeSearching')));
       load().then(function(){
         return fetchPcode(brand, rcode, currentLang);
       }).then(function(hits){
+        if(mySeq !== runSeq) return;
         if(!hits.length){ run(true); return; }
         var rSteps = [{st:t('stepCode'), tx:pcodeStep(rcode, hits), cls:'ok'}];
         hits.forEach(function(h){
@@ -3280,57 +3414,26 @@
             tx: '<b>' + esc(h.text) + '</b>', cls:'ok'
           });
         });
-        render(chain(rSteps), true);
-      }).catch(function(){ run(true); });
+        rnd(chain(rSteps), true);
+      }).catch(function(){ if(mySeq === runSeq) run(true); });
       return;
     }
 
-    /* Дилерский код с точкой ищем дополнительно к ответу по стандарту (см.
-       dealerDotCode). Запрос уходит сразу, не дожидаясь справочника. */
-    var dotCode = midBrand ? null : dealerDotCode(brand, std.value, input.value);
-    var dealerP = dotCode ? fetchDotDealer(brand, dotCode) : null;
-    var showFree = function(html){
-      render(html, true);
-      if(!dealerP) return;
-      dealerP.then(function(d){
-        if(mySeq !== runSeq) return;
-        var extra = dealerDotBlock(d, dotCode);
-        if(extra) render(html + extra, true);
-      });
-    };
-
     ready().then(function(){
-      if(p.bad){
-        render(note(t('badCode')));
-        return;
-      }
-      /* SPN без FMI - тоже полноценный ответ: показываем, что это за
-         параметр, и разбор всех FMI по стандарту, чтобы человек нашёл
-         свой случай, даже если вторую половину кода он не разглядел. */
+      if(p.bad){ rnd(note(t('badCode'))); return; }
+      /* SPN без FMI: имя параметра, либо дилерская таблица тем же числом. */
       if(p.fmi === null){
         var nm = spnName(p.spn, brand);
         if(!nm){
-          /* Такого SPN нет ни у марки, ни в стандарте - но у той же марки
-             это может быть заводской код: КамАЗ 5490 показывает пятизначные
-             коды блока ADM3, Cummins и FAW - свои трёхзначные. Прежде чем
-             сказать "не найдено", спрашиваем дилерскую таблицу тем же
-             числом. Риска подменить SPN тут нет: сюда попадают только
-             номера, на которые стандарту ответить нечем. */
           var num = String(p.spn);
-          /* Сначала свой индекс: все 119 пятизначных номеров ADM3/MR2
-             КамАЗа-5490 приходят именно сюда - стандарту на них ответить
-             нечем, а у нас соответствие есть. Сеть тогда не нужна вовсе. */
           var nMine = scanRefs(brand, num);
-          if(nMine.length){
-            render(scanHtml(num, nMine), true);
-            return;
-          }
-          render(note(t('pcodeSearching')));
+          if(nMine.length){ rnd(scanHtml(num, nMine), true); return; }
+          /* Из run(true) базу уже спрашивали - второй запрос не делаем. */
+          if(skipDealer){ rnd(cap + note(t('spnNotFound', {spn: p.spn}))); return; }
+          rnd(note(t('pcodeSearching')));
           fetchPcode(brand, num, currentLang).then(function(hits){
-            if(!hits.length){
-              render(note(t('spnNotFound', {spn: p.spn})));
-              return;
-            }
+            if(mySeq !== runSeq) return;
+            if(!hits.length){ rnd(cap + note(t('spnNotFound', {spn: p.spn}))); return; }
             var nSteps = [{st:t('stepCode'), tx:pcodeStep(num, hits), cls:'ok'}];
             hits.forEach(function(h){
               nSteps.push({
@@ -3338,44 +3441,19 @@
                 tx: '<b>' + esc(h.text) + '</b>', cls:'ok'
               });
             });
-            render(chain(nSteps), true);
+            rnd(chain(nSteps), true);
           }).catch(function(e){
-            render(note(isDailyLimit(e) ? t('dailyLimit') : t('spnNotFound', {spn: p.spn})));
+            rnd(note(e && e.network ? t('pcodeApiError')
+                   : (isDailyLimit(e) ? t('dailyLimit') : t('spnNotFound', {spn: p.spn}))));
           });
           return;
         }
-        /* Для алиаса берём первого донора, у которого вообще есть
-           таблица SPN.FMI - подпись ниже пойдёт от его имени. */
-        var known = [], tblBrand = null;
-        donorsOf(brand).some(function(d){
-          if(DB.brands[d]){ tblBrand = d; return true; }
-          return false;
-        });
-        if(tblBrand){
-          Object.keys(DB.brands[tblBrand]).forEach(function(k){
-            var pair = k.split('.');
-            if(pair[0] === String(p.spn) && pair.length === 2) known.push(pair[1]);
-          });
-          known.sort(function(a,b){ return a - b; });
-        }
-        var sSteps = [
-          {st:t('stepParam'), tx:'<span class="mono">SPN ' + p.spn + '</span> — <b>' + esc(nm) + '</b>', cls:'ok'}
-        ];
-        if(known.length){
-          sSteps.push({st:t('knownFailures', {brand: brandName(tblBrand)}),
-            tx: known.map(function(f){
-              var E = en(), bk = p.spn + '.' + f;
-              var txt = (E && E.brands[tblBrand] && E.brands[tblBrand][bk]) || DB.brands[tblBrand][bk];
-              return '<span class="mono">' + p.spn + '/' + f + '</span> — ' + esc(txt);
-            }).join('<br>'), cls:'ok'});
-        }
-        sSteps.push({st:t('stepNeedFmi'), tx:t('needFmiText', {spn: p.spn})});
-        render(chain(sSteps), true);
+        rnd(cap + spnOnlyHtml(p.spn, brand, nm, false), true);
         return;
       }
-      showFree(spnFmiHtml(p.spn, p.fmi, brand));
+      rnd(cap + spnFmiHtml(p.spn, p.fmi, brand, null, false), true);
     }).catch(function(){
-      render(note(t('loadError')));
+      rnd(note(t('loadError')));
     });
   }
 
