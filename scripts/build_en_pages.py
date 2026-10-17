@@ -264,6 +264,11 @@ def build():
     lvl_of = info['lvl']
     # закрытые от индекса (их ровно столько же, сколько у русской версии)
     closed_en = set(info.get('noindex_en', ()))
+    # Ссылки на соседние коды ведут только на английские страницы, которые реально
+    # записаны в этой сборке и открыты. en_set - это список КАНДИДАТОВ (есть перевод),
+    # а не список записанных страниц: код из en_set, которого нет в written, ссылкой
+    # давать нельзя (так и появлялись битые ссылки на spn-975, spn-2005, spn-3719).
+    open_en = set(written) - closed_en
     # Соседние, похожие и рубричные коды en-страниц берём из открытых en-страниц,
     # а не из русского списка открытых (по нему на en-страницах могли бы оказаться
     # ссылки на закрытые en-адреса). Порядок тот же, что у русской сборки: по номеру.
@@ -317,12 +322,12 @@ def build():
     def causal_section(spn):
         as_root, as_cons = bp.causal_rules(spn)
         out = []
-        causes = sorted(({s for r in as_cons for s in r['root']} & (en_set - closed_en)) - {spn})
+        causes = sorted(({s for r in as_cons for s in r['root']} & open_en) - {spn})
         if causes:
             out.append(u'<section><h2>%s</h2><p>%s</p><ul class="near">%s</ul></section>'
                        % (TX['casStart'], TX['casStartP'],
                           ''.join(code_link(s, 'spn-%d.html' % s) for s in causes)))
-        follow = sorted(({s for r in as_root for s in r['cons']} & (en_set - closed_en)) - {spn})
+        follow = sorted(({s for r in as_root for s in r['cons']} & open_en) - {spn})
         if follow:
             out.append(u'<section><h2>%s</h2><p>%s</p><ul class="near">%s</ul>'
                        u'<p>%s</p></section>'
@@ -457,7 +462,7 @@ def build():
                                 [bname(b) for b in ordered_b],
                                 spn in urgent_spn or any(f in urgent_fmi for f in seen),
                                 spn in OWN_EN or bool(i18n.get(ACT_KEY.get(sys_key, ''))))
-        title = bp.cut60(page_name)      # без «| codetruck.ru»: см. build_pages.cut60
+        title = bp.fit_title(page_name)  # без суффикса сайта, не длиннее 65, без многоточия
         rel = 'kody/spn-%d.html' % spn
         canon = '%s/en/%s' % (SITE, rel)
 

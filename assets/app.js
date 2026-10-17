@@ -386,9 +386,9 @@
     ru: {
       pageTitle: 'Код неисправности грузовика — SPN/FMI и дилерские коды',
       langOffer: 'Эта страница есть на русском',
-      metaDescription: 'Бесплатная расшифровка кодов неисправностей грузовиков: стандарт J1939 (SPN/FMI) и заводские таблицы 12 марок. Введите код со сканера или с приборной панели.',
+      metaDescription: 'Бесплатная расшифровка кодов неисправностей грузовиков: стандарт J1939 (SPN/FMI) и заводские таблицы 80+ марок. Введите код со сканера или с приборной панели.',
       h1: 'Загорелась лампа <em>Check&nbsp;Engine</em> — что означает код?',
-      purposeStats: '31 000+ кодов неисправностей по 70+ маркам техники и агрегатов',
+      purposeStats: '39 000+ кодов неисправностей по 80+ маркам техники и агрегатов',
       purposeDo: 'Введите код — или сразу весь список ошибок, как есть: через запятую, пробел или столбиком. Одна поломка тянет за собой пять-шесть кодов — покажем, какой из них причина, а какие пришли следом, и скажем, можно ли ехать.',
       goBtn: 'Разобрать',
       modeGroup: 'Режим поиска',
@@ -462,6 +462,8 @@
       needSpnFmi: 'Введите SPN и FMI, например <b>100.1</b> или <b>SPN 100 FMI 1</b>.',
       notParsed: 'не разобрали: {items}',
       dealerAtBrands: 'у марок: {brands}',
+      brandlessAsk: 'Поискать у марок',
+      brandlessNone: 'у марок такого номера нет',
       sysEnginebrake: 'моторный тормоз',
       sourceLabel: 'источник: {src}', fmiNonstandard: 'FMI {fmi}: значение не стандартное — смотрите расшифровку марки',
       commonTitle: 'Частые коды неисправностей',
@@ -545,9 +547,9 @@
     en: {
       pageTitle: 'Truck fault code — SPN/FMI and dealer code lookup',
       langOffer: 'This page is available in English',
-      metaDescription: 'Free truck fault code lookup: J1939 standard (SPN/FMI) and factory tables for 12 makes. Enter a code from your scanner or dashboard.',
+      metaDescription: 'Free truck fault code lookup: J1939 standard (SPN/FMI) and factory tables for 80+ makes. Enter a code from your scanner or dashboard.',
       h1: 'The <em>Check&nbsp;Engine</em> light is on — what does the code mean?',
-      purposeStats: '31,000+ fault codes across 70+ makes and systems',
+      purposeStats: '39,000+ fault codes across 80+ makes and systems',
       purposeDo: 'Enter one code — or the whole fault list exactly as it is: separated by commas, spaces or line breaks. One fault drags five or six codes along — we show which one is the cause and which just followed, and tell you whether it’s safe to drive.',
       goBtn: 'Decode',
       modeGroup: 'Search mode',
@@ -621,6 +623,8 @@
       needSpnFmi: 'Enter the SPN and the FMI, for example <b>100.1</b> or <b>SPN 100 FMI 1</b>.',
       notParsed: 'not parsed: {items}',
       dealerAtBrands: 'at makes: {brands}',
+      brandlessAsk: 'Search dealer codes',
+      brandlessNone: 'no dealer code with this number at the makes',
       sysEnginebrake: 'engine brake',
       sourceLabel: 'source: {src}', fmiNonstandard: 'FMI {fmi}: non-standard value — see the make’s decoding',
       commonTitle: 'Common fault codes',
@@ -704,9 +708,9 @@
     de: {
       pageTitle: 'LKW-Fehlercode — SPN/FMI und Händlercode entschlüsseln',
       langOffer: 'Diese Seite gibt es auf Deutsch',
-      metaDescription: 'Kostenlose Entschlüsselung von LKW-Fehlercodes: J1939-Standard (SPN/FMI) und Werkstabellen für 12 Marken. Code vom Scanner oder Armaturenbrett eingeben.',
+      metaDescription: 'Kostenlose Entschlüsselung von LKW-Fehlercodes: J1939-Standard (SPN/FMI) und Werkstabellen für 80+ Marken. Code vom Scanner oder Armaturenbrett eingeben.',
       h1: 'Die <em>Check&nbsp;Engine</em>-Leuchte ist an — was bedeutet der Code?',
-      purposeStats: '31.000+ Fehlercodes für über 70 Marken und Systeme',
+      purposeStats: '39.000+ Fehlercodes für über 80 Marken und Systeme',
       purposeDo: 'Geben Sie einen Code ein — oder gleich die ganze Fehlerliste, so wie sie ist: getrennt durch Komma, Leerzeichen oder Zeilenumbruch. Ein Defekt zieht fünf bis sechs Codes nach sich — wir zeigen, welcher die Ursache ist und welche nur gefolgt sind, und sagen, ob die Weiterfahrt sicher ist.',
       goBtn: 'Entschlüsseln',
       demoTag: 'Beispiel',
@@ -834,9 +838,9 @@
     fr: {
       pageTitle: 'Code défaut camion — décodage SPN/FMI et codes constructeur',
       langOffer: 'Cette page existe en français',
-      metaDescription: 'Décodage gratuit des codes défaut camion : norme J1939 (SPN/FMI) et tables constructeur pour 12 marques. Entrez le code du scanner ou du tableau de bord.',
+      metaDescription: 'Décodage gratuit des codes défaut camion : norme J1939 (SPN/FMI) et tables constructeur pour 80+ marques. Entrez le code du scanner ou du tableau de bord.',
       h1: 'Le voyant <em>Check&nbsp;Engine</em> est allumé — que signifie le code ?',
-      purposeStats: '31 000+ codes défaut pour plus de 70 marques et systèmes',
+      purposeStats: '39 000+ codes défaut pour plus de 80 marques et systèmes',
       purposeDo: 'Saisissez un code — ou toute la liste des défauts, telle quelle : séparés par des virgules, des espaces ou des retours à la ligne. Une panne entraîne cinq ou six codes — nous montrons lequel est la cause et lesquels ont suivi, et vous disons si vous pouvez rouler.',
       goBtn: 'Décoder',
       demoTag: 'exemple',
@@ -964,9 +968,9 @@
     es: {
       pageTitle: 'Código de avería de camión — SPN/FMI y códigos de concesionario',
       langOffer: 'Esta página está disponible en español',
-      metaDescription: 'Decodificación gratuita de códigos de avería de camiones: norma J1939 (SPN/FMI) y tablas de fábrica de 12 marcas. Introduce el código del escáner o del salpicadero.',
+      metaDescription: 'Decodificación gratuita de códigos de avería de camiones: norma J1939 (SPN/FMI) y tablas de fábrica de 80+ marcas. Introduce el código del escáner o del salpicadero.',
       h1: 'Se ha encendido el testigo <em>Check&nbsp;Engine</em> — ¿qué significa el código?',
-      purposeStats: 'Más de 31.000 códigos de falla en más de 70 marcas y sistemas',
+      purposeStats: 'Más de 39.000 códigos de falla en más de 80 marcas y sistemas',
       purposeDo: 'Introduzca un código — o la lista completa de averías, tal cual: separados por comas, espacios o saltos de línea. Una avería arrastra cinco o seis códigos — le mostramos cuál es la causa y cuáles vinieron detrás, y le decimos si puede circular.',
       goBtn: 'Decodificar',
       demoTag: 'ejemplo',
@@ -1094,9 +1098,9 @@
     pt: {
       pageTitle: 'Código de falha de caminhão — SPN/FMI e códigos de concessionária',
       langOffer: 'Esta página está disponível em português',
-      metaDescription: 'Decodificação gratuita de códigos de falha de caminhões: norma J1939 (SPN/FMI) e tabelas de fábrica de 12 marcas. Digite o código do scanner ou do painel.',
+      metaDescription: 'Decodificação gratuita de códigos de falha de caminhões: norma J1939 (SPN/FMI) e tabelas de fábrica de 80+ marcas. Digite o código do scanner ou do painel.',
       h1: 'A luz de <em>Check&nbsp;Engine</em> acendeu — o que significa o código?',
-      purposeStats: 'Mais de 31.000 códigos de falha em mais de 70 marcas e sistemas',
+      purposeStats: 'Mais de 39.000 códigos de falha em mais de 80 marcas e sistemas',
       purposeDo: 'Introduza um código — ou a lista completa de avarias, tal como está: separados por vírgulas, espaços ou quebras de linha. Uma avaria arrasta cinco ou seis códigos — mostramos qual é a causa e quais vieram a seguir, e dizemos se pode circular.',
       goBtn: 'Decodificar',
       demoTag: 'exemplo',
@@ -1224,9 +1228,9 @@
     pl: {
       pageTitle: 'Kod usterki ciężarówki — SPN/FMI i kody dealerskie',
       langOffer: 'Ta strona jest dostępna po polsku',
-      metaDescription: 'Darmowe rozszyfrowanie kodów usterek ciężarówek: norma J1939 (SPN/FMI) i tabele fabryczne 12 marek. Wpisz kod ze skanera lub z deski rozdzielczej.',
+      metaDescription: 'Darmowe rozszyfrowanie kodów usterek ciężarówek: norma J1939 (SPN/FMI) i tabele fabryczne 80+ marek. Wpisz kod ze skanera lub z deski rozdzielczej.',
       h1: 'Zapaliła się kontrolka <em>Check&nbsp;Engine</em> — co oznacza kod?',
-      purposeStats: '31 000+ kodów usterek dla ponad 70 marek i systemów',
+      purposeStats: '39 000+ kodów usterek dla ponad 80 marek i systemów',
       purposeDo: 'Wpisz kod — albo od razu całą listę usterek, tak jak jest: oddzielone przecinkami, spacjami lub nowymi wierszami. Jedna usterka ciągnie za sobą pięć-sześć kodów — pokażemy, który jest przyczyną, a które pojawiły się po nim, i powiemy, czy można jechać.',
       goBtn: 'Rozszyfruj',
       demoTag: 'przykład',
@@ -1354,9 +1358,9 @@
     tr: {
       pageTitle: 'Kamyon arıza kodu — SPN/FMI ve bayi kodu çözümleme',
       langOffer: 'Bu sayfa Türkçe olarak da mevcut',
-      metaDescription: 'Ücretsiz kamyon arıza kodu çözümleme: J1939 standardı (SPN/FMI) ve 12 markanın fabrika tabloları. Tarayıcıdan veya gösterge panelinden kodu girin.',
+      metaDescription: 'Ücretsiz kamyon arıza kodu çözümleme: J1939 standardı (SPN/FMI) ve 80+ markanın fabrika tabloları. Tarayıcıdan veya gösterge panelinden kodu girin.',
       h1: '<em>Check&nbsp;Engine</em> lambası yandı — kod ne anlama geliyor?',
-      purposeStats: '70+ marka ve sistemde 31.000+ arıza kodu',
+      purposeStats: '80+ marka ve sistemde 39.000+ arıza kodu',
       purposeDo: 'Bir kod girin — ya da arıza listesinin tamamını olduğu gibi: virgül, boşluk veya alt satır fark etmez. Tek bir arıza beş-altı kodu peşinden sürükler — hangisinin neden olduğunu, hangilerinin ardından geldiğini gösterir ve yola devam edilip edilemeyeceğini söyleriz.',
       goBtn: 'Çöz',
       demoTag: 'örnek',
@@ -1484,9 +1488,9 @@
     hi: {
       pageTitle: 'ट्रक फॉल्ट कोड — SPN/FMI और डीलर कोड डिकोडिंग',
       langOffer: 'यह पृष्ठ हिंदी में उपलब्ध है',
-      metaDescription: 'ट्रक फॉल्ट कोड की मुफ्त डिकोडिंग: J1939 मानक (SPN/FMI) और 12 ब्रांड की फैक्ट्री तालिकाएं। स्कैनर या डैशबोर्ड से कोड डालें।',
+      metaDescription: 'ट्रक फॉल्ट कोड की मुफ्त डिकोडिंग: J1939 मानक (SPN/FMI) और 80+ ब्रांड की फैक्ट्री तालिकाएं। स्कैनर या डैशबोर्ड से कोड डालें।',
       h1: '<em>Check&nbsp;Engine</em> लैंप जल गया है — कोड का मतलब क्या है?',
-      purposeStats: '70+ ब्रांड और सिस्टम के लिए 31,000+ फॉल्ट कोड',
+      purposeStats: '80+ ब्रांड और सिस्टम के लिए 39,000+ फॉल्ट कोड',
       purposeDo: 'एक कोड डालें — या खराबियों की पूरी सूची जैसी है वैसी ही: कॉमा, स्पेस या नई लाइन से अलग। एक खराबी पांच-छह कोड अपने साथ लाती है — हम बताएंगे कि कौन सा कारण है और कौन से उसके बाद आए, और यह भी कि गाड़ी चलाना सुरक्षित है या नहीं।',
       goBtn: 'डिकोड करें',
       demoTag: 'उदाहरण',
@@ -1614,9 +1618,9 @@
     zh: {
       pageTitle: '卡车故障代码查询 — SPN/FMI 与经销商代码解析',
       langOffer: '本页面有中文版',
-      metaDescription: '免费卡车故障代码查询：J1939 标准（SPN/FMI）及12个品牌的原厂代码表。输入诊断仪或仪表盘显示的代码即可查询。',
+      metaDescription: '免费卡车故障代码查询：J1939 标准（SPN/FMI）及80+个品牌的原厂代码表。输入诊断仪或仪表盘显示的代码即可查询。',
       h1: '<em>Check&nbsp;Engine</em>（发动机故障）灯亮了 — 代码是什么意思？',
-      purposeStats: '覆盖70+品牌和系统，31,000+条故障代码',
+      purposeStats: '覆盖80+品牌和系统，39,000+条故障代码',
       purposeDo: '输入一个代码 — 或者按原样输入整个故障列表：用逗号、空格或换行分隔。一个故障通常会带出五六个代码 — 我们会指出哪个是根本原因，哪些只是随之而来的，并告诉你是否可以继续行驶。',
       goBtn: '解析',
       demoTag: '示例',
@@ -1898,7 +1902,8 @@
   var EN_FALLBACK = {modeGroup:1, modeMotor:1, modeHeater:1, modeTacho:1, heaterHint:1, heaterEmpty:1,
     heaterBadCode:1, heaterNotFound:1, heaterNotFoundOne:1, brandGroupHeaters:1, brandGroupTacho:1,
     tachoHint:1, tachoPickBrand:1, tachoNotFound:1, tachoNone:1, codeEmpty:1,
-    spnTooBig:1, needSpnFmi:1, notParsed:1, dealerAtBrands:1, sysEnginebrake:1};
+    spnTooBig:1, needSpnFmi:1, notParsed:1, dealerAtBrands:1, sysEnginebrake:1,
+    brandlessAsk:1, brandlessNone:1};
   function t(key, vars){
     var dict = I18N[currentLang] || I18N.ru;
     var s = dict[key] != null ? dict[key] : (EN_FALLBACK[key] ? I18N.en[key] : I18N.ru[key]);
@@ -3760,10 +3765,31 @@
      у каждой марки. Поэтому дилерскую базу без марки спрашиваем один раз (это
      один запрос к воркеру): если номер известен у марок, их тексты идут блоком
      «у марок: …» под стандартным смыслом. Нет связи - остаётся стандартный ответ. */
-  function brandlessExtra(typed, skip){
-    if(skip || !/^\d{1,7}(?:[ \-\/.,]\d{1,3})?$/.test(typed)) return Promise.resolve('');
+  function brandlessAllowed(typed, skip){
+    return !skip && /^\d{1,7}(?:[ \-\/.,]\d{1,3})?$/.test(typed);
+  }
+  /* Кнопка «Поискать у марок» под стандартным ответом. Запрос к воркеру уходит
+     только по нажатию: суточный лимит не тратим на каждый ввод без марки. */
+  var brandlessCtx = null;
+  function brandlessAsk(typed, skip){
+    if(!brandlessAllowed(typed, skip)) return '';
+    brandlessCtx = {typed: typed};
+    return '<div class="brandless"><button type="button" class="brandless-ask">' +
+           esc(t('brandlessAsk')) + '</button></div>';
+  }
+  out.addEventListener('click', function(e){
+    var btn = e.target && e.target.closest ? e.target.closest('.brandless-ask') : null;
+    if(!btn || !brandlessCtx) return;
+    var ctx = brandlessCtx, seq = runSeq, slot = btn.parentNode;
+    brandlessCtx = null;
+    slot.innerHTML = note(t('pcodeSearching'));
+    brandlessRun(ctx.typed).catch(function(err){ return pcodeErrorText(err, ''); }).then(function(h){
+      if(seq === runSeq) slot.innerHTML = h;
+    });
+  });
+  function brandlessRun(typed){
     return fetchPcodeOne('', typed, currentLang).then(function(hits){
-      if(!hits || !hits.length) return '';
+      if(!hits || !hits.length) return note(t('brandlessNone'));
       var names = [], texts = [];
       hits.forEach(function(h){
         var nm = brandName(h.brand) || h.brand;
@@ -3772,7 +3798,7 @@
         texts.push('<b>' + esc(h.text) + '</b>');
       });
       return chain([{st: t('dealerAtBrands', {brands: esc(names.join(', '))}), tx: texts.join('<br>'), cls:'ok'}]);
-    }).catch(function(){ return ''; });
+    });
   }
 
   function run(skipDealer, noSpecial, noOpen){
@@ -3997,14 +4023,13 @@
           });
           return;
         }
-        brandlessExtra(typed, skipDealer || !!brand).then(function(x){
-          if(mySeq === runSeq) rnd(cap + spnOnlyHtml(p.spn, brand, nm, false) + x, true);
-        });
+        rnd(cap + spnOnlyHtml(p.spn, brand, nm, false) + brandlessAsk(typed, skipDealer || !!brand), true);
         return;
       }
-      brandlessExtra(typed, skipDealer || !!brand).then(function(x){
-        if(mySeq === runSeq) rnd(cap + spnFmiHtml(p.spn, p.fmi, brand, null, false) + x, true);
-      });
+      /* Кнопку даём только при стандартном ответе: SPN неизвестен - как до правки, без запроса. */
+      var stdKnown = !!spnName(p.spn, brand);
+      rnd(cap + spnFmiHtml(p.spn, p.fmi, brand, null, false) +
+          (stdKnown ? brandlessAsk(typed, skipDealer || !!brand) : ''), true);
     }).catch(function(){
       rnd(note(t('loadError')));
     });

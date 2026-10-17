@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="mitgo-verification" content="75e280bd-6857-46de-8ca4-3231df2830bc" />
-<title>Код неисправности грузовика — SPN/FMI и дилерские коды</title>
-<meta name="description" content="Free truck fault code lookup: J1939 standard (SPN/FMI) and factory tables for 12 makes. Enter a code from your scanner or dashboard.">
+<title>Truck fault code — SPN/FMI and dealer code lookup</title>
+<meta name="description" content="Free truck fault code lookup: J1939 standard (SPN/FMI) and factory tables for 80+ makes. Enter a code from your scanner or dashboard.">
 <!-- Ранний скрипт-подмена языка убран 2026-08-17. Он менял title,
      description и H1 по языку браузера - и Googlebot, который
      представляется английским и выполняет JS, индексировал русскую
@@ -37,7 +37,7 @@
 <meta property="og:site_name" content="codetruck.ru">
 <meta property="og:locale" content="en_US">
 <meta property="og:title" content="Truck fault code — SPN/FMI and dealer code lookup">
-<meta property="og:description" content="Free truck fault code lookup: J1939 standard (SPN/FMI) and factory tables for 12 makes. Enter a code from your scanner or dashboard.">
+<meta property="og:description" content="Free truck fault code lookup: J1939 standard (SPN/FMI) and factory tables for 80+ makes. Enter a code from your scanner or dashboard.">
 <meta property="og:image" content="https://codetruck.ru/assets/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -513,6 +513,11 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
   background:linear-gradient(180deg,#FFAA55,#F2833C);
 }
 .acts .act svg{width:17px;height:17px;flex:none}
+.brandless{margin:12px 0 4px}
+.brandless-ask{min-height:40px;padding:9px 14px;cursor:pointer;font-family:var(--sans);font-size:14px;font-weight:600;border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.03);color:var(--ink);transition:border-color .16s ease}
+.brandless-ask:hover{border-color:rgba(111,227,211,.45)}
+.brandless-ask:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
+[data-theme="light"] .brandless-ask{background:#fff;color:var(--ink)}
 [data-theme="light"] .acts .act{background:#fff;color:var(--ink)}
 [data-theme="light"] .acts .act-main{color:#20120A}
 @media print{ .acts{display:none !important} }
@@ -788,7 +793,7 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
   <div class="w">
     <h1 data-i18n="h1">The <em>Check&nbsp;Engine</em> light is on — what does the code mean?</h1>
     <div class="purpose">
-      <p class="stats" data-i18n="purposeStats">31,000+ fault codes across 70+ makes and systems</p>
+      <p class="stats" data-i18n="purposeStats">39,000+ fault codes across 80+ makes and systems</p>
       <p class="do" data-i18n="purposeDo">Enter one code — or the whole fault list exactly as it is: separated by commas, spaces or line breaks. One fault drags five or six codes along — we show which one is the cause and which just followed, and tell you whether it’s safe to drive.</p>
     </div>
 
@@ -932,7 +937,7 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
     <li><a href="/en/marki/isuzu.html">Isuzu</a></li>
     <li><a href="/en/marki/iveco.html">Iveco</a></li>
     <li><a href="/en/marki/jac.html">JAC</a></li>
-    <li><a href="/marki/kenworth.html">Kenworth</a></li>
+    <li><a href="?b=kenworth">Kenworth</a></li>
     <li><a href="/en/marki/mack.html">Mack</a></li>
     <li><a href="/en/marki/mahindra.html">Mahindra</a></li>
     <li><a href="/en/marki/man.html">MAN</a></li>

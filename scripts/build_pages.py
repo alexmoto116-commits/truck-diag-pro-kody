@@ -736,10 +736,29 @@ def search_form(brand=None, ph=u'Ваш код, например 1078/3', action
             u'autocomplete="off" inputmode="text">%s<button type="submit">%s</button></form>'
             % (action, ph, label, hidden, btn))
 
-TITLE_MAX = 60
+# Заголовок страниц кодов: не длиннее TITLE_MAX знаков. Суффикса сайта нет:
+# название сайта и так в og:site_name, а лишние знаки уходят из выдачи.
+# Многоточие не ставим: обрезанная строка в выдаче выглядит как брак. Сначала
+# убираем скобки, потом слова с конца (cut_title). Страницы отопителей
+# (build_heater_pages) по-прежнему с суффиксом и используют cut60 ниже.
+TITLE_MAX = 65
 
 
-def cut60(s, lim=TITLE_MAX):
+def cut_title(s, lim):
+    """Укорачивает s до lim знаков по границе слова, без многоточия.
+    Сначала отбрасываем хвостовое уточнение в скобках, затем слова с конца."""
+    if len(s) <= lim:
+        return s
+    s2 = re.sub(r'\s*\([^()]*\)\s*$', u'', s)
+    if s2 and len(s2) <= lim:
+        return s2.rstrip(u' ,:;—–-')
+    s = s2 or s
+    while len(s) > lim and u' ' in s:
+        s = s.rsplit(u' ', 1)[0]
+    return s.rstrip(u' ,:;—–-(')
+
+
+def cut60(s, lim=60):
     """Заголовок не длиннее lim знаков: режем по слову и ставим многоточие."""
     if len(s) <= lim:
         return s
@@ -748,6 +767,11 @@ def cut60(s, lim=TITLE_MAX):
     if k > lim // 2:
         cut = cut[:k]
     return cut.rstrip(u' ,:;—-') + u'…'
+
+
+def fit_title(core):
+    """Заголовок страницы кода: название, не длиннее TITLE_MAX, без суффикса."""
+    return cut_title(core, TITLE_MAX)
 
 
 HEAD = u"""<!DOCTYPE html>
@@ -1500,7 +1524,7 @@ def build(en_spns=()):
         # SPN она там лишняя - имя узла и так однозначно.
         brands_short, brands_all = brand_list(spn, 3), brand_list(spn)
         # Для <title> - частые марки впереди, без ZF/Ford (у них номер другой);
-        # сколько влезет в 60 знаков (дальше поисковик обрезает). На самой странице заголовок прежний.
+        # сколько влезет в TITLE_MAX знаков. На самой странице заголовок прежний.
         _т_марки = [b for b in makes if b not in OWN_NUMBERING] or list(makes)
         _т_марки.sort(key=lambda b: (ЧАСТЫЕ_МАРКИ.index(b) if b in ЧАСТЫЕ_МАРКИ else 99,
                                      brand_names.get(b, b)))
@@ -1536,7 +1560,8 @@ def build(en_spns=()):
                                 spn in DIY_KEYS or bool(advice_for(sys_key, seen_all_early)))
         # Сайт в title не пишем: название сайта и так в og:site_name, а лишние
         # знаки уходят из выдачи. Номер SPN в начале делает заголовки разными.
-        title = cut60(с_марками(page_name) if std_name(spn) else page_name)
+        # Обрезка без многоточия, по границе слова (см. fit_title).
+        title = fit_title(с_марками(page_name) if std_name(spn) else page_name)
         canon = '%s/kody/spn-%d.html' % (SITE, spn)
 
         faq = [{'@type': 'Question',
@@ -1914,8 +1939,11 @@ def build(en_spns=()):
             def own_key(k):
                 a, _, f = k.partition('.')
                 return (int(a) if a.isdigit() else 10 ** 9, int(f) if f.isdigit() else 0, k)
+            # Все коды таблицы, а не только те, чей номер есть среди SPN-страниц:
+            # фильтр по mine терял коды с буквенным FMI (545.F, 276.C1 у Ford - 8 шт.),
+            # у которых номера нет в keep. Английская версия их показывала, русская нет.
             own_rows = [(k, brands[b][k]) for k in sorted(brands[b], key=own_key)
-                        if k.split('.')[0].isdigit() and int(k.split('.')[0]) in set(mine)]
+                        if k.split('.')[0].isdigit()]
             # Код живёт здесь, со своим якорем (#c-9-5): отдельная страница на
             # каждый дала бы ~500 страниц в одну строку - то, за что и ставят
             # «малоценная». Описание целиком, без обрезки.

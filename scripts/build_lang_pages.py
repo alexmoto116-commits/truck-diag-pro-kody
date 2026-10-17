@@ -114,9 +114,87 @@ def point_to_en(html):
     return html
 
 
+# Числа на главной считаем из данных, а не держим в тексте.
+# Марки: ключи таблиц brands (с тахографами и блоками КамАЗ/ZF) плюс дилерские
+# pcode - 72 сейчас. Коды: строки brands плюс строки pcode - 39 054 сейчас.
+# Округление вниз: 70+ марок, 39 000+ кодов. Тот же набор, что уже даёт
+# 72 и 39 054 в аудите (отдельно тахографы: 5 марок и 246 кодов).
+# Текст со старыми числами живёт в index.html и в I18N (assets/app.js). Здесь
+# подставляем новые числа по шаблонам; если шаблон не нашёлся - падаем, а не
+# оставляем старое число молча.
+def home_counts():
+    """(марок, кодов) по данным; None, если нет pcode-source (чужой чекаут)."""
+    import base64
+    path_pcode = os.path.join(ROOT, 'pcode-source', 'pcode.json')
+    if not os.path.isfile(path_pcode):
+        return None
+    raw = io.open(os.path.join(ROOT, 'assets', 'dtc.enc.js'), encoding='utf-8').read()
+    db = json.loads(base64.b64decode(re.search(r"b64='([^']+)'", raw).group(1)).decode('utf-8'))
+    pcode = json.loads(io.open(path_pcode, encoding='utf-8').read())
+    # Марки - это позиции списка выбора на сайте (DB.brandNames): марки техники,
+    # системы и агрегаты, отопители, тахографы. Блоки КАМАЗ (kamaz5490, kamazebs,
+    # kamazecas, zfintarder) в brandNames не входят, поэтому в счёт не идут.
+    brands = set(db['brandNames']) | set(pcode)
+    # Коды - как есть: строки брендов из базы плюс pcode.
+    codes = sum(len(t) for t in db['brands'].values()) + sum(len(t) for t in pcode.values())
+    return len(brands), codes
+
+
+def _sub_once(text, pattern, repl, expect, where):
+    new, n = re.subn(pattern, repl, text)
+    if n != expect:
+        raise ValueError(u'%s: шаблон %r нашёлся %d раз, ожидалось %d - поправить шаблон в build_lang_pages.py'
+                         % (where, pattern, n, expect))
+    return new
+
+
+def patch_counts(text, counts, where, meta=False):
+    """Подставляет марки и коды в текст главной.
+    meta=True - поле description (в I18N там «12 марок» / «12 makes» и т.д.);
+    иначе - строка purposeStats («70+ маркам», «31 000+ кодов», «31.000 códigos»).
+    Знак «+» и разделитель тысяч берём из исходного текста, меняем только число."""
+    brands, codes = counts
+    b_val = brands // 10 * 10
+    c_val = codes // 1000 * 1000
+    if meta:
+        # 12 - старое число в исходнике, 80 - уже вписанное: шаблон ловит любое из двух.
+        return _sub_once(text, r'(?<![\d.,])(?:12|80)\+?(?![\d.,])', u'%d+' % b_val, 1, where)
+
+    def codes_repl(m):
+        sep = m.group(1) or u''
+        return str(c_val)[:-3] + sep + u'000'
+
+    text = _sub_once(text, r'(?<![\d.,])(?:70|80)(\+?)', lambda m: u'%d%s' % (b_val, m.group(1)), 1, where)
+    return _sub_once(text, r'(?:31|39)([ ,.  ]?)000(?!\d)', codes_repl, 1, where)
+
+
+def patch_root_meta(text, counts, where):
+    """Русский index.html: description и og:description содержат «60 марок»."""
+    brands, _ = counts
+    # 60 и 70 - прежние значения, 80+ - уже подставленное: шаблон идемпотентен.
+    return _sub_once(text, r'(?<![\d.,])(?:60|70|80)\+?(?= марок)', u'%d+' % (brands // 10 * 10), 2, where)
+
+
 def build():
     i18n = extract_i18n()
     ru_html = io.open(os.path.join(ROOT, 'index.html'), encoding='utf-8').read()
+    counts = home_counts()
+    if counts is None:
+        print(u'pcode-source не найден: числа на главной не пересчитаны')
+    else:
+        new_root = patch_root_meta(ru_html, counts, 'index.html')
+        # Строку «31 000+ кодов ... 70+ маркам» берём только из её элемента: цифра 70
+        # встречается в index.html и вне него (стили, цвета).
+        new_root, n_stats = re.subn(
+            r'(<p class="stats" data-i18n="purposeStats">)(.*?)(</p>)',
+            lambda m: m.group(1) + patch_counts(m.group(2), counts, 'index.html purposeStats') + m.group(3),
+            new_root, count=1, flags=re.S)
+        if n_stats != 1:
+            raise ValueError(u'index.html: нет элемента purposeStats')
+        if new_root != ru_html:
+            io.open(os.path.join(ROOT, 'index.html'), 'w', encoding='utf-8', newline='\n').write(new_root)
+            print(u'index.html: числа марок и кодов обновлены из данных')
+        ru_html = new_root
 
     # Раннего скрипта-подмены языка в index.html больше нет: убран 2026-08-17,
     # потому что Googlebot выполняет JS, представляется английским и получал
@@ -129,14 +207,19 @@ def build():
 
     written = []
     for lang in LANGS:
-        d = i18n[lang]
+        d = dict(i18n[lang])
         html = base
+        if counts is not None:
+            d['metaDescription'] = patch_counts(d['metaDescription'], counts, lang, meta=True)
+            d['purposeStats'] = patch_counts(d['purposeStats'], counts, lang)
 
         html = html.replace('<html lang="ru" data-lock-lang="ru">',
                             '<html lang="%s" data-lock-lang="%s">' % (lang, lang), 1)
-        html = html.replace(
-            '<title>Код неисправности грузовика — расшифровка SPN/FMI и дилерских кодов</title>',
-            u'<title>%s</title>' % d['pageTitle'], 1)
+        # Заголовок языковой версии - из I18N (pageTitle). Раньше сюда подставлялась
+        # строка с другим текстом, чем в index.html, совпадения не было, и все
+        # языковые главные оставались с русским title: тег меняем целиком.
+        html = _sub_once(html, r'<title>[^<]*</title>',
+                         lambda m: u'<title>%s</title>' % d['pageTitle'], 1, 'title %s' % lang)
         html = re.sub(
             r'<meta name="description" content="[^"]*">',
             lambda m: u'<meta name="description" content="%s">' % d['metaDescription'].replace('"', '&quot;'),
