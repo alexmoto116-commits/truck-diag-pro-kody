@@ -29,12 +29,20 @@ CF_SNIPPET = u"<!-- Cloudflare Web Analytics --><script type='module' src='https
 
 # ---------------------------------------------------------------- данные
 
+# Марки тахографов: их коды лежат в brands.* (тахограф), но страниц марки и кода
+# в разделах kody/ и marki/ не строим - они только в режиме «Тахограф» на главной.
+# Ключи вида 020 и t:... не должны попадать в SPN-разбор этого генератора.
+TACHO_BRANDS_DATA = ('vdo', 'shtrih', 'mercury', 'kasbi', 'atol')
+
+
 def load_db():
     raw = io.open(os.path.join(ROOT, 'assets', 'dtc.enc.js'), encoding='utf-8').read()
     b64 = re.search(r"b64='([^']+)'", raw).group(1)
     db = json.loads(base64.b64decode(b64).decode('utf-8'))
     for k, v in BLOCK_SHORT.items():
         db['brandNames'].setdefault(k, v)
+    for k in TACHO_BRANDS_DATA:
+        db['brands'].pop(k, None)
     return db
 
 

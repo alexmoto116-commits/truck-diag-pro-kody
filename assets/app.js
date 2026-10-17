@@ -393,9 +393,10 @@
       heaterNotFoundOne: 'Код <b>{code}</b> не найден в таблице {brand} — проверьте марку отопителя.',
       brandGroupHeaters: 'Отопители',
       brandGroupTacho: 'Тахографы',
-      tachoHint: 'Код с дисплея тахографа',
+      tachoHint: 'Код или текст с экрана тахографа',
       tachoPickBrand: 'Выберите марку тахографа в списке выше.',
       tachoNotFound: 'Код не найден в таблице {brand}.',
+      tachoNone: 'Не нашли: проверьте марку тахографа или введите текст с экрана',
       codeEmpty: 'Введите код.',
       demoTag: 'пример',
       brandDefault: '— любая марка —',
@@ -546,7 +547,8 @@
       heaterNotFoundOne: 'Code <b>{code}</b> not found in the {brand} table. Check the heater brand.',
       brandGroupHeaters: 'Heaters',
       brandGroupTacho: 'Tachographs',
-      tachoHint: 'Code from the tachograph display',
+      tachoHint: 'Code or text from the tachograph screen',
+      tachoNone: 'Not found: check the tachograph brand or enter the text from the screen',
       tachoPickBrand: 'Pick a tachograph brand in the list above.',
       tachoNotFound: 'Code not found in the {brand} table.',
       codeEmpty: 'Enter a code.',
@@ -1822,6 +1824,8 @@
      переключаем на латинскую транслитерацию, так их узнают на
      любом языке. Остальные марки (Volvo, MAN, DAF...) уже латиницей. */
   var BRAND_OVERRIDE = {kamaz:'KAMAZ', yamz:'YAMZ', planar:'Planar / Teplostar',
+                        vdo:'VDO DTCO', shtrih:'Shtrih-TachoRUS', mercury:'Mercury TA-001',
+                        kasbi:'KASBI DT-20', atol:'ATOL Drive',
                         gaz:'GAZ', maz:'MAZ', ural:'Ural',
                         kraz:'KrAZ', beiben:'Beiben',
                         volvomid:'Volvo (MID modules)',
@@ -1874,7 +1878,7 @@
      своего перевода берём английский, а не русский. */
   var EN_FALLBACK = {modeGroup:1, modeMotor:1, modeHeater:1, modeTacho:1, heaterHint:1, heaterEmpty:1,
     heaterBadCode:1, heaterNotFound:1, heaterNotFoundOne:1, brandGroupHeaters:1, brandGroupTacho:1,
-    tachoHint:1, tachoPickBrand:1, tachoNotFound:1, codeEmpty:1};
+    tachoHint:1, tachoPickBrand:1, tachoNotFound:1, tachoNone:1, codeEmpty:1};
   function t(key, vars){
     var dict = I18N[currentLang] || I18N.ru;
     var s = dict[key] != null ? dict[key] : (EN_FALLBACK[key] ? I18N.en[key] : I18N.ru[key]);
@@ -2042,10 +2046,62 @@
     return null;
   }
 
-  /* Ключ кода тахографа - заглушка: пробелы по краям, заглавные, кириллическая
-     «Е» как латинская. Правила по маркам уточнят, когда появятся данные. */
+  /* TACHO-PURE-BEGIN - чистые функции тахографа (без DOM и сети); проверяются
+     отдельно на настоящем словаре (scratchpad/tacho-wire/test_tacho.js).
+     tachoText: ввод и текст экрана приводятся к одной форме - нижний регистр, ё -> е,
+     знаки -> пробел; в словах с цифрами (коды «0х1х», «6А 82») кириллические двойники
+     (а в е к м н о р с т у х) становятся латиницей. Так «0х1х», «0X1X» и «0x1x» дают
+     одну строку; ключи словаря записаны этой же функцией. Слова без цифр не трогаем. */
+  var TACHO_CYR = {'а':'a','в':'b','е':'e','к':'k','м':'m','н':'h','о':'o','р':'p','с':'c','т':'t','у':'y','х':'x'};
+  function tachoText(s){
+    var base = String(s == null ? '' : s).toLowerCase().replace(/ё/g, 'е')
+      .replace(/[^a-z0-9а-я]+/g, ' ').replace(/^ | $/g, '');
+    return base.split(' ').map(function(tok){
+      return /\d/.test(tok) ? tok.replace(/[а-я]/g, function(ch){ return TACHO_CYR[ch] || ch; }) : tok;
+    }).join(' ');
+  }
+  /* Ключ записи словаря: числовой код (VDO - три цифры, Меркурий и Штрих - две,
+     КАСБИ Ж.1 - hex «6A82»), иначе «t:» + текст экрана. Алиасы словаря (tachoAlias)
+     проверяются раньше: текст экрана, его ядро, номер «x 20», hex «0x0A». */
+  function tachoNormKey(brand, raw, alias){
+    var t = tachoText(raw);
+    if(!t) return '';
+    var c = t.split(' ').join('');
+    var al = (alias && alias[brand]) || {};
+    if(Object.prototype.hasOwnProperty.call(al, t)) return al[t];
+    if(Object.prototype.hasOwnProperty.call(al, c)) return al[c];
+    if(brand === 'vdo' && /^\d{1,3}$/.test(c)) return ('00' + c).slice(-3);
+    if((brand === 'mercury' || brand === 'shtrih') && /^\d{1,2}$/.test(c)) return ('0' + c).slice(-2);
+    if(brand === 'kasbi' && /^[0-9a-f][0-9a-fx]{3}$/.test(c)) return c.toUpperCase();
+    return 't:' + t;
+  }
+  /* Поиск по словам: каждое слово запроса - начало какого-нибудь слова записи
+     (код, текст экрана, смысл). Источник и «Что делать» в поиск не входят. Запрос короче
+     трёх знаков не ищем: иначе «5» дало бы случайные совпадения. */
+  function tachoSearch(db, brands, q, limit){
+    var t = tachoText(q), toks = t ? t.split(' ') : [];
+    if(!toks.length || toks.join('').length < 3) return [];
+    var out = [];
+    brands.forEach(function(b){
+      var tbl = (db.brands && db.brands[b]) || {};
+      var scr = (db.tachoScreen && db.tachoScreen[b]) || {};
+      Object.keys(tbl).forEach(function(k){
+        if(out.length >= limit) return;
+        var meaning = String(tbl[k]).split(' Что делать:')[0].split(' Источник:')[0];
+        var hay = tachoText((k.indexOf('t:') === 0 ? k.slice(2) : k) + ' ' + (scr[k] || '') + ' ' + meaning).split(' ');
+        var ok = toks.every(function(tok){
+          return hay.some(function(w){ return w.indexOf(tok) === 0; });
+        });
+        if(ok) out.push({brand: b, key: k, text: tbl[k], screen: scr[k] || ''});
+      });
+    });
+    return out;
+  }
+  /* TACHO-PURE-END */
+
+  /* Ключ кода тахографа (см. tachoNormKey): алиасы и числовые правила марки. */
   function normTachoKey(brand, raw){
-    return String(raw || '').trim().toUpperCase().replace(/Е/g, 'E');
+    return tachoNormKey(brand, raw, DB ? DB.tachoAlias : null);
   }
 
   /* Отопитель: одна таблица - один запрос (лимит воркера); без марки - по всем
@@ -2091,23 +2147,33 @@
     }).catch(function(){ if(mySeq === runSeq) render(note(t('loadError'))); });
   }
 
-  /* Тахограф: только открытый словарь DB.brands, без воркера. */
+  /* Тахограф: только открытый словарь DB.brands, без воркера. Сначала точный ключ
+     (с алиасами), не нашлось - поиск по словам. Без марки ищем по всем маркам тахографов. */
   function runTacho(){
     var mySeq = ++runSeq;
     var typed = String(input.value || '').trim();
     if(!typed){ render(note(t('codeEmpty'))); return; }
     var brand = sel.value;
-    if(!brand){ render(note(t('tachoPickBrand'))); return; }
-    var key = normTachoKey(brand, typed);
     ready().then(function(){
       if(mySeq !== runSeq) return;
-      var tbl = (DB.brands && DB.brands[brand]) || {};
-      var txt = Object.prototype.hasOwnProperty.call(tbl, key) ? tbl[key] : null;
-      if(!txt){ render(note(t('tachoNotFound', {brand: esc(brandLabel(brand))}))); return; }
-      render(chain([
-        {st: t('stepCode'), tx: '<span class="mono">' + esc(key) + '</span>', cls: 'ok'},
-        {st: brandLabel(brand), tx: '<b>' + esc(txt) + '</b>', cls: 'ok'}
-      ]), true);
+      var brands = brand ? [brand] : TACHO_BRANDS.filter(tachoHas);
+      var E = en();
+      var hits = [];
+      brands.forEach(function(b){
+        var key = tachoNormKey(b, typed, DB.tachoAlias);
+        var tbl = (DB.brands && DB.brands[b]) || {};
+        if(Object.prototype.hasOwnProperty.call(tbl, key)) hits.push({brand: b, key: key, text: tbl[key], screen: ''});
+      });
+      if(!hits.length) hits = tachoSearch(DB, brands, typed, 8);
+      if(!hits.length){ render(note(t('tachoNone'))); return; }
+      var steps = hits.slice(0, 8).map(function(h){
+        var txt = (E && E.brands && E.brands[h.brand] && E.brands[h.brand][h.key]) || h.text;
+        var isText = h.key.indexOf('t:') === 0;
+        return {st: brandLabel(h.brand),
+          tx: (isText ? '' : '<span class="mono">' + esc(h.key) + '</span> ') + '<b>' + esc(txt) + '</b>',
+          cls: 'ok'};
+      });
+      render(chain(steps), true);
     }).catch(function(){ if(mySeq === runSeq) render(note(t('loadError'))); });
   }
 
