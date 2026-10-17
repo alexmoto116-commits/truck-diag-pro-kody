@@ -221,6 +221,29 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
    пункты внутри остаются обычного цвета (задаём цвет только группе). */
 #pf-brand optgroup{font-style:normal;color:var(--lamp)}
 
+/* Переключатель режима поиска над полем: Мотор и блоки / Отопитель / Тахограф.
+   Кнопки обычные, с клавиатуры переключаются Tab и Enter/Space; нажатая
+   отмечена aria-pressed и подсветкой лампы. Тахограф скрыт, пока в базе нет его данных. */
+.modes{
+  display:flex;gap:6px;margin:0 0 12px;padding:4px;
+  border:1px solid var(--line);border-radius:14px;background:rgba(12,19,28,.8);
+}
+.mode-btn{
+  flex:1 1 0;min-width:0;min-height:40px;cursor:pointer;
+  border:1px solid transparent;border-radius:10px;background:none;
+  color:var(--ink-2);font-family:var(--sans);font-size:14px;font-weight:600;line-height:1.2;
+  padding:8px 10px;transition:color .18s ease, background .18s ease, border-color .18s ease;
+}
+.mode-btn:hover{color:var(--ink)}
+.mode-btn[aria-pressed="true"]{
+  background:rgba(255,155,61,.16);border-color:rgba(255,155,61,.55);color:var(--lamp);
+}
+.mode-btn:focus-visible{outline:2px solid var(--lamp);outline-offset:2px}
+.mode-btn[hidden]{display:none}
+@media(max-width:560px){
+  .mode-btn{font-size:13px;padding:8px 4px}
+}
+
 /* ---------- результат ----------
    Ответ ложится прямо на кадр с тягачом, поэтому карточка почти
    непрозрачная и с размытием под собой - иначе текст утонет в фото. */
@@ -558,6 +581,7 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
   [data-theme="light"] #pf-code{background:#fff}
 }
 [data-theme="light"] #pf-code::placeholder{color:#8494A4}
+[data-theme="light"] .modes{background:#fff}
 [data-theme="light"] .card{background:#fff}
 [data-theme="light"] .chain .tx{color:#1F2C38}
 [data-theme="light"] .chain .tx b{color:var(--ink)}
@@ -593,7 +617,7 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
 /* ---------- печать: чистый лист, без фона и без органов управления ---------- */
 @media print{
   body{background:#fff;color:#000}
-  .scene .photo,.scene .veil,.filters,.datanote,.theme-btn,.lang-switch,#pf-go{display:none}
+  .scene .photo,.scene .veil,.filters,.modes,.datanote,.theme-btn,.lang-switch,#pf-go{display:none}
   .scene{padding:0 0 14px;background:#fff}
   .brand{color:#000;margin-bottom:10px}
   .brand i{background:#000}
@@ -768,6 +792,11 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
       <p class="do" data-i18n="purposeDo">Wpisz kod — albo od razu całą listę usterek, tak jak jest: oddzielone przecinkami, spacjami lub nowymi wierszami. Jedna usterka ciągnie za sobą pięć-sześć kodów — pokażemy, który jest przyczyną, a które pojawiły się po nim, i powiemy, czy można jechać.</p>
     </div>
 
+    <div class="modes" id="pf-modes" role="group" aria-label="Режим поиска">
+      <button type="button" class="mode-btn" data-mode="main" aria-pressed="true" data-i18n="modeMotor">Мотор и блоки</button>
+      <button type="button" class="mode-btn" data-mode="heater" aria-pressed="false" data-i18n="modeHeater">Отопитель</button>
+      <button type="button" class="mode-btn" data-mode="tacho" aria-pressed="false" hidden data-i18n="modeTacho">Тахограф</button>
+    </div>
     <div class="scanner" id="pf-scanner">
       <span class="demo-tag" data-i18n="demoTag">przykład</span>
       <input id="pf-code" type="text" inputmode="text" autocomplete="off" autofocus

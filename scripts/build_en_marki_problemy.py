@@ -620,6 +620,11 @@ def build():
                            [t for _, t in (dealer_rows_en or [])],
                            exclude=stop_codes))
         secs.insert(0, brand_intro_en(b, nums, top))
+        if b in bp.HEATER_BRANDS:
+            secs.append(u'<section><h2>%s codes, one by one</h2><p class="lead">Every code has its '
+                        u'own page: what it means, what to check and the neighbouring codes. '
+                        u'<a href="/en/otopiteli/#%s">Index of %s codes</a>.</p></section>'
+                        % (bp.esc(bname(b)), b, bp.esc(bname(b))))
         title = MK['titleTpl'] % bname(b)
         h1 = MK['h1Tpl'] % bname(b)
         desc = MK['descStd'] % (bn, len(own_en) if own_en else len(mine_en))
@@ -730,6 +735,9 @@ def build():
                     u'<p class="lead">These makes number faults their own way, outside '
                     u'the J1939 standard. Look up a code in the search on the '
                     u'homepage.</p>%s</section>' % brand_rows(dlr))
+    secs.append(u'<section><h2>Heaters</h2><p class="lead">Cab heaters: every code has its own '
+                u'page with checks. <a href="/en/otopiteli/">Index of Eberspächer, Webasto and '
+                u'Planar codes</a>.</p></section>')
 
     page_en('en/marki/index.html',
             u'Truck fault codes by make — decoded | codetruck.ru',

@@ -645,7 +645,18 @@ SECTIONS = {
     'kody':     (u'Коды', 'kody/'),
     'marki':    (u'Марки', 'marki/'),
     'problemy': (u'Неисправности', 'problemy/'),
+    'otopiteli': (u'Отопители', 'otopiteli/'),
 }
+
+# Автономные отопители: каждый код - своя страница (scripts/build_heater_pages.py).
+HEATER_BRANDS = ['eberspacher', 'webasto', 'planar']
+
+
+def heater_link_ru(b, bn):
+    """Блок на странице марки-отопителя: ссылка на его коды в оглавлении."""
+    return (u'<section><h2>Коды %s по одному</h2><p class="lead">Каждый код разобран на своей '
+            u'странице: что он значит, что проверить и соседние коды. <a href="/otopiteli/#%s">'
+            u'Оглавление кодов %s</a>.</p></section>' % (esc(bn), b, esc(bn)))
 
 
 def breadcrumb_ld(name, canon, section=None):
@@ -916,8 +927,8 @@ LASTMOD_DB = 'sitemap-lastmod.json'
 # по протоколу запрещены, поэтому полные ru/en в индекс не входят).
 SITEMAPS = [('sitemap-ru.xml', lambda u: '/en/' not in u),
             ('sitemap-en.xml', lambda u: '/en/' in u)]
-MAP_SECTIONS = ['kody', 'marki', 'problemy', 'main']
-SECTION_DIRS = ('kody', 'marki', 'problemy')
+MAP_SECTIONS = ['kody', 'marki', 'problemy', 'otopiteli', 'main']
+SECTION_DIRS = ('kody', 'marki', 'problemy', 'otopiteli')
 
 
 def section_of(u):
@@ -1982,6 +1993,8 @@ def build(en_spns=()):
         secs.insert(0, brand_intro(b, {'dealer': len(rows)},
                                    top_spns(b, per_spn, lambda s: s in set(written) and s not in noindex,
                                             is_stop, [t for _, t in rows])))
+        if b in HEATER_BRANDS:
+            secs.append(heater_link_ru(b, bn))
         path = 'marki/%s.html' % b
         title = u'Коды ошибок %s | codetruck.ru' % bn
         n_d =u'%d дилерских %s' % (len(rows), plural(len(rows), u'код', u'кода', u'кодов'))
@@ -2120,6 +2133,10 @@ def build(en_spns=()):
                     u'<p class="lead">Эти марки нумеруют неисправности по-своему, вне '
                     u'стандарта J1939. Код ищется на главной с выбором марки.</p>'
                     u'%s</section>' % brand_rows(dlr))
+    secs.append(u'<section><h2>Автономные отопители</h2>'
+                u'<p class="lead">Отопители кабины: каждый код отдельной страницей с '
+                u'проверками. <a href="/otopiteli/">Оглавление кодов Eberspächer, Webasto '
+                u'и Планар</a>.</p></section>')
 
     extra.append(page(
         'marki/index.html',
@@ -2158,9 +2175,14 @@ def build(en_spns=()):
     # здесь же (не тянуть импортом ради 9 строк), держать в согласии с
     # LANGS в том файле.
     LANG_HOMEPAGES = ['en', 'de', 'fr', 'es', 'pt', 'pl', 'tr', 'hi', 'zh']
+    # Отопители: страница на каждый код и оглавления, ru и en. Модуль пишет
+    # файлы сам и отдаёт адреса для карт; noindex-страницы в них не входят.
+    import build_heater_pages as heater                    # noqa: E402
+    heater_urls = heater.build(pcode=pcode)['urls']
     urls = ([SITE + '/']
             + ['%s/%s/' % (SITE, lang) for lang in LANG_HOMEPAGES]
             + ['%s/%s' % (SITE, p) for p in extra]
+            + heater_urls
             + ['%s/kody/spn-%d.html' % (SITE, s) for s in written if s not in noindex]
             + (['%s/en/kody/' % SITE] if en_spns else [])
             + ['%s/en/kody/spn-%d.html' % (SITE, s)

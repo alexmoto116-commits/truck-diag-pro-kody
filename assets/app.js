@@ -377,6 +377,21 @@
       purposeStats: '31 000+ кодов неисправностей по 70+ маркам техники и агрегатов',
       purposeDo: 'Введите код — или сразу весь список ошибок, как есть: через запятую, пробел или столбиком. Одна поломка тянет за собой пять-шесть кодов — покажем, какой из них причина, а какие пришли следом, и скажем, можно ли ехать.',
       goBtn: 'Разобрать',
+      modeGroup: 'Режим поиска',
+      modeMotor: 'Мотор и блоки',
+      modeHeater: 'Отопитель',
+      modeTacho: 'Тахограф',
+      heaterHint: 'Код с пульта: например 031, E-031, F09, 12',
+      heaterEmpty: 'Введите код с пульта отопителя — например <b>031</b>, <b>E-031</b>, <b>F09</b> или <b>12</b>.',
+      heaterBadCode: 'Этот код не похож на код отопителя. Введите цифры — например <b>031</b>, <b>E-031</b>, <b>F09</b> или <b>12</b>.',
+      heaterNotFound: 'Код не найден в таблицах {list} — проверьте марку отопителя.',
+      heaterNotFoundOne: 'Код <b>{code}</b> не найден в таблице {brand} — проверьте марку отопителя.',
+      brandGroupHeaters: 'Отопители',
+      brandGroupTacho: 'Тахографы',
+      tachoHint: 'Код с дисплея тахографа',
+      tachoPickBrand: 'Выберите марку тахографа в списке выше.',
+      tachoNotFound: 'Код не найден в таблице {brand}.',
+      codeEmpty: 'Введите код.',
       demoTag: 'пример',
       brandDefault: '— любая марка —',
       brandGroupVehicles: 'Марки техники',
@@ -515,6 +530,21 @@
       purposeStats: '31,000+ fault codes across 70+ makes and systems',
       purposeDo: 'Enter one code — or the whole fault list exactly as it is: separated by commas, spaces or line breaks. One fault drags five or six codes along — we show which one is the cause and which just followed, and tell you whether it’s safe to drive.',
       goBtn: 'Decode',
+      modeGroup: 'Search mode',
+      modeMotor: 'Engine & ECUs',
+      modeHeater: 'Heater',
+      modeTacho: 'Tachograph',
+      heaterHint: 'Code from the heater panel: e.g. 031, E-031, F09, 12',
+      heaterEmpty: 'Enter a heater panel code, e.g. <b>031</b>, <b>E-031</b>, <b>F09</b> or <b>12</b>.',
+      heaterBadCode: 'This does not look like a heater code. Enter digits, e.g. <b>031</b>, <b>E-031</b>, <b>F09</b> or <b>12</b>.',
+      heaterNotFound: 'Code not found in the {list} tables. Check the heater brand.',
+      heaterNotFoundOne: 'Code <b>{code}</b> not found in the {brand} table. Check the heater brand.',
+      brandGroupHeaters: 'Heaters',
+      brandGroupTacho: 'Tachographs',
+      tachoHint: 'Code from the tachograph display',
+      tachoPickBrand: 'Pick a tachograph brand in the list above.',
+      tachoNotFound: 'Code not found in the {brand} table.',
+      codeEmpty: 'Enter a code.',
       demoTag: 'example',
       brandDefault: '— any make —',
       brandGroupVehicles: 'Vehicle makes',
@@ -1835,9 +1865,14 @@
   }
   var currentLang = getStoredLang();
 
+  /* Ключи режимов поиска (Мотор и блоки / Отопитель / Тахограф): в языках без
+     своего перевода берём английский, а не русский. */
+  var EN_FALLBACK = {modeGroup:1, modeMotor:1, modeHeater:1, modeTacho:1, heaterHint:1, heaterEmpty:1,
+    heaterBadCode:1, heaterNotFound:1, heaterNotFoundOne:1, brandGroupHeaters:1, brandGroupTacho:1,
+    tachoHint:1, tachoPickBrand:1, tachoNotFound:1, codeEmpty:1};
   function t(key, vars){
     var dict = I18N[currentLang] || I18N.ru;
-    var s = dict[key] != null ? dict[key] : I18N.ru[key];
+    var s = dict[key] != null ? dict[key] : (EN_FALLBACK[key] ? I18N.en[key] : I18N.ru[key]);
     if(vars) Object.keys(vars).forEach(function(k){ s = s.split('{' + k + '}').join(vars[k]); });
     return s;
   }
@@ -1858,16 +1893,17 @@
   }
 
   function fillBrands(){
-    if(!DB || !DB.brandNames) return;
+    if(!DB) return;
+    syncTacho();
+    if(!DB.brandNames) return;
     var prevValue = sel.value;
     while(sel.options.length > 1) sel.removeChild(sel.lastChild);
-    var names = DB.brandNames;
     function byName(a, b){
-      return brandName(a).localeCompare(brandName(b), currentLang === 'ru' ? 'ru' : currentLang);
+      return brandLabel(a).localeCompare(brandLabel(b), currentLang === 'ru' ? 'ru' : currentLang);
     }
     var vehicleKeys = [], systemKeys = [];
-    Object.keys(names).forEach(function(k){
-      (BRAND_SYSTEM_KEYS[k] ? systemKeys : vehicleKeys).push(k);
+    modeKeys().forEach(function(k){
+      if(MODE === 'main' && BRAND_SYSTEM_KEYS[k]) systemKeys.push(k); else vehicleKeys.push(k);
     });
     vehicleKeys.sort(byName);
     systemKeys.sort(byName);
@@ -1876,14 +1912,198 @@
       g.label = label; g.className = cls;
       keys.forEach(function(k){
         var o = document.createElement('option');
-        o.value = k; o.textContent = brandName(k);
+        o.value = k; o.textContent = brandLabel(k);
         g.appendChild(o);
       });
       sel.appendChild(g);
     }
-    addGroup(t('brandGroupVehicles'), vehicleKeys, 'grp-vehicles');
-    addGroup(t('brandGroupSystems'), systemKeys, 'grp-systems');
+    var vLabel = MODE === 'heater' ? t('brandGroupHeaters') :
+                 MODE === 'tacho' ? t('brandGroupTacho') : t('brandGroupVehicles');
+    addGroup(vLabel, vehicleKeys, 'grp-vehicles');
+    if(MODE === 'main') addGroup(t('brandGroupSystems'), systemKeys, 'grp-systems');
     sel.value = prevValue;
+  }
+
+  /* ---------- режимы поиска: Мотор и блоки / Отопитель / Тахограф ----------
+     Режим меняет список марок, подсказку поля и путь разбора. Отопители
+     ушли из «Мотор и блоки» в свой режим: их короткие коды (031, 12) легко
+     спутать с кодами других марок. Ссылка ?b=eberspacher (webasto, planar,
+     teplostar) сама включает режим «Отопитель». Режим хранится в адресе:
+     ?mode=heater, ?mode=tacho; без параметра - «Мотор и блоки». */
+  var HEATER_BRANDS = {eberspacher:1, webasto:1, planar:1, teplostar:1};
+  /* Таблицы, по которым ищем отопитель без выбранной марки. Teplostar - алиас Planar. */
+  var HEATER_TABLES = ['eberspacher', 'webasto', 'planar'];
+  /* Разделы тахографов. Список расширяемый: марка появится в выборе, когда её словарь
+     появится в DB.brands (пока пуст - кнопка режима скрыта). */
+  var TACHO_BRANDS = ['vdo', 'stoneridge', 'atol', 'mercury', 'shtrih', 'kasbi'];
+  var MODE_NAMES = {main:1, heater:1, tacho:1};
+  var modeBox = document.getElementById('pf-modes');
+  var tachoBtn = modeBox ? modeBox.querySelector('[data-mode="tacho"]') : null;
+  var cancelDemo = null;
+
+  function initialMode(){
+    var m = /[?&]mode=([a-z]+)/.exec(location.search);
+    if(m && MODE_NAMES[m[1]]) return m[1];
+    var h = /^#(main|heater|tacho)$/.exec(location.hash);
+    if(h) return h[1];
+    var b = /[?&]b=([a-z0-9]+)/.exec(location.search);
+    if(b && HEATER_BRANDS[b[1]]) return 'heater';
+    return 'main';
+  }
+  var MODE = initialMode();
+  paintModes();
+
+  function brandLabel(k){ return brandName(k) || k; }
+  function tachoHas(k){
+    var tb = DB && DB.brands && DB.brands[k];
+    return !!tb && Object.keys(tb).length > 0;
+  }
+  function modeKeys(){
+    if(MODE === 'tacho') return TACHO_BRANDS.filter(tachoHas);
+    return Object.keys(DB.brandNames).filter(function(k){
+      return MODE === 'heater' ? !!HEATER_BRANDS[k] : (!HEATER_BRANDS[k] && TACHO_BRANDS.indexOf(k) < 0);
+    });
+  }
+  /* Кнопку «Тахограф» показываем только при наличии хотя бы одного раздела. */
+  function syncTacho(){
+    var has = TACHO_BRANDS.some(tachoHas);
+    if(tachoBtn) tachoBtn.hidden = !has;
+    if(!has && MODE === 'tacho') MODE = 'main';
+    paintModes();
+  }
+  function paintModes(){
+    if(!modeBox) return;
+    Array.prototype.forEach.call(modeBox.querySelectorAll('[data-mode]'), function(b){
+      b.setAttribute('aria-pressed', String(b.getAttribute('data-mode') === MODE));
+    });
+  }
+  /* Подсказка поля и видимость выбора стандарта под режим. Вызывается после fillMid. */
+  function applyModeUi(){
+    if(!input) return;
+    if(modeBox) modeBox.setAttribute('aria-label', t('modeGroup'));
+    if(MODE === 'heater') input.placeholder = t('heaterHint');
+    else if(MODE === 'tacho') input.placeholder = t('tachoHint');
+    if(MODE !== 'main' && std) std.style.display = 'none';
+  }
+  /* Адрес держит режим: ?mode=heater. Выбранная марка и результат при смене сбрасываются,
+     поэтому параметры разбора (b, q, c, mid) из адреса тоже убираем. */
+  function writeModeUrl(){
+    try{
+      var p = new URLSearchParams(location.search);
+      if(MODE === 'main') p.delete('mode'); else p.set('mode', MODE);
+      ['b', 'q', 'c', 'mid'].forEach(function(k){ p.delete(k); });
+      var qs = p.toString();
+      history.replaceState(null, '', location.pathname + (qs ? '?' + qs : '') + location.hash);
+    }catch(e){}
+  }
+  function setMode(m){
+    if(m === 'tacho' && !TACHO_BRANDS.some(tachoHas)) m = 'main';
+    if(cancelDemo) cancelDemo();
+    MODE = m;
+    paintModes();
+    sel.value = '';
+    fillBrands();
+    fillMid();
+    applyModeUi();
+    out.innerHTML = '';
+    writeModeUrl();
+  }
+  if(modeBox){
+    modeBox.addEventListener('click', function(e){
+      var btn = e.target.closest && e.target.closest('[data-mode]');
+      if(!btn || btn.hidden) return;
+      var m = btn.getAttribute('data-mode');
+      if(m !== MODE) setMode(m);
+    });
+  }
+
+  function runMode(){ return MODE === 'heater' ? runHeater() : runTacho(); }
+
+  /* Код с пульта отопителя -> ключ таблицы. Чистая функция: без сети и без
+     состояния страницы (её же проверяет самопроверка в scratchpad).
+     Префиксы КОД/CODE/ERR, E, E-, F снимаем; кириллические двойники в коде
+     переводим в латиницу. eberspacher - три цифры, webasto - два знака
+     (hex, заглавные), planar - число без ведущих нулей. */
+  function heaterNorm(table, raw){
+    var s = String(raw || '').toUpperCase().replace(/\s+/g, '');
+    s = s.replace(/^(КОД|CODE|ERROR|ERR)[-:.]?/, '');
+    s = s.replace(/[АВЕКМНОРСТХ]/g, function(c){
+      return {'А':'A','В':'B','Е':'E','К':'K','М':'M','Н':'H','О':'O','Р':'P','С':'C','Т':'T','Х':'X'}[c];
+    });
+    s = s.replace(/^[EF][-:.]?/, '');
+    if(table === 'eberspacher') return /^\d{1,3}$/.test(s) ? ('000' + s).slice(-3) : null;
+    if(table === 'webasto') return /^[0-9A-F]{1,2}$/.test(s) ? ('0' + s).slice(-2) : null;
+    if(table === 'planar') return /^\d{1,3}$/.test(s) ? String(parseInt(s, 10)) : null;
+    return null;
+  }
+
+  /* Ключ кода тахографа - заглушка: пробелы по краям, заглавные, кириллическая
+     «Е» как латинская. Правила по маркам уточнят, когда появятся данные. */
+  function normTachoKey(brand, raw){
+    return String(raw || '').trim().toUpperCase().replace(/Е/g, 'E');
+  }
+
+  /* Отопитель: одна таблица - один запрос (лимит воркера); без марки - по всем
+     трём таблицам, каждая со своим ключом. */
+  function runHeater(){
+    var mySeq = ++runSeq;
+    var typed = String(input.value || '').trim().replace(/\s+/g, ' ');
+    if(!typed){ render(note(t('heaterEmpty'))); return; }
+    var brand = sel.value;
+    var tables = brand ? donorsOf(brand) : HEATER_TABLES;
+    var jobs = [];
+    tables.forEach(function(tb){
+      var key = heaterNorm(tb, typed);
+      if(key !== null) jobs.push({tb: tb, key: key});
+    });
+    if(!jobs.length){ render(note(t('heaterBadCode'))); return; }
+    render(note(t('pcodeSearching')));
+    ready().then(function(){
+      return Promise.all(jobs.map(function(j){
+        return fetchPcodeOne(j.tb, j.key, currentLang).then(function(hits){
+          return {j: j, hits: hits};
+        }, function(e){ return {j: j, hits: [], err: e}; });
+      }));
+    }).then(function(res){
+      if(mySeq !== runSeq) return;
+      var found = res.filter(function(r){ return r.hits.length > 0; });
+      if(!found.length){
+        var failed = res.filter(function(r){ return r.err && !r.err.badCode; });
+        if(failed.length === res.length){ render(pcodeErrorText(failed[0].err, '')); return; }
+        render(note(brand
+          ? t('heaterNotFoundOne', {code: esc(typed), brand: esc(brandLabel(brand))})
+          : t('heaterNotFound', {list: HEATER_TABLES.map(function(k){ return esc(brandLabel(k)); }).join(' / ')})));
+        return;
+      }
+      var steps = [];
+      found.forEach(function(r){
+        r.hits.forEach(function(h){
+          steps.push({st: brandLabel(r.j.tb),
+            tx: '<span class="mono">' + esc(r.j.key) + '</span> <b>' + esc(h.text) + '</b>', cls: 'ok'});
+        });
+      });
+      render(chain(steps), true);
+    }).catch(function(){ if(mySeq === runSeq) render(note(t('loadError'))); });
+  }
+
+  /* Тахограф: только открытый словарь DB.brands, без воркера. */
+  function runTacho(){
+    var mySeq = ++runSeq;
+    var typed = String(input.value || '').trim();
+    if(!typed){ render(note(t('codeEmpty'))); return; }
+    var brand = sel.value;
+    if(!brand){ render(note(t('tachoPickBrand'))); return; }
+    var key = normTachoKey(brand, typed);
+    ready().then(function(){
+      if(mySeq !== runSeq) return;
+      var tbl = (DB.brands && DB.brands[brand]) || {};
+      var txt = Object.prototype.hasOwnProperty.call(tbl, key) ? tbl[key] : null;
+      if(!txt){ render(note(t('tachoNotFound', {brand: esc(brandLabel(brand))}))); return; }
+      render(chain([
+        {st: t('stepCode'), tx: '<span class="mono">' + esc(key) + '</span>', cls: 'ok'},
+        {st: brandLabel(brand), tx: '<b>' + esc(txt) + '</b>', cls: 'ok'}
+      ]), true);
+    }).catch(function(){ if(mySeq === runSeq) render(note(t('loadError'))); });
   }
 
   function applyLang(lang){
@@ -1903,6 +2123,7 @@
     langSelect.value = lang;
     langSelect.setAttribute('aria-label', t('langAria'));
     if(DB) fillBrands();
+    applyModeUi();
     if(input.value.trim()) run();
   }
 
@@ -3265,6 +3486,7 @@
     if(!val) return null;
     var u = location.origin + location.pathname + '?q=' + encodeURIComponent(val);
     if(sel.value) u += '&b=' + encodeURIComponent(sel.value);
+    if(MODE !== 'main') u += '&mode=' + MODE;
     if(MID_BRANDS[sel.value] && midSel.value) u += '&mid=' + encodeURIComponent(midSel.value);
     return u;
   }
@@ -3361,6 +3583,8 @@
      не должен лечь поверх нового результата. */
   var runSeq = 0;
   function run(skipDealer, noSpecial, noOpen){
+    /* Отопитель и тахограф - свои пути разбора, SPN/FMI и блинки сюда не идут. */
+    if(MODE !== 'main') return runMode();
     var mySeq = ++runSeq;
     var typed = String(input.value || '').trim().replace(/\s+/g, ' ');
     var up = normCode(typed);
@@ -3610,6 +3834,7 @@
   go.addEventListener('click', function(){ run(); });
   input.addEventListener('keydown', function(e){ if(e.key === 'Enter') run(); });
   sel.addEventListener('change', fillMid);
+  sel.addEventListener('change', applyModeUi);
   fillMid();
 
   /* Автодемо на первом экране: пока человек не начал действовать,
@@ -3620,6 +3845,7 @@
   var scannerEl = document.getElementById('pf-scanner');
   function startIntroDemo(){
     if(qc && qc[1]) return;               // пришли по ссылке-разбору - там уже настоящий ввод
+    if(MODE !== 'main') return;           // пример SPN/FMI не подходит к отопителю и тахографу
     if(input.value.trim()) return;        // поле не пустое (автозаполнение браузера и т.п.)
     if(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
@@ -3646,6 +3872,7 @@
     sel.addEventListener('change', cancel);
     std.addEventListener('change', cancel);
     go.addEventListener('click', cancel);
+    cancelDemo = cancel;
 
     /* Один пример строкой целиком: полная запись плюс список из двух
        кодов через запятую в короткой записи (точкой и пробелом) -
