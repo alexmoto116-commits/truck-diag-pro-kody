@@ -399,6 +399,8 @@
       pcodeNotFound: 'Дилерский код <b>{code}</b> в справочнике не найден. Такие коды у каждой марки свои — проверьте написание.',
       pcodeSearching: 'Ищем код…',
       pcodeApiError: 'Нет связи с базой кодов — проверьте интернет и попробуйте ещё раз.',
+      dealerBase: 'дилерская база — {brand}',
+      dealerOffline: 'дилерская база сейчас недоступна — показан только открытый словарь.',
       dailyLimit: 'Лимит поисков на сегодня исчерпан (50 в сутки). Попробуйте завтра.',
       scanStep: 'номер сканера',
       fmiOwn: 'FMI по таблице производителя блока',
@@ -535,6 +537,8 @@
       pcodeNotFound: 'Dealer code <b>{code}</b> not found in the database. These codes differ by make — double-check the spelling.',
       pcodeSearching: 'Searching…',
       pcodeApiError: 'No connection to the code database — check your internet and try again.',
+      dealerBase: 'dealer database — {brand}',
+      dealerOffline: 'The dealer database is unavailable right now — only the factory table is shown.',
       dailyLimit: 'Daily search limit reached (50 per day). Please try again tomorrow.',
       scanStep: 'scanner code',
       fmiOwn: 'FMI per the unit maker\'s table',
@@ -669,6 +673,8 @@
       pcodeNotFound: 'Händlercode <b>{code}</b> nicht in der Datenbank gefunden. Diese Codes sind je Marke unterschiedlich — Schreibweise prüfen.',
       pcodeSearching: 'Suche läuft…',
       pcodeApiError: 'Händlercode konnte nicht abgerufen werden — Verbindung prüfen und erneut versuchen.',
+      dealerBase: 'Händlerdatenbank — {brand}',
+      dealerOffline: 'Die Händlerdatenbank ist derzeit nicht erreichbar — nur die Werkstabelle wird angezeigt.',
       dailyLimit: 'Tageslimit für Suchen erreicht (50 pro Tag). Bitte morgen erneut versuchen.',
       scanStep: 'Scanner-Code',
       scanMany: 'Nummer <b>{code}</b> entspricht mehreren Codes im Kombiinstrument — prüfen Sie, welcher angezeigt wird.',
@@ -797,6 +803,8 @@
       pcodeNotFound: 'Code constructeur <b>{code}</b> introuvable dans la base. Ces codes diffèrent selon la marque — vérifiez l’orthographe.',
       pcodeSearching: 'Recherche en cours…',
       pcodeApiError: 'Impossible de récupérer le code constructeur — vérifiez votre connexion et réessayez.',
+      dealerBase: 'base concessionnaire — {brand}',
+      dealerOffline: 'La base concessionnaire est indisponible — seule la table constructeur est affichée.',
       dailyLimit: 'Limite quotidienne de recherches atteinte (50 par jour). Réessayez demain.',
       scanStep: 'code de la valise',
       scanMany: 'Le numéro <b>{code}</b> correspond à plusieurs codes au tableau de bord — vérifiez celui qui s’affiche.',
@@ -925,6 +933,8 @@
       pcodeNotFound: 'Código de concesionario <b>{code}</b> no encontrado en la base de datos. Estos códigos varían según la marca — revisa la escritura.',
       pcodeSearching: 'Buscando…',
       pcodeApiError: 'No se pudo obtener el código de concesionario — comprueba tu conexión e inténtalo de nuevo.',
+      dealerBase: 'base de concesionarios — {brand}',
+      dealerOffline: 'La base de concesionarios no está disponible — solo se muestra la tabla de fábrica.',
       dailyLimit: 'Se alcanzó el límite diario de búsquedas (50 al día). Inténtalo mañana.',
       scanStep: 'código del escáner',
       scanMany: 'El número <b>{code}</b> corresponde a varios códigos del cuadro — comprueba cuál se muestra.',
@@ -1053,6 +1063,8 @@
       pcodeNotFound: 'Código de concessionária <b>{code}</b> não encontrado no banco de dados. Esses códigos variam por marca — verifique a grafia.',
       pcodeSearching: 'Buscando…',
       pcodeApiError: 'Não foi possível obter o código de concessionária — verifique sua conexão e tente novamente.',
+      dealerBase: 'base de concessionárias — {brand}',
+      dealerOffline: 'A base de concessionárias está indisponível — mostrada apenas a tabela de fábrica.',
       dailyLimit: 'Limite diário de pesquisas atingido (50 por dia). Tente novamente amanhã.',
       scanStep: 'código do scanner',
       scanMany: 'O número <b>{code}</b> corresponde a vários códigos no painel — verifique qual aparece.',
@@ -1181,6 +1193,8 @@
       pcodeNotFound: 'Kod dealerski <b>{code}</b> nie znaleziony w bazie. Takie kody różnią się między markami — sprawdź zapis.',
       pcodeSearching: 'Szukam…',
       pcodeApiError: 'Nie udało się pobrać kodu dealerskiego — sprawdź połączenie i spróbuj ponownie.',
+      dealerBase: 'baza dealerska — {brand}',
+      dealerOffline: 'Baza dealerska jest teraz niedostępna — pokazano tylko tabelę fabryczną.',
       dailyLimit: 'Wyczerpano dzienny limit wyszukiwań (50 dziennie). Spróbuj jutro.',
       scanStep: 'kod ze skanera',
       scanMany: 'Numer <b>{code}</b> odpowiada kilku kodom na zestawie wskaźników — sprawdź, który pokazuje panel.',
@@ -1309,6 +1323,8 @@
       pcodeNotFound: 'Bayi kodu <b>{code}</b> veritabanında bulunamadı. Bu kodlar markaya göre farklıdır — yazımı kontrol edin.',
       pcodeSearching: 'Aranıyor…',
       pcodeApiError: 'Bayi kodu alınamadı — bağlantınızı kontrol edip tekrar deneyin.',
+      dealerBase: 'bayi veritabanı — {brand}',
+      dealerOffline: 'Bayi veritabanı şu an kullanılamıyor — yalnızca fabrika tablosu gösteriliyor.',
       dailyLimit: 'Günlük arama limiti doldu (günde 50). Lütfen yarın tekrar deneyin.',
       scanStep: 'tarayıcı kodu',
       scanMany: '<b>{code}</b> numarası gösterge panelindeki birden fazla koda karşılık gelir — hangisinin göründüğünü kontrol edin.',
@@ -1437,6 +1453,8 @@
       pcodeNotFound: 'डीलर कोड <b>{code}</b> डेटाबेस में नहीं मिला। ये कोड हर ब्रांड में अलग होते हैं — वर्तनी जांचें।',
       pcodeSearching: 'खोजा जा रहा है…',
       pcodeApiError: 'डीलर कोड नहीं मिल सका — अपना कनेक्शन जांचें और फिर से कोशिश करें।',
+      dealerBase: 'डीलर डेटाबेस — {brand}',
+      dealerOffline: 'डीलर डेटाबेस अभी उपलब्ध नहीं है — केवल फैक्ट्री तालिका दिखाई जा रही है।',
       dailyLimit: 'आज की खोज सीमा पूरी हो गई (प्रतिदिन 50)। कृपया कल फिर कोशिश करें।',
       scanStep: 'स्कैनर कोड',
       scanMany: 'नंबर <b>{code}</b> डैश के कई कोड से मेल खाता है — देखें कि पैनल कौन सा दिखा रहा है।',
@@ -1565,6 +1583,8 @@
       pcodeNotFound: '数据库中未找到经销商代码 <b>{code}</b>。不同品牌的代码不同 — 请检查输入是否正确。',
       pcodeSearching: '正在查询…',
       pcodeApiError: '无法获取经销商代码 — 请检查网络连接后重试。',
+      dealerBase: '经销商数据库 — {brand}',
+      dealerOffline: '经销商数据库暂时不可用 — 仅显示厂家表。',
       dailyLimit: '今日搜索次数已用完（每天 50 次）。请明天再试。',
       scanStep: '扫描仪代码',
       scanMany: '代码 <b>{code}</b> 对应仪表盘上的多个代码 — 请核对仪表显示的是哪一个。',
@@ -2134,6 +2154,15 @@
     if(!f) return desc;
     var low = desc.toLowerCase();
     if(owner && OWN_FMI[owner] && low.indexOf(f.toLowerCase()) >= 0) return desc;
+    /* Текст уже называет смысл FMI («данные ниже нормы» в записи и в легенде) -
+       второй раз саму фразу не пишем, а хвост легенды («низкая срочность»,
+       «наиболее серьёзный уровень») дописываем, если его в тексте ещё нет. */
+    var core0 = f.split(/ \(| — |, /)[0];
+    if(core0 && low.indexOf(core0.toLowerCase()) >= 0){
+      var rest = f.slice(core0.length).replace(/^\s*(—|,)\s*/, '').trim();
+      if(!rest || low.indexOf(rest.toLowerCase()) >= 0) return desc;
+      return desc + (rest.charAt(0) === '(' ? ' ' : ' — ') + rest;
+    }
     if(desc.length > 60 && MEANING.some(function(w){ return low.indexOf(w) >= 0; })) return desc;
     return desc + ' — ' + f;
   }
@@ -2525,6 +2554,43 @@
       return Promise.all([net, mine.length ? loadEn() : null])
         .then(function(a){ return {net:a[0], mine:mine}; });
     });
+  }
+  /* Открытый словарь марки по вводу «число-число»: как есть, и без ведущих нулей
+     (MAN «00597-05» - ключ 597.5). Ключ и текст - или null. */
+  function openPairHit(brand, typed){
+    var m = /^(\d{1,7})\s*[-.\/,\s]\s*(\d{1,3})$/.exec(String(typed || '').trim());
+    if(!m) return null;
+    var E = en(), s = m[1], f = m[2], s0 = stripZero(s), f0 = stripZero(f);
+    var keys = [s + '.' + f];
+    if(s0) keys.push(s0 + '.' + f);
+    if(f0) keys.push(s + '.' + f0);
+    if(s0 && f0) keys.push(s0 + '.' + f0);
+    var donors = donorsOf(brand);
+    for(var i = 0; i < donors.length; i++){
+      for(var j = 0; j < keys.length; j++){
+        var tx = (E && E.brands[donors[i]] && E.brands[donors[i]][keys[j]]) ||
+                 (DB.brands[donors[i]] && DB.brands[donors[i]][keys[j]]);
+        if(tx) return {donor: donors[i], key: keys[j], text: tx};
+      }
+    }
+    return null;
+  }
+  /* Текст открытого словаря первым; ответы закрытой базы и номера сканера - дальше, без повторов. */
+  function openFirstHtml(typed, oh, r, brand){
+    var pr = oh.key.split('.');
+    var steps = [{st:t('stepCode'), tx:'<span class="mono">' + esc(typed) + '</span>', cls:'ok'},
+      {st:t('factorySource', {brand: brandName(oh.donor)}),
+       tx:'<span class="mono">' + codeLabel(pr[0]) + ' · FMI ' + esc(pr[1]) + '</span><br><b>' +
+          esc(withFmiHint(oh.text, pr[1], oh.donor)) + '</b>', cls:'ok'}];
+    if(r){
+      r.net.forEach(function(h){
+        if(h.text === oh.text) return;
+        steps.push({st:t('dealerBase', {brand: brandName(h.brand) || brand}), tx:'<b>' + esc(h.text) + '</b>', cls:'ok'});
+      });
+      scanStepList(r.mine.filter(function(m){ return m.spn + '.' + m.fmi !== oh.key; }))
+        .forEach(function(s){ steps.push(s); });
+    }
+    return chain(steps);
   }
   function closedHtml(code, r, brand){
     if(!r.net.length) return scanHtml(code, r.mine);
@@ -3294,7 +3360,7 @@
   /* Номер последнего разбора: дополнительный дилерский блок старого запроса
      не должен лечь поверх нового результата. */
   var runSeq = 0;
-  function run(skipDealer, noSpecial){
+  function run(skipDealer, noSpecial, noOpen){
     var mySeq = ++runSeq;
     var typed = String(input.value || '').trim().replace(/\s+/g, ' ');
     var up = normCode(typed);
@@ -3332,6 +3398,26 @@
         if(sh === null){ run(skipDealer, true); return; }
         rnd(sh, true);
       }).catch(function(){ rnd(note(t('loadError'))); });
+      return;
+    }
+
+    /* Закрытая марка и ввод «число-число», которое есть в её открытом словаре
+       (ЯМЗ «27.3», Renault «2.5», MAN «00597-05», Isuzu «102.3», Iveco): текст
+       словаря показываем первым и всегда, ответ закрытой базы - дополнительно. */
+    var openable = !midBrand && !noOpen && brand !== 'kamaz' && isClosedBrand(brand) &&
+                   /^\d{1,7}\s*[-.\/,\s]\s*\d{1,3}$/.test(typed);
+    if(openable){
+      rnd(note(t('pcodeSearching')));
+      ready().then(function(){
+        var oh = openPairHit(brand, typed);
+        if(!oh){ run(skipDealer, noSpecial, true); return; }
+        return closedLookup(brand, normCode(typed)).then(function(r){
+          if(mySeq === runSeq) rnd(openFirstHtml(typed, oh, r, brand), true);
+        }, function(){
+          if(mySeq === runSeq) rnd(openFirstHtml(typed, oh, null, brand) +
+            stLine(t('dealerOffline', {brand: brandName(brand) || brand})), true);
+        });
+      }).catch(function(){ if(mySeq === runSeq) rnd(note(t('loadError'))); });
       return;
     }
 
