@@ -474,6 +474,9 @@
       dealerAtBrands: 'у марок: {brands}',
       brandlessAsk: 'Поискать у марок',
       brandlessNone: 'у марок такого номера нет',
+      brandHintPre: 'У марки', brandHintPost: 'этот код значит:',
+      brandHintTail: 'Выберите марку, чтобы видеть её расшифровку первой.',
+      brandHintMore: 'ещё {n} {w}', makesOne: 'марка', makesFew: 'марки', makesMany: 'марок',
       sysEnginebrake: 'моторный тормоз',
       sourceLabel: 'источник: {src}', fmiNonstandard: 'FMI {fmi}: значение не стандартное — смотрите расшифровку марки',
       commonTitle: 'Частые коды неисправностей',
@@ -636,6 +639,9 @@
       dealerAtBrands: 'at makes: {brands}',
       brandlessAsk: 'Search dealer codes',
       brandlessNone: 'no dealer code with this number at the makes',
+      brandHintPre: 'For', brandHintPost: 'this code means:',
+      brandHintTail: 'Pick the make to see its own decoding first.',
+      brandHintMore: '{n} more {w}', makesOne: 'make', makesFew: 'makes', makesMany: 'makes',
       sysEnginebrake: 'engine brake',
       sourceLabel: 'source: {src}', fmiNonstandard: 'FMI {fmi}: non-standard value — see the make’s decoding',
       commonTitle: 'Common fault codes',
@@ -1914,7 +1920,8 @@
     heaterBadCode:1, heaterNotFound:1, heaterNotFoundOne:1, brandGroupHeaters:1, brandGroupTacho:1,
     tachoHint:1, tachoPickBrand:1, tachoNotFound:1, tachoNone:1, codeEmpty:1,
     spnTooBig:1, needSpnFmi:1, notParsed:1, dealerAtBrands:1, sysEnginebrake:1,
-    brandlessAsk:1, brandlessNone:1, donorDecoding:1};
+    brandlessAsk:1, brandlessNone:1, donorDecoding:1,
+    brandHintPre:1, brandHintPost:1, brandHintTail:1, brandHintMore:1, makesOne:1, makesFew:1, makesMany:1};
   function t(key, vars){
     var dict = I18N[currentLang] || I18N.ru;
     var s = dict[key] != null ? dict[key] : (EN_FALLBACK[key] ? I18N.en[key] : I18N.ru[key]);
@@ -2786,14 +2793,19 @@
     return BLINK_IDX;
   }
   /* Ответ из открытого словаря по блинк-коду; null - такого кода в словаре нет. */
-  function blinkOpen(brand, code, typed){
-    var idx = blinkIndex(), E = en(), hit = null;
+  /* Попадание открытого словаря по блинк-коду: {donor, keys} или null. */
+  function blinkHit(brand, code){
+    var idx = blinkIndex(), hit = null;
     donorsOf(brand).some(function(d){
       var list = idx[d + '|' + code];
       if(!list || !list.length) return false;
       hit = {donor:d, keys:list};
       return true;
     });
+    return hit;
+  }
+  function blinkOpen(brand, code, typed){
+    var E = en(), hit = blinkHit(brand, code);
     if(!hit) return null;
     var steps = [{st:t('stepCode'), tx:'<span class="mono">' + esc(typed) + '</span>', cls:'ok'}];
     hit.keys.forEach(function(k){
@@ -3816,7 +3828,99 @@
     return '<div class="brandless"><button type="button" class="brandless-ask">' +
            esc(t('brandlessAsk')) + '</button></div>';
   }
+  /* Подсказки без марки: что тот же код значит у марок открытого словаря.
+     Разбор тот же, что при выбранной марке: openPairHit (пара у закрытой марки),
+     blinkHit (блинк), describe (SPN/FMI), scanRefs (номер без FMI). Запросов к
+     воркеру нет: закрытую базу по-прежнему спрашивает только кнопка «Поискать у марок». */
+  var HINT_CSS = '.brandhint{margin:12px 0 4px;padding:clamp(14px,3.4vw,20px);border:1px solid var(--line);border-radius:16px;' +
+    'background:linear-gradient(180deg,rgba(16,24,34,.93),rgba(9,14,21,.95));box-shadow:0 30px 70px -34px rgba(0,0,0,.95);' +
+    'font-size:14.5px;line-height:1.5;color:#CBD7E3}' +
+    '.brandhint>.brandhint-item+.brandhint-item{margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}' +
+    '.brandhint-lead{font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--ink-3)}' +
+    '.brandhint-text{margin-top:5px;font-size:15px}.brandhint-text b{color:#fff;font-weight:600}' +
+    '.brandhint-pick{padding:0;margin:0;border:0;background:none;cursor:pointer;font:inherit;font-weight:600;color:var(--signal);text-decoration:underline;text-underline-offset:3px}' +
+    '.brandhint-pick:focus-visible{outline:2px solid var(--signal);outline-offset:2px}' +
+    '.brandhint-more{margin-top:12px}.brandhint-more summary{cursor:pointer;color:var(--signal);font-weight:600}' +
+    '.brandhint-more .brandhint-item{margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}' +
+    '.brandhint-tail{margin-top:12px;font-size:13px;color:var(--ink-3)}' +
+    '[data-theme="light"] .brandhint{background:#fff;color:#1F2C38}' +
+    '[data-theme="light"] .brandhint-text b{color:var(--ink)}';
+  function ensureHintCss(){
+    try {
+      if(document.getElementById('brandhint-css')) return;
+      var st = document.createElement('style');
+      st.id = 'brandhint-css';
+      st.textContent = HINT_CSS;
+      document.head.appendChild(st);
+    } catch(e){}
+  }
+  function makesWord(n){
+    var k = 'makesMany';
+    if(currentLang === 'ru'){
+      if(n % 10 === 1 && n % 100 !== 11) k = 'makesOne';
+      else if(n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14)) k = 'makesFew';
+    } else if(n === 1) k = 'makesOne';
+    return t(k);
+  }
+  /* Список {brand, name, text}: марки открытого словаря, где код читается тем же
+     путём, что при выбранной марке. Совпадение с J1939-смыслом не показываем. */
+  function brandHintList(typed, p){
+    var std = p.fmi != null ? stdDecode(p.spn, p.fmi, '').text : null;
+    var pair = /^\d{1,7}\s*[-.\/,\s]\s*\d{1,3}$/.test(String(typed || '').trim());
+    var bc = blinkCode(typed);
+    var E = en(), list = [];
+    modeKeys().forEach(function(b){
+      if(!b || b === 'kamaz' || MID_BRANDS[b]) return;
+      var text = null, oh = pair && isClosedBrand(b) ? openPairHit(b, typed) : null;
+      if(oh){
+        text = withFmiHint(oh.text, oh.key.split('.')[1], oh.donor);
+      } else if(bc && BLINK_BRANDS[b]){
+        var bh = blinkHit(b, bc.code);
+        if(bh) text = bh.keys.map(function(k){
+          return (E && E.brands[bh.donor] && E.brands[bh.donor][k]) ||
+                 (DB.brands[bh.donor] && DB.brands[bh.donor][k]) || '';
+        }).join(' · ');
+      } else if(p.fmi != null){
+        var d = describe(p.spn, p.fmi, b);
+        if(d.k) text = d.text;
+      } else if(p.spn != null){
+        var rf = scanRefs(b, typed)[0];
+        if(rf) text = blockText(rf.brand, rf.spn + '.' + rf.fmi);
+      }
+      if(!text || text === std) return;
+      list.push({brand:b, name:brandLabel(b), text:text});
+    });
+    list.sort(function(a, b){ return a.name.localeCompare(b.name, currentLang === 'ru' ? 'ru' : currentLang); });
+    return list;
+  }
+  /* HTML подсказок под стандартным ответом: три марки сразу, остальные - под «ещё N». */
+  function brandHintsHtml(typed, p, brand){
+    if(brand || !DB || !DB.brands) return '';
+    var list = [];
+    try { list = brandHintList(typed, p); } catch(e){ list = []; }
+    if(!list.length) return '';
+    ensureHintCss();
+    function item(h){
+      return '<div class="brandhint-item"><div class="brandhint-lead">' + esc(t('brandHintPre')) + ' ' +
+        '<button type="button" class="brandhint-pick" data-brand="' + esc(h.brand) + '">' + esc(h.name) + '</button> ' +
+        esc(t('brandHintPost')) + '</div><div class="brandhint-text"><b>' + esc(h.text) + '</b></div></div>';
+    }
+    var html = '<div class="brandhint">' + list.slice(0, 3).map(item).join('');
+    if(list.length > 3){
+      html += '<details class="brandhint-more"><summary>' +
+        esc(t('brandHintMore', {n: list.length - 3, w: makesWord(list.length - 3)})) + '</summary>' +
+        list.slice(3).map(item).join('') + '</details>';
+    }
+    return html + '<div class="brandhint-tail">' + esc(t('brandHintTail')) + '</div></div>';
+  }
+
   out.addEventListener('click', function(e){
+    var pick = e.target && e.target.closest ? e.target.closest('.brandhint-pick') : null;
+    if(pick){
+      sel.value = pick.getAttribute('data-brand') || '';
+      fillMid(); applyModeUi(); run();
+      return;
+    }
     var btn = e.target && e.target.closest ? e.target.closest('.brandless-ask') : null;
     if(!btn || !brandlessCtx) return;
     var ctx = brandlessCtx, seq = runSeq, slot = btn.parentNode;
@@ -4069,12 +4173,13 @@
           });
           return;
         }
-        rnd(cap + spnOnlyHtml(p.spn, brand, nm, false) + brandlessAsk(typed, skipDealer || !!brand), true);
+        rnd(cap + spnOnlyHtml(p.spn, brand, nm, false) + brandHintsHtml(typed, p, brand) +
+            brandlessAsk(typed, skipDealer || !!brand), true);
         return;
       }
       /* Кнопку даём только при стандартном ответе: SPN неизвестен - как до правки, без запроса. */
       var stdKnown = !!spnName(p.spn, brand);
-      rnd(cap + spnFmiHtml(p.spn, p.fmi, brand, null, false) +
+      rnd(cap + spnFmiHtml(p.spn, p.fmi, brand, null, false) + brandHintsHtml(typed, p, brand) +
           (stdKnown ? brandlessAsk(typed, skipDealer || !!brand) : ''), true);
     }).catch(function(){
       rnd(note(t('loadError')));
