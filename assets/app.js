@@ -476,7 +476,7 @@
       brandlessNone: 'у марок такого номера нет',
       brandHintPre: 'У марки', brandHintPost: 'этот код значит:',
       brandHintTail: 'Выберите марку, чтобы видеть её расшифровку первой.',
-      brandHintMore: 'ещё {n} {w}', makesOne: 'марка', makesFew: 'марки', makesMany: 'марок',
+      brandHintPreMany: 'У марок', brandHintMore: 'ещё {n} {w}', varOne: 'вариант', varFew: 'варианта', varMany: 'вариантов',
       sysEnginebrake: 'моторный тормоз',
       sourceLabel: 'источник: {src}', fmiNonstandard: 'FMI {fmi}: значение не стандартное — смотрите расшифровку марки',
       commonTitle: 'Частые коды неисправностей',
@@ -641,7 +641,7 @@
       brandlessNone: 'no dealer code with this number at the makes',
       brandHintPre: 'For', brandHintPost: 'this code means:',
       brandHintTail: 'Pick the make to see its own decoding first.',
-      brandHintMore: '{n} more {w}', makesOne: 'make', makesFew: 'makes', makesMany: 'makes',
+      brandHintPreMany: 'For', brandHintMore: '{n} more {w}', varOne: 'reading', varFew: 'readings', varMany: 'readings',
       sysEnginebrake: 'engine brake',
       sourceLabel: 'source: {src}', fmiNonstandard: 'FMI {fmi}: non-standard value — see the make’s decoding',
       commonTitle: 'Common fault codes',
@@ -1921,7 +1921,7 @@
     tachoHint:1, tachoPickBrand:1, tachoNotFound:1, tachoNone:1, codeEmpty:1,
     spnTooBig:1, needSpnFmi:1, notParsed:1, dealerAtBrands:1, sysEnginebrake:1,
     brandlessAsk:1, brandlessNone:1, donorDecoding:1,
-    brandHintPre:1, brandHintPost:1, brandHintTail:1, brandHintMore:1, makesOne:1, makesFew:1, makesMany:1};
+    brandHintPre:1, brandHintPreMany:1, brandHintPost:1, brandHintTail:1, brandHintMore:1, varOne:1, varFew:1, varMany:1};
   function t(key, vars){
     var dict = I18N[currentLang] || I18N.ru;
     var s = dict[key] != null ? dict[key] : (EN_FALLBACK[key] ? I18N.en[key] : I18N.ru[key]);
@@ -3854,12 +3854,12 @@
       document.head.appendChild(st);
     } catch(e){}
   }
-  function makesWord(n){
-    var k = 'makesMany';
+  function varWord(n){
+    var k = 'varMany';
     if(currentLang === 'ru'){
-      if(n % 10 === 1 && n % 100 !== 11) k = 'makesOne';
-      else if(n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14)) k = 'makesFew';
-    } else if(n === 1) k = 'makesOne';
+      if(n % 10 === 1 && n % 100 !== 11) k = 'varOne';
+      else if(n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14)) k = 'varFew';
+    } else if(n === 1) k = 'varOne';
     return t(k);
   }
   /* Список {brand, name, text}: марки открытого словаря, где код читается тем же
@@ -3893,23 +3893,33 @@
     list.sort(function(a, b){ return a.name.localeCompare(b.name, currentLang === 'ru' ? 'ru' : currentLang); });
     return list;
   }
-  /* HTML подсказок под стандартным ответом: три марки сразу, остальные - под «ещё N». */
+  /* HTML подсказок под стандартным ответом. Марки с одинаковым текстом (общая
+     таблица у доноров) - одна строка со всеми именами. Три группы сразу, остальные - под «ещё N». */
   function brandHintsHtml(typed, p, brand){
     if(brand || !DB || !DB.brands) return '';
     var list = [];
     try { list = brandHintList(typed, p); } catch(e){ list = []; }
     if(!list.length) return '';
     ensureHintCss();
-    function item(h){
-      return '<div class="brandhint-item"><div class="brandhint-lead">' + esc(t('brandHintPre')) + ' ' +
-        '<button type="button" class="brandhint-pick" data-brand="' + esc(h.brand) + '">' + esc(h.name) + '</button> ' +
-        esc(t('brandHintPost')) + '</div><div class="brandhint-text"><b>' + esc(h.text) + '</b></div></div>';
+    var groups = [], byText = {};
+    list.forEach(function(h){
+      var key = h.text.replace(/\s+/g, ' ').trim();
+      if(!byText[key]){ byText[key] = {text:h.text, brands:[]}; groups.push(byText[key]); }
+      byText[key].brands.push(h);
+    });
+    function item(g){
+      var links = g.brands.map(function(h){
+        return '<button type="button" class="brandhint-pick" data-brand="' + esc(h.brand) + '">' + esc(h.name) + '</button>';
+      }).join(', ');
+      var pre = g.brands.length > 1 ? t('brandHintPreMany') : t('brandHintPre');
+      return '<div class="brandhint-item"><div class="brandhint-lead">' + esc(pre) + ' ' + links + ' ' +
+        esc(t('brandHintPost')) + '</div><div class="brandhint-text"><b>' + esc(g.text) + '</b></div></div>';
     }
-    var html = '<div class="brandhint">' + list.slice(0, 3).map(item).join('');
-    if(list.length > 3){
+    var html = '<div class="brandhint">' + groups.slice(0, 3).map(item).join('');
+    if(groups.length > 3){
       html += '<details class="brandhint-more"><summary>' +
-        esc(t('brandHintMore', {n: list.length - 3, w: makesWord(list.length - 3)})) + '</summary>' +
-        list.slice(3).map(item).join('') + '</details>';
+        esc(t('brandHintMore', {n: groups.length - 3, w: varWord(groups.length - 3)})) + '</summary>' +
+        groups.slice(3).map(item).join('') + '</details>';
     }
     return html + '<div class="brandhint-tail">' + esc(t('brandHintTail')) + '</div></div>';
   }
