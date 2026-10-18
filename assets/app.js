@@ -203,6 +203,15 @@
     if(!brand) return [];
     return BRAND_ALIAS[brand] || [brand];
   }
+  /* Подпись ответа: своя таблица марки - «фирменная таблица»; таблица донора
+     (блок того же поставщика, например КамАЗ -> Mercedes-Benz) - отдельная строка. */
+  function donorSrc(donor, brand){
+    return donor === brand ? t('factorySource', {brand: brandName(donor)})
+                           : t('donorDecoding', {brand: brandName(donor)});
+  }
+  function donorStep(donor, brand){
+    return donor !== brand ? t('donorDecoding', {brand: brandName(donor)}) : t('stepDecoding');
+  }
   var MID_LIST = {
     freightliner: [
       {v:'128', ru:'128 — Двигатель',                 en:'128 — Engine'},
@@ -440,6 +449,7 @@
       cumminsFcLabel: 'Cummins ISB 6.7, код FC {n}',
       scanMany: 'Номер <b>{code}</b> отвечает нескольким кодам на щитке — сверьтесь с тем, что показывает панель.',
       stepCode: 'код', stepDecoding: 'расшифровка',
+      donorDecoding: 'Расшифровка по таблице {brand} (блок того же поставщика)',
       factorySource: 'фирменная таблица {brand}', standardSource: 'стандарт J1939',
       blinkNotFoundFor: 'Блинк-код {n} не найден в таблице {brand}.',
       j1939ForBrand: 'По стандарту J1939 — у {brand} номер может значить другое',
@@ -601,6 +611,7 @@
       cumminsFcLabel: 'Cummins ISB 6.7, FC code {n}',
       scanMany: 'Code <b>{code}</b> maps to several dash codes — check which one the cluster shows.',
       stepCode: 'code', stepDecoding: 'meaning',
+      donorDecoding: 'From the {brand} table (same supplier unit)',
       factorySource: 'factory table — {brand}', standardSource: 'J1939 standard',
       blinkNotFoundFor: 'Blink code {n} not found in the {brand} table.',
       j1939ForBrand: 'Per J1939 standard — for {brand} this number may mean something else',
@@ -1903,7 +1914,7 @@
     heaterBadCode:1, heaterNotFound:1, heaterNotFoundOne:1, brandGroupHeaters:1, brandGroupTacho:1,
     tachoHint:1, tachoPickBrand:1, tachoNotFound:1, tachoNone:1, codeEmpty:1,
     spnTooBig:1, needSpnFmi:1, notParsed:1, dealerAtBrands:1, sysEnginebrake:1,
-    brandlessAsk:1, brandlessNone:1};
+    brandlessAsk:1, brandlessNone:1, donorDecoding:1};
   function t(key, vars){
     var dict = I18N[currentLang] || I18N.ru;
     var s = dict[key] != null ? dict[key] : (EN_FALLBACK[key] ? I18N.en[key] : I18N.ru[key]);
@@ -2788,7 +2799,7 @@
     hit.keys.forEach(function(k){
       var txt = (E && E.brands[hit.donor] && E.brands[hit.donor][k]) || (DB.brands[hit.donor] && DB.brands[hit.donor][k]) || '';
       var pr = k.split('.');
-      steps.push({st:t('factorySource', {brand: brandName(hit.donor)}),
+      steps.push({st:donorSrc(hit.donor, brand),
         tx:'<span class="mono">' + codeLabel(pr[0]) + ' · FMI ' + esc(pr[1]) + '</span><br><b>' + esc(txt) + '</b>', cls:'ok'});
     });
     return chain(steps);
@@ -2849,6 +2860,8 @@
       if(spnAlt) keys.push(spnAlt + '.' + fmiS);
       if(fmiAlt) keys.push(spnS + '.' + fmiAlt);
       if(spnAlt && fmiAlt) keys.push(spnAlt + '.' + fmiAlt);
+      /* Ford и др. пишут SPN тремя знаками («084.0», «024.7»): ввод без нуля ищем и в таком виде. */
+      if(/^\d{1,2}$/.test(spnS)) keys.push(('00' + spnS).slice(-3) + '.' + fmiS);
       /* По алиасу (см. BRAND_ALIAS) проходим доноров по очереди и
          подписываем ответ именем того, у кого код реально нашёлся. */
       var donors = donorsOf(brand);
@@ -2857,7 +2870,7 @@
         for(var j = 0; j < keys.length; j++){
           var exact = (E && E.brands[d] && E.brands[d][keys[j]])
                    || (DB.brands[d] && DB.brands[d][keys[j]]);
-          if(exact) return {text:withFmiHint(exact, fmi, d), src:t('factorySource', {brand: brandName(d)}), k:keys[j],
+          if(exact) return {text:withFmiHint(exact, fmi, d), src:donorSrc(d, brand), k:keys[j],
                             ru:(DB.brands[d] && DB.brands[d][keys[j]]) || exact};
         }
       }
@@ -2986,7 +2999,7 @@
   function openFirstHtml(typed, oh, r, brand){
     var pr = oh.key.split('.');
     var steps = [{st:t('stepCode'), tx:'<span class="mono">' + esc(typed) + '</span>', cls:'ok'},
-      {st:t('factorySource', {brand: brandName(oh.donor)}),
+      {st:donorSrc(oh.donor, brand),
        tx:'<span class="mono">' + codeLabel(pr[0]) + ' · FMI ' + esc(pr[1]) + '</span><br><b>' +
           esc(withFmiHint(oh.text, pr[1], oh.donor)) + '</b>', cls:'ok'}];
     if(r){
@@ -3003,7 +3016,7 @@
     if(!r.net.length) return scanHtml(code, r.mine);
     var pSteps = [{st:t('stepCode'), tx:pcodeStep(code, r.net), cls:'ok'}];
     r.net.forEach(function(h){
-      pSteps.push({st: r.net.length > 1 || r.mine.length || !brand ? brandName(h.brand) : t('stepDecoding'),
+      pSteps.push({st: r.net.length > 1 || r.mine.length || !brand ? brandName(h.brand) : donorStep(h.brand, brand),
         tx:'<b>' + esc(h.text) + '</b>', cls:'ok'});
     });
     return chain(pSteps.concat(scanStepList(r.mine)));
@@ -4017,7 +4030,7 @@
         var rSteps = [{st:t('stepCode'), tx:pcodeStep(rcode, hits), cls:'ok'}];
         hits.forEach(function(h){
           rSteps.push({
-            st: hits.length > 1 ? brandName(h.brand) : t('stepDecoding'),
+            st: hits.length > 1 ? brandName(h.brand) : donorStep(h.brand, brand),
             tx: '<b>' + esc(h.text) + '</b>', cls:'ok'
           });
         });
@@ -4045,7 +4058,7 @@
             var nSteps = [{st:t('stepCode'), tx:pcodeStep(num, hits), cls:'ok'}];
             hits.forEach(function(h){
               nSteps.push({
-                st: hits.length > 1 || !brand ? brandName(h.brand) : t('stepDecoding'),
+                st: hits.length > 1 || !brand ? brandName(h.brand) : donorStep(h.brand, brand),
                 tx: '<b>' + esc(h.text) + '</b>', cls:'ok'
               });
             });
