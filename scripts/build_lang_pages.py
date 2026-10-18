@@ -175,6 +175,33 @@ def patch_root_meta(text, counts, where):
     return _sub_once(text, r'(?<![\d.,])(?:60|70|80)\+?(?= марок)', u'%d+' % (brands // 10 * 10), 2, where)
 
 
+# Переключатель языков внизу главной. Разметка лежит в index.html (ru); здесь его
+# оставляем только на ru и en. На остальных девяти главных язык уже выбирается в
+# шапке, поэтому там блок убираем. Для en строим свой: русская ссылка на корень,
+# текущий язык - обычным текстом.
+LANG_NAV_RE = re.compile(r'<nav class="langlinks".*?</nav>\n?', re.S)
+LANG_NAV_LABELS = [('ru', u'Русский'), ('en', u'English'), ('de', u'Deutsch'), ('fr', u'Français'),
+                   ('es', u'Español'), ('pt', u'Português'), ('pl', u'Polski'), ('tr', u'Türkçe'),
+                   ('hi', u'हिन्दी'), ('zh', u'中文')]
+
+
+def lang_nav(html, lang):
+    nav = u''
+    if lang == 'en':
+        links = []
+        for code, name in LANG_NAV_LABELS:
+            if code == 'en':
+                links.append(u'<span class="langlinks-cur" lang="en">%s</span>' % name)
+            else:
+                href = u'/' if code == 'ru' else u'/%s/' % code
+                links.append(u'<a href="%s" hreflang="%s" lang="%s">%s</a>' % (href, code, code, name))
+        nav = u'<nav class="langlinks" aria-label="Site languages">%s</nav>\n' % u''.join(links)
+    new, n = LANG_NAV_RE.subn(lambda m: nav, html, count=1)
+    if n != 1:
+        raise ValueError(u'langlinks: в главной нет блока переключателя языков (%s)' % lang)
+    return new
+
+
 def build():
     i18n = extract_i18n()
     ru_html = io.open(os.path.join(ROOT, 'index.html'), encoding='utf-8').read()
@@ -250,6 +277,7 @@ def build():
 
         html = apply_i18n(html, d)
         html = point_to_en(html)
+        html = lang_nav(html, lang)
 
         out_dir = os.path.join(ROOT, lang)
         if not os.path.isdir(out_dir):

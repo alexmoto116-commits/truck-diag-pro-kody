@@ -264,6 +264,7 @@ def build():
     lvl_of = info['lvl']
     # закрытые от индекса (их ровно столько же, сколько у русской версии)
     closed_en = set(info.get('noindex_en', ()))
+    closed_ru = set(info.get('noindex', ()))
     # Ссылки на соседние коды ведут только на английские страницы, которые реально
     # записаны в этой сборке и открыты. en_set - это список КАНДИДАТОВ (есть перевод),
     # а не список записанных страниц: код из en_set, которого нет в written, ссылкой
@@ -344,7 +345,10 @@ def build():
             items.append(u'<span>%s</span>' % bp.esc(here))
         return u'<span class="sep">&rsaquo;</span>'.join(items)
 
-    def alt_links(rel):
+    def alt_links(rel, both_open):
+        # hreflang только когда открыты обе версии (как alt_pair в build_pages.py)
+        if not both_open:
+            return u''
         ru, en = '%s/%s' % (SITE, rel), '%s/en/%s' % (SITE, rel)
         return (u'\n<link rel="alternate" hreflang="ru" href="%s">'
                 u'\n<link rel="alternate" hreflang="en" href="%s">'
@@ -497,7 +501,7 @@ def build():
 
         body = [bp.HEAD.format(title=bp.esc(title), desc=bp.esc(desc), canon=canon,
                                ogtitle=bp.esc(page_name), mid=bp.METRIKA_ID, ld=ld,
-                               nav=nav(u'SPN %d' % spn), lang='en', locale='en_US', alt=alt_links(rel))]
+                               nav=nav(u'SPN %d' % spn), lang='en', locale='en_US', alt=alt_links(rel, spn not in closed_ru and spn not in closed_en))]
         if spn in info.get('noindex_en', ()):      # закрыты по своему адресу en/kody/
             body[0] = body[0].replace(u'<meta charset="utf-8">',
                                       u'<meta charset="utf-8">\n<meta name="robots" content="noindex, follow">', 1)
@@ -611,7 +615,7 @@ def build():
                            desc=bp.esc(TX['hubDesc'] % len(written)), canon=canon,
                            ogtitle=bp.esc(TX['hubH1']), mid=bp.METRIKA_ID, ld=ld,
                            nav=u'<a href="/en/">Home</a><span class="sep">&rsaquo;</span><span>%s</span>' % bp.esc(TX['hubH1']),
-                           lang='en', locale='en_US', alt=alt_links('kody/'))]
+                           lang='en', locale='en_US', alt=alt_links('kody/', True))]
     body.append(u'<h1>%s</h1>' % bp.esc(TX['hubH1']))
     body.append(bp.search_form(None, ph=u'Your code, e.g. 1078/3', action=u'/en/', btn=u'Search', label=u'Fault code'))
     body.append(u'<p class="sub">%s</p>' % (TX['hubSub'] % (len(written), n_brands)))

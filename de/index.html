@@ -29,7 +29,8 @@
 <link rel="alternate" hreflang="hi" href="https://codetruck.ru/hi/">
 <link rel="alternate" hreflang="zh" href="https://codetruck.ru/zh/">
 <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
-<link rel="preload" as="image" href="/assets/tyagach-noch.jpg">
+<link rel="preload" as="image" type="image/webp" href="/assets/tyagach-noch-800.webp" media="(max-width: 480px)" fetchpriority="high">
+<link rel="preload" as="image" type="image/webp" href="/assets/tyagach-noch-1400.webp" media="(min-width: 481px)" fetchpriority="high">
 <!-- Превью для мессенджеров: ссылку на разбор кода чаще всего
      пересылают водителю прямо в переписке. -->
 <meta property="og:type" content="website">
@@ -93,13 +94,14 @@ body{
 }
 .scene .photo{
   position:absolute;left:0;right:0;bottom:0;height:52%;z-index:-2;
-  background:url("/assets/tyagach-noch.jpg") center 76%/cover no-repeat;
+  background:url("/assets/tyagach-noch-1400.webp") center 76%/cover no-repeat;
   /* цвет заката и синь неба на фотографии приглушены - поднимаем */
   filter:saturate(1.35) contrast(1.06) brightness(1.22);
   /* края растворяем, чтобы полоса не читалась приклеенным прямоугольником */
   -webkit-mask-image:linear-gradient(180deg, transparent 0%, #000 26%, #000 78%, transparent 100%);
           mask-image:linear-gradient(180deg, transparent 0%, #000 26%, #000 78%, transparent 100%);
 }
+@media (max-width:480px){.scene .photo{background-image:url("/assets/tyagach-noch-800.webp")}}
 
 /* Вуаль только там, где лежит текст: верх плотный, низ почти
    открыт - там машина и небо показываются в цвете. */
@@ -711,6 +713,13 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
 .common .allof a{border-bottom:1px solid rgba(111,227,211,.35)}
 @media print{ .common{display:none} }
 
+.langlinks{
+  max-width:660px;margin:0 auto;padding:22px clamp(18px,5vw,28px) 0;
+  font-size:13px;line-height:1.9;color:var(--ink-3);display:flex;flex-wrap:wrap;gap:4px 16px;
+}
+.langlinks a{color:inherit;text-decoration:none;border-bottom:1px dotted currentColor;white-space:nowrap}
+.langlinks a:hover,.langlinks a:focus-visible{color:var(--signal)}
+.langlinks-cur{color:var(--ink)}
 .foot{
   max-width:660px;margin:0 auto;padding:26px clamp(18px,5vw,28px) 70px;
   font-size:13px;color:var(--ink-3);line-height:1.6;
@@ -836,7 +845,7 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
     <li><a href="/en/kody/spn-639.html"><span class="mono">SPN 639</span> — Сеть J1939 №1</a></li>
     <li><a href="/en/kody/spn-91.html"><span class="mono">SPN 91</span> — Положение педали газа</a></li>
     <li><a href="/en/kody/spn-84.html"><span class="mono">SPN 84</span> — Скорость автомобиля по датчикам колёс</a></li>
-    <li><a href="/en/kody/spn-630.html"><span class="mono">SPN 630</span> — Память калибровки</a></li>
+    <li><a href="/en/kody/spn-633.html"><span class="mono">SPN 633</span> — Команда управления исполнительным механизмом</a></li>
     <li><a href="/en/kody/spn-110.html"><span class="mono">SPN 110</span> — Температура охлаждающей жидкости</a></li>
     <li><a href="/en/kody/spn-100.html"><span class="mono">SPN 100</span> — Давление масла в двигателе</a></li>
     <li><a href="/en/kody/spn-102.html"><span class="mono">SPN 102</span> — Давление во впускном коллекторе (наддув)</a></li>
@@ -860,7 +869,7 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
     <li><a href="/en/kody/spn-654.html"><span class="mono">SPN 654</span> — Форсунка, цилиндр №04</a></li>
     <li><a href="/en/kody/spn-655.html"><span class="mono">SPN 655</span> — Форсунка, цилиндр №05</a></li>
     <li><a href="/en/kody/spn-656.html"><span class="mono">SPN 656</span> — Форсунка, цилиндр №06</a></li>
-    <li><a href="/en/kody/spn-1072.html"><span class="mono">SPN 1072</span> — Выход моторного тормоза (компрессионного) №1</a></li>
+    <li><a href="/en/kody/spn-520.html"><span class="mono">SPN 520</span> — Фактический момент ретардера, %</a></li>
     <li><a href="/en/kody/spn-98.html"><span class="mono">SPN 98</span> — Уровень масла в двигателе</a></li>
     <li><a href="/en/kody/spn-174.html"><span class="mono">SPN 174</span> — Температура топлива</a></li>
     <li><a href="/en/kody/spn-3511.html"><span class="mono">SPN 3511</span> — Напряжение питания датчиков 3</a></li>
@@ -868,11 +877,11 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
     <li><a href="/en/kody/spn-794.html"><span class="mono">SPN 794</span> — Датчик колеса ABS, ось 3, справа</a></li>
     <li><a href="/en/kody/spn-175.html"><span class="mono">SPN 175</span> — Температура масла</a></li>
     <li><a href="/en/kody/spn-636.html"><span class="mono">SPN 636</span> — Датчик положения коленвала</a></li>
-    <li><a href="/en/kody/spn-1624.html"><span class="mono">SPN 1624</span> — Скорость автомобиля по тахографу</a></li>
-    <li><a href="/en/kody/spn-1074.html"><span class="mono">SPN 1074</span> — Выход моторного тормоза (заслонкой в выхлопе)</a></li>
+    <li><a href="/en/kody/spn-904.html"><span class="mono">SPN 904</span> — Скорость передней оси</a></li>
+    <li><a href="/en/kody/spn-801.html"><span class="mono">SPN 801</span> — Реле управления ретардером</a></li>
     <li><a href="/en/kody/spn-677.html"><span class="mono">SPN 677</span> — Реле стартера</a></li>
-    <li><a href="/en/kody/spn-598.html"><span class="mono">SPN 598</span> — Выключатель сцепления</a></li>
-    <li><a href="/en/kody/spn-974.html"><span class="mono">SPN 974</span> — Положение дистанционной педали газа</a></li>
+    <li><a href="/en/kody/spn-70.html"><span class="mono">SPN 70</span> — Выключатель стояночного тормоза</a></li>
+    <li><a href="/en/kody/spn-558.html"><span class="mono">SPN 558</span> — Концевой выключатель холостого хода педали газа №1</a></li>
   </ul>
   <p class="allof"><a href="/en/kody/" data-i18n="allCodes">Alle Fehlercodes</a></p>
 
@@ -994,6 +1003,6 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
 
 <div class="foot"><span class="foot-t" data-i18n="footText">Dieses Nachschlagewerk erklärt, was ein Code bedeutet — es stellt keine Diagnose. Die Entscheidung trifft immer eine Person mit der passenden Ausrüstung. Fragen — <a href="mailto:alexdiag116@gmail.com" style="color:inherit">alexdiag116@gmail.com</a>.</span> <button type="button" class="copy-mail" data-i18n="copyMail" data-mail="alexdiag116@gmail.com">Adresse kopieren</button></div>
 
-<script src="/assets/app.js"></script>
+<script defer src="/assets/app.js"></script>
 <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "177421bba4084e9fa25718d86f1781b0"}'></script><!-- End Cloudflare Web Analytics --></body>
 </html>

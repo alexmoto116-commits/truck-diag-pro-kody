@@ -30,55 +30,72 @@ RELEASE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'heater_
 HEATER_EXAMPLE_RU = u'031'
 HEATER_EXAMPLE_EN = u'031'
 
-# Общие советы по типу неисправности. Подбираются по словам в русском тексте
-# кода: по одному совету на тему, не больше четырёх, в порядке списка.
-# Только безопасные общие проверки, без номеров деталей.
-TOPICS = [
-    (u'перегрев|перегрет',
-     u'Проверьте, не забиты ли воздухозабор и выхлоп, и не загрязнён ли теплообменник.',
-     u'Check that the air intake and exhaust are clear and the heat exchanger is clean.'),
-    (u'пламен|пламя|срыв',
-     u'Проверьте, загорается ли пламя при пуске: грязная камера сгорания и слабая подача топлива дают срыв пламени.',
-     u'Check whether the flame lights at start-up: a dirty combustion chamber or weak fuel supply causes flame loss.'),
-    (u'насос|топлив',
-     u'Проверьте топливный насос: питание и разъём, подачу топлива по линии и не забит ли фильтр.',
-     u'Check the fuel pump: its power and connector, fuel flow in the line, and whether the filter is clogged.'),
-    (u'свеч|штифт|накаливан|зажиган',
-     u'Проверьте свечу накаливания или штифт зажигания: состояние контактов и сопротивление по заводским данным.',
-     u'Check the glow plug or ignition pin: contact condition and resistance per the manufacturer data.'),
-    (u'вентилятор|нагнетател|воздух',
-     u'Проверьте нагнетатель воздуха: свободно ли вращается крыльчатка, нет ли подсоса и засора воздуховодов.',
-     u'Check the air blower: the impeller should turn freely, and check for air leaks and blocked ducts.'),
-    (u'напряжени|питани|по току',
-     u'Измерьте напряжение питания на разъёме отопителя во время работы: провал ниже нормы указывает на аккумулятор, клеммы или проводку.',
-     u'Measure the supply voltage at the heater connector while it runs: a drop below normal points to the battery, terminals or wiring.'),
-    (u'обрыв|замыкани',
-     u'Проверьте жгут у разъёма: обрыв или замыкание чаще всего на изломах, у клемм и там, где провод перетёрт.',
-     u'Check the harness at the connector: an open circuit or short is most often at bends, at terminals or where the wire is chafed.'),
-    (u'датчик',
-     u'Проверьте датчик: разъём, целостность провода и сопротивление по схеме марки.',
-     u'Check the sensor: connector, wire continuity and resistance per the brand wiring diagram.'),
-    (u'связ|пульт|шин|тревог',
-     u'Проверьте пульт и линию связи: питание пульта, разъём и целостность провода связи.',
-     u'Check the control panel and the communication line: panel power, connector and wire continuity.'),
-    (u'блокировк|блок управления',
-     u'При блокировке выключите отопитель, дайте ошибке сброситься и повторите пуск; если блокировка возвращается, ищите причину в блоке управления.',
-     u'On a lockout, switch the heater off, let the fault clear and retry; if the lockout returns, look for the cause in the control unit.'),
-]
-# Запасные советы, если по тексту ни одна тема не подошла (нужно минимум два).
-FALLBACK = [
-    (u'Запишите код, время появления и условия: холодный пуск, работа на ходу или стоянка.',
-     u'Note the code, when it appeared and the conditions: cold start, driving or idling.'),
-    (u'Осмотрите разъёмы этого узла: окисление и слабые клеммы — частая причина.',
-     u'Inspect the connectors of this part: corrosion and loose terminals are a common cause.'),
-]
-ZERO_NOTE = (u'Это не ошибка: строка означает, что неисправностей нет. Если отопитель не работает, '
-             u'ищите в считывании код с ненулевым номером.',
-             u'This is not a fault: the line means no faults are stored. If the heater does not work, '
-             u'look for a code with a non-zero number in the readout.')
+# Тексты страниц кодов (тема по заводскому тексту, общие блоки) - scripts/heater_texts.json.
+# Тема подбирается по русскому тексту кода: первая подошедшая из списка topics.
+TEXTS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'heater_texts.json')
+MIN_WORDS = 250
+SECTION_HEAD = {
+    'ru': {'what': u'Что означает код', 'causes': u'Почему появляется',
+           'zero_causes': u'Почему ошибки может не быть',
+           'causes_intro': u'Чаще всего первая причина, дальше примерно по убыванию вероятности:',
+           'steps': u'Порядок действий', 'check': u'Что проверить самому',
+           'check_intro': u'Простые проверки без разборки:',
+           'service': u'Когда нужен сервис', 'drive': u'Можно ли ехать и ночевать',
+           'danger': u'Чем это опасно'},
+    'en': {'what': u'What the code means', 'causes': u'Why it appears',
+           'zero_causes': u'Why there may be no code',
+           'causes_intro': u'The first cause is the most common; the rest follow roughly in order of likelihood:',
+           'steps': u'Steps to take', 'check': u'What to check yourself',
+           'check_intro': u'Simple checks, no dismantling:',
+           'service': u'When you need a service', 'drive': u'Can you drive and sleep with it',
+           'danger': u'Why it matters'},
+}
+
+_TEXTS = {}
+
+
+def texts():
+    if not _TEXTS:
+        _TEXTS.update(json.loads(io.open(TEXTS_FILE, encoding='utf-8').read()))
+    return _TEXTS
+
+
+def topic_of(ru_text):
+    """Первая тема из heater_texts.json, чей шаблон подошёл к русскому тексту кода."""
+    for t in texts()['topics']:
+        if re.search(t['pattern'], ru_text, re.I):
+            return t
+    raise ValueError(u'нет темы для кода: %s' % ru_text)
+
+
+def _li(items):
+    return u''.join(u'<li>%s</li>' % bp.esc(x) for x in items)
+
+
+def topic_sections(lang, entry, text):
+    """Разделы страницы кода: что значит, почему, что проверить, сервис, езда, опасность."""
+    h = SECTION_HEAD[lang]
+    topic = topic_of(entry.get('ru') or '')
+    t = topic[lang]
+    cm = texts()['common'][lang]
+    zero = topic['id'] == 'zero'
+    return [
+        u'<section><h2>%s</h2><p>%s</p><p>%s</p></section>'
+        % (h['what'], bp.esc(text), bp.esc(t['meaning'])),
+        u'<section><h2>%s</h2><p>%s</p><ol>%s</ol></section>'
+        % (h['zero_causes' if zero else 'causes'], bp.esc(h['causes_intro']), _li(t['causes'])),
+        u'<section><h2>%s</h2><ol>%s</ol></section>' % (h['steps'], _li(cm['steps'])),
+        u'<section><h2>%s</h2><p>%s</p><ul>%s</ul></section>'
+        % (h['check'], bp.esc(h['check_intro']), _li(t['checks'] + cm['checks'])),
+        u'<section><h2>%s</h2><p>%s</p><p>%s</p></section>'
+        % (h['service'], bp.esc(t['service']), bp.esc(cm['service'])),
+        u'<section><h2>%s</h2><p>%s</p><p>%s</p></section>'
+        % (h['drive'], bp.esc(cm['drive']), bp.esc(cm['sleep'])),
+        u'<section><h2>%s</h2><p>%s</p></section>' % (h['danger'], bp.esc(cm['danger'])),
+    ]
+
 
 TITLE_LIM = 65
-TITLE_SUFFIX = u' | codetruck.ru'
 
 
 def _short(text):
@@ -112,11 +129,10 @@ def load_release():
 
 
 def make_title(prefix, short, lang_sep=u' — '):
-    """Заголовок не длиннее TITLE_LIM: короткое описание режем по слову."""
-    room = TITLE_LIM - len(prefix) - len(TITLE_SUFFIX) - len(lang_sep)
-    title = prefix + TITLE_SUFFIX
-    if short and room >= 12:
-        title = prefix + lang_sep + bp.cut60(_lower_first(short), room) + TITLE_SUFFIX
+    """Заголовок кода: без многоточия и без названия сайта, не длиннее TITLE_LIM.
+    Обрезка по слову - bp.fit_title (build_pages.py)."""
+    core = prefix + lang_sep + _lower_first(short) if short else prefix
+    title = bp.fit_title(core)
     if len(title) > TITLE_LIM:
         raise ValueError(u'title длиннее %d: %s' % (TITLE_LIM, title))
     return title
@@ -130,17 +146,6 @@ def make_desc(lang, prefix, full):
         d = (u'%s: %s. What to check on site, the neighbouring codes of this make and a search '
              u'for your code on codetruck.ru.' % (prefix, full))
     return bp.cut_words(d, 160)
-
-
-def advice(lang, ru_text):
-    """Два-четыре совета по ключевым словам русского текста кода."""
-    picked = [(ru, en) for pat, ru, en in TOPICS if re.search(pat, ru_text, re.I)][:4]
-    for pair in FALLBACK:
-        if len(picked) >= 2:
-            break
-        if pair not in picked:
-            picked.append(pair)
-    return [p[1] if lang == 'en' else p[0] for p in picked]
 
 
 def render(lang, rel, title, desc, h1, sub, sections, here, brand=None, noindex=False):
@@ -232,7 +237,6 @@ def _code_page(lang, b, code, entry, prev_c, next_c):
                 (u'/otopiteli/', u'Оглавление: все отопители'),
                 (u'/?mode=heater&amp;b=%s&amp;q=%s' % (b, code),
                  u'Найти этот код в режиме отопителя')]
-        zero = ZERO_NOTE[0]
     else:
         sub = (u'Code <b>%s</b>, %s heater. Factory text below; then what to check and the '
                u'neighbouring codes.' % (esc_c(code), esc_c(name)))
@@ -242,14 +246,7 @@ def _code_page(lang, b, code, entry, prev_c, next_c):
                 (u'/en/otopiteli/', u'Index: all heaters'),
                 (u'/en/?mode=heater&amp;b=%s&amp;q=%s' % (b, code),
                  u'Find this code in heater mode')]
-        zero = ZERO_NOTE[1]
-    sections = [u'<section><h2>%s</h2><p>%s</p></section>' % (s_what, bp.esc(text))]
-    if text.startswith(u'Ошибок нет') or text.startswith(u'No faults'):
-        checks = u'<p>%s</p>' % bp.esc(zero)
-    else:
-        items = advice(lang, entry.get('ru') or '')
-        checks = u'<ul>%s</ul>' % u''.join(u'<li>%s</li>' % bp.esc(t) for t in items)
-    sections.append(u'<section><h2>%s</h2>%s</section>' % (s_check, checks))
+    sections = topic_sections(lang, entry, text)
     # Соседи - только выпущенные (prev_c/next_c уже отфильтрованы в build()).
     # Строка как в kody/: номер в колонке span.mono, текст в span.nm.
     near = []

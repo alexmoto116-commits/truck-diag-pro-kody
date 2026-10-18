@@ -1910,9 +1910,17 @@
     if(vars) Object.keys(vars).forEach(function(k){ s = s.split('{' + k + '}').join(vars[k]); });
     return s;
   }
+  /* Статические таблицы до загрузки словаря (assets/dtc.enc.js): ключи марок и их
+     русские названия как DB.brandNames; тахографы - марки с непустой таблицей в DB.brands.
+     Пересоздать, если в словаре появились или сменились марки: декодировать словарь
+     так же, как home_counts() в scripts/build_lang_pages.py (base64 -> JSON), взять
+     brandNames и непустые brands у тахографных ключей и заменить обе строки ниже.
+     Словарь при загрузке fillBrands() всё равно пересобирает список сам. */
+  var BRAND_RU_STATIC = {kamaz:"КамАЗ",renault:"Renault Trucks",mercedes:"Mercedes-Benz",isuzu:"Isuzu",man:"MAN",daf:"DAF",yamz:"ЯМЗ",sitrak:"SITRAK",iveco:"Iveco",volvo:"Volvo",scania:"Scania",deutz:"Deutz",tata:"Tata Motors",ashokleyland:"Ashok Leyland",mahindra:"Mahindra",shacman:"Shacman",dongfeng:"Dongfeng",faw:"FAW",foton:"Foton",howo:"HOWO",jac:"JAC",international:"International",detroitdiesel:"Detroit Diesel",freightliner:"Freightliner",mack:"Mack",powerstroke:"Ford PowerStroke",cumminsisb:"Cummins ISB",cumminsislisc:"Cummins ISL/ISC",cumminsism:"Cummins ISM",cumminsisx:"Cummins ISX",paccarmx13:"PACCAR MX-13",hino:"Hino",caterpillar:"Caterpillar",fuso:"Mitsubishi Fuso",thermoking:"Thermo King",carrier:"Carrier Transicold",planar:"Планар",webasto:"Webasto",eberspacher:"Eberspächer",daewoo:"Tata Daewoo",cumminsisf:"Cummins ISF 2.8/3.8",bendix:"Bendix ABS/ESP",wabco:"WABCO ABS/ESC",eaton:"Eaton Fuller",gaz:"ГАЗ",maz:"МАЗ",ural:"Урал",kraz:"КрАЗ",kenworth:"Kenworth",peterbilt:"Peterbilt",westernstar:"Western Star",bharatbenz:"BharatBenz",ram:"RAM",beiben:"Beiben",meritor:"Meritor (ex-WABCO)",knorrbremse:"Knorr-Bremse EBS",hyundai:"Hyundai",hongyan:"SAIC-Iveco Hongyan",haldex:"Haldex ABS",zfastronic:"ZF AS-Tronic",allison:"Allison",weichai:"Weichai/Shaanxi WP10/WP12",ford:"Ford Trucks",dodge:"Dodge",teplostar:"Теплостар",volkswagen:"Volkswagen",fordcargo:"Ford Cargo",agrale:"Agrale",mwm:"MWM",udtrucks:"UD Trucks",baw:"BAW",ivecoedc:"Iveco EDC",ivecoeurotronic:"Iveco EuroTronic",manzbr2:"MAN ZBR2",manebs:"MAN EBS",volvomid:"Volvo (блоки MID)",jingwei:"Jingwei (отопитель SITRAK)",vdo:"VDO DTCO",shtrih:"Штрих-ТахоRUS",mercury:"Меркурий ТА-001",kasbi:"КАСБИ DT-20",atol:"Атол Драйв"};
+  var TACHO_STATIC = {vdo:1,atol:1,mercury:1,shtrih:1,kasbi:1};
   function brandName(key){
     if(currentLang !== 'ru' && BRAND_OVERRIDE[key]) return BRAND_OVERRIDE[key];
-    return DB.brandNames[key];
+    return DB ? DB.brandNames[key] : BRAND_RU_STATIC[key];
   }
   function fmiLookup(f){
     var tbl = FMI_I18N[currentLang];
@@ -1934,9 +1942,7 @@
   }
 
   function fillBrands(){
-    if(!DB) return;
     syncTacho();
-    if(!DB.brandNames) return;
     var prevValue = sel.value;
     while(sel.options.length > 1) sel.removeChild(sel.lastChild);
     function byName(a, b){
@@ -1996,12 +2002,14 @@
 
   function brandLabel(k){ return brandName(k) || k; }
   function tachoHas(k){
-    var tb = DB && DB.brands && DB.brands[k];
+    if(!DB) return !!TACHO_STATIC[k];
+    var tb = DB.brands && DB.brands[k];
     return !!tb && Object.keys(tb).length > 0;
   }
+  function brandKeys(){ return Object.keys(DB ? DB.brandNames : BRAND_RU_STATIC); }
   function modeKeys(){
     if(MODE === 'tacho') return TACHO_BRANDS.filter(tachoHas);
-    return Object.keys(DB.brandNames).filter(function(k){
+    return brandKeys().filter(function(k){
       return MODE === 'heater' ? !!HEATER_BRANDS[k] : (!HEATER_BRANDS[k] && TACHO_BRANDS.indexOf(k) < 0);
     });
   }
@@ -2234,7 +2242,7 @@
     dataNote.style.display = (lang === 'ru' || lang === 'en') ? 'none' : 'block';
     langSelect.value = lang;
     langSelect.setAttribute('aria-label', t('langAria'));
-    if(DB) fillBrands();
+    fillBrands();
     applyModeUi();
     if(input.value.trim()) run();
   }
@@ -2307,7 +2315,25 @@
     });
     return loading;
   }
-  load();
+  /* Словарь (dtc.enc.js, ~3 МБ) грузим по первому действию, а не при открытии
+     страницы. Список марок до того уже виден из BRAND_RU_STATIC и TACHO_STATIC.
+     Сразу грузим, если адрес ведёт в разбор (?q, ?c, ?b) или в режим отопителя
+     или тахографа. Фокус при загрузке не считаем: поле получает его автофокусом. */
+  fillBrands();
+  var warmed = false;
+  function warm(){
+    if(warmed) return;
+    warmed = true;
+    load().catch(function(){});
+  }
+  if(MODE !== 'main' || /[?&](q|c|b)=/.test(location.search)) warm();
+  input.addEventListener('pointerdown', warm);
+  input.addEventListener('keydown', warm);
+  input.addEventListener('input', warm);
+  sel.addEventListener('pointerdown', warm);
+  sel.addEventListener('keydown', warm);
+  sel.addEventListener('change', warm);
+  go.addEventListener('pointerdown', warm);
 
   /* Английские описания лежат отдельным файлом и грузятся только
      когда язык не русский. Основная аудитория русская - незачем
@@ -3802,6 +3828,13 @@
   }
 
   function run(skipDealer, noSpecial, noOpen){
+    /* Словарь грузится по первому действию: до его прихода ждём и запускаем
+       тот же разбор с теми же аргументами. */
+    if(!DB){
+      var runArgs = arguments;
+      load().then(function(){ run.apply(null, runArgs); }).catch(function(){});
+      return;
+    }
     /* Отопитель и тахограф - свои пути разбора, SPN/FMI и блинки сюда не идут. */
     if(MODE !== 'main') return runMode();
     var mySeq = ++runSeq;
@@ -4170,7 +4203,9 @@
         setTimeout(eraseNext, 60);
       })();
     }
-    ready().then(function(){
+    /* Демо не разбирает код и словарь не читает - только печатает пример,
+       поэтому не ждёт загрузки справочника (иначе он качался бы при каждом открытии). */
+    Promise.resolve().then(function(){
       if(cancelled) return;
       scannerEl.classList.add('demo');
       typeIn();

@@ -1,0 +1,723 @@
+{
+  "note": "Тексты страниц кодов отопителей (build_heater_pages.py). Темы подбираются по заводскому тексту кода, первая подошедшая тема побеждает. Порядок причин - от частой к редкой по общей практике мастеров, не по статистике производителя. Цифр и номеров деталей нет намеренно.",
+  "common": {
+    "ru": {
+      "steps": [
+        "Запишите код, время появления и условия: холодный пуск, работа на ходу или стоянка, напряжение в бортовой сети.",
+        "Выключите отопитель с пульта и дождитесь полного цикла остановки, пока вентилятор и насос не выключатся.",
+        "Сделайте один повторный пуск. Если код вернулся, переходите к проверкам ниже, но не повторяйте пуски подряд."
+      ],
+      "checks": [
+        "Предохранитель отопителя: найдите его по схеме на блоке или в инструкции марки и осмотрите. Заменяйте только на предохранитель того же номинала.",
+        "Аккумулятор: клеммы и масса затянуты и чисты, батарея держит напряжение при пуске.",
+        "Топливо: в баке есть дизель, он подходит по сезону и без воды, фильтр не забит.",
+        "Воздух и выхлоп: воздухозаборник и выхлопная труба свободны от снега, льда, грязи и смятия.",
+        "Разъёмы: отключите и подключите разъём отопителя и узла с ошибкой, осмотрите контакты и при налёте очистите их, не гнув штыри."
+      ],
+      "drive": "Ехать с неисправным отопителем обычно можно: он не влияет на управление и тормоза. Не запускайте его, если пахнет топливом или гарью, если идёт дым или видно пламя снаружи, и не оставляйте работать без присмотра.",
+      "sleep": "Ночёвка без отопления в холод опасна: переохлаждение наступает незаметно, особенно при усталости. Для ночи возьмите спальник и тёплую одежду. Если нужна работа двигателя на стоянке, соблюдайте правила безопасности и не ставьте в кабину газовые и бытовые обогреватели.",
+      "danger": "Опасны не сама цифра кода, а дым, запах топлива и перегрев корпуса. При таких признаках выключите отопитель и не запускайте его до осмотра. Неисправная камера сгорания или забитый выхлоп могут пустить угарный газ в кабину, поэтому выхлоп и его уплотнения не трогайте на ходу и не закрывайте.",
+      "service": "В сервис стоит обратиться, если код повторяется после двух-трёх простых проверок, если есть подтёки топлива, копоть на корпусе или выхлопе, если отопитель не работает совсем или если код относится к блоку управления."
+    },
+    "en": {
+      "steps": [
+        "Write down the code, when it appeared and the conditions: cold start, driving or idling, and the vehicle voltage.",
+        "Switch the heater off from the panel and wait until the shutdown cycle ends, with the fan and fuel pump stopped.",
+        "Try one restart. If the code returns, go through the checks below, but do not keep restarting one after another."
+      ],
+      "checks": [
+        "Heater fuse: find it on the schematic or in the make's manual and look at it. Replace it only with a fuse of the same rating.",
+        "Battery: terminals and earth are tight and clean, and the battery holds voltage during start-up.",
+        "Fuel: the tank has diesel, it suits the season and has no water, and the filter is not clogged.",
+        "Air and exhaust: the air intake and exhaust pipe are free of snow, ice, mud and crushing.",
+        "Connectors: unplug and reconnect the heater and the faulty part's connector, check the contacts and clean any corrosion without bending the pins."
+      ],
+      "drive": "You can usually drive with a faulty heater, because it does not affect steering or brakes. Do not run it if there is a smell of fuel or burning, smoke, or visible flame outside, and never leave it running unattended.",
+      "sleep": "Sleeping in a cold cab without heat is dangerous, because hypothermia sets in unnoticed, especially when tired. Take a sleeping bag and warm clothes for the night. If you need the engine running at a stop, follow the safety rules and do not bring gas or household heaters into the cab.",
+      "danger": "The danger is not the code number itself but smoke, a smell of fuel and an overheating housing. If you see these signs, switch the heater off and do not restart it until it has been inspected. A faulty combustion chamber or a blocked exhaust can let carbon monoxide into the cab, so do not touch or block the exhaust while driving.",
+      "service": "Go to a service if the code returns after two or three simple checks, if there are fuel leaks, soot on the housing or exhaust, if the heater does not work at all, or if the code points to the control unit."
+    }
+  },
+  "topics": [
+    {
+      "id": "zero",
+      "pattern": "^Ошибок нет",
+      "ru": {
+        "meaning": "Строка означает, что на момент считывания отопитель не сохранил неисправностей. Это хорошая новость, но она не объясняет, почему отопитель не работает, если он не работает.",
+        "causes": [
+          "Отопитель отключён выключателем, по настройке или без питания: в таком состоянии ошибка не записывается.",
+          "Неисправность проявляется без записи в память, например в управлении пульта или в его проводке.",
+          "Старое считывание: ошибка была раньше и уже пропала сама."
+        ],
+        "checks": [
+          "Проверьте, что пульт включён и выбран нужный режим и температура.",
+          "Проверьте предохранитель и питание отопителя.",
+          "Проверьте топливо, воздух и напряжение АКБ по общему списку."
+        ],
+        "service": "Если отопитель не работает при чистом считывании, нужна проверка работы по симптомам в сервисе."
+      },
+      "en": {
+        "meaning": "The line means the heater had no stored faults at the time of reading. That is good news, but it does not explain why the heater does not work, if it does not work.",
+        "causes": [
+          "The heater is switched off at the switch, by its setting or without power: in that state no fault is recorded.",
+          "The fault shows up without being stored, for example in the panel control or its wiring.",
+          "An old reading: the fault was there before and cleared itself."
+        ],
+        "checks": [
+          "Check that the panel is on and the right mode and temperature are selected.",
+          "Check the heater fuse and power supply.",
+          "Check the fuel, air and battery voltage using the general list."
+        ],
+        "service": "If the heater does not work with a clean reading, a symptom-based check at a service is needed."
+      }
+    },
+    {
+      "id": "high_voltage",
+      "pattern": "повышенн\\w* напряж|высок\\w* напряж|высокому напряж|слишком высок",
+      "ru": {
+        "meaning": "Напряжение бортовой сети выше допустимого предела, и блок отключает отопитель, чтобы не повредить электронику. Обычно причина в зарядке аккумулятора или в проводке, а не в самом отопителе.",
+        "causes": [
+          "Перезаряд аккумулятора из-за неисправного генератора или регулятора напряжения.",
+          "Плохая масса или окисленные клеммы, из-за которых блок видит напряжение иначе, чем оно есть на самом деле.",
+          "Неисправный блок управления, который неверно измеряет напряжение."
+        ],
+        "checks": [
+          "Измерьте напряжение АКБ при заглушенном и работающем двигателе: завышенное значение при работе двигателя указывает на зарядку.",
+          "Проверьте клеммы и массу аккумулятора на окисление и затяжку.",
+          "Не подключайте дополнительные потребители и зарядные устройства к отопителю в обход штатной схемы."
+        ],
+        "service": "Если при работе двигателя напряжение завышено, сначала проверяют генератор и регулятор у электрика. Если напряжение нормальное, а код повторяется, проверяют блок управления."
+      },
+      "en": {
+        "meaning": "The vehicle voltage is above the permitted limit, so the control unit shuts the heater down to protect its electronics. The cause is usually battery charging or wiring, not the heater itself.",
+        "causes": [
+          "Battery overcharging from a faulty alternator or voltage regulator.",
+          "Poor earth or corroded terminals, so the unit reads a voltage different from the real one.",
+          "A faulty control unit that measures the voltage incorrectly."
+        ],
+        "checks": [
+          "Measure the battery voltage with the engine off and with the engine running: a high value with the engine running points to charging.",
+          "Check the battery terminals and earth for corrosion and tightness.",
+          "Do not connect extra loads or chargers to the heater outside the standard wiring."
+        ],
+        "service": "If the voltage is high with the engine running, the alternator and regulator are checked first by an auto electrician. If the voltage is normal and the code returns, the control unit is checked."
+      }
+    },
+    {
+      "id": "low_voltage",
+      "pattern": "пониженн\\w* напряж|низк\\w* напряж|низкому напряж|недостаточн\\w* напряж|слишком низк",
+      "ru": {
+        "meaning": "Напряжение питания отопителя упало ниже допустимого. Такой отопитель не может надёжно поджечь топливо, а насос и двигатель вращаются вяло, поэтому блок его отключает. Частая причина слабый аккумулятор, а не сам отопитель.",
+        "causes": [
+          "Слабый или изношенный аккумулятор, особенно в холод.",
+          "Окисление или ослабление клемм и массы.",
+          "Тонкий или повреждённый провод питания, на котором теряется напряжение.",
+          "Неисправный генератор или регулятор, который не заряжает батарею."
+        ],
+        "checks": [
+          "Измерьте напряжение АКБ с заглушенным двигателем и во время пуска отопителя: сильный провал при пуске указывает на батарею или плохой контакт.",
+          "Почистите и затяните клеммы и массу.",
+          "Осмотрите предохранитель и его держатель.",
+          "Проверьте, заряжается ли батарея при работающем двигателе."
+        ],
+        "service": "Если батарея держит напряжение, а провал повторяется, в сервисе проверяют провод питания и генератор."
+      },
+      "en": {
+        "meaning": "The heater supply voltage has dropped below the permitted level. A heater at low voltage cannot light the fuel reliably, and the pump and motors turn slowly, so the control unit shuts it down. A weak battery is the common cause, not the heater itself.",
+        "causes": [
+          "A weak or worn battery, especially in the cold.",
+          "Corroded or loose terminals and earth.",
+          "A thin or damaged supply wire where voltage is lost.",
+          "A faulty alternator or regulator that does not charge the battery."
+        ],
+        "checks": [
+          "Measure the battery voltage with the engine off and during heater start-up: a sharp drop at start points to the battery or a poor contact.",
+          "Clean and tighten the terminals and earth.",
+          "Inspect the fuse and its holder.",
+          "Check whether the battery charges with the engine running."
+        ],
+        "service": "If the battery holds its voltage but the drop keeps coming back, the supply wire and alternator are checked at a service."
+      }
+    },
+    {
+      "id": "flame_sensor",
+      "pattern": "датчик\\w* пламен",
+      "ru": {
+        "meaning": "Датчик пламени (фоторезистор или ионизационный датчик, в зависимости от марки) контролирует, горит ли пламя в камере сгорания. Ошибка означает, что сигнал датчика или его цепь нестабильны или вне допустимых пределов.",
+        "causes": [
+          "Загрязнённое или закопчённое окошко датчика: сигнал слабеет, и отопитель принимает горение за его отсутствие.",
+          "Слабое пламя из-за проблем с топливом или подачей воздуха.",
+          "Разъём и провод датчика: окисление, слабый контакт, перетёртая изоляция.",
+          "Сам датчик вышел из строя."
+        ],
+        "checks": [
+          "Осмотрите разъём датчика и провод на изломы и окисление, при необходимости очистите контакты.",
+          "Проверьте, не забиты ли выхлоп и воздухозабор: без нормального пламени датчик выдаёт ошибку.",
+          "Заметьте, появляется ли код только на холодном пуске или только на ходу: это подсказка мастеру."
+        ],
+        "service": "Если код возвращается, а разъём и подача воздуха в порядке, датчик и камеру сгорания проверяют в сервисе."
+      },
+      "en": {
+        "meaning": "The flame sensor (a photo-resistor or ionisation sensor, depending on the make) checks whether the flame burns in the combustion chamber. This code means its signal or its circuit is unstable or outside the allowed range.",
+        "causes": [
+          "A dirty or sooted sensor window: the signal weakens and the heater reads the flame as absent.",
+          "A weak flame caused by fuel or combustion-air problems.",
+          "Sensor connector or wire: corrosion, loose contact or chafed insulation.",
+          "The sensor itself has failed."
+        ],
+        "checks": [
+          "Inspect the sensor connector and wire for bends and corrosion, and clean the contacts if needed.",
+          "Check that the exhaust and air intake are not blocked: without a proper flame the sensor reports a fault.",
+          "Note whether the code appears only on cold start or only while driving; this helps the technician."
+        ],
+        "service": "If the code returns while the connector and air path are fine, the sensor and combustion chamber are checked at a service."
+      }
+    },
+    {
+      "id": "sensor",
+      "pattern": "датчик",
+      "ru": {
+        "meaning": "Датчик (температуры, давления или уровня, в зависимости от кода) передаёт блоку управления данные о работе отопителя. Ошибка значит, что сигнал пропал, стал неправдоподобным или цепь датчика оборвана либо замкнута.",
+        "causes": [
+          "Обрыв или перетёртый провод датчика, чаще всего на изгибах и у разъёма.",
+          "Окисление или ослабление контактов разъёма.",
+          "Замыкание провода на массу или на плюс.",
+          "Неисправность самого датчика."
+        ],
+        "checks": [
+          "Отключите и подключите разъём датчика, осмотрите контакты на окисление и зелёный налёт.",
+          "Осмотрите провод от разъёма по всей длине, особенно там, где он проходит через кронштейны и отверстия кузова.",
+          "Сравните код с названием датчика в схеме марки, если она у вас есть."
+        ],
+        "service": "Если жгут цел и разъём чистый, а код возвращается, нужна диагностика цепи и, возможно, замена датчика в сервисе."
+      },
+      "en": {
+        "meaning": "A sensor (temperature, pressure or level, depending on the code) sends the control unit data on how the heater works. This fault means its signal is lost or implausible, or its circuit is open or shorted.",
+        "causes": [
+          "An open or chafed sensor wire, most often at bends and near the connector.",
+          "Corroded or loose connector contacts.",
+          "A wire shorted to earth or to supply.",
+          "A faulty sensor."
+        ],
+        "checks": [
+          "Unplug and reconnect the sensor connector; look for corrosion and green deposits on the contacts.",
+          "Follow the sensor wire along its length, especially where it passes clamps and holes in the body.",
+          "Compare the code with the sensor name in the wiring diagram for the make, if you have one."
+        ],
+        "service": "If the harness is intact and the connector is clean but the code returns, the circuit needs proper diagnosis and the sensor may need replacing at a service."
+      }
+    },
+    {
+      "id": "overheat",
+      "pattern": "перегрев|перегрет|Превышен градиент",
+      "ru": {
+        "meaning": "Защита от перегрева следит за температурой теплообменника и камеры сгорания. Когда температура растёт слишком быстро или поднимается выше допустимой, отопитель выключается, чтобы защитить себя. Код означает защитную остановку; причина почти всегда в потоке воздуха или в теплообмене.",
+        "causes": [
+          "Забитый выхлоп или воздухозабор: горячие газы не уходят, а воздух не охлаждает узел.",
+          "Загрязнённый теплообменник, нагар и сажа на стенках.",
+          "Слабый вентилятор или ограниченный поток воздуха в салон.",
+          "Неисправный датчик температуры, который дал ложный сигнал."
+        ],
+        "checks": [
+          "Осмотрите выхлопную трубу и воздухозаборник на снег, лёд, грязь, листья и смятие труб.",
+          "Проверьте, открыты ли выходы воздуха в салон и не перекрыты ли они заслонками или вещами.",
+          "Убедитесь, что вентилятор отопителя вращается и не заедает при работе."
+        ],
+        "service": "Если выхлоп и воздух свободны, а перегрев повторяется, в сервисе чистят теплообменник и проверяют датчик температуры."
+      },
+      "en": {
+        "meaning": "Overheat protection watches the temperature of the heat exchanger and the combustion chamber. When it rises too fast or above the limit, the heater shuts down to protect itself. The code is a protective stop; the cause is almost always airflow or heat transfer.",
+        "causes": [
+          "A blocked exhaust or air intake: hot gases do not leave and the unit gets no cooling air.",
+          "A dirty heat exchanger with soot or deposits on its walls.",
+          "A weak blower or restricted airflow into the cab.",
+          "A faulty temperature sensor giving a false reading."
+        ],
+        "checks": [
+          "Inspect the exhaust pipe and air intake for snow, ice, mud, leaves and crushed pipes.",
+          "Check that the cab air outlets are open and not blocked by flaps or objects.",
+          "Make sure the heater fan turns freely and does not stall when running."
+        ],
+        "service": "If the exhaust and intake are clear and the overheating keeps coming back, a service cleans the heat exchanger and checks the temperature sensor."
+      }
+    },
+    {
+      "id": "flame_early",
+      "pattern": "Пламя обнаружено",
+      "ru": {
+        "meaning": "Пламя обнаружено до начала горения: датчик видит свет или сигнал, когда топливо ещё не загорелось. Это может быть ложный сигнал от датчика или реальная проблема с розжигом.",
+        "causes": [
+          "Загрязнённое окошко датчика пламени, которое видит отсвет или внешний свет.",
+          "Пламя от предыдущего пуска, которое не погасло полностью.",
+          "Неполностью сгоревшее топливо в камере после неудачного пуска.",
+          "Неисправность самого датчика или его цепи."
+        ],
+        "checks": [
+          "Выключите отопитель, дайте циклу остановки завершиться и сделайте один повторный пуск.",
+          "Осмотрите разъём датчика пламени и очистите контакты.",
+          "Если окошко датчика видно без разборки, проверьте, не закопчено ли оно."
+        ],
+        "service": "Если код повторяется при чистом датчике и исправном разъёме, в сервисе проверяют камеру сгорания и датчик."
+      },
+      "en": {
+        "meaning": "Flame detected before combustion: the sensor sees light or a signal when the fuel has not yet lit. This can be a false signal from the sensor or a real ignition problem.",
+        "causes": [
+          "A dirty flame sensor window that sees a reflection or outside light.",
+          "A flame left over from the previous start that did not go out completely.",
+          "Unburnt fuel left in the chamber after a failed start.",
+          "A fault in the sensor or its circuit."
+        ],
+        "checks": [
+          "Switch the heater off, let the shutdown cycle finish and make one restart.",
+          "Inspect the flame sensor connector and clean the contacts.",
+          "If the sensor window can be seen without taking anything apart, check whether it is sooted."
+        ],
+        "service": "If the code returns with a clean sensor and a sound connector, a service checks the combustion chamber and the sensor."
+      }
+    },
+    {
+      "id": "flame_out",
+      "pattern": "срыв|прерыван|потухан|Превышено допустимое число срывов",
+      "ru": {
+        "meaning": "Срыв пламени: пламя погасло во время работы или не удержалось. Отопитель на короткое время пытается перезапуститься, а при повторении уходит в блокировку. Это симптом, причины ищут в топливе, воздухе и розжиге.",
+        "causes": [
+          "Недостаточная подача топлива: пустой или загрязнённый фильтр, воздух в линии, слабый топливный насос.",
+          "Нарушение подачи воздуха: закупорка воздухозабора или выхлопа, снег и лёд.",
+          "Загрязнённая камера сгорания, нагар на форсунке или дюзе.",
+          "Слабое пламя из-за низкого напряжения питания или неисправности датчика пламени."
+        ],
+        "checks": [
+          "Проверьте уровень топлива и отсутствие воды в дизтопливе; в холод убедитесь, что топливо подходит по сезону.",
+          "Проверьте, не перекрыт ли воздухозабор и выхлоп, нет ли льда и грязи.",
+          "Осмотрите топливную линию отопителя на перегибы, подтёки и подсос воздуха в соединениях.",
+          "Проверьте напряжение АКБ при пуске: провал указывает на слабую батарею или плохой контакт."
+        ],
+        "service": "Если срывы повторяются при чистом топливе и свободном воздухе, в сервисе проверяют насос, камеру сгорания и датчик пламени."
+      },
+      "en": {
+        "meaning": "Flame-out: the flame went out during operation or could not hold. The heater makes a short attempt to restart, and if it repeats it locks out. It is a symptom; the causes are looked for in the fuel, the air and the ignition.",
+        "causes": [
+          "Too little fuel: an empty or dirty filter, air in the line, or a weak fuel pump.",
+          "Interrupted air supply: a blocked air intake or exhaust, snow and ice.",
+          "A dirty combustion chamber, with soot on the nozzle or jet.",
+          "A weak flame caused by low supply voltage or a faulty flame sensor."
+        ],
+        "checks": [
+          "Check the fuel level and that the diesel has no water; in the cold, make sure the fuel suits the season.",
+          "Check that the air intake and exhaust are not blocked and free of ice and dirt.",
+          "Inspect the heater fuel line for kinks, leaks and air being drawn in at the joints.",
+          "Check the battery voltage at start-up: a drop points to a weak battery or a poor contact."
+        ],
+        "service": "If the flame-outs keep coming back with clean fuel and free air, a service checks the pump, the combustion chamber and the flame sensor."
+      }
+    },
+    {
+      "id": "no_start",
+      "pattern": "Неудачный запуск|не запускается|исчерпаны|Недостаточный градиент",
+      "ru": {
+        "meaning": "Неудачный запуск: отопитель не загорелся за отведённое время и выключился. Обычно он делает несколько попыток, после чего уходит в блокировку до сброса. Код говорит о проблеме с розжигом, топливом или условиями пуска, а не о неисправности всего отопителя.",
+        "causes": [
+          "Нет топлива в линии отопителя: пустой фильтр, воздух, отключённый или неисправный насос.",
+          "Слабая свеча накаливания или искра, которой не хватает на розжиг.",
+          "Низкое напряжение АКБ в момент пуска.",
+          "Засор воздухозабора или выхлопа, мешающий создать нормальный поток воздуха."
+        ],
+        "checks": [
+          "Проверьте, есть ли топливо в баке и подходит ли оно по сезону; при подозрении на воздух в линии поищите подсос в соединениях.",
+          "Проверьте напряжение аккумулятора при пуске отопителя и состояние клемм.",
+          "Осмотрите воздухозабор и выхлоп на засор.",
+          "Не запускайте отопитель много раз подряд: после каждой неудачи дайте полный цикл остановки."
+        ],
+        "service": "Если отопитель не запускается после проверки топлива, питания и воздуха, в сервисе проверяют розжиг и насос."
+      },
+      "en": {
+        "meaning": "Failed start: the heater did not light within its time window and shut down. It normally makes several attempts and then locks out until it is reset. The code points to a problem with ignition, fuel or start conditions, not to a failure of the whole heater.",
+        "causes": [
+          "No fuel in the heater line: an empty filter, air, or a disconnected or faulty pump.",
+          "A weak glow plug or spark that is not enough to ignite the fuel.",
+          "Low battery voltage at the moment of start.",
+          "A blocked air intake or exhaust that prevents a normal airflow."
+        ],
+        "checks": [
+          "Check that there is fuel in the tank and that it suits the season; if air in the line is suspected, look for leaks at the joints.",
+          "Check the battery voltage at heater start-up and the state of the terminals.",
+          "Inspect the air intake and exhaust for blockage.",
+          "Do not start the heater many times in a row: after each failure let the full shutdown cycle finish."
+        ],
+        "service": "If the heater will not start after the fuel, power and air checks, a service checks the ignition and the pump."
+      }
+    },
+    {
+      "id": "comm",
+      "pattern": "связ|шин|пульт|тревог|потенциометр|уставк",
+      "ru": {
+        "meaning": "Связь: отопитель и пульт управления, или шина, которой они соединены, не обмениваются сигналами. Блок управления не видит команды, либо пульт не видит состояние отопителя. Причина обычно в проводке и питании, а не в самом отопителе.",
+        "causes": [
+          "Обрыв или окисление провода связи между пультом и блоком управления.",
+          "Пульт без питания или с севшим элементом питания.",
+          "Ослабленный контакт в разъёме или колодке.",
+          "Неисправность блока управления или пульта."
+        ],
+        "checks": [
+          "Проверьте, включается ли пульт и горит ли его индикация.",
+          "Отключите и подключите разъёмы пульта и блока, осмотрите контакты.",
+          "Осмотрите провод связи на всём протяжении, особенно там, где он проходит через перегородки и двери.",
+          "Если пульт работает от элемента питания, проверьте его."
+        ],
+        "service": "Если пульт и проводка исправны, а связи нет, в сервисе проверяют блок управления и пульт."
+      },
+      "en": {
+        "meaning": "Communication: the heater and the control panel, or the bus that links them, are not exchanging signals. Either the control unit does not see the commands or the panel does not see the heater's state. The cause is usually wiring and power, not the heater itself.",
+        "causes": [
+          "An open or corroded wire of the link between the panel and the control unit.",
+          "A panel without power or with a flat battery.",
+          "A loose contact in a connector or terminal block.",
+          "A faulty control unit or panel."
+        ],
+        "checks": [
+          "Check that the panel switches on and its indicator lights.",
+          "Unplug and reconnect the panel and unit connectors, and check the contacts.",
+          "Follow the link wire along its whole length, especially where it passes through bulkheads and doors.",
+          "If the panel runs on a battery cell, check the cell."
+        ],
+        "service": "If the panel and wiring are sound but there is still no link, a service checks the control unit and the panel."
+      }
+    },
+    {
+      "id": "fuel_coding",
+      "pattern": "кодировк\\w* типа топлива",
+      "ru": {
+        "meaning": "Кодировка типа топлива задаёт блоку управления, какой состав топлива он будет ждать. Если в блоке записан не тот тип, розжиг и работа становятся нестабильными.",
+        "causes": [
+          "Блок управления после замены или ремонта настроен под другой тип топлива.",
+          "Ошибка при программировании или записи параметров.",
+          "Смена топлива без перенастройки блока."
+        ],
+        "checks": [
+          "Сообщите мастеру, какое топливо заправлено, и какой блок стоит на машине.",
+          "Не меняйте настройки самостоятельно: кодировка выполняется диагностическим прибором марки."
+        ],
+        "service": "Нужна перекодировка блока управления в сервисе с прибором марки. После неё проверьте пуск и работу на разных режимах."
+      },
+      "en": {
+        "meaning": "The fuel type coding tells the control unit which fuel composition to expect. If the unit holds the wrong type, ignition and running become unstable.",
+        "causes": [
+          "The control unit was set for another fuel type after a replacement or repair.",
+          "An error when programming or writing the parameters.",
+          "The fuel was changed without re-setting the unit."
+        ],
+        "checks": [
+          "Tell the technician which fuel was filled and which control unit is fitted.",
+          "Do not change the settings yourself: coding is done with the make's diagnostic tool."
+        ],
+        "service": "The control unit needs re-coding at a service with the make's tool. After that, check the start and running at different modes."
+      }
+    },
+    {
+      "id": "control",
+      "pattern": "блок\\w* управления|контрольной суммы|кодировк\\w* блока|управляющей команды",
+      "ru": {
+        "meaning": "Блок управления - электронный мозг отопителя: он запускает, контролирует и выключает все узлы. Ошибка блока или его программы означает, что система не может надёжно работать. Такой код редко решается на месте.",
+        "causes": [
+          "Неисправность блока управления или его разъёма.",
+          "Неверная или сбившаяся кодировка блока, например после замены или обновления.",
+          "Сбой при записи программы.",
+          "Короткое замыкание в цепях, которые блок питает."
+        ],
+        "checks": [
+          "Выключите отопитель, отключите и подключите разъём блока управления, осмотрите контакты на окисление.",
+          "Проверьте питание блока: предохранитель и клеммы аккумулятора.",
+          "Если блок недавно меняли или перепрошивали, сообщите об этом мастеру."
+        ],
+        "service": "Ошибки блока управления и кодировки проверяются в сервисе диагностическим прибором марки. Самостоятельно перепрошивать блок не стоит."
+      },
+      "en": {
+        "meaning": "The control unit is the electronic brain of the heater: it starts, monitors and shuts down every part. A fault in the unit or its programme means the system cannot run reliably. This code is rarely solved on site.",
+        "causes": [
+          "A fault in the control unit or its connector.",
+          "Wrong or drifted coding of the unit, for example after a replacement or an update.",
+          "A failed write of the programme.",
+          "A short circuit in the circuits the unit powers."
+        ],
+        "checks": [
+          "Switch the heater off, unplug and reconnect the control unit connector, and look for corrosion on the contacts.",
+          "Check the unit's power supply: the fuse and the battery terminals.",
+          "If the unit was recently replaced or reflashed, tell the technician."
+        ],
+        "service": "Control unit and coding faults are checked at a service with the make's diagnostic tool. Do not try to reflash the unit yourself."
+      }
+    },
+    {
+      "id": "glow",
+      "pattern": "свеч|накаливан|энергия зажигания|зажигани|штифт",
+      "ru": {
+        "meaning": "Свеча накаливания (или, у некоторых марок, керамический штифт зажигания) разогревает или поджигает топливо при пуске. Ошибка означает, что свеча или её цепь работают не в нужном режиме: слабое накаливание, обрыв или замыкание.",
+        "causes": [
+          "Перегоревшая или изношенная свеча накаливания.",
+          "Обрыв или замыкание провода свечи в жгуте.",
+          "Окисление клемм и разъёма свечи.",
+          "Слабое напряжение АКБ, из-за которого свеча не разогревается до нужной температуры."
+        ],
+        "checks": [
+          "Осмотрите разъём и клеммы свечи, очистите и подтяните их.",
+          "Проверьте напряжение АКБ при пуске отопителя.",
+          "Осмотрите провод свечи на перетирание и изломы, особенно у корпуса отопителя.",
+          "Не разбирайте камеру сгорания: свеча доступна только после демонтажа и требует инструмента."
+        ],
+        "service": "Если разъём и питание в порядке, а код возвращается, свечу проверяет и меняет сервис, он же проверит сопротивление по заводским данным."
+      },
+      "en": {
+        "meaning": "The glow plug (or, on some makes, a ceramic ignition pin) heats or lights the fuel at start-up. This fault means the plug or its circuit is not working as it should: weak heating, an open circuit or a short.",
+        "causes": [
+          "A burnt-out or worn glow plug.",
+          "An open or shorted plug wire in the harness.",
+          "Corroded plug terminals and connector.",
+          "Low battery voltage, so the plug does not heat to the right temperature."
+        ],
+        "checks": [
+          "Inspect the plug connector and terminals, clean and tighten them.",
+          "Check the battery voltage when the heater starts.",
+          "Look at the plug wire for chafing and kinks, especially near the heater housing.",
+          "Do not open the combustion chamber: the plug is only reachable after removal and needs the right tools."
+        ],
+        "service": "If the connector and power are fine but the code returns, a service checks and replaces the plug, and checks its resistance against the factory data."
+      }
+    },
+    {
+      "id": "blower",
+      "pattern": "вентилятор|нагнетател|электродвигател|подшипник|заклинивание",
+      "ru": {
+        "meaning": "Нагнетатель, то есть вентилятор подачи воздуха для горения и обдува, должен вращаться с нужными оборотами. Ошибка означает, что двигатель не набирает обороты, заклинил, или цепь его питания оборвана либо замкнута.",
+        "causes": [
+          "Заклинивание крыльчатки или подшипника из-за грязи и износа.",
+          "Обрыв или замыкание цепи двигателя в жгуте.",
+          "Слабое напряжение питания, из-за которого мотор не выходит на обороты.",
+          "Неисправность самого двигателя."
+        ],
+        "checks": [
+          "При работе отопителя прислушайтесь и посмотрите: крыльчатка должна вращаться свободно, без скрипа и заедания.",
+          "Осмотрите воздуховоды и заборник на засор, снег, листья и грязь.",
+          "Проверьте разъём двигателя и провод на окисление и изломы.",
+          "Проверьте напряжение питания во время работы отопителя."
+        ],
+        "service": "Если крыльчатка свободна, воздуховоды чисты, а код повторяется, в сервисе проверяют и при необходимости меняют двигатель нагнетателя."
+      },
+      "en": {
+        "meaning": "The blower, the fan that feeds air for combustion and for the heating, must turn at the right speed. This fault means the motor does not reach its speed, has seized, or its supply circuit is open or shorted.",
+        "causes": [
+          "A seized impeller or bearing from dirt and wear.",
+          "An open or shorted motor circuit in the harness.",
+          "Low supply voltage, so the motor does not reach its speed.",
+          "A faulty motor itself."
+        ],
+        "checks": [
+          "Listen and look while the heater runs: the impeller should turn freely, without squeal or sticking.",
+          "Inspect the air ducts and intake for blockage, snow, leaves and dirt.",
+          "Check the motor connector and wire for corrosion and kinks.",
+          "Check the supply voltage while the heater runs."
+        ],
+        "service": "If the impeller turns freely and the ducts are clear but the code returns, a service checks and, if needed, replaces the blower motor."
+      }
+    },
+    {
+      "id": "fuel",
+      "pattern": "топлив|насос|подач\\w* топлив",
+      "ru": {
+        "meaning": "Топливный насос подаёт дизель из бака к отопителю. Ошибка касается насоса или его цепи: насос не работает или работает неправильно, либо цепь питания насоса оборвана или замкнута.",
+        "causes": [
+          "Обрыв или перетёртый провод насоса, у разъёма или под кронштейном.",
+          "Короткое замыкание на массу в цепи насоса.",
+          "Засор топливного фильтра или линии, из-за которого насос работает почти вхолостую.",
+          "Износ самого насоса."
+        ],
+        "checks": [
+          "Проверьте разъём насоса: окисление, ослабление, влагу.",
+          "Осмотрите провод насоса на всём пути, особенно в местах крепления.",
+          "Осмотрите фильтр и линию на засор и подсос воздуха.",
+          "Проверьте, что в баке есть топливо и оно чистое, без воды."
+        ],
+        "service": "Если разъём, провод и фильтр в порядке, а код остаётся, в сервисе проверяют насос и его цепь."
+      },
+      "en": {
+        "meaning": "The fuel pump feeds diesel from the tank to the heater. The fault concerns the pump or its circuit: the pump does not run or runs incorrectly, or its supply circuit is open or shorted.",
+        "causes": [
+          "A broken or chafed pump wire, at the connector or under a bracket.",
+          "A short to earth in the pump circuit.",
+          "A blocked heater fuel filter or line, so the pump runs almost dry.",
+          "Wear of the pump itself."
+        ],
+        "checks": [
+          "Check the pump connector for corrosion, looseness and moisture.",
+          "Inspect the pump wire along its whole run, especially at the fixing points.",
+          "Inspect the filter and line for blockage and air being drawn in.",
+          "Check that the tank has clean fuel without water."
+        ],
+        "service": "If the connector, wire and filter are sound but the code remains, a service checks the pump and its circuit."
+      }
+    },
+    {
+      "id": "overcurrent",
+      "pattern": "перегрузк",
+      "ru": {
+        "meaning": "Перегрузка по току: один из потребителей отопителя, то есть насос, свеча, двигатель или их цепь, тянет ток выше нормы. Блок отключает питание для защиты. Причина в замыкании или заклинивании потребителя, а не в самом блоке.",
+        "causes": [
+          "Замыкание провода на массу в жгуте.",
+          "Заклинивание двигателя нагнетателя или износ подшипника.",
+          "Неисправный потребитель, который тянет больше нормы."
+        ],
+        "checks": [
+          "Осмотрите жгут на изломы и на места, где провод может касаться металла.",
+          "Проверьте крыльчатку нагнетателя: свободно ли она вращается.",
+          "Проверьте разъёмы потребителей на влагу и окисление."
+        ],
+        "service": "Если перегрузка повторяется, потребитель и жгут проверяют в сервисе. Предохранитель большего номинала не ставьте, это уберёт защиту, а не причину."
+      },
+      "en": {
+        "meaning": "Overcurrent: one of the heater's loads, a pump, glow plug, motor or their circuit, draws more current than normal. The unit cuts the supply to protect itself. The cause is a short or a seized load, not the control unit itself.",
+        "causes": [
+          "A short to earth of a wire in the harness.",
+          "A seized blower motor or a worn bearing.",
+          "A faulty load that draws more than it should."
+        ],
+        "checks": [
+          "Inspect the harness for kinks and for places where the wire may touch metal.",
+          "Check that the blower impeller turns freely.",
+          "Check the load connectors for moisture and corrosion."
+        ],
+        "service": "If the overcurrent keeps returning, a service checks the load and the harness. Do not fit a fuse of a higher rating: that removes the protection, not the cause."
+      }
+    },
+    {
+      "id": "airflow",
+      "pattern": "газоотвод|подача воздуха|засорён",
+      "ru": {
+        "meaning": "Поток воздуха: подача воздуха для горения или отвод выхлопа ограничены. Топливо горит неправильно, сажи и угарного газа становится больше, и блок снижает мощность или отключает отопитель.",
+        "causes": [
+          "Засорён выхлоп или его патрубок: снег, лёд, грязь, гнездо птиц.",
+          "Закупорен воздухозабор или его фильтр.",
+          "Смятая или пережатая труба выхлопа или воздуховода.",
+          "Слабый нагнетатель, который не создаёт нужного потока."
+        ],
+        "checks": [
+          "Осмотрите выхлопную трубу и воздухозаборник на снег, лёд и грязь.",
+          "Осмотрите трубы на вмятины и перегибы.",
+          "Проверьте, что вентилятор работает и не заедает.",
+          "Не закрывайте выхлоп и воздухозабор тряпками или сеткой на стоянке."
+        ],
+        "service": "Если трубы свободны, а код повторяется, в сервисе проверяют нагнетатель и камеру сгорания."
+      },
+      "en": {
+        "meaning": "Airflow: the air supply for combustion or the exhaust outlet is restricted. The fuel burns poorly, soot and carbon monoxide rise, and the unit reduces output or shuts the heater down.",
+        "causes": [
+          "A blocked exhaust or its outlet: snow, ice, dirt, a bird's nest.",
+          "A blocked air intake or its filter.",
+          "A crushed or pinched exhaust or air duct.",
+          "A weak blower that does not produce the right flow."
+        ],
+        "checks": [
+          "Inspect the exhaust pipe and air intake for snow, ice and dirt.",
+          "Look for dents and kinks in the pipes.",
+          "Check that the fan runs and does not stick.",
+          "Do not cover the exhaust or the intake with rags or mesh while parked."
+        ],
+        "service": "If the pipes are clear but the code keeps coming back, a service checks the blower and the combustion chamber."
+      }
+    },
+    {
+      "id": "lockout",
+      "pattern": "блокировк",
+      "ru": {
+        "meaning": "Блокировка: отопитель отключился после нескольких неудачных попыток или по защите и перешёл в режим блокировки. Он не запустится, пока не будет сброшен. Блокировка - следствие другой ошибки, поэтому сначала ищите её причину.",
+        "causes": [
+          "Серия неудачных пусков из-за топлива, воздуха или розжига.",
+          "Срабатывание защиты по перегреву или напряжению.",
+          "Ошибка, которая не сбросилась после выключения."
+        ],
+        "checks": [
+          "Выключите отопитель и дайте ему полностью остановиться.",
+          "Проверьте топливо, воздух и питание по списку, как при неудачном пуске.",
+          "Сбросьте блокировку по инструкции марки и запустите отопитель один раз."
+        ],
+        "service": "Если блокировка возвращается, в сервисе ищут причину по коду в блоке управления и у узлов."
+      },
+      "en": {
+        "meaning": "Lockout: the heater shut down after several failed attempts or by a protection and entered lockout. It will not start until it is reset. A lockout is the result of another fault, so look for that cause first.",
+        "causes": [
+          "A series of failed starts from fuel, air or ignition problems.",
+          "A protection trip for overheating or voltage.",
+          "A fault that did not clear after switching off."
+        ],
+        "checks": [
+          "Switch the heater off and let it stop completely.",
+          "Check fuel, air and power using the list used for a failed start.",
+          "Reset the lockout as the make's manual describes, then start the heater once."
+        ],
+        "service": "If the lockout returns, a service looks for the cause in the control unit and in the parts by the code."
+      }
+    },
+    {
+      "id": "wiring",
+      "pattern": "замыкани|обрыв",
+      "ru": {
+        "meaning": "Цепь (обрыв или короткое замыкание): провод, жгут или разъём узла не соответствует норме. Отопитель видит неправильное сопротивление или отсутствие сигнала и отключает узел.",
+        "causes": [
+          "Перетёртый провод на изломе или у кронштейна.",
+          "Окисление или влага в разъёме.",
+          "Замыкание провода на массу или на плюс.",
+          "Разъём, который не был полностью вставлен после работ на машине."
+        ],
+        "checks": [
+          "Пройдите по жгуту от отопителя до узла с ошибкой и осмотрите изломы.",
+          "Отключите и подключите разъёмы, осмотрите контакты.",
+          "Вспомните, не делались ли на машине работы, после которых провод могли задеть или пережать."
+        ],
+        "service": "Если жгут и разъёмы целы, а код возвращается, цепь в сервисе проверяют прибором по схеме марки."
+      },
+      "en": {
+        "meaning": "Circuit fault (open or short): the wire, harness or connector of the part does not meet the norm. The heater sees the wrong resistance or no signal and shuts that part off.",
+        "causes": [
+          "A chafed wire at a kink or at a bracket.",
+          "Corrosion or moisture in a connector.",
+          "A wire shorted to earth or to supply.",
+          "A connector that was not fully seated after work on the vehicle."
+        ],
+        "checks": [
+          "Follow the harness from the heater to the faulty part and look for kinks.",
+          "Unplug and reconnect the connectors, and check the contacts.",
+          "Think about whether any work was done on the vehicle that could have pinched or chafed the wire."
+        ],
+        "service": "If the harness and connectors are sound but the code returns, a service checks the circuit with a tool against the make's wiring diagram."
+      }
+    },
+    {
+      "id": "other",
+      "pattern": ".",
+      "ru": {
+        "meaning": "Код описывает неисправность узла, который назван в заводском тексте выше. Точная причина зависит от марки, поэтому начинайте с общих проверок.",
+        "causes": [
+          "Неисправность самого узла, названного в тексте кода.",
+          "Окисление или обрыв в цепи этого узла.",
+          "Временный сбой питания или связи, который повторится после сброса."
+        ],
+        "checks": [
+          "Осмотрите разъём и провод узла, названного в коде.",
+          "Проверьте, ведёт ли себя отопитель по-разному на холодном и на тёплом пуске."
+        ],
+        "service": "Если код повторяется после общих проверок, нужна диагностика в сервисе по коду марки."
+      },
+      "en": {
+        "meaning": "The code describes a fault in the part named in the factory text above. The exact cause depends on the make, so start with the general checks.",
+        "causes": [
+          "A fault in the part named in the code text itself.",
+          "Corrosion or an open circuit in that part's wiring.",
+          "A temporary power or link glitch that comes back after a reset."
+        ],
+        "checks": [
+          "Inspect the connector and wire of the part named in the code.",
+          "Check whether the heater behaves differently on a cold start and on a warm one."
+        ],
+        "service": "If the code returns after the general checks, a service diagnoses it with the make's code list."
+      }
+    }
+  ]
+}

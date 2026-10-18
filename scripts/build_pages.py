@@ -705,6 +705,15 @@ def alt_links(has_en, rel_path):
             u'\n<link rel="alternate" hreflang="x-default" href="%s">' % (ru, en, ru))
 
 
+# hreflang только когда ОБЕ языковые версии открыты (индексируются). Закрытую
+# версию (noindex) в hreflang и x-default не называем: поисковик получил бы
+# альтернативу, которой нет в индексе. Одна открытая версия без пары - без
+# hreflang вовсе: Google требует перечислять все альтернативы, а одиночная
+# страница альтернатив не имеет (x-default на саму себя смысла не несёт).
+def alt_pair(ru_open, en_open, rel_path):
+    return alt_links(True, rel_path) if (ru_open and en_open) else u''
+
+
 # Ссылка на раздел в верхней строке страницы: без неё раздел существует
 # только в sitemap, а человеку и обходчику некуда шагнуть вверх.
 def nav_of(section=None, here=None):
@@ -1594,7 +1603,8 @@ def build(en_spns=()):
         body = [HEAD.format(title=esc(title), desc=esc(desc), canon=canon,
                             ogtitle=esc(page_name), mid=METRIKA_ID, ld=ld,
                             nav=nav_of('kody', u'SPN %d' % spn), lang='ru', locale='ru_RU',
-                            alt=alt_links(spn in en_spns, 'kody/spn-%d.html' % spn))]
+                            alt=alt_pair(spn not in noindex, spn in en_spns and spn not in noindex_en,
+                                         'kody/spn-%d.html' % spn))]
         if spn in noindex:
             body[0] = body[0].replace(u'<meta charset="utf-8">',
                                       u'<meta charset="utf-8">\n<meta name="robots" content="noindex, follow">', 1)
