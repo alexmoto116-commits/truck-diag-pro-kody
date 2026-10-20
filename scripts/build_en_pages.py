@@ -365,10 +365,10 @@ def build():
     # Скан показывает «SPN 100 FMI 1», «100/1» или «100.1» - ищут ровно то,
     # что видно на экране. В стандартной таблице печатаем все три написания
     # и вешаем якорь на сочетание (см. тот же приём в build_pages.py).
-    def fmi_table(rows, spn=None):
+    def fmi_table(rows, spn=None, uf=None):
         out = ['<table>']
         for f, text in rows:
-            cls = ' class="hit"' if f in urgent_fmi else ''
+            cls = ' class="hit"' if f in (uf if uf is not None else urgent_fmi) else ''
             if spn is None:
                 cell = 'FMI %s' % f
             else:
@@ -389,8 +389,9 @@ def build():
     # больше. У русской версии на этот случай есть общий текст (gen/genUrgent/
     # elecGen), английский перевод для него в app.js лежал неиспользованным -
     # из-за чего английские карточки выходили заметно тоньше русских.
-    def risk_section(sys_key, fmis, urgent_spn_hit):
-        key, lvl, _ = bp.page_risk(sys_key, fmis, urgent_fmi, urgent_spn_hit)
+    def risk_section(sys_key, fmis, urgent_spn_hit, uf=None):
+        uf = urgent_fmi if uf is None else uf
+        key, lvl, _ = bp.page_risk(sys_key, fmis, uf, urgent_spn_hit)
         if not key or key not in risk_tx:
             return u''
         happens, ends = risk_tx[key][0], risk_tx[key][1]
@@ -405,7 +406,7 @@ def build():
             note = u'<p class="rkn">%s %s</p>' % (bp.esc(e[0]), bp.esc(e[1]))
         # Метка производителя перевешивает наш спокойный вывод - говорим
         # о расхождении вслух, как и русская версия.
-        if (urgent_spn_hit or any(f in urgent_fmi for f in (fmis or []))) and lvl != 'now':
+        if (urgent_spn_hit or any(f in uf for f in (fmis or []))) and lvl != 'now':
             note += u'<p class="rkn">%s</p>' % bp.esc(risk_flag)
         tier = bp.tier_of(lvl)
         return (u'<section><h2>%s</h2>'
@@ -435,6 +436,7 @@ def build():
         # про конкретное сочетание), и ниже в таблице, поэтому считаем сразу.
         seen = sorted({f for rows in makes.values() for f, _ in rows})
         seen_std = sorted({f for m, rows in makes.items() if m not in own_fmi for f, _ in rows})
+        uf_here = bp.urgent_fmi_for(spn, urgent_fmi, makes)
         sys_key = sys_of.get(spn, 'other')
         name = name_of(spn)
         brands_short, brands_all = brand_list(spn, 3), brand_list(spn)
@@ -464,7 +466,7 @@ def build():
             desc = code_desc_en(spn, name, (i18n.get(SYS_KEY.get(sys_key, 'sysOther'))
                                             if sys_key != 'other' else None),
                                 [bname(b) for b in ordered_b],
-                                spn in urgent_spn or any(f in urgent_fmi for f in seen),
+                                spn in urgent_spn or any(f in uf_here for f in seen),
                                 spn in OWN_EN or bool(i18n.get(ACT_KEY.get(sys_key, ''))))
         title = bp.fit_title(page_name)  # без суффикса сайта, не длиннее 65, без многоточия
         rel = 'kody/spn-%d.html' % spn
@@ -476,14 +478,14 @@ def build():
                 'acceptedAnswer': {'@type': 'Answer', 'text': re.sub(r'</?b>', '', verdict)}}]
         # Вопрос в FAQ и блок на странице должны отвечать одинаково, поэтому
         # ключ текста здесь берётся тем же способом, что и в risk_section().
-        rkey, _, _ = bp.page_risk(sys_key, seen, urgent_fmi, spn in urgent_spn)
+        rkey, _, _ = bp.page_risk(sys_key, seen, uf_here, spn in urgent_spn)
         if rkey and rkey in risk_tx:
             happens, ends = risk_tx[rkey][0], risk_tx[rkey][1]
             faq.append({'@type': 'Question',
                         'name': u'What happens if I keep driving with SPN %d?' % spn,
                         'acceptedAnswer': {'@type': 'Answer', 'text': happens + u' ' + ends}})
 
-        for f in sorted(seen_std, key=lambda x: (x not in urgent_fmi, x))[:2]:
+        for f in sorted(seen_std, key=lambda x: (x not in uf_here, x))[:2]:
             if str(f) not in fmi_en:
                 continue
             faq.append({'@type': 'Question',
@@ -538,20 +540,20 @@ def build():
             body.append(u'<section><h2 class="mk" id="mk-%s">%s</h2>%s%s</section>'
                         % (b, bp.esc(head),
                            (u'<p class="sub">%s</p>' % bp.esc(note)) if note else u'',
-                           fmi_table(sorted(shown[b], key=lambda r: r[0]))))
+                           fmi_table(sorted(shown[b], key=lambda r: r[0]), None, bp.urgent_fmi_for(spn, urgent_fmi, {b: shown[b]}))))
 
         if seen_std:
             std_rows = [(f, fmi_en[str(f)]) for f in seen_std if str(f) in fmi_en]
             if std_rows:
                 body.append(u'<section><h2>%s</h2>%s</section>'
-                            % (TX['fmiStd'], fmi_table(std_rows, spn)))
+                            % (TX['fmiStd'], fmi_table(std_rows, spn, bp.urgent_fmi_for(spn, urgent_fmi))))
         elif not makes:
             common = [(f, fmi_en[str(f)]) for f in (0, 1, 2, 3, 4, 5) if str(f) in fmi_en]
             body.append(u'<section><h2>%s</h2>%s</section>'
-                        % (TX['fmiCommon'], fmi_table(common, spn)))
+                        % (TX['fmiCommon'], fmi_table(common, spn, bp.urgent_fmi_for(spn, urgent_fmi))))
 
         body.append(u'<section><h2>%s</h2><p>%s</p></section>' % (TX['canDrive'], verdict))
-        body.append(risk_section(sys_key, seen, spn in urgent_spn))
+        body.append(risk_section(sys_key, seen, spn in urgent_spn, uf_here))
         act = i18n.get(ACT_KEY.get(sys_key, ''))
         if act:
             body.append(u'<section><h2>%s</h2><p>%s</p></section>'
@@ -581,7 +583,7 @@ def build():
     # --- рубрика en/kody/ ------------------------------------------
     secs = [u'<section><h2>%s</h2><p class="lead">%s</p>%s</section>'
             % (TX['fmiStd'], TX['hubFmiLead'],
-               fmi_table(sorted(((int(f), t) for f, t in fmi_en.items()))))]
+               fmi_table(sorted(((int(f), t) for f, t in fmi_en.items())), None, bp.urgent_fmi_for(None, urgent_fmi)))]
     for key in ['oil', 'cool', 'fuel', 'air', 'scr', 'power', 'can',
                 'brake', 'trans', 'prot', 'other']:
         bucket = by_sys_en.get(key, [])

@@ -46,6 +46,28 @@ def load_db():
     return db
 
 
+# Срочность FMI 0/1 - то же правило, что urgent() в assets/app.js: FMI 0/1
+# срочен только у опасного узла (пара SPN.FMI в urgentFmiSpn) либо на странице
+# есть тормозная марка с этим FMI. spn=None - общая секция (FMI, срочные у любого SPN).
+BRAKE_MAKES = frozenset(['kamazebs', 'wabco', 'knorrbremse', 'meritor', 'bendix', 'haldex'])
+_FMI_SPN = {}
+
+
+def urgent_fmi_for(spn, urgent_fmi, makes=None):
+    if not _FMI_SPN:
+        _FMI_SPN['set'] = set(load_db()['urgentFmiSpn'])
+    keys = _FMI_SPN['set']
+    uf = set(urgent_fmi)
+    if spn is None:
+        out = {f for f in uf if any(k.endswith('.%d' % f) for k in keys)}
+    else:
+        out = {f for f in uf if ('%d.%d' % (spn, f)) in keys}
+    for b, rows in (makes or {}).items():
+        if b in BRAKE_MAKES:
+            out |= {f for f, _ in rows if f in uf}
+    return out
+
+
 def block_head(b, names):
     """Заголовок блока на странице кода: «Тормоза EBS3 WABCO», а не «КамАЗ»."""
     return BLOCK_LABEL.get(b) or names.get(b, b)
@@ -1513,9 +1535,10 @@ def build(en_spns=()):
         # «обычно ехать можно» над собственной же строкой «запас времени: до
         # ближайшей остановки» и текстом «продолжать движение без разбора
         # нельзя» - то есть спорили сами с собой, а не только с виджетом.
+        urg_here = urgent_fmi_for(spn, urgent_fmi, makes)
         urgent_spn_hit = spn in urgent_spn
-        _, worst_lvl, _ = page_risk(sys_key, seen_all_early, urgent_fmi, urgent_spn_hit)
-        stop = page_stop(sys_key, seen_all_early, urgent_fmi, urgent_spn_hit)
+        _, worst_lvl, _ = page_risk(sys_key, seen_all_early, urg_here, urgent_spn_hit)
+        stop = page_stop(sys_key, seen_all_early, urg_here, urgent_spn_hit)
         if stop:
             verdict = (u'<b>По этому коду ехать нельзя.</b> Он относится к неисправностям, '
                        u'при которых остановиться нужно при первой безопасной возможности: '
@@ -1523,7 +1546,7 @@ def build(en_spns=()):
         else:
             # Строку про лампу и мощность даём только срочным кодам (помеченным
             # заводом или с срочным FMI): у остальных она была одинаковой на 1600 страницах.
-            flagged = urgent_spn_hit or any(f in urgent_fmi for f in seen_all_early)
+            flagged = urgent_spn_hit or any(f in urg_here for f in seen_all_early)
             verdict = (u'<b>Обычно ехать можно</b>, но код нужно показать на ближайшем ТО.'
                        + (u' Если вместе с ним горит красная лампа или падает мощность — '
                           u'останавливайтесь.' if flagged else u''))
@@ -1565,7 +1588,7 @@ def build(en_spns=()):
         # у закрытых от индекса оставляем прежний общий текст.
         if spn not in noindex:
             desc = code_desc_ru(spn, name, sys_key, makes, brand_names,
-                                urgent_spn_hit or any(f in urgent_fmi for f in seen_all_early),
+                                urgent_spn_hit or any(f in urg_here for f in seen_all_early),
                                 spn in DIY_KEYS or bool(advice_for(sys_key, seen_all_early)))
         # Сайт в title не пишем: название сайта и так в og:site_name, а лишние
         # знаки уходят из выдачи. Номер SPN в начале делает заголовки разными.
@@ -1577,7 +1600,7 @@ def build(en_spns=()):
                 'name': (u'Можно ли ехать с кодом SPN %d (%s)?' % (spn, name) if name
                          else u'Можно ли ехать с кодом SPN %d?' % spn),
                 'acceptedAnswer': {'@type': 'Answer', 'text': re.sub(r'</?b>', '', verdict)}}]
-        rk_key, _, _ = page_risk(sys_key, seen_all_early, urgent_fmi, urgent_spn_hit)
+        rk_key, _, _ = page_risk(sys_key, seen_all_early, urg_here, urgent_spn_hit)
         if rk_key and rk_key in risk_model()['tx']:
             happens, ends = risk_model()['tx'][rk_key][0], risk_model()['tx'][rk_key][1]
             faq.append({'@type': 'Question',
@@ -1586,7 +1609,7 @@ def build(en_spns=()):
         # Спрашивают не «что такое SPN 100», а «что такое 100.1»: половина кода
         # без второй половины ничего не решает. Берём сначала те FMI, что уже
         # помечены срочными - на них и приходят с горящей лампой.
-        for f in (sorted(seen_std, key=lambda x: (x not in urgent_fmi, x))[:2]):
+        for f in (sorted(seen_std, key=lambda x: (x not in urg_here, x))[:2]):
             if str(f) not in db['fmi']:
                 continue
             faq.append({'@type': 'Question',
@@ -1652,7 +1675,7 @@ def build(en_spns=()):
             body.append(u'<section><h2 class="mk" id="mk-%s">%s</h2>%s%s</section>'
                         % (b, esc(block_head(b, brand_names)),
                            (u'<p class="sub">%s</p>' % esc(note)) if note else u'',
-                           fmi_table(rows, urgent_fmi)))
+                           fmi_table(rows, urgent_fmi_for(spn, urgent_fmi, {b: rows}))))
 
         if own_here:
             пункты = []
@@ -1672,16 +1695,16 @@ def build(en_spns=()):
             std_rows = [(f, db['fmi'][str(f)]) for f in seen_std if str(f) in db['fmi']]
             if std_rows:
                 body.append(u'<section><h2>Что значит FMI у SPN %d</h2>%s</section>'
-                            % (spn, fmi_table(std_rows, urgent_fmi, spn)))
+                            % (spn, fmi_table(std_rows, urgent_fmi_for(spn, urgent_fmi), spn)))
         elif not makes:
             common = [f for f in (0, 1, 2, 3, 4, 5) if str(f) in db['fmi']]
             body.append(u'<section><h2>Частые значения FMI</h2>%s</section>'
-                        % fmi_table([(f, db['fmi'][str(f)]) for f in common], urgent_fmi, spn))
+                        % fmi_table([(f, db['fmi'][str(f)]) for f in common], urgent_fmi_for(spn, urgent_fmi), spn))
 
         # Вердикт (verdict) и признак stop уже посчитаны выше, до <head> - они
         # нужны были заранее для FAQPage.
         body.append(u'<section><h2>Можно ли ехать</h2><p>%s</p></section>' % verdict)
-        body.append(risk_section(sys_key, seen_all_early, urgent_fmi, urgent_spn_hit, spn))
+        body.append(risk_section(sys_key, seen_all_early, urg_here, urgent_spn_hit, spn))
 
         _совет = advice_for(sys_key, seen_all_early)
         if _совет:
@@ -1719,7 +1742,7 @@ def build(en_spns=()):
     # ---------------------------------------------------------------
     def is_stop(spn, makes):
         fmis = sorted({f for rows in makes.values() for f, _ in rows})
-        return page_stop(system_of(spn, std_name(spn)), fmis, urgent_fmi,
+        return page_stop(system_of(spn, std_name(spn)), fmis, urgent_fmi_for(spn, urgent_fmi, makes),
                          spn in urgent_spn)
 
     def code_links(spns, prefix='../kody/'):
@@ -2128,7 +2151,7 @@ def build(en_spns=()):
             secs.append(u'<section><h2>Другие коды по этой части</h2>'
                         u'<ul class="near">%s</ul></section>' % code_links(rest))
         if sys_key:
-            secs.append(risk_section(sys_key, sorted(urgent_fmi), urgent_fmi, False))
+            secs.append(risk_section(sys_key, sorted(urgent_fmi), urgent_fmi_for(None, urgent_fmi), False))
         if adv and ADVICE.get(adv):
             secs.append(u'<section><h2>Что проверить на месте</h2><p>%s</p></section>'
                         % ADVICE[adv])
@@ -2159,7 +2182,7 @@ def build(en_spns=()):
     secs = [u'<section><h2>Что значит FMI</h2><p class="lead">Номер SPN говорит, '
             u'<i>что</i> неисправно, FMI — <i>что именно</i> с ним не так. Вторая '
             u'половина кода одинакова для всех марок, это стандарт J1939.</p>%s</section>'
-            % fmi_table(sorted(((int(f), t) for f, t in db['fmi'].items())), urgent_fmi)]
+            % fmi_table(sorted(((int(f), t) for f, t in db['fmi'].items())), urgent_fmi_for(None, urgent_fmi))]
     for key in SYS_ORDER_BRAND:
         bucket = by_sys.get(key)
         if not bucket:
@@ -2284,7 +2307,7 @@ def build(en_spns=()):
             'lvl': dict((s, page_risk(system_of(s, std_name(s)),
                                       sorted({f for rows in per_spn.get(s, {}).values()
                                               for f, _ in rows}),
-                                      urgent_fmi, s in urgent_spn)[1]) for s in written),
+                                      urgent_fmi_for(s, urgent_fmi, per_spn.get(s, {})), s in urgent_spn)[1]) for s in written),
             'by_sys': by_sys}
 
 

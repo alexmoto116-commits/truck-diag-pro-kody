@@ -508,8 +508,9 @@ def build():
             parts.append(u'<p>These codes usually come with it: %s.</p>' % inline_en(rest[:5]))
         return u'<section><h2>How to approach it</h2>%s</section>' % u''.join(parts)
 
-    def risk_section(sys_key, fmis, urgent_spn_hit):
-        key, lvl, _ = bp.page_risk(sys_key, fmis, urgent_fmi, urgent_spn_hit)
+    def risk_section(sys_key, fmis, urgent_spn_hit, uf=None):
+        uf = urgent_fmi if uf is None else uf
+        key, lvl, _ = bp.page_risk(sys_key, fmis, uf, urgent_spn_hit)
         if not key or key not in risk_tx:
             return u''
         happens, ends = risk_tx[key][0], risk_tx[key][1]
@@ -519,7 +520,7 @@ def build():
                 and any(f in bp.fmi_elec() for f in (fmis or []))):
             e = risk_tx[rule['elec'][0]]
             note = u'<p class="rkn">%s %s</p>' % (bp.esc(e[0]), bp.esc(e[1]))
-        if (urgent_spn_hit or any(f in urgent_fmi for f in (fmis or []))) and lvl != 'now':
+        if (urgent_spn_hit or any(f in uf for f in (fmis or []))) and lvl != 'now':
             note += u'<p class="rkn">%s</p>' % bp.esc(risk_flag)
         tier = bp.tier_of(lvl)
         return (u'<section><h2>%s</h2>'
@@ -789,7 +790,7 @@ def build():
             secs.append(u'<section><h2>Other codes for this system</h2>'
                         u'<ul class="near">%s</ul></section>' % code_links(rest))
         if sys_key:
-            sec = risk_section(sys_key, sorted(urgent_fmi), False)
+            sec = risk_section(sys_key, sorted(urgent_fmi), False, bp.urgent_fmi_for(None, urgent_fmi))
             if sec:
                 secs.append(sec)
         act = i18n.get(ACT_KEY.get(adv, '')) if adv else None

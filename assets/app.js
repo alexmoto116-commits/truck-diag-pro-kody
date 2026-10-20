@@ -2688,7 +2688,7 @@
                    CRIT_TEXT.test(low);
       } else {
         h.text = withFmiHint(tx, fmi);
-        h.urgent = urgent(spn, fmi, 'kamaz');
+        h.urgent = urgent(spn, fmi, 'kamaz', id);
       }
       return h;
     }
@@ -3087,13 +3087,26 @@
     try { return j1939Quiet(raw, brand); } catch(e){ return ''; }
   }
 
-  function urgent(spn, fmi, brand){
+  /* FMI 0/1 срочны только у опасного узла: DB.urgentFmiSpn - список "SPN.FMI".
+     Остальные FMI 0/1 (кондиционер, датчики без последствий) - не срочно. */
+  function fmiSpnUrgent(spn, fmi){
+    var list = DB.urgentFmiSpn || [], ks = keysOf(spn, fmi);
+    for(var i = 0; i < ks.length; i++) if(list.indexOf(ks[i]) >= 0) return true;
+    return false;
+  }
+  /* Тормозные системы - узел безопасности: там любой FMI 0/1 срочен (прежнее правило).
+     Проверка по марке таблицы или по id блока (kamazebs из блоков КАМАЗ). */
+  var BRAKE_BRANDS = {kamazebs:1, wabco:1, knorrbremse:1, meritor:1, bendix:1, haldex:1};
+  function urgent(spn, fmi, brand, blockId){
+    /* MID 128 (двигатель): PID n - тот же параметр, что SPN n (M128-P100 -> 100). */
+    var midM = /^M128-[PS](\d+)$/.exec(String(spn));
+    if(midM) spn = midM[1];
     if(OWN_FMI[brand]) return hasNum(DB.urgentSpn, spn);
     /* FMI вне 0-31 или не описанный в словаре: по одному SPN «Критично» не ставим -
        значение нестандартное, и смысл его знает только марка. */
     if(!fmiKnown(fmi)) return false;
     if(hasNum(DB.urgentSpn, spn)) return true;
-    if(hasNum(DB.urgentFmi, fmi)) return true;
+    if(hasNum(DB.urgentFmi, fmi) && (BRAKE_BRANDS[brand] || BRAKE_BRANDS[blockId] || fmiSpnUrgent(spn, fmi))) return true;
     if(brand !== 'kamaz') return false;
     if(DB.kamazUrgent.indexOf(spn + '.' + fmi) >= 0) return true;
     var spnAlt = stripZero(String(spn)), fmiAlt = stripZero(String(fmi));
