@@ -19,7 +19,7 @@ from datetime import date
 import sys
 # Тексты блоков «Коды марки» и «Как подойти к проблеме» - рядом, в том же каталоге.
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from marki_problemy_texts import BRAND_TEXT, PROBLEM_TEXT
+from marki_problemy_texts import BRAND_TEXT, PROBLEM_TEXT, EXTRA_BLOCKS
 
 ROOT =os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SITE = 'https://codetruck.ru'
@@ -656,6 +656,30 @@ def rich(t):
     t = esc(t)
     t = re.sub(r'\*\*(.+?)\*\*', r'<b>\1</b>', t)
     return t
+
+
+# Дописанные блоки (EXTRA_BLOCKS в marki_problemy_texts.py). Пусто для всех
+# страниц, кроме тех, у которых есть ключ: только образцы.
+_LINK_TOKEN = re.compile(r'\[\[([^|\]]+)\|([^\]]+)\]\]')
+
+
+def extra_html(key, part):
+    # part: 'head' - после вводного блока, 'tail' - в конец страницы
+    blocks = EXTRA_BLOCKS.get(key, {}).get(part) or []
+    out = []
+    for h2, items in blocks:
+        inner = []
+        for it in items:
+            if isinstance(it, tuple):          # вопрос-ответ
+                q, a = it
+                inner.append(u'<h3>%s</h3><p>%s</p>' % (esc(q), _LINK_TOKEN.sub(r'<a href="\1">\2</a>', esc(a))))
+            elif isinstance(it, list):         # маркированный список
+                inner.append(u'<ul>%s</ul>' % u''.join(
+                    u'<li>%s</li>' % _LINK_TOKEN.sub(r'<a href="\1">\2</a>', esc(x)) for x in it))
+            else:
+                inner.append(u'<p>%s</p>' % _LINK_TOKEN.sub(r'<a href="\1">\2</a>', esc(it)))
+        out.append(u'<section><h2>%s</h2>%s</section>' % (esc(h2), u''.join(inner)))
+    return u''.join(out)
 
 
 def ld_script(obj):
@@ -2050,6 +2074,8 @@ def build(en_spns=()):
                top_spns(b, per_spn, open_ok, is_stop, [t for _, t in (dealer_rows or [])],
                         exclude=stop_codes))
         secs.insert(0, brand_intro(b, nums, top))
+        secs.insert(1, extra_html('brand:%s' % b, 'head'))
+        secs.append(extra_html('brand:%s' % b, 'tail'))
         path = 'marki/%s.html' % b
         title = u'Коды ошибок %s | codetruck.ru' % bn
         # Описание и оглавление считают те же коды, что текст «разобрано» и «по системам»:
@@ -2144,6 +2170,7 @@ def build(en_spns=()):
         rest = [s for s in pool if s not in stop_codes][:12]
 
         secs = [x for x in [problem_intro(slug, stop_codes, rest)] if x]
+        secs.insert(1, extra_html('problem:%s' % slug, 'head'))
         if stop_codes:
             secs.append(u'<section><h2>Коды, при которых нужно встать</h2>'
                         u'<ul class="near">%s</ul></section>' % code_links(stop_codes))
@@ -2163,6 +2190,7 @@ def build(en_spns=()):
             u'<a href="../">Введите код</a> — справочник скажет прямо, ехать или '
             u'вставать.</p></section>')
 
+        secs.append(extra_html('problem:%s' % slug, 'tail'))
         path = 'problemy/%s.html' % slug
         # Описание в выдаче обрывать на полуслове нельзя - режем по границе
         # слова и добавляем многоточие, если что-то осталось за кадром.

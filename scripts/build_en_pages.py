@@ -523,6 +523,7 @@ def build():
                            % (spn, bp.esc(brands_all))))
 
         # свой разбор - в том же месте, что и на русской странице (до таблиц марок)
+        body.append(bp.extra_html('code-en:%d' % spn, 'head'))
         own = own_section_en(spn)
         if own:
             body.append(own)
@@ -575,6 +576,7 @@ def build():
             body.append(u'<section><h2>Related codes</h2><ul class="near">%s</ul></section>'
                         % ''.join(code_link(s, 'spn-%d.html' % s) for s in similar))
 
+        body.append(bp.extra_html('code-en:%d' % spn, 'tail'))
         body.append(u'<p class="cta">%s</p>' % TX['cta'])
         body.append(u'</div>\n' + bp.CF_SNIPPET + u'\n</body>\n</html>\n')
         io.open(os.path.join(OUT, 'spn-%d.html' % spn), 'w',
