@@ -999,7 +999,7 @@ EXTRA_BLOCKS = {
                 u'code should be taken seriously even when the engine runs normally.',
                 u'The second half of the code, the FMI, tells you what the sensor reports. FMI 3 and FMI 4 point to the sensor '
                 u'circuit: voltage above normal or shorted high (3), voltage below normal or shorted low (4). When water is actually '
-                u'detected, engines usually report FMI 15 (least severe), FMI 16 (moderately severe) or FMI 0 (most severe). '
+                u'detected, the FMI shows how serious it is, and the exact number depends on the make: for example FMI 15 or 16 on many engines, and FMI 18 (critical level) on some DAF engines. '
                 u'The table below shows the exact wording for each make.',
             ]),
             (u'What to do on the road', [
