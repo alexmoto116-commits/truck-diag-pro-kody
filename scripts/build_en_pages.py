@@ -74,8 +74,10 @@ ACT_KEY = {'scr': 'actScr', 'oil': 'actOil', 'cool': 'actCool', 'fuel': 'actFuel
 # Английская пара к OWN_NUMBERING из build_pages.py - держать в согласии.
 OWN_NUMBERING_EN = {
     'ford': u'Ford Trucks/Ecotorq writes fault numbers in its own format: '
-            u'the code in the table below is a Ford code (hexadecimal, '
-            u'zero-padded), not a J1939 SPN. It matches the standard only '
+            u'the code in the table below is a Ford code: before the dot is '
+            u'the fault number in digits (leading zeros are not on every '
+            u'code), after the dot is the fault type in digits and letters '
+            u'A–F, for example 6.1F. It is not a J1939 SPN. It matches the standard only '
             u'where the signal itself is standard, and usually matches the '
             u'title of this page by digit alone.',
     'zfastronic': u'ZF AS-Tronic uses its own fault numbering: the number in '
