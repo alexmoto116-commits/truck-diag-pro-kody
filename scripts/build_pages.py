@@ -672,14 +672,17 @@ def extra_html(key, part):
         for it in items:
             if isinstance(it, tuple):          # вопрос-ответ
                 q, a = it
-                inner.append(u'<h3>%s</h3><p>%s</p>' % (esc(q), _LINK_TOKEN.sub(r'<a href="\1">\2</a>', esc(a))))
+                inner.append(u'<h3 class="faq-q">%s</h3><p>%s</p>' % (esc(q), _LINK_TOKEN.sub(r'<a href="\1">\2</a>', esc(a))))
             elif isinstance(it, list):         # маркированный список
                 inner.append(u'<ul>%s</ul>' % u''.join(
                     u'<li>%s</li>' % _LINK_TOKEN.sub(r'<a href="\1">\2</a>', esc(x)) for x in it))
             else:
                 inner.append(u'<p>%s</p>' % _LINK_TOKEN.sub(r'<a href="\1">\2</a>', esc(it)))
         out.append(u'<section><h2>%s</h2>%s</section>' % (esc(h2), u''.join(inner)))
-    return u''.join(out)
+    html_out = u''.join(out)
+    if 'faq-q' in html_out:
+        html_out = (u'<style>.faq-q{font-size:1em;font-weight:700;margin:14px 0 4px}</style>' + html_out)
+    return html_out
 
 
 def ld_script(obj):

@@ -828,9 +828,9 @@ EXTRA_BLOCKS = {
                 u'поэтому код ABS не равен износу колодок.',
             ]),
             (u'Где стоит', [
-                u'Блок управления обычно закреплён на раме или в кабине рядом с осью, на которой стоит модулятор. '
+                u'На тягаче блок управления обычно стоит в кабине, на прицепе — на раме, часто вместе с модулятором. '
                 u'Датчики колёс установлены у ступиц: каждое колесо имеет свой датчик, он считывает скорость вращения по '
-                u'зубчатому кольцу (реластору) на ступице или валу. Модуляторы стоят на пневмолиниях у осей и открывают или '
+                u'импульсному (зубчатому) кольцу на ступице или валу. Модуляторы стоят на пневмолиниях у осей и открывают или '
                 u'закрывают давление в каждом тормозном канале.',
                 u'На прицепе связь с тягачом идёт через разъём ISO 7638 (с несколькими контактами). Через него прицеп '
                 u'получает питание для своего блока ABS и обменивается сигналами с тягачом. Загрязнённый или окисленный '
@@ -997,9 +997,10 @@ EXTRA_BLOCKS = {
                 u'Water is the enemy of the fuel system. It does not burn, so it causes poor combustion, rust inside the fuel '
                 u'pump and injectors, and it can feed microbial growth in the tank that clogs the filters. This is why the '
                 u'code should be taken seriously even when the engine runs normally.',
-                u'The second half of the code, the FMI, tells you what the sensor reports. FMI 3 and FMI 4 point to a problem '
-                u'in the sensor circuit (voltage too high or too low). FMI 15 to 18 mean that water has been detected, from the '
-                u'least serious level to the most serious. The table below shows the exact wording for each make.',
+                u'The second half of the code, the FMI, tells you what the sensor reports. FMI 3 and FMI 4 point to the sensor '
+                u'circuit: voltage above normal or shorted high (3), voltage below normal or shorted low (4). When water is actually '
+                u'detected, engines usually report FMI 15 (least severe), FMI 16 (moderately severe) or FMI 0 (most severe). '
+                u'The table below shows the exact wording for each make.',
             ]),
             (u'What to do on the road', [
                 u'If the light comes on while the engine runs normally, drain the separator at the first safe stop, provided '
