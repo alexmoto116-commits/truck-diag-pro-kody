@@ -1806,6 +1806,17 @@ def build(en_spns=()):
         return u'<section><h2>Как подойти к проблеме</h2>%s</section>' % u''.join(parts)
 
     def page(path, title, desc, h1, sub, sections, section=None, extra_ld=None, alt=u'', brand=None):
+        # Дописанные блоки (EXTRA_BLOCKS): ключ берём из адреса страницы.
+        # Вводный блок - первый элемент sections, его не трогаем.
+        ekey = None
+        if brand and section == 'marki':
+            ekey = 'brand:%s' % brand
+        m_ekey = re.match(r'problemy/([^/]+)\.html$', path)
+        if m_ekey:
+            ekey = 'problem:%s' % m_ekey.group(1)
+        if ekey and ekey in EXTRA_BLOCKS:
+            sections = (list(sections[:1]) + [extra_html(ekey, 'head')]
+                        + list(sections[1:]) + [extra_html(ekey, 'tail')])
         # Рубрику публикуем как /kody/, а не /kody/index.html: ссылки в
         # навигации ведут на директорию, и canonical должен вести туда же,
         # иначе на одну страницу заводится два адреса.
@@ -2077,8 +2088,6 @@ def build(en_spns=()):
                top_spns(b, per_spn, open_ok, is_stop, [t for _, t in (dealer_rows or [])],
                         exclude=stop_codes))
         secs.insert(0, brand_intro(b, nums, top))
-        secs.insert(1, extra_html('brand:%s' % b, 'head'))
-        secs.append(extra_html('brand:%s' % b, 'tail'))
         path = 'marki/%s.html' % b
         title = u'Коды ошибок %s | codetruck.ru' % bn
         # Описание и оглавление считают те же коды, что текст «разобрано» и «по системам»:
@@ -2173,7 +2182,6 @@ def build(en_spns=()):
         rest = [s for s in pool if s not in stop_codes][:12]
 
         secs = [x for x in [problem_intro(slug, stop_codes, rest)] if x]
-        secs.insert(1, extra_html('problem:%s' % slug, 'head'))
         if stop_codes:
             secs.append(u'<section><h2>Коды, при которых нужно встать</h2>'
                         u'<ul class="near">%s</ul></section>' % code_links(stop_codes))
@@ -2193,7 +2201,6 @@ def build(en_spns=()):
             u'<a href="../">Введите код</a> — справочник скажет прямо, ехать или '
             u'вставать.</p></section>')
 
-        secs.append(extra_html('problem:%s' % slug, 'tail'))
         path = 'problemy/%s.html' % slug
         # Описание в выдаче обрывать на полуслове нельзя - режем по границе
         # слова и добавляем многоточие, если что-то осталось за кадром.
