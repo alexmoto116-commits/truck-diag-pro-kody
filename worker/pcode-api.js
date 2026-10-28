@@ -137,8 +137,10 @@ var SCANIA_MODULE_RE = /^(EMS|BMS|GMS|COO|LAS|EEC|SMS|VIS|ICL|AHS|TCO|RET|APS|BW
 // Cummins FC 415 -> 415: ищем во всех Cummins-таблицах.
 var CUMMINS_FC_RE = /^FC[ -]?([0-9]{1,6})$/;
 var CUMMINS_BRANDS = ['cumminsisb', 'cumminsisf', 'cumminsislisc', 'cumminsism', 'cumminsisx'];
-// Отопители: Webasto F09 -> ключ «09»; Eberspächer E-05 -> ключ «005».
-var WEBASTO_RE = /^F[ -]?([0-9]{2})$/;
+// Отопители: Webasto F09 -> ключ «F09» (F-код таймера; F9 -> F09), Eberspächer E-05 -> ключ «005».
+// Ключи «00»…«AB» у Webasto - служебные ПК-коды программы, это ДРУГОЙ смысл: F03 на них
+// не откатываем (раньше F03 отдавал ПК-код 03). ПК-код ищется вводом без буквы: «03», «0A».
+var WEBASTO_RE = /^F[ -]?([0-9]{1,2})$/;
 var EBERSPACHER_DASH_RE = /^E[ -]([0-9]{2,3})$/;
 // E05 без разделителя: сначала ключ Jingwei E05 (он существует), затем Eberspächer.
 var EBERSPACHER_PLAIN_RE = /^E([0-9]{2})$/;
@@ -297,7 +299,8 @@ function planSearch(raw) {
     return { forms: searchForms([m[1]]), brands: CUMMINS_BRANDS, fallback: null, pads: [] };
   }
   if ((m = WEBASTO_RE.exec(s))) {
-    return { forms: searchForms([m[1]]), brands: ['webasto'], fallback: null, pads: [] };
+    // Ключ F + две цифры; без отката на hex-ключ и без дополнения нулями (pads пуст).
+    return { forms: ['F' + ('0' + m[1]).slice(-2)], brands: ['webasto'], fallback: null, pads: [] };
   }
   if ((m = EBERSPACHER_DASH_RE.exec(s))) {
     // E-05: Eberspächer пишет 005, SITRAK (jingwei) - E05. Ищем обе формы в обеих марках.
