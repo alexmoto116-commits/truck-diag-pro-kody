@@ -1,5 +1,5 @@
 {
-  "note": "Тексты страниц кодов отопителей (build_heater_pages.py). Темы подбираются по заводскому тексту кода, первая подошедшая тема побеждает. Порядок причин - от частой к редкой по общей практике мастеров, не по статистике производителя. Цифр и номеров деталей нет намеренно.",
+  "note": "Тексты страниц кодов отопителей (build_heater_pages.py). Темы подбираются по заводскому тексту кода, первая подошедшая тема побеждает. Порядок причин - от частой к редкой по общей практике мастеров, не по статистике производителя. Цифр и номеров деталей нет намеренно. Тема кода задаётся в assign (марка:код), по регулярным выражениям - только если кода там нет. Темы voltage_both, internal, generic намеренно без регулярки.",
   "common": {
     "ru": {
       "steps": [
@@ -690,6 +690,88 @@
       }
     },
     {
+      "id": "voltage_both",
+      "pattern": "(?!)",
+      "ru": {
+        "meaning": "Напряжение питания вышло за допустимые пределы: бывает как слишком низким (долго), так и слишком высоким. Какое именно, различают по служебному ПК-коду: он есть в таблице выше. Причина обычно в аккумуляторе, зарядке или проводке питания, а не в самом отопителе.",
+        "causes": [
+          "Слабый или разряженный аккумулятор, особенно в холод (если напряжение низкое).",
+          "Перезаряд из-за неисправного генератора или регулятора (если напряжение высокое).",
+          "Окисленные клеммы, плохая масса или тонкий провод питания."
+        ],
+        "checks": [
+          "Измерьте напряжение АКБ с заглушенным двигателем и при работающем: низкое указывает на батарею, завышенное при работе двигателя на зарядку.",
+          "Почистите и затяните клеммы и массу, осмотрите предохранитель и его держатель."
+        ],
+        "service": "Если напряжение в норме, а код возвращается, в сервисе проверяют провод питания, генератор и блок управления."
+      },
+      "en": {
+        "meaning": "The supply voltage went outside the allowed limits: either too low (for a long time) or too high. Which one it is shows in the PC diagnostic code listed above. The cause is usually the battery, charging or the supply wiring, not the heater itself.",
+        "causes": [
+          "A weak or discharged battery, especially in the cold (when the voltage is low).",
+          "Overcharging from a faulty alternator or regulator (when the voltage is high).",
+          "Corroded terminals, a poor earth or a thin supply wire."
+        ],
+        "checks": [
+          "Measure the battery voltage with the engine off and running: low points to the battery, high with the engine running points to charging.",
+          "Clean and tighten the terminals and earth; look at the fuse and its holder."
+        ],
+        "service": "If the voltage is normal and the code returns, a service checks the supply wire, the alternator and the control unit."
+      }
+    },
+    {
+      "id": "internal",
+      "pattern": "(?!)",
+      "ru": {
+        "meaning": "Ошибка относится к самому блоку управления (его электронике, памяти или встроенному датчику). Снаружи такую неисправность не устранить: заводская рекомендация указана выше.",
+        "causes": [
+          "Неисправность электроники или памяти блока управления.",
+          "Датчик или узел, встроенный в блок и не заменяемый отдельно."
+        ],
+        "checks": [
+          "Проверьте питание блока: предохранитель и клеммы аккумулятора.",
+          "Отключите и подключите разъём блока, осмотрите контакты на окисление."
+        ],
+        "service": "Блок управления проверяют и меняют в сервисе. Проводку встроенного датчика искать бессмысленно: проводки у него нет."
+      },
+      "en": {
+        "meaning": "The error concerns the control unit itself (its electronics, memory or a built-in sensor). It cannot be fixed from outside; the factory recommendation is given above.",
+        "causes": [
+          "A fault in the electronics or memory of the control unit.",
+          "A sensor or part built into the unit that cannot be replaced separately."
+        ],
+        "checks": [
+          "Check the unit supply: fuse and battery terminals.",
+          "Disconnect and reconnect the unit connector and look at the contacts for corrosion."
+        ],
+        "service": "The control unit is checked and replaced in a service. There is no point looking for wiring of a built-in sensor: it has none."
+      }
+    },
+    {
+      "id": "generic",
+      "pattern": "(?!)",
+      "ru": {
+        "meaning": "Смысл кода и условие, при котором он появляется, названы в заводском тексте выше. Начинайте с заводской рекомендации и общих проверок.",
+        "causes": [
+          "Причина зависит от условия, названного в заводском тексте кода."
+        ],
+        "checks": [
+          "Осмотрите разъёмы и провода узла, названного в коде."
+        ],
+        "service": "Если код повторяется после заводской рекомендации и общих проверок, нужна диагностика в сервисе."
+      },
+      "en": {
+        "meaning": "The meaning of the code and the condition under which it appears are given in the factory text above. Start with the factory recommendation and the general checks.",
+        "causes": [
+          "The cause depends on the condition named in the factory text of the code."
+        ],
+        "checks": [
+          "Look at the connectors and wires of the part named in the code."
+        ],
+        "service": "If the code returns after the factory recommendation and the general checks, a service diagnosis is needed."
+      }
+    },
+    {
       "id": "other",
       "pattern": ".",
       "ru": {
@@ -719,5 +801,148 @@
         "service": "If the code returns after the general checks, a service diagnoses it with the make's code list."
       }
     }
-  ]
+  ],
+  "assign": {
+    "eberspacher:000": "zero",
+    "eberspacher:004": "wiring",
+    "eberspacher:005": "wiring",
+    "eberspacher:025": "wiring",
+    "eberspacher:046": "wiring",
+    "eberspacher:006": "generic",
+    "eberspacher:009": "generic",
+    "eberspacher:030": "generic",
+    "eberspacher:038": "generic",
+    "eberspacher:039": "generic",
+    "eberspacher:037": "generic",
+    "eberspacher:041": "generic",
+    "eberspacher:042": "generic",
+    "eberspacher:044": "generic",
+    "eberspacher:045": "generic",
+    "eberspacher:058": "generic",
+    "eberspacher:081": "generic",
+    "eberspacher:083": "generic",
+    "eberspacher:091": "generic",
+    "eberspacher:010": "high_voltage",
+    "eberspacher:011": "low_voltage",
+    "eberspacher:012": "overheat",
+    "eberspacher:013": "overheat",
+    "eberspacher:017": "overheat",
+    "eberspacher:014": "sensor",
+    "eberspacher:060": "sensor",
+    "eberspacher:061": "sensor",
+    "eberspacher:062": "sensor",
+    "eberspacher:063": "sensor",
+    "eberspacher:071": "sensor",
+    "eberspacher:072": "sensor",
+    "eberspacher:015": "lockout",
+    "eberspacher:016": "lockout",
+    "eberspacher:050": "lockout",
+    "eberspacher:018": "glow",
+    "eberspacher:019": "glow",
+    "eberspacher:020": "glow",
+    "eberspacher:021": "glow",
+    "eberspacher:022": "glow",
+    "eberspacher:031": "blower",
+    "eberspacher:032": "blower",
+    "eberspacher:033": "blower",
+    "eberspacher:034": "blower",
+    "eberspacher:047": "fuel",
+    "eberspacher:048": "fuel",
+    "eberspacher:049": "fuel",
+    "eberspacher:051": "flame_early",
+    "eberspacher:052": "no_start",
+    "eberspacher:053": "flame_out",
+    "eberspacher:054": "flame_out",
+    "eberspacher:055": "flame_out",
+    "eberspacher:056": "flame_out",
+    "eberspacher:057": "flame_out",
+    "eberspacher:064": "flame_sensor",
+    "eberspacher:065": "flame_sensor",
+    "eberspacher:074": "internal",
+    "eberspacher:090": "internal",
+    "eberspacher:092": "internal",
+    "eberspacher:093": "internal",
+    "eberspacher:094": "internal",
+    "eberspacher:095": "internal",
+    "eberspacher:096": "internal",
+    "eberspacher:097": "internal",
+    "eberspacher:098": "internal",
+    "eberspacher:099": "internal",
+    "webasto:00": "zero",
+    "webasto:01": "control",
+    "webasto:11": "control",
+    "webasto:81": "control",
+    "webasto:91": "control",
+    "webasto:02": "no_start",
+    "webasto:82": "no_start",
+    "webasto:03": "flame_out",
+    "webasto:83": "flame_out",
+    "webasto:04": "high_voltage",
+    "webasto:05": "flame_early",
+    "webasto:06": "overheat",
+    "webasto:17": "overheat",
+    "webasto:07": "lockout",
+    "webasto:08": "fuel",
+    "webasto:88": "fuel",
+    "webasto:09": "blower",
+    "webasto:15": "blower",
+    "webasto:89": "blower",
+    "webasto:0A": "generic",
+    "webasto:92": "generic",
+    "webasto:12": "comm",
+    "webasto:18": "comm",
+    "webasto:14": "sensor",
+    "webasto:1B": "sensor",
+    "webasto:94": "sensor",
+    "webasto:97": "sensor",
+    "webasto:9B": "sensor",
+    "webasto:AB": "sensor",
+    "webasto:19": "glow",
+    "webasto:8A": "glow",
+    "webasto:99": "glow",
+    "webasto:1A": "flame_sensor",
+    "webasto:9A": "flame_sensor",
+    "webasto:84": "low_voltage",
+    "webasto:F00": "control",
+    "webasto:F01": "no_start",
+    "webasto:F02": "flame_out",
+    "webasto:F03": "voltage_both",
+    "webasto:F04": "flame_early",
+    "webasto:F05": "flame_sensor",
+    "webasto:F06": "sensor",
+    "webasto:F14": "sensor",
+    "webasto:F17": "sensor",
+    "webasto:F18": "sensor",
+    "webasto:F19": "sensor",
+    "webasto:F07": "fuel",
+    "webasto:F08": "blower",
+    "webasto:F09": "glow",
+    "webasto:F10": "overheat",
+    "webasto:F16": "overheat",
+    "webasto:F11": "generic",
+    "webasto:F12": "generic",
+    "webasto:F13": "generic",
+    "webasto:F15": "generic",
+    "planar:1": "overheat",
+    "planar:2": "overheat",
+    "planar:3": "flame_out",
+    "planar:29": "flame_out",
+    "planar:78": "flame_out",
+    "planar:4": "internal",
+    "planar:6": "internal",
+    "planar:5": "flame_sensor",
+    "planar:7": "fuel",
+    "planar:17": "fuel",
+    "planar:8": "comm",
+    "planar:20": "comm",
+    "planar:30": "comm",
+    "planar:9": "glow",
+    "planar:10": "blower",
+    "planar:27": "blower",
+    "planar:28": "blower",
+    "planar:11": "sensor",
+    "planar:12": "high_voltage",
+    "planar:13": "no_start",
+    "planar:15": "low_voltage"
+  }
 }

@@ -405,7 +405,7 @@
       modeHeater: 'Отопитель',
       modeTacho: 'Тахограф',
       heaterHint: 'Код с пульта: 031, E-031, F09',
-      heaterEmpty: 'Введите код с пульта отопителя — например <b>031</b>, <b>E-031</b>, <b>F09</b> или <b>12</b>.',
+      heaterEmpty: 'Введите код с пульта отопителя — например <b>031</b>, <b>E-031</b>, <b>F09</b> или <b>12</b>. У Webasto <b>F09</b> — код с таймера, а <b>09</b> или <b>0A</b> — служебный код программы.',
       heaterBadCode: 'Этот код не похож на код отопителя. Введите цифры — например <b>031</b>, <b>E-031</b>, <b>F09</b> или <b>12</b>.',
       heaterNotFound: 'Код не найден в таблицах {list} — проверьте марку отопителя.',
       heaterNotFoundOne: 'Код <b>{code}</b> не найден в таблице {brand} — проверьте марку отопителя.',
@@ -570,7 +570,7 @@
       modeHeater: 'Heater',
       modeTacho: 'Tachograph',
       heaterHint: 'Code from panel: 031, E-031, F09',
-      heaterEmpty: 'Enter a heater panel code, e.g. <b>031</b>, <b>E-031</b>, <b>F09</b> or <b>12</b>.',
+      heaterEmpty: 'Enter a heater panel code, e.g. <b>031</b>, <b>E-031</b>, <b>F09</b> or <b>12</b>. For Webasto, <b>F09</b> is the timer code, while <b>09</b> or <b>0A</b> is the program service code.',
       heaterBadCode: 'This does not look like a heater code. Enter digits, e.g. <b>031</b>, <b>E-031</b>, <b>F09</b> or <b>12</b>.',
       heaterNotFound: 'Code not found in the {list} tables. Check the heater brand.',
       heaterNotFoundOne: 'Code <b>{code}</b> not found in the {brand} table. Check the heater brand.',
@@ -2102,11 +2102,13 @@
        и обрезать первую букву у них нельзя (получалось «00 - Ошибок нет»). */
     if(table === 'eberspacher') s = s.replace(/^E[-:.]?/, '');
     else if(table === 'webasto'){
-      if(/^F[-:.]?[0-9A-F]{2}$/.test(s)) s = s.replace(/^F[-:.]?/, '');
+      /* F09, f9, «F 09» - F-код таймера: ключ F09 (не hex-код программы). «09», «0A» - ПК-код (hex). */
+      var mf = /^F[-:.]?(\d{1,2})$/.exec(s);
+      if(mf) return 'F' + ('0' + mf[1]).slice(-2);
     }
     else s = s.replace(/^[EF][-:.]?/, '');
     if(table === 'eberspacher') return /^\d{1,3}$/.test(s) ? ('000' + s).slice(-3) : null;
-    if(table === 'webasto') return /^\d{1,2}$/.test(s) ? ('0' + s).slice(-2) : null;
+    if(table === 'webasto') return /^[0-9A-F]{1,2}$/.test(s) ? ('0' + s).slice(-2) : null;
     if(table === 'planar') return /^\d{1,3}$/.test(s) ? String(parseInt(s, 10)) : null;
     return null;
   }

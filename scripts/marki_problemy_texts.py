@@ -344,11 +344,11 @@ BRAND_TEXT = {
               u'supply errors sit next to each other in the descriptions, so check against the row.',
     },
     'eberspacher': {
-        'ru': u'Eberspächer — автономный отопитель: {dealer}, коды вида 000 и 001. Чаще всего встречаются топливо и '
-              u'охлаждение. Многие строки означают «ошибок нет», это нормальное состояние, а не сбой. Ищите строку с '
+        'ru': u'Eberspächer — автономный отопитель: {dealer}, коды вида 000, 004 и 011 (таблица Airtronic D2/D4; коды Hydronic '
+              u'помечены). Чаще всего встречаются свеча накаливания, нагнетатель, напряжение питания и датчики. Многие строки означают «ошибок нет», это нормальное состояние, а не сбой. Ищите строку с '
               u'ненулевым номером.',
-        'en': u'Eberspächer is an independent heater: {dealer}, with codes such as 000 and 001. The most common areas are '
-              u'fuel and cooling. Many rows mean "no faults", which is a normal state, not a failure. Look for the row '
+        'en': u'Eberspächer is an independent heater: {dealer}, with codes such as 000, 004 and 011 (the Airtronic D2/D4 table; '
+              u'Hydronic codes are marked). The most common areas are the glow plug, the blower, the supply voltage and sensors. Many rows mean "no faults", which is a normal state, not a failure. Look for the row '
               u'with a non-zero number.',
     },
     'faw': {
@@ -477,10 +477,12 @@ BRAND_TEXT = {
               u'sensor label such as F558; check such a code against the wiring.',
     },
     'planar': {
-        'ru': u'Planar — отопитель: {dealer}, коды вида 1, 10 и 11. Чаще всего встречаются CAN, топливо и электропитание. '
-              u'Код 1 относится к теплообменнику отопителя, и при нём проблема в самом теплообменнике, а не в двигателе.',
-        'en': u'Planar is a heater: {dealer}, with codes such as 1, 10 and 11. The most common areas are the CAN bus, fuel and '
-              u'the power supply. Code 1 concerns the heat exchanger of the heater, so the fault is in the heat exchanger, not '
+        'ru': u'Planar — отопитель: {dealer}, коды вида 1, 10 и 11. Номер бывает двух систем: код таблицы ремонта или число '
+              u'миганий пульта ПУ-5, поэтому в каждой записи указано, какая система. Чаще всего встречаются перегрев, нагнетатель, '
+              u'топливный насос, свеча и связь пульта с блоком. Код 1 относится к теплообменнику отопителя, и при нём проблема в самом теплообменнике, а не в двигателе.',
+        'en': u'Planar is a heater: {dealer}, with codes such as 1, 10 and 11. A number comes from one of two systems: a repair-table '
+              u'code or the blink count of the PU-5 remote, so each entry says which. The most common areas are overheating, the blower, '
+              u'the fuel pump, the glow plug and the remote link. Code 1 concerns the heat exchanger of the heater, so the fault is in the heat exchanger, not '
               u'the engine.',
     },
     'powerstroke': {
@@ -531,11 +533,11 @@ BRAND_TEXT = {
               u'is the EGR valve position circuit with voltage below normal.',
     },
     'webasto': {
-        'ru': u'Webasto — отопитель: {dealer}, коды вида 00, 01 и 02. Чаще всего встречаются топливо, охлаждение и '
-              u'электропитание. Как и у Eberspächer, нулевая строка означает «нет неисправностей», поэтому ищите код с '
+        'ru': u'Webasto — отопитель: {dealer}: ПК-коды программы Webasto Thermo Test вида 00, 01 и 02 и F-коды таймера '
+              u'F00-F19. Это две разные системы, соответствие между ними указано в каждой записи. Как и у Eberspächer, нулевая строка означает «нет неисправностей», поэтому ищите код с '
               u'ненулевым номером.',
-        'en': u'Webasto is a heater: {dealer}, with codes such as 00, 01 and 02. The most common areas are fuel, cooling and '
-              u'the power supply. As with Eberspächer, the zero row means "no faults", so look for a code with a non-zero '
+        'en': u'Webasto is a heater: {dealer}: PC codes of the Webasto Thermo Test program such as 00, 01 and 02, and timer F-codes '
+              u'F00-F19. These are two different systems; the match between them is given in each entry. As with Eberspächer, the zero row means "no faults", so look for a code with a non-zero '
               u'number.',
     },
     'weichai': {
@@ -2054,14 +2056,15 @@ EXTRA_BLOCKS.update({
             ]),
             ("Как читать коды этой страницы", [
                 "Код 00 на странице означает «ошибок нет», поэтому ищите запись с ненулевым номером. Коды бывают цифровыми, например 04 или 17, и с буквой, например 0A или 1B. Ищите код целиком: 1B и 17 - разные записи.",
+                "Водитель на таймере видит F-код (F00-F19), а программа Webasto Thermo Test показывает ПК-код. Это разные числа: например, F03 на таймере - это ПК-коды 04 и 84, а ПК-код 03 на таймере выглядит как F02. Одному F-коду отвечает несколько ПК-кодов, а у разных моделей (Air Top 2000 ST, Thermo Top Evo, Air Top Evo 40/55, Thermo Pro 90) он может значить разное: смотрите страницу нужного F-кода.",
                 "У Eberspächer, как сказано на странице, нулевая строка тоже означает отсутствие неисправностей. Это удобно при сравнении отопителей, но описания кодов одного производителя нельзя переносить на другого.",
             ]),
             ("Основные системы и типовые причины", [
-                "Запуск и пламя. Код 02 - неудачный запуск, код 82 - неудачный запуск в тестовом режиме. Коды 19 и 0A связаны с коротким замыканием свечи накаливания, при этом 0A относится также к датчику пламени, а 9A - обрыв датчика пламени. Сначала проверьте свечу и разъём, затем датчик пламени.",
+                "Запуск и пламя. Код 02 - неудачный запуск, код 82 - неудачный запуск в тестовом режиме. Код 19 - короткое замыкание цепи свечи накаливания, 0A - короткое замыкание свечи или датчика пламени (в таблице Thermo Top Evo), 9A - обрыв цепи датчика пламени. Сначала проверьте свечу и разъём, затем датчик пламени.",
                 "Топливо. Код 88 - обрыв цепи топливного насоса. Проверьте разъём насоса и цепь, потом сам насос.",
                 "Перегрев. Код 17 - превышен градиент нарастания температуры, код 1B - короткое замыкание датчика перегрева. Перегрев - вопрос безопасности, поэтому отопитель с такой записью не эксплуатируйте, пока причина не найдена.",
                 "Вентилятор. Код 09 - короткое замыкание вентилятора. Проверяйте разъём вентилятора и его цепь.",
-                "Напряжение и связь. Код 04 - напряжение питания слишком высокое, код 12 - ошибка шины W-Bus, код 91 - неверная кодировка блока управления. Страница выделяет кодировку отдельно: перед заменой блока сверьте кодировку по инструкции.",
+                "Напряжение и связь. Код 04 - напряжение питания слишком высокое, код 12 - ошибка шины W-Bus, код 11 - неверная кодировка блока управления, код 91 - блок закодирован нейтрально. Кодировку выделяем отдельно: перед заменой блока сверьте её по инструкции.",
                 "Температурный датчик. Код 94 - обрыв цепи датчика температуры. Проверяйте разъём датчика и провод до блока.",
             ]),
             ("Порядок проверки", [
