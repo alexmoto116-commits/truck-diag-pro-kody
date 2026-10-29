@@ -9,7 +9,8 @@
   "youtube": "https://youtube.com/shorts/9eU06hw1h58",
   "dzen": null,
   "telegram": "https://t.me/codetruck/5",
-  "duration": 28
+  "duration": 28,
+  "rutube": "https://rutube.ru/shorts/3b69f43f8c77ef1e031ce7caabbb5e56/"
  },
  "planar-13": {
   "topic": "ошибка 13 Планар",
@@ -21,7 +22,8 @@
   "youtube": null,
   "dzen": null,
   "telegram": "https://t.me/codetruck/6",
-  "duration": 36
+  "duration": 36,
+  "rutube": "https://rutube.ru/shorts/9fb09e11738aa16335f65ca06d8eb926/"
  },
  "eberspacher-011": {
   "topic": "ошибка 011 Eberspächer",
@@ -33,6 +35,7 @@
   "youtube": "https://youtube.com/shorts/hRTMvfjTiBA",
   "dzen": "https://dzen.ru/shorts/6ae341ced2f43220dcbf08e1",
   "telegram": "https://t.me/codetruck/7",
-  "duration": 35
+  "duration": 35,
+  "rutube": "https://rutube.ru/shorts/6a11d7db3f51811b50483ab15209639c/"
  }
 }

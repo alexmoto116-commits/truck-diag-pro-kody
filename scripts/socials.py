@@ -66,7 +66,7 @@ CSS = u"""
 .tick .soc svg{display:block}
 .tick{display:flex;flex-wrap:wrap;align-items:center}
 .tick .crumbs{display:inline-flex;flex-wrap:wrap;align-items:center}
-@media (max-width:480px){.tick .soc a{width:30px}.soc{gap:0}}
+@media (max-width:480px){.tick .soc a{width:27px}.soc{gap:0}}
 .socf{margin:14px 0 0;font-size:13.5px;color:#94A2B4;display:flex;flex-wrap:wrap;align-items:center;gap:4px 16px}
 .socf b{font-weight:600;color:#94A2B4}
 .socf a{display:inline-flex;align-items:center;gap:6px;min-height:36px;color:#94A2B4;text-decoration:none}
