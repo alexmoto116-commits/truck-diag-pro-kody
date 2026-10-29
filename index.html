@@ -44,6 +44,7 @@
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"codetruck.ru","url":"https://codetruck.ru/","potentialAction":{"@type":"SearchAction","target":{"@type":"EntryPoint","urlTemplate":"https://codetruck.ru/?q={search_term_string}"},"query-input":"required name=search_term_string"}}</script>
+<!--soc:ld--><script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"codetruck.ru","url":"https://codetruck.ru/","logo":"https://codetruck.ru/assets/favicon.svg","sameAs":["https://t.me/codetruck","https://vk.ru/codetruck","https://dzen.ru/codetruck","https://www.youtube.com/@codetruck_ru","https://www.tiktok.com/@codetruck"]}</script><!--/soc:ld-->
 <style>
 /* ============================================================
    codetruck.ru - страница расшифровки кода.
@@ -731,6 +732,20 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
   opacity:.85;cursor:pointer;
 }
 .copy-mail:hover,.copy-mail:focus-visible{opacity:1}
+/*soc:css*/
+.soc-top{position:absolute;top:clamp(14px,2.5vw,22px);left:50%;transform:translateX(-50%);z-index:19;display:flex;align-items:center;min-height:44px}
+.soc-top .soc{display:inline-flex;align-items:center;margin:0;gap:0;background:rgba(12,19,28,.5);border-radius:12px;padding:0 4px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.soc-top .soc a,.socf a{color:var(--ink-3);text-decoration:none;transition:color .15s}
+.soc-top .soc a{display:inline-flex;align-items:center;justify-content:center;width:38px;height:44px}
+.soc-top .soc a:hover,.soc-top .soc a:focus-visible,.socf a:hover,.socf a:focus-visible{color:var(--c)}
+.socf{margin:0 0 14px;display:flex;flex-wrap:wrap;align-items:center;gap:4px 16px}
+.socf b{font-weight:600}
+.socf a{display:inline-flex;align-items:center;gap:6px;min-height:36px}
+@media(max-width:560px){.soc-top .soc a{width:32px}.soc-top .soc{padding:0 2px}}
+@media(max-width:400px){.soc-top .soc a{width:28px}}
+[data-theme="light"] .soc-top .soc{background:rgba(255,255,255,.6)}
+@media print{.soc-top{display:none}}
+/*/soc:css*/
 </style>
 <!-- Yandex.Metrika counter -->
 <script type="text/javascript">
@@ -760,6 +775,7 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
 </script>
 </head>
 <body>
+<!--soc:top--><div class="soc-top"><span class="soc" role="group" aria-label="Мы в соцсетях"><a href="https://t.me/codetruck" target="_blank" rel="noopener" aria-label="Телеграм-канал codetruck" title="Телеграм" style="--c:#27A7E7"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 4.2 3.2 11.1c-.7.3-.7.8 0 1l4.5 1.4 1.7 5.3c.2.5.4.6.8.2l2.4-2 4.6 3.4c.8.5 1.4.2 1.6-.8L22.2 5.3c.3-1.2-.4-1.7-1.2-1.1Z"/><path d="m8 13.4 9.6-7.2"/></svg></a><a href="https://vk.ru/codetruck" target="_blank" rel="noopener" aria-label="Страница codetruck во ВКонтакте" title="ВК" style="--c:#2787F5"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="2.5" width="19" height="19" rx="5"/><path d="m6.8 9 2.1 6.2L11 9M14.2 9v6.2M18 9l-3.4 3.2 3.6 3"/></svg></a><a href="https://dzen.ru/codetruck" target="_blank" rel="noopener" aria-label="Канал codetruck в Дзене" title="Дзен" style="--c:#A78BFA"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9.2"/><path d="M12 5.2c0 3.8-3 6.8-6.8 6.8 3.8 0 6.8 3 6.8 6.8 0-3.8 3-6.8 6.8-6.8-3.8 0-6.8-3-6.8-6.8Z"/></svg></a><a href="https://www.youtube.com/@codetruck_ru" target="_blank" rel="noopener" aria-label="Ютуб-канал codetruck" title="Ютуб" style="--c:#FF3333"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.3" y="5.8" width="19.4" height="12.4" rx="3.6"/><path d="M10.2 9.4v5.2l4.5-2.6Z"/></svg></a></span></div><!--/soc:top-->
 
 <div class="lang-switch">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
@@ -1002,7 +1018,7 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
 </nav>
 
 <nav class="langlinks" aria-label="Языки сайта"><span class="langlinks-cur" lang="ru">Русский</span><a href="/en/" hreflang="en" lang="en">English</a><a href="/de/" hreflang="de" lang="de">Deutsch</a><a href="/fr/" hreflang="fr" lang="fr">Français</a><a href="/es/" hreflang="es" lang="es">Español</a><a href="/pt/" hreflang="pt" lang="pt">Português</a><a href="/pl/" hreflang="pl" lang="pl">Polski</a><a href="/tr/" hreflang="tr" lang="tr">Türkçe</a><a href="/hi/" hreflang="hi" lang="hi">हिन्दी</a><a href="/zh/" hreflang="zh" lang="zh">中文</a></nav>
-<div class="foot"><span class="foot-t" data-i18n="footText">Справочник показывает, что означает код, а не ставит диагноз — решение всегда за человеком с оборудованием. Вопросы — <a href="mailto:alexdiag116@gmail.com" style="color:inherit">alexdiag116@gmail.com</a>.</span> <button type="button" class="copy-mail" data-i18n="copyMail" data-mail="alexdiag116@gmail.com">Скопировать адрес</button></div>
+<div class="foot"><!--soc:foot--><p class="socf"><b>Мы в соцсетях:</b> <a href="https://t.me/codetruck" target="_blank" rel="noopener" style="--c:#27A7E7"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 4.2 3.2 11.1c-.7.3-.7.8 0 1l4.5 1.4 1.7 5.3c.2.5.4.6.8.2l2.4-2 4.6 3.4c.8.5 1.4.2 1.6-.8L22.2 5.3c.3-1.2-.4-1.7-1.2-1.1Z"/><path d="m8 13.4 9.6-7.2"/></svg><span>Телеграм</span></a> <a href="https://vk.ru/codetruck" target="_blank" rel="noopener" style="--c:#2787F5"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="2.5" width="19" height="19" rx="5"/><path d="m6.8 9 2.1 6.2L11 9M14.2 9v6.2M18 9l-3.4 3.2 3.6 3"/></svg><span>ВК</span></a> <a href="https://dzen.ru/codetruck" target="_blank" rel="noopener" style="--c:#A78BFA"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9.2"/><path d="M12 5.2c0 3.8-3 6.8-6.8 6.8 3.8 0 6.8 3 6.8 6.8 0-3.8 3-6.8 6.8-6.8-3.8 0-6.8-3-6.8-6.8Z"/></svg><span>Дзен</span></a> <a href="https://www.youtube.com/@codetruck_ru" target="_blank" rel="noopener" style="--c:#FF3333"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.3" y="5.8" width="19.4" height="12.4" rx="3.6"/><path d="M10.2 9.4v5.2l4.5-2.6Z"/></svg><span>Ютуб</span></a></p><!--/soc:foot--><span class="foot-t" data-i18n="footText">Справочник показывает, что означает код, а не ставит диагноз — решение всегда за человеком с оборудованием. Вопросы — <a href="mailto:alexdiag116@gmail.com" style="color:inherit">alexdiag116@gmail.com</a>.</span> <button type="button" class="copy-mail" data-i18n="copyMail" data-mail="alexdiag116@gmail.com">Скопировать адрес</button></div>
 
 <script defer src="/assets/app.js"></script>
 <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "177421bba4084e9fa25718d86f1781b0"}'></script><!-- End Cloudflare Web Analytics --></body>

@@ -223,6 +223,16 @@ def build():
             print(u'index.html: числа марок и кодов обновлены из данных')
         ru_html = new_root
 
+    # Соцсети (scripts/socials.json): в русский index.html подставляем блоки,
+    # из языковых главных вырезаем - ролики русские.
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import socials
+    _с = socials.sync_index(ru_html)
+    if _с != ru_html:
+        io.open(os.path.join(ROOT, 'index.html'), 'w', encoding='utf-8', newline=chr(10)).write(_с)
+        print(u'index.html: соцсети обновлены')
+        ru_html = _с
+
     # Раннего скрипта-подмены языка в index.html больше нет: убран 2026-08-17,
     # потому что Googlebot выполняет JS, представляется английским и получал
     # английские title/description на русском адресе - см. комментарий на его
@@ -235,7 +245,7 @@ def build():
     written = []
     for lang in LANGS:
         d = dict(i18n[lang])
-        html = base
+        html = socials.strip_index(base)
         if counts is not None:
             d['metaDescription'] = patch_counts(d['metaDescription'], counts, lang, meta=True)
             d['purposeStats'] = patch_counts(d['purposeStats'], counts, lang)

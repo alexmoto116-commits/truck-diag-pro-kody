@@ -952,6 +952,34 @@ h2.mk{{font-family:var(--sans-fallback,inherit);font-size:17.5px;letter-spacing:
 <div class="tick">{nav}</div>
 """
 
+
+# Соцсети (scripts/socials.json) и блок видеоразбора - только на русских
+# страницах: ролики русские. Английские и другие версии получают прежний HEAD.
+import socials as _soc
+import video_block as _vid
+
+
+def _esc_br(t):
+    return t.replace(u'{', u'{{').replace(u'}', u'}}')
+
+
+class _Head(type(HEAD)):
+    def format(self, *a, **k):
+        t = str(self)
+        if k.get('lang') == 'ru':
+            t = t.replace(u'<div class="tick">{nav}</div>',
+                          u'<div class="tick"><span class="crumbs">{nav}</span>' + _esc_br(_soc.top_html()) + u'</div>', 1)
+            t = t.replace(u'</style>', _esc_br(_soc.CSS) + u'</style>', 1)
+        return str.format(t, *a, **k)
+
+
+HEAD = _Head(HEAD)
+
+
+def soc_foot(lang=u'ru'):
+    """Строка «Мы в соцсетях:» под CTA русской страницы."""
+    return _soc.foot_html() if lang == 'ru' else u''
+
 # Freightliner/Mack/Detroit Diesel используют трёхчастный код MID-PID/SID-FMI
 # вместо SPN.FMI (см. index.html, MID_BRANDS). В assets/dtc.enc.js это лежит
 # как составной ключ "M<mid>-<P|S><num>.<fmi>" - основной цикл ниже такие
@@ -1686,6 +1714,8 @@ def build(en_spns=()):
             body.append(u'<p class="sub">Код J1939 SPN %d. Заводской расшифровки по маркам '
                         u'для него в справочнике нет — ниже стандартное значение FMI.</p>' % spn)
 
+        body.append(_vid.block('spn-%d' % spn))
+
         # свой разбор: где узел, что мерить, цифры, причины (own_checks.py) -
         # этого нет ни в заводских строках, ни у других справочников
         т_свой = own_section(spn)
@@ -1762,6 +1792,7 @@ def build(en_spns=()):
 
         body.append(u'<p class="cta">Сканер выдал несколько кодов? '
                     u'<a href="../">Вставьте весь список</a> — покажем первопричину.</p>')
+        body.append(soc_foot())
         body.append(u'</div>\n' + CF_SNIPPET + u'\n</body>\n</html>\n')
 
         io.open(os.path.join(out_dir, 'spn-%d.html' % spn), 'w', encoding='utf-8').write(''.join(body))
@@ -1848,6 +1879,7 @@ def build(en_spns=()):
         body.append(u'<p class="cta">Знаете номер кода? '
                     u'<a href="%s">Введите его в поиск</a> — или вставьте сразу весь '
                     u'список со сканера, покажем, какая поломка настоящая.</p>' % (u'/?b=%s' % brand if brand else u'/'))
+        body.append(soc_foot())
         body.append(u'</div>\n' + CF_SNIPPET + u'\n</body>\n</html>\n')
         full = os.path.join(ROOT, path)
         d = os.path.dirname(full)

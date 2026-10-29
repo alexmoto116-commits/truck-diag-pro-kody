@@ -1,0 +1,11 @@
+{
+  "_help": "Единый список площадок. Порядок = порядок на сайте. show:false — адрес есть (для sameAs), но на сайте не показывается. Новая площадка: добавить одну строку в socials и запустить python -X utf8 -I scripts/socials.py (она же подставляет блоки в index.html). icon — имя значка из scripts/socials.py (ICONS).",
+  "socials": [
+    {"id": "telegram", "name": "Телеграм", "label": "Телеграм-канал codetruck", "url": "https://t.me/codetruck", "color": "#27A7E7", "icon": "telegram", "show": true},
+    {"id": "vk", "name": "ВК", "label": "Страница codetruck во ВКонтакте", "url": "https://vk.ru/codetruck", "color": "#2787F5", "icon": "vk", "show": true},
+    {"id": "dzen", "name": "Дзен", "label": "Канал codetruck в Дзене", "url": "https://dzen.ru/codetruck", "color": "#A78BFA", "icon": "dzen", "show": true},
+    {"id": "youtube", "name": "Ютуб", "label": "Ютуб-канал codetruck", "url": "https://www.youtube.com/@codetruck_ru", "color": "#FF3333", "icon": "youtube", "show": true},
+    {"id": "rutube", "name": "Рутуб", "label": "Канал codetruck на Рутубе", "url": "", "color": "#F5F5F5", "icon": "rutube", "show": false},
+    {"id": "tiktok", "name": "ТикТок", "label": "ТикТок codetruck", "url": "https://www.tiktok.com/@codetruck", "color": "#25F4EE", "icon": "tiktok", "show": false}
+  ]
+}

@@ -1,0 +1,44 @@
+{
+ "spn-97": {
+  "topic": "SPN 97 — вода в топливе",
+  "name": "Видеоразбор SPN 97: вода в топливе",
+  "description": "Что означает код SPN 97 (наличие воды в топливе) на КамАЗ, МАЗ, ЯМЗ и что делать: короткий видеоразбор на 30 секунд.",
+  "poster": "/assets/video/spn-97.webp",
+  "w": 270,
+  "h": 480,
+  "vk": "https://vk.ru/clip-242705793_456239019",
+  "vk_embed": null,
+  "youtube": "https://youtube.com/shorts/9eU06hw1h58",
+  "dzen": null,
+  "telegram": "https://t.me/codetruck/5",
+  "uploadDate": "2026-10-28"
+ },
+ "planar-13": {
+  "topic": "ошибка 13 Планар",
+  "name": "Видеоразбор: ошибка 13 Планар",
+  "description": "Что значит ошибка 13 отопителя Планар (не запустился после двух попыток) и что проверить: короткий видеоразбор на 30 секунд.",
+  "poster": "/assets/video/planar-13.webp",
+  "w": 270,
+  "h": 480,
+  "vk": "https://vk.ru/clip-242705793_456239018",
+  "vk_embed": null,
+  "youtube": null,
+  "dzen": null,
+  "telegram": "https://t.me/codetruck/6",
+  "uploadDate": "2026-10-29"
+ },
+ "eberspacher-011": {
+  "topic": "ошибка 011 Eberspächer",
+  "name": "Видеоразбор: ошибка 011 Eberspächer",
+  "description": "Что значит ошибка 011 отопителя Eberspächer (пониженное напряжение, отключение) и что проверить: короткий видеоразбор на 30 секунд.",
+  "poster": "/assets/video/eberspacher-011.webp",
+  "w": 270,
+  "h": 480,
+  "vk": "https://vk.ru/clip-242705793_456239017",
+  "vk_embed": null,
+  "youtube": "https://youtube.com/shorts/hRTMvfjTiBA",
+  "dzen": "https://dzen.ru/shorts/6ae341ced2f43220dcbf08e1",
+  "telegram": "https://t.me/codetruck/7",
+  "uploadDate": "2026-10-29"
+ }
+}

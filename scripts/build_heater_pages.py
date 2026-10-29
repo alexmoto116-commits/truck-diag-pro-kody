@@ -224,6 +224,12 @@ def make_desc(lang, prefix, full):
     return bp.cut_words(d, 160)
 
 
+def _vid_block(rel):
+    """Блок «Видеоразбор этого кода» для страницы otopiteli/<slug>.html."""
+    import video_block
+    return video_block.block(os.path.basename(rel)[:-len('.html')]) if rel.endswith('.html') else u''
+
+
 def render(lang, rel, title, desc, h1, sub, sections, here, brand=None, noindex=False):
     """Полная HTML-страница. rel - публичный путь файла относительно корня сайта."""
     ru = lang == 'ru'
@@ -259,8 +265,11 @@ def render(lang, rel, title, desc, h1, sub, sections, here, brand=None, noindex=
                u'the whole list from the scanner and we will show which fault is the real one.</p>'
                % (u'/en/?mode=heater&amp;b=%s' % brand if brand else u'/en/?mode=heater'))
     body.append(u'<p class="sub">%s</p>' % sub)
+    if ru and rel.startswith('otopiteli/'):
+        body.append(_vid_block(rel))
     body.extend(sections)
     body.append(cta)
+    body.append(bp.soc_foot(lang))
     body.append(u'</div>\n' + bp.CF_SNIPPET + u'\n</body>\n</html>\n')
     return u''.join(body)
 
