@@ -3,15 +3,13 @@
 Блок «Видеоразбор этого кода» на русских страницах кодов, у которых есть ролик.
 
 Данные: scripts/video_razbory.json, ключ = имя страницы без .html
-(spn-97, planar-13, eberspacher-011). Поля: topic (тема в подписи), name,
-description, poster (путь от корня сайта; файл лежит в assets/video/), w, h,
-vk, vk_embed, youtube, dzen, telegram, uploadDate.
+(spn-97, planar-13, eberspacher-011). Поля: topic (тема в подписи), duration (секунды), poster (путь от корня сайта; файл лежит в assets/video/), w, h,
+vk, vk_embed, youtube, dzen, telegram.
 
 Плеер заранее не грузится: картинка-ссылка. Если задан vk_embed, по нажатию
-вставляется iframe ВК-плеера (скрипт и стили попадают на страницу только в этом
+вставляется iframe ВК-плеера (скрипт попадает на страницу только в этом
 случае), иначе ссылка просто открывается в новой вкладке.
-Разметка VideoObject — только если есть ролик на Ютубе (embedUrl): без адреса
-плеера Google видео на странице не засчитает.
+Разметку VideoObject не ставим: плеера на странице нет, а Google требует видео на странице.
 """
 import io, json, os, re
 from html import escape
@@ -65,7 +63,7 @@ def block(slug):
     if not v:
         return u''
     topic = v['topic']
-    cap = u'Видеоразбор: %s, 30 с' % topic
+    cap = u'Видеоразбор: %s, %d с' % (topic, v['duration'])
     primary = v.get('vk') or v.get('youtube') or v.get('dzen') or v.get('telegram') or TG
     embed = v.get('vk_embed')
     links = []
@@ -92,13 +90,4 @@ def block(slug):
     out.append(u'</section>')
     if embed:
         out.append(JS)
-    yid = _yt_id(v.get('youtube'))
-    if yid:
-        ld = {'@context': 'https://schema.org', '@type': 'VideoObject',
-              'name': v['name'], 'description': v['description'],
-              'thumbnailUrl': [SITE + v['poster']], 'uploadDate': v['uploadDate'],
-              'embedUrl': 'https://www.youtube.com/embed/' + yid,
-              'inLanguage': 'ru'}
-        out.append(u'<script type="application/ld+json">%s</script>'
-                   % json.dumps(ld, ensure_ascii=False).replace('</', '<' + chr(92) + '/'))
     return u''.join(out)

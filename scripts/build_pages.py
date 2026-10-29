@@ -970,6 +970,7 @@ class _Head(type(HEAD)):
             t = t.replace(u'<div class="tick">{nav}</div>',
                           u'<div class="tick"><span class="crumbs">{nav}</span>' + _esc_br(_soc.top_html()) + u'</div>', 1)
             t = t.replace(u'</style>', _esc_br(_soc.CSS) + u'</style>', 1)
+            t = t.replace(u'<meta name="theme-color"', u'<link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">' + chr(10) + u'<meta name="theme-color"', 1)
         return str.format(t, *a, **k)
 
 
