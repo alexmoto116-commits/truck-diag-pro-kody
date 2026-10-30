@@ -1121,4 +1121,25 @@ CHECKS = {
             ]),
         ],
     },
+
+    3719: {
+        "узел": "Soot load of diesel particulate filter (DPF) 1, in percent: how much soot the engine control unit estimates has built up in the filter. The code is not a sensor failure but a message that the filter is filling up and the soot has to be burned off. The unit judges the load partly from the pressure drop across the filter (see code 3251).",
+        "нормы": [
+            ("Filter soot load per diagnostics (percent)", "drops noticeably after a regeneration; the trigger thresholds per the manufacturer's manual"),
+            ("Pressure drop across the filter (code 3251)", "per the manufacturer's manual"),
+        ],
+        "шаги": [
+            "FMI 15 (data above normal, least severe level): there is a lot of soot but no urgency. Let the truck complete a normal regeneration on the road and do not switch the engine off at its start; if the filter lamp is on, follow the vehicle's manual.",
+            "FMI 16 (above normal, moderately severe level; Detroit: \"Soot Level High\"): do a parked regeneration. Park outside on level ground with the parking brake set, away from anything flammable: the exhaust is very hot during regeneration. Do not interrupt a regeneration once started, and clear the codes afterwards.",
+            "FMI 0 (above normal, most severe level; Detroit: \"Soot Level Very High\"): engine power may be limited. Do a parked regeneration as for FMI 16. If it does not help, go to a workshop: manufacturers prescribe diagnostics, for example the onboard filter cleanliness tests at Navistar.",
+            "FMI 31: per Detroit Diesel, an informational \"silent\" code logged when the regeneration lamp is flashing; a stationary regeneration is required if the code is active, and nothing is needed if it is inactive. For other makes the meaning of FMI 31 on this number is not confirmed.",
+            "If the code returns after a regeneration: check the differential pressure sensor and its tubes (code 3251), whether regeneration is permanently inhibited (the inhibit switch, code 3695), and whether the truck only makes short trips.",
+        ],
+        "причины": [
+            "Long driving without regeneration: short trips, a cold engine.",
+            "Regeneration inhibited by the switch or interrupted.",
+            "The differential pressure sensor on the filter or its tubes.",
+            "A clogged filter: ash does not burn off during regeneration.",
+        ],
+    },
 }
