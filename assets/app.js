@@ -498,10 +498,11 @@
       vWarnSub: 'Ниже — сколько есть времени и что будет, если тянуть.',
       shareLabel: 'Отослать разбор',
       shareDone: 'Ссылка скопирована',
-      sysScr: 'AdBlue / выхлоп', sysOil: 'смазка', sysCool: 'охлаждение',
+      sysDpf: 'сажевый фильтр (DPF)', sysScr: 'AdBlue / выхлоп', sysOil: 'смазка', sysCool: 'охлаждение',
       sysFuel: 'топливо', sysAir: 'впуск / наддув', sysPower: 'питание',
       sysCan: 'CAN-шина', sysBrake: 'тормоза', sysTrans: 'трансмиссия',
       sysProt: 'защита двигателя', sysOther: 'прочее',
+      actDpf: 'Посмотрите на лампу DPF: ровная, мигает или вместе с check engine. Убедитесь, что не включён выключатель запрета регенерации. Частые причины — короткие поездки и долгая работа на холостых, из-за них выхлоп не греется до очистки; реже — датчик перепада давления, его трубки или форсунка. Дальше по ступени лампы: регенерация на ходу или стояночная по инструкции производителя (не прерывать). Не гаснет после неё — нужен сканер и сервис.',
       actScr: 'Долей AdBlue до полного бака. Если бак полный — дело в дозировании или качестве реагента, нужен сканер.',
       actOil: 'Заглуши двигатель. Проверь уровень масла щупом и осмотри низ на течи. Не заводи, пока давление не восстановится.',
       actCool: 'Дай двигателю остыть — пробку расширительного бачка на горячем не открывай. Потом проверь уровень и патрубки.',
@@ -663,10 +664,11 @@
       vWarnSub: 'Below — how much time you have and what happens if you keep going.',
       shareLabel: 'Send this report',
       shareDone: 'Link copied',
-      sysScr: 'AdBlue / exhaust', sysOil: 'lubrication', sysCool: 'cooling',
+      sysDpf: 'particulate filter (DPF)', sysScr: 'AdBlue / exhaust', sysOil: 'lubrication', sysCool: 'cooling',
       sysFuel: 'fuel', sysAir: 'intake / boost', sysPower: 'power supply',
       sysCan: 'CAN bus', sysBrake: 'brakes', sysTrans: 'transmission',
       sysProt: 'engine protection', sysOther: 'other',
+      actDpf: 'Check the DPF lamp: steady, flashing, or with check engine. Make sure the regeneration inhibit switch is not on. Common causes are short trips and long idling, which keep the exhaust too cool to clean the filter; less often the differential pressure sensor, its tubes or an injector. Then act by the lamp stage: regeneration on the road or a parked one per the manufacturer’s procedure (do not interrupt it). If the lamp stays on afterwards you need a scanner and a shop.',
       actScr: 'Fill the AdBlue tank. If it’s already full, the problem is dosing or reductant quality — you need a scanner.',
       actOil: 'Shut the engine down. Check the oil level with the dipstick and look underneath for leaks. Don’t restart until pressure is back.',
       actCool: 'Let the engine cool — never open the expansion tank cap while hot. Then check the level and the hoses.',
@@ -1916,7 +1918,7 @@
 
   /* Ключи режимов поиска (Мотор и блоки / Отопитель / Тахограф): в языках без
      своего перевода берём английский, а не русский. */
-  var EN_FALLBACK = {modeGroup:1, modeMotor:1, modeHeater:1, modeTacho:1, heaterHint:1, heaterEmpty:1,
+  var EN_FALLBACK = {sysDpf:1, actDpf:1, modeGroup:1, modeMotor:1, modeHeater:1, modeTacho:1, heaterHint:1, heaterEmpty:1,
     heaterBadCode:1, heaterNotFound:1, heaterNotFoundOne:1, brandGroupHeaters:1, brandGroupTacho:1,
     tachoHint:1, tachoPickBrand:1, tachoNotFound:1, tachoNone:1, codeEmpty:1,
     spnTooBig:1, needSpnFmi:1, notParsed:1, dealerAtBrands:1, sysEnginebrake:1,
@@ -3271,8 +3273,12 @@
      ============================================================ */
 
   var SYS_SPN = {
-    scr  :[1761,3216,3226,3242,3246,3250,3251,3361,3363,3364,3480,3609,3610,3719,3936,
-           4090,4094,4095,4096,4225,4334,4364,4782,4809,5394,5841],
+    /* Сажевый фильтр (DPF) - своя система: регенерация, лампа, стояночная
+       процедура. Раньше эти коды лежали в scr, и страница про сажу говорила
+       о мочевине. Основание по каждому коду - в _мозг/дело/dpf-sistema-istochniki.md. */
+    dpf  :[81,3242,3246,3250,3251,3609,3610,3695,3696,3697,3698,3703,3719,3750,3936,4782,5569],
+    scr  :[1761,3216,3226,3361,3363,3364,3480,
+           4090,4094,4095,4096,4225,4334,4364,4809,5394,5841],
     oil  :[98,100,175,1208],
     cool :[110,111,975,1134,4076,4193],
     fuel :[94,95,97,157,164,174,651,652,653,654,655,656,657,658,1076,1077,1239,1347,1348,1349],
@@ -3288,8 +3294,9 @@
   /* Английские слова - для текста записи на английском языке: система должна
      быть та же, что по русскому тексту (иначе язык менял уровень риска). */
   var SYS_WORD = {
-    scr  :['adblue','мочевин','реаген','nox','scr','сажев','катализат','dpf','выхлоп','отработавш',
-           'urea','exhaust','particulate','catalyst'],
+    dpf  :['сажев','dpf','регенерац','particulate','regenerat','soot'],
+    scr  :['adblue','мочевин','реаген','nox','scr','катализат','выхлоп','отработавш',
+           'urea','exhaust','catalyst'],
     oil  :['масл','смазк','oil','lubric'],
     cool :['охлажд','антифриз','радиатор','вентилятор',' ож','coolant','cooling','radiator','fan'],
     fuel :['топлив','форсунк','рампе','рампы','рампа','тнвд','впрыск','солярк',
@@ -3340,7 +3347,8 @@
      сигнал, не тормоза. Исключения поэтому стали списком, а не строкой. */
   var SYS_WORD_EXCLUDE = {' ож':['ожида'], 'аккумул':['гидроаккумул'],
                           'защит':['срабатывание защит'],
-                          'пневмо':['коробк','сигнал']};
+                          'пневмо':['коробк','сигнал'],
+                          'регенерац':['подогревател']};
   /* Напоминания о плановом обслуживании. Это не авария, а срок: блок считает
      наработку и просит заменить масло. Название («масла», «масло») иначе
      уводит их в смазку, а смазка по умолчанию - «ехать нельзя». Поэтому они
@@ -3417,7 +3425,7 @@
     return out;
   }
 
-  var ACT = {scr:'actScr', oil:'actOil', cool:'actCool', fuel:'actFuel',
+  var ACT = {dpf:'actDpf', scr:'actScr', oil:'actOil', cool:'actCool', fuel:'actFuel',
              air:'actAir', power:'actPower', can:'actCan', brake:'actBrake'};
 
   function analyze(codes, brand){
@@ -3558,6 +3566,7 @@
     brake:{                           any:['brake','now']},
     enginebrake:{                     any:['engBrake','watch']},
     scr  :{                           any:['scr','base']},
+    dpf  :{                           any:['dpf','short']},
     power:{                           any:['power','short']},
     can  :{                           any:['can','base']},
     fuel :{elec:['elecGen','watch'],  any:['fuelPhys','short']},
@@ -3597,6 +3606,8 @@
              'Дальше — увеличенный тормозной путь, занос на скользком, отказ на затяжном спуске. Это тот случай, когда «доеду потихоньку» не работает.'],
       scr:['Дозирование мочевины прервано, и блок это считает. Сначала лампа, потом срез момента, потом принудительное ограничение до скорости пешехода — ступени включаются по наработке, а не разом.',
            'Посреди трассы машина не заглохнет, но запас времени тает с каждым часом работы. Планировать ремонт нужно сейчас, а не когда мощности уже не останется: эмулятор и «отключить мочевину» проблему не убирают, коды копятся дальше.'],
+      dpf:['Сажа в фильтре копится быстрее, чем выгорает при регенерации. Лампа предупреждает по ступеням: горит ровно — фильтру нужна регенерация, мигает — нужна срочно, вместе с check engine — мощность уже снижается, красная — эксплуатировать машину нельзя.',
+           'Пока лампа ровная и мощность не упала, до удобного места доехать можно: выберите, где сделать регенерацию, и не откладывайте. Мигает, горит с check engine или мощность упала — остановитесь и выполните стояночную регенерацию по инструкции производителя, не прерывая её; красная лампа — дальше не ехать, сервис. Зола не выгорает: запущенный фильтр чистят или меняют в сервисе. Лечится это регенерацией, чисткой или заменой, а не обходом фильтра.'],
       power:['Бортовая сеть не держит напряжение. Пока двигатель работает, всё тянет генератор; заглушишь — можешь не завестись.',
              'Дальше сядет свет, начнут отваливаться блоки и сыпаться ложные коды по всей машине. До места, где есть помощь, лучше доехать не глуша двигатель.'],
       can:['Блоки перестали слышать друг друга по шине. Часть показаний на панели теперь берётся из воздуха, часть функций просто выключена.',
@@ -3631,6 +3642,8 @@
              'Next comes longer stopping distance, a skid on a slick surface, failure on a long downgrade. This is the case where "I will take it slow" does not work.'],
       scr:['Urea dosing is interrupted and the ECU is counting. First the lamp, then a torque cut, then a forced crawl speed — the stages come in by engine hours, not all at once.',
            'The truck will not die mid-highway, but the window shrinks with every running hour. Plan the repair now, not when the power is gone: an emulator or "deleting AdBlue" does not remove the problem, the codes keep stacking.'],
+      dpf:['Soot builds up in the filter faster than regeneration burns it off. The lamp warns in stages: steady means the filter needs a regeneration, flashing means it is urgent, with check engine the power is already being reduced, red means the truck must not be operated.',
+           'While the lamp is steady and power is normal you can reach a suitable place: choose where to regenerate and do not put it off. If it flashes, comes on with check engine or power has dropped, stop and run a parked regeneration per the manufacturer’s procedure without interrupting it; with a red lamp do not drive on, call a shop. Ash does not burn off: a neglected filter is cleaned or replaced at a shop. The fix is regeneration, cleaning or replacement, not bypassing the filter.'],
       power:['The electrical system is not holding voltage. While the engine runs the alternator carries it; shut it off and you may not restart.',
              'Next the lights go, then modules start dropping out and false codes appear all over the truck. Get to somewhere with help without shutting the engine down.'],
       can:['The modules have stopped hearing each other on the bus. Some dash readings are now made up and some functions are simply off.',

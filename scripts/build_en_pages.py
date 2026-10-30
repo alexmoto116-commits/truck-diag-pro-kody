@@ -64,10 +64,10 @@ BLOCK_SHORT_EN = {
 }
 
 # Названия систем и совет «что проверить» - ключи того же I18N.
-SYS_KEY = {'scr': 'sysScr', 'oil': 'sysOil', 'cool': 'sysCool', 'fuel': 'sysFuel',
+SYS_KEY = {'dpf': 'sysDpf', 'scr': 'sysScr', 'oil': 'sysOil', 'cool': 'sysCool', 'fuel': 'sysFuel',
            'air': 'sysAir', 'power': 'sysPower', 'can': 'sysCan', 'brake': 'sysBrake',
            'trans': 'sysTrans', 'prot': 'sysProt', 'other': 'sysOther'}
-ACT_KEY = {'scr': 'actScr', 'oil': 'actOil', 'cool': 'actCool', 'fuel': 'actFuel',
+ACT_KEY = {'dpf': 'actDpf', 'scr': 'actScr', 'oil': 'actOil', 'cool': 'actCool', 'fuel': 'actFuel',
            'air': 'actAir', 'power': 'actPower', 'can': 'actCan', 'brake': 'actBrake'}
 
 # Единственное, чего в I18N нет: обвязка именно страницы, а не инструмента.
@@ -447,7 +447,10 @@ def build():
             verdict = u'<b>%s.</b> %s' % (i18n['vStop'], i18n['vStopSub'])
         else:
             verdict = u'<b>%s.</b> %s' % (i18n['vWarn'], i18n['vWarnSub'])
-
+            if sys_key == 'dpf':
+                verdict = (u'<b>You can drive on while the DPF lamp is steady and power is not reduced</b> — '
+                           u'plan a regeneration. If the lamp flashes or is red, or power has dropped, stop and '
+                           u'run a parked regeneration per the manufacturer’s procedure; if that fails, see a shop.')
         if std_name(spn):
             page_name = TX['titleStd'] % (spn, name)
             desc = TX['descStd'] % (spn, name)
@@ -515,7 +518,7 @@ def build():
         lvl = lvl_of.get(spn, 'plan')
         tier = bp.tier_of(lvl)
         body.append(u'<p class="vline t-%s"><b>%s</b><span class="hz">%s</span></p>'
-                    % (tier, i18n['vStop'] if stop_of.get(spn) else i18n['vWarn'],
+                    % (tier, i18n['vStop'] if stop_of.get(spn) else (u'Drive with caution' if sys_key == 'dpf' else i18n['vWarn']),
                        bp.esc(risk_h.get(lvl, u''))))
         if not makes:
             body.append(u'<p class="sub">%s</p>' % (TX['subNone'] % spn))
@@ -588,7 +591,7 @@ def build():
     secs = [u'<section><h2>%s</h2><p class="lead">%s</p>%s</section>'
             % (TX['fmiStd'], TX['hubFmiLead'],
                fmi_table(sorted(((int(f), t) for f, t in fmi_en.items())), None, bp.urgent_fmi_for(None, urgent_fmi)))]
-    for key in ['oil', 'cool', 'fuel', 'air', 'scr', 'power', 'can',
+    for key in ['oil', 'cool', 'fuel', 'air', 'scr', 'dpf', 'power', 'can',
                 'brake', 'trans', 'prot', 'other']:
         bucket = by_sys_en.get(key, [])
         if not bucket:
