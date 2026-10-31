@@ -2297,3 +2297,585 @@ EXTRA_BLOCKS.update({
     },
 
 })
+
+
+# ---------------------------------------------------------------------
+# Партия 3 (31.10.2026): шесть марок, русские тексты (ключ brand:<марка>) и
+# английские (ключ brand-en:<марка>, их читает build_en_marki_problemy.py).
+# Источники и проверка - _мозг/черновики/партия-3-марки/istochniki.md.
+EXTRA_BLOCKS.update({
+    "brand:bendix": {
+        "head": [
+            ("Что разобрано на этой странице", [
+                "Bendix - поставщик тормозной электроники: блоки ABS, ATC и ESP для тягачей, грузовиков и прицепов. Страница относится к этой электронике, а не к двигателю и не к самим тормозным механизмам. Коды записаны по J1939: номер узла (SPN) и вид неисправности (FMI) идут парой.",
+                "У Bendix есть и второй способ чтения: блинк-коды. Лампа ABS на приборах выдаёт серию вспышек, и каждый код состоит из двух групп (первая и вторая цифры). В таблицах Bendix каждому блинк-коду соответствуют одновременно номер J1587 (SID), SPN и FMI. Это одна и та же неисправность, записанная тремя способами, а не три разные.",
+            ]),
+            ("Как читать коды этой страницы", [
+                "SPN называет узел, FMI называет вид отказа. Например, в таблице Bendix у датчиков скорости колёс стоят SPN с 789 по 794 (по одному на колесо), а блок управления записан под SPN 629. Общий список FMI одинаков для всех марок: 3 - напряжение выше нормы, 4 - ниже нормы, 2 - данные недостоверны, 9 - аномальная частота обновления.",
+                "Блинк-код нельзя сравнивать с SPN напрямую: это номер, который собирается из числа вспышек. Двузначный блинк-код сначала переводится по таблице Bendix в SPN и FMI и только потом сверяется со страницей. Обратная ошибка тоже встречается: двузначное число принимают за SPN.",
+                "Буквы в описаниях Bendix означают расположение: SA, DA и AA - оси (рулевая, ведущая и дополнительная), Left и Right - сторона. Для кодов колёс это важно: левая и правая стороны одной оси дают разные номера.",
+            ]),
+            ("Как получить блинк-коды", [
+                "По руководству Bendix, режим включается кнопкой диагностики: одно нажатие - активные коды, два - неактивные (записанные раньше), три - стирание активных кодов. Другие нажатия включают проверку конфигурации системы, режим стенда и перенастройку блока. Перед нажатием подождите не менее двух секунд после включения зажигания.",
+                "Блок не входит в режим блинк-кодов, если по датчикам колёс машина движется, а при начале движения выходит из режима. Вспышки идут по полсекунды, пауза между цифрами кода 1,5 секунды, между сообщениями 2,5 секунды, в конце лампа горит 5 секунд. Всё это - из сводки Bendix к блоку EC-60, схема для других блоков может отличаться, поэтому сверяйтесь с листом данных на вашу модель.",
+            ]),
+            ("Что проверить при кодах", [
+                [
+                    "Датчики скорости колёс: зазор до зубчатого кольца, загрязнение, обрыв провода, повреждение разъёма. В таблице Bendix для датчиков колеса есть отдельные записи по зазору и по выходному сигналу при трогании.",
+                    "Клапаны давления (модуляторы): короткое замыкание на массу или на плюс и обрыв цепи записываются отдельными кодами для каждого клапана.",
+                    "Питание: код низкого напряжения аккумулятора идёт отдельной записью. Проверяйте клеммы, массу и предохранитель раньше датчиков.",
+                    "Сеть J1939: у ESP есть записи о недостоверных сообщениях от других блоков. Они указывают на сеть или на соседний блок, а не на тормоза.",
+                    "Датчики ESP: угол поворота руля, скорость рыскания, поперечное ускорение. Для датчика угла в таблице есть запись о незавершённой калибровке, она устраняется калибровкой, а не заменой.",
+                ],
+                "Загрязнённое зубчатое кольцо или окисленный разъём дают код датчика колеса при исправном датчике. Сначала осмотр и очистка, потом замена.",
+            ]),
+            ("Порядок проверки", [
+                "1. Запишите все коды целиком, с SPN и FMI. Если читаете миганием, запишите число вспышек каждой группы и переведите их по таблице на вашу модель блока.",
+                "2. Отдельно отметьте активные и неактивные коды. Неактивный код - это неисправность, которая была, но сейчас не видна.",
+                "3. Проверьте питание и массу блока, затем разъёмы и жгут у оси.",
+                "4. Для датчика колеса осмотрите кольцо и зазор по руководству на ось. Значения в справочнике не приводятся.",
+                "5. После устранения стирайте коды. По руководству Bendix активные коды стираются выключением и включением зажигания, а коды датчиков скорости - только после того, как блок снова видит корректную скорость всех колёс.",
+                "6. Проверьте повтор в обычной поездке. Один запуск без повтора ничего не доказывает.",
+            ]),
+            ("Водителю в рейсе", [
+                "Горящая лампа ABS означает, что антиблокировка не работает, даже если тормоза в целом тормозят. Обычное пневматическое торможение при этом остаётся, но защиты от блокировки колёс нет. На мокрой и скользкой дороге увеличивайте дистанцию и не рассчитывайте на защиту.",
+                "Если вместе с лампой ABS горит красная лампа тормозов или давление воздуха падает, остановитесь в безопасном месте. Одна жёлтая лампа ABS обычно позволяет доехать до сервиса, но откладывать разбор не стоит.",
+            ]),
+            ("Мастеру в сервисе", [
+                "Блинк-коды заменяют сканер только тогда, когда его нет под рукой. Полную таблицу, неактивные коды и историю событий лучше читать диагностическим прибором. Не переводите блинк-код по таблице другой модели блока: нумерация зависит от серии (EC-60, EC-80 и т. д.).",
+                "Не меняйте блок ради одного кода. Сначала питание, масса, разъёмы и жгут. После замены датчика, блока или модулятора может потребоваться калибровка или перенастройка, это указано в листе данных на модель.",
+            ]),
+            ("Связанные страницы", [
+                "[[/marki/wabco.html|WABCO - другая тормозная электроника]], [[/problemy/gorit-lampa-abs.html|горит лампа ABS]]",
+                "[[/kody/spn-629.html|SPN 629 - контроллер №1]], [[/kody/spn-639.html|SPN 639 - сеть J1939 №1]], [[/kody/spn-627.html|SPN 627 - источник питания]]",
+            ]),
+        ],
+        "tail": [
+            ("Вопросы и ответы", [
+                ("Лампа мигнула два раза, пауза, потом семь раз. Это SPN 2 или 7?", "Нет. Блинк-код - это группы вспышек, а не SPN. Его переводят по таблице Bendix в SPN и FMI. Число из вспышек не является SPN."),
+                ("Лампа ABS горит, а тормоза работают. Это нормально?", "Тормоза остаются, но защиты от блокировки колёс нет. Ехать можно осторожно до сервиса, не откладывая разбор."),
+                ("Код датчика колеса. Менять датчик?", "Сначала осмотрите зубчатое кольцо, зазор, разъём и провод. Загрязнение и окисленный контакт дают тот же код при исправном датчике."),
+                ("Код пропал после выключения зажигания. Всё исправно?", "Не обязательно. Активные коды так стираются, а причина остаётся. Посмотрите неактивные коды и проверьте повтор в поездке."),
+            ]),
+        ],
+    },
+    "brand-en:bendix": {
+        "head": [
+            ("What this page covers", [
+                "Bendix supplies brake electronics: ABS, ATC and ESP controllers for tractors, trucks and trailers. The page covers this electronics, not the engine and not the brake mechanisms themselves. The codes follow J1939: a component number (SPN) and a failure mode (FMI) come as a pair.",
+                "Bendix has a second way to read them: blink codes. The ABS lamp in the cluster flashes a sequence, and each code has two groups (a first and a second digit). In Bendix tables each blink code is matched at once to a J1587 number (SID), an SPN and an FMI. It is one fault written three ways, not three different faults.",
+            ]),
+            ("How to read the codes on this page", [
+                "The SPN names the component and the FMI names the failure type. For example, in the Bendix table the wheel speed sensors use SPN 789 to 794 (one per wheel) and the controller is recorded under SPN 629. The FMI list is the same for every make: 3 is voltage above normal, 4 is below normal, 2 is erratic data, 9 is an abnormal update rate.",
+                "A blink code cannot be compared with an SPN directly: it is a number built from a count of flashes. A two-digit blink code is first translated through the Bendix table into SPN and FMI, and only then matched to the page. The reverse mistake also happens: a two-digit number taken for an SPN.",
+                "The letters in Bendix descriptions mean position: SA, DA and AA are axles (steer, drive and additional), Left and Right are the side. This matters for wheel codes: the left and right sides of one axle have different numbers.",
+            ]),
+            ("How to get blink codes", [
+                "According to the Bendix guide, the mode is entered with the diagnostic switch: one press for active codes, two for inactive (stored) codes, three to clear active codes. Other presses start a system configuration check, the dynamometer mode and ECU reconfiguration. Wait at least two seconds after ignition on before pressing.",
+                "The controller does not enter blink code mode if the wheel speed sensors show the vehicle moving, and it leaves the mode when motion starts. Flashes last half a second, the pause between digits is 1.5 seconds, between messages 2.5 seconds, and the lamp stays on for 5 seconds at the end. This is from the Bendix summary for the EC-60 controller; other controllers may differ, so check the service data sheet for your model.",
+            ]),
+            ("What to check for these codes", [
+                [
+                    "Wheel speed sensors: the gap to the tone ring, dirt, a broken wire, a damaged connector. The Bendix table has separate entries for the gap and for low output at drive-off.",
+                    "Pressure modulator valves: a short to ground, a short to voltage and an open circuit are logged as separate codes for each valve.",
+                    "Power supply: a low battery voltage code is a separate entry. Check the terminals, ground and fuse before the sensors.",
+                    "J1939 network: ESP has entries for invalid messages from other controllers. They point to the network or a neighbouring controller, not the brakes.",
+                    "ESP sensors: steering angle, yaw rate, lateral acceleration. For the steering angle sensor the table has an entry for calibration in progress; it is cleared by calibration, not by replacement.",
+                ],
+                "A dirty tone ring or a corroded connector gives a wheel sensor code with a good sensor. Inspect and clean first, replace after.",
+            ]),
+            ("Order of checks", [
+                "1. Write down every code in full, with SPN and FMI. If you read by flashes, write down the count in each group and translate it using the table for your controller model.",
+                "2. Mark active and inactive codes separately. An inactive code is a fault that happened but is not present now.",
+                "3. Check the controller power and ground, then the connectors and the harness at the axle.",
+                "4. For a wheel sensor, inspect the ring and the gap against the manual for that axle. The guide gives no values.",
+                "5. Clear the codes after the repair. According to the Bendix guide, active codes clear by cycling the ignition, and wheel speed sensor codes only once the controller again sees valid speed from all wheels.",
+                "6. Check for a repeat on a normal trip. One start without a repeat proves nothing.",
+            ]),
+            ("For the driver on the road", [
+                "A lit ABS lamp means anti-lock braking is not working, even if the brakes still stop the truck. Ordinary air braking remains, but there is no protection against wheel lock. On wet or slippery roads, increase your following distance and do not count on that protection.",
+                "If the red brake lamp is lit with the ABS lamp, or air pressure is falling, stop in a safe place. A yellow ABS lamp alone usually lets you reach a workshop, but do not put off the check.",
+            ]),
+            ("For the technician", [
+                "Blink codes replace a scan tool only when none is at hand. Read the full table, inactive codes and event history with a diagnostic tool. Do not translate a blink code through the table of another controller model: numbering depends on the series (EC-60, EC-80 and so on).",
+                "Do not replace the controller for one code. Power, ground, connectors and harness first. After a sensor, controller or modulator is replaced, calibration or reconfiguration may be needed; the data sheet for the model says so.",
+            ]),
+            ("Related pages", [
+                "[[/en/marki/wabco.html|WABCO - other brake electronics]], [[/en/problemy/gorit-lampa-abs.html|ABS lamp is on]]",
+                "[[/en/kody/spn-629.html|SPN 629 - controller #1]], [[/en/kody/spn-639.html|SPN 639 - J1939 network #1]], [[/en/kody/spn-627.html|SPN 627 - power supply]]",
+            ]),
+        ],
+        "tail": [
+            ("Questions and answers", [
+                ("The lamp flashed twice, paused, then flashed seven times. Is that SPN 2 or 7?", "No. A blink code is groups of flashes, not an SPN. It is translated through the Bendix table into an SPN and an FMI. A number of flashes is not an SPN."),
+                ("The ABS lamp is on but the brakes work. Is that normal?", "The brakes remain, but there is no protection against wheel lock. You can drive carefully to a workshop, but do not put off the check."),
+                ("A wheel sensor code. Replace the sensor?", "First inspect the tone ring, the gap, the connector and the wire. Dirt and a corroded contact give the same code with a good sensor."),
+                ("The code went away after switching the ignition off. Is everything fine?", "Not necessarily. Active codes clear that way, but the cause remains. Look at the inactive codes and check for a repeat on a trip."),
+            ]),
+        ],
+    },
+    "brand:eberspacher": {
+        "head": [
+            ("Что это за страница", [
+                "Eberspächer - производитель автономных отопителей кабины и двигателя. Эта страница про коды отопителя, а не двигателя, коробки или тормозов. Коды трёхзначные: 000, 011, 020 и так далее. Они относятся к блоку управления отопителя, и блок записывает их сам.",
+                "Основная таблица на странице - Airtronic D2 и D4 (воздушные отопители); коды водяных отопителей Hydronic помечены. Это существенно: у Airtronic и Hydronic номера частично совпадают, а смысл у совпавших номеров бывает разный.",
+            ]),
+            ("Один номер, два отопителя", [
+                "Самый частый источник ошибок - сравнение номеров разных линеек. По заводским руководствам, код 020 у Airtronic - обрыв цепи свечи накаливания, а у Hydronic 16-35 - обрыв цепи блока зажигания. Код 021 у Airtronic - короткое замыкание свечи накаливания, а у Hydronic 16-35 - замыкание на массу в цепи блока зажигания. Код 015 у Airtronic выводится, если после кода 017 (перегрев) отопитель включили снова, а у Hydronic 16-35 - после трёх подряд срабатываний кода 012.",
+                "Поэтому первым делом определите модель отопителя по шильдику. Таблицу сопоставляйте именно с этой моделью. Если модель неизвестна, описание кода считайте подсказкой, а не диагнозом.",
+            ]),
+            ("Как получить код", [
+                "Блок управления Airtronic хранит до пяти неисправностей. Прочитать их можно диагностическим прибором, прибором EDiTH, таймером или пультом (по руководству это модульный таймер, радиопульт TP5 и пульты EasyStart). Текущая неисправность выводится как AF и записывается в ячейку F1, предыдущие сдвигаются в F2 - F5. В примере руководства на дисплее показан код 64, а в таблице он записан как 064: ведущий ноль на дисплее может не показываться.",
+                "Строка 000 в таблице означает «неисправностей нет». Это нормальное состояние, а не сбой.",
+                "Порядок подключения прибора важен. Если нарушить последовательность действий, описанную в руководстве, отопитель запишет ошибку 062 (обрыв в цепи элемента управления) и перейдёт в аварийный режим. Такую запись поэтому нельзя считать причиной проблемы, если она появилась во время диагностики.",
+            ]),
+            ("Основные группы кодов Airtronic", [
+                "Питание. 010 - перенапряжение, отключение; 011 - пониженное напряжение, отключение. При 011 и 099 руководство рекомендует проверить предохранители, питающие провода, минус и клемму плюса на аккумуляторе.",
+                "Перегрев. 012 - перегрев на датчике перегрева, 013 - на датчике пламени, 014 - слишком большая разница температур между ними, 017 - перегрев. После 017 повторное включение даёт 015 (блокировка). Руководство советует проверить воздуховоды горячего воздуха на засор.",
+                "Свеча накаливания. 018 - слишком малая энергия запуска, 019 - слишком малая энергия поджига, 020 - обрыв, 021 - короткое замыкание, перегрузка или замыкание на минус.",
+                "Нагнетатель воздуха. 031 - обрыв, 032 и далее - короткие замыкания и остановка.",
+                "Дозирующий насос. 047, 048, 049 - короткое замыкание, обрыв и выход на плюс.",
+                "Запуск и пламя. 050 - слишком много неудачных запусков (блокировка), 051 - пламя при включении, 052 - превышено время безопасности, 053 - 057 - срыв пламени на разных ступенях мощности. При 052 - 057 руководство предлагает проверить выхлопную трубу и подачу воздуха и топлива.",
+                "Датчики. 060 и 061 - наружный температурный датчик, 064 и 065 - датчик пламени, 071 и 072 - датчик перегрева.",
+                "Блок управления. 090 - 099: внутренние неисправности, ошибки памяти, помехи по напряжению. При 091 руководство советует убрать помехи (слабый аккумулятор, зарядное устройство).",
+                "Пометка со звёздочкой в заводской таблице означает, что код действует только для блока управления нового поколения.",
+            ]),
+            ("Порядок проверки", [
+                "1. Определите модель отопителя и найдите таблицу под неё.",
+                "2. Считайте память неисправностей целиком (до пяти записей) и определите, какая запись текущая.",
+                "3. Проверьте питание: предохранители, провода, масса, клемма плюса, состояние аккумулятора.",
+                "4. Для кодов перегрева проверьте воздуховоды и вентиляцию на засор, потом датчики.",
+                "5. Для кодов пламени и запуска проверьте выхлоп, подачу воздуха и топлива, потом свечу и датчик пламени.",
+                "6. Блок управления меняйте только после проверок и по таблице завода. Если код блокировки (015, 050), блокировка снимается стиранием памяти неисправностей, по руководству пультом, таймером или прибором.",
+            ]),
+            ("Водителю в рейсе", [
+                "Неисправность отопителя не влияет на работу двигателя и тормозов машины. Если появился запах гари, выхлопа или топлива, выключите отопитель, проветрите кабину и не включайте его до проверки.",
+                "Перегрев (012, 013, 014, 017) и блокировка (015, 050) - это защита, а не поломка кабины. Не пытайтесь «обмануть» блокировку повторными включениями: по руководству так и получается код 015.",
+            ]),
+            ("Мастеру в сервисе", [
+                "Перед диагностикой убедитесь, что порядок подключения прибора соответствует руководству: нарушение порядка записывает 062. Ориентируйтесь на заводские страницы с пометкой «Remedial action» для своего номера.",
+                "Не принимайте одинаковые номера у разных моделей за одну неисправность. Для Hydronic D4W SC и D5W S таблица ближе к Airtronic, но не идентична ей.",
+            ]),
+            ("Связанные страницы", [
+                "[[/otopiteli/eberspacher-000.html|Eberspächer 000 - ошибок нет]], [[/otopiteli/eberspacher-011.html|011]], [[/otopiteli/eberspacher-012.html|012]], [[/otopiteli/eberspacher-020.html|020]], [[/otopiteli/eberspacher-021.html|021]]",
+                "[[/marki/webasto.html|Webasto]], [[/marki/planar.html|Планар]], [[/problemy/propalo-pitanie.html|пропало питание]]",
+            ]),
+        ],
+        "tail": [
+            ("Вопросы и ответы", [
+                ("Код 000 - это ошибка?", "Нет. В заводской таблице 000 означает «неисправностей нет»."),
+                ("На дисплее 64, а в таблице 064. Это разные коды?", "Это один код. В примере руководства на дисплее показано 64, в таблице записано 064."),
+                ("Код 020 есть у Airtronic и у Hydronic. Это одна неисправность?", "Нет. У Airtronic 020 - обрыв цепи свечи накаливания, у Hydronic 16-35 - обрыв цепи блока зажигания. Сверяйте с таблицей своей модели."),
+                ("После диагностики отопитель показал 062. Он сломан?", "Не обязательно. По руководству 062 записывается, если нарушить порядок подключения диагностического прибора. Повторите диагностику строго по инструкции."),
+            ]),
+        ],
+    },
+    "brand-en:eberspacher": {
+        "head": [
+            ("What this page is", [
+                "Eberspächer makes independent cab and engine heaters. This page is about heater codes, not engine, gearbox or brake codes. The codes have three digits: 000, 011, 020 and so on. They belong to the heater's control box, which records them itself.",
+                "The main table on the page is Airtronic D2 and D4 (air heaters); codes for the Hydronic water heaters are marked. This matters: Airtronic and Hydronic numbers partly coincide, and the coinciding numbers can mean different things.",
+            ]),
+            ("One number, two heaters", [
+                "The commonest source of mistakes is comparing numbers across heater lines. According to the factory manuals, code 020 on the Airtronic is an open glow plug circuit, while on the Hydronic 16-35 it is an open circuit of the ignition unit. Code 021 on the Airtronic is a short circuit of the glow plug, while on the Hydronic 16-35 it is an earth short in the ignition unit circuit. Code 015 on the Airtronic is shown if the heater was switched on again after code 017 (overheating), while on the Hydronic 16-35 it follows three consecutive occurrences of code 012.",
+                "So first identify the heater model from its rating plate and match the table to that model. If the model is unknown, treat a code description as a hint, not a diagnosis.",
+            ]),
+            ("How to get the code", [
+                "The Airtronic control box stores up to five faults. They can be read with a diagnostic unit, the EDiTH tool, a timer or a remote (in the manual these are the module timer, the TP5 radio remote and the EasyStart controls). The current fault is shown as AF and written to slot F1; earlier ones move to F2 to F5. In the manual's example the display shows code 64 while the table writes it as 064: a leading zero may not be displayed.",
+                "Row 000 in the table means \"no faults\". It is a normal state, not a failure.",
+                "The order of connecting the tool matters. If the sequence described in the manual is not followed, the heater records error 062 (control unit interruption) and goes into emergency operation. Such an entry should therefore not be taken as the cause of the problem if it appeared during diagnosis.",
+            ]),
+            ("Main groups of Airtronic codes", [
+                "Power. 010 is overvoltage cut-off; 011 is undervoltage cut-off. For 011 and 099 the manual recommends checking the fuses, the supply wires, the ground and the positive terminal on the battery.",
+                "Overheating. 012 is overheating at the overheating sensor, 013 at the flame sensor, 014 a too large temperature difference between them, 017 overheating. After 017 a restart gives 015 (lock-out). The manual advises checking the hot air ducts for blockage.",
+                "Glow plug. 018 is too low starting energy, 019 too low ignition energy, 020 an open circuit, 021 a short circuit, overload or short to negative.",
+                "Blower. 031 is an open circuit; 032 and onward are shorts and stalling.",
+                "Metering pump. 047, 048, 049: short circuit, open circuit and short to positive.",
+                "Start and flame. 050 is too many failed start attempts (lock-out), 051 flame detected on switch-on, 052 safety time exceeded, 053 to 057 flame cut-out at different power stages. For 052 to 057 the manual suggests checking the exhaust pipe and the air and fuel supply.",
+                "Sensors. 060 and 061: the external temperature sensor; 064 and 065: the flame sensor; 071 and 072: the overheating sensor.",
+                "Control box. 090 to 099: internal faults, memory errors, voltage interference. For 091 the manual advises removing the interference (a weak battery, a charger).",
+                "An asterisk in the factory table means the code applies only to the new-generation control box.",
+            ]),
+            ("Order of checks", [
+                "1. Identify the heater model and find the table for it.",
+                "2. Read the whole fault memory (up to five entries) and determine which entry is current.",
+                "3. Check power: fuses, wires, ground, positive terminal, battery condition.",
+                "4. For overheating codes, check the air ducts and ventilation for blockage, then the sensors.",
+                "5. For flame and start codes, check the exhaust and the air and fuel supply, then the plug and the flame sensor.",
+                "6. Replace the control box only after these checks and according to the factory table. A lock-out code (015, 050) is cleared by erasing the fault memory, per the manual with a remote, timer or tool.",
+            ]),
+            ("For the driver on the road", [
+                "A heater fault does not affect the work of the engine or the brakes of the vehicle. If you smell burning, exhaust or fuel, switch the heater off, ventilate the cab and do not switch it on until it is checked.",
+                "Overheating (012, 013, 014, 017) and lock-out (015, 050) are protection, not a cab fault. Do not try to \"trick\" the lock-out with repeated restarts: that is exactly how code 015 arises according to the manual.",
+            ]),
+            ("For the technician", [
+                "Before diagnosis make sure the order of connecting the tool matches the manual: breaking the order records 062. Use the factory pages with \"Remedial action\" for your number.",
+                "Do not take equal numbers on different models for one fault. For the Hydronic D4W SC and D5W S the table is closer to the Airtronic but not identical.",
+            ]),
+            ("Related pages", [
+                "[[/en/otopiteli/eberspacher-000.html|Eberspächer 000 - no faults]], [[/en/otopiteli/eberspacher-011.html|011]], [[/en/otopiteli/eberspacher-012.html|012]], [[/en/otopiteli/eberspacher-020.html|020]], [[/en/otopiteli/eberspacher-021.html|021]]",
+                "[[/en/marki/webasto.html|Webasto]], [[/en/marki/planar.html|Planar]], [[/en/problemy/propalo-pitanie.html|power lost]]",
+            ]),
+        ],
+        "tail": [
+            ("Questions and answers", [
+                ("Is code 000 an error?", "No. In the factory table 000 means \"no faults\"."),
+                ("The display shows 64 and the table says 064. Are these different codes?", "It is one code. The manual's example shows 64 on the display and writes 064 in the table."),
+                ("Code 020 exists on the Airtronic and on the Hydronic. Is it the same fault?", "No. On the Airtronic 020 is an open glow plug circuit; on the Hydronic 16-35 it is an open ignition unit circuit. Match it to the table of your model."),
+                ("After diagnosis the heater shows 062. Is it broken?", "Not necessarily. According to the manual, 062 is recorded if the order of connecting the diagnostic tool is not followed. Repeat the diagnosis strictly following the instructions."),
+            ]),
+        ],
+    },
+    "brand:tata": {
+        "head": [
+            ("Что разобрано на этой странице", [
+                "Tata Motors записывает коды двигателя в формате OBD-II: буква P, четыре символа и через дефис ещё два, например P0192-00. На сайте тот же код может быть записан слитно, без дефиса (P019200). Всё вместе - один код: первые пять символов называют неисправность, последние два уточняют её вид.",
+                "Подтверждено официальным руководством Tata Motors по диагностике двигателя 3.3L NGE BS-VI с блоком управления MD1CS018 (версия 1.0 от 15.08.2019, 545 страниц): в нём каждая запись оформлена именно так, с описанием, возможными причинами и последствием для машины. Для других двигателей Tata подтверждения формата мы не нашли, поэтому не переносите описания без проверки.",
+            ]),
+            ("Как читать коды этой страницы", [
+                "Основа P0192 и суффикс -00 вместе - один код. Одна и та же основа с разными суффиксами - разные неисправности. В руководстве Tata, например, у датчика температуры топлива есть четыре записи: P0180-11 (короткое замыкание сигнала на массу), P0180-12 (короткое замыкание на плюс или обрыв), P0180-1C (сигнал с недопустимым градиентом, то есть скачет) и P0180-1F (сигнал недостоверен).",
+                "Суффиксы повторяются от узла к узлу: -11 стоит у записей о замыкании на массу, -12 - о замыкании на плюс, -13 - об обрыве цепи (например, P0627-11, P0627-12 и P0627-13 для реле топливного насоса). Это закономерность по руководству, а не таблица стандарта, поэтому смысл каждого суффикса сверяйте с записью, а не с памятью.",
+                "Код -00 у большинства записей. Нулевой суффикс означает, что тип не уточняется: смысл записан только в описании.",
+                "Коды на букву U относятся к связи между блоками. В руководстве Tata U0102-00 назван общим отключением от шины CAN (Overall disconnection to CAN bus), а причиной указан внутренний отказ электроники блока управления. По общему стандарту SAE тот же номер U0102 означает потерю связи с блоком раздаточной коробки, поэтому читайте описание из руководства, а не по памяти.",
+            ]),
+            ("Основные системы и типовые причины", [
+                "Рампа и подача топлива. Датчик давления в рампе: P0192-00 - замыкание на массу, P0193-00 - замыкание на плюс или обрыв. При P0192-00 в руководстве указано снижение крутящего момента, лампа MIL включена. Отдельные записи есть для отклонений давления в рампе (P0087-00, P0088-00).",
+                "Воздух и наддув. Датчик массового расхода воздуха, датчик давления во впускном коллекторе, датчик температуры воздуха, привод наддува. Здесь много записей по разным контурам одного узла, и важно отличать цепь питания от сигнальной цепи.",
+                "Впрыск. Отдельные записи для обрыва цепи форсунки по цилиндрам (P0201-00 - первый цилиндр, дальше по порядку) и для короткого замыкания верхнего и нижнего плеча каждой форсунки (серия P1201-00 и далее). Номер цилиндра входит в код.",
+                "Рециркуляция выхлопа (EGR) и очистка выхлопа. Клапан EGR, его датчик положения, охлаждение, температуры до и после катализатора и сажевого фильтра.",
+                "Датчики вала. P0335-00 - обрыв датчика коленчатого вала, P0340-00 - нет сигнала датчика распределительного вала.",
+            ]),
+            ("Порядок проверки", [
+                "1. Запишите код целиком, с суффиксом. Без суффикса запись неполная.",
+                "2. Сверьте с описанием в руководстве: узел, цепь (питание, сигнал, масса) и вид отказа.",
+                "3. Начните с напряжения аккумулятора, потом разъёма и штырей датчика с обеих сторон. В руководстве Tata типовая последовательность такая: напряжение питания, соединитель, штыри, затем непрерывность сигнальных проводов.",
+                "4. Для коротких замыканий на массу и на плюс проверьте жгут на трение и влагу, затем датчик.",
+                "5. Заменяйте датчик, когда цепь исправна. Заменённый датчик без устранения причины в жгуте даёт тот же код.",
+                "6. Стирайте коды после ремонта и проверяйте повтор в поездке.",
+            ]),
+            ("Водителю в рейсе", [
+                "В руководстве Tata последствие для машины записано отдельной строкой. У части кодов это снижение крутящего момента (P0192-00), у P0001-00 указан аварийный режим limp-home, у кодов сети (U0102-00) - ступенчатое ограничение: на низком уровне снижение момента, на жёстком режим ползучей скорости. У ряда датчиков температуры последствие не указано (NA), горит только лампа MIL. Если мощность упала или лампа MIL горит вместе с другими лампами, остановитесь и обратитесь в сервис.",
+                "Коды рампы, форсунок и датчиков вала не оставляйте без внимания: езда с ними может вести к потере мощности и остановке двигателя.",
+            ]),
+            ("Мастеру в сервисе", [
+                "Работайте по руководству на свой двигатель и версию блока. Основа кода одна, а проверки у разных двигателей Tata различаются. Не подставляйте описание из таблицы другого двигателя.",
+                "Записывайте вместе с кодом кадр стоп-данных и число повторов.",
+            ]),
+            ("Связанные страницы", [
+                "[[/problemy/gorit-check-engine.html|горит Check Engine]], [[/problemy/upala-moshchnost.html|упала мощность]], [[/problemy/problemy-s-toplivom.html|проблемы с топливом]]",
+                "[[/problemy/oshibka-adblue.html|ошибка AdBlue]], [[/problemy/datchik-nox.html|датчик NOx]]",
+            ]),
+        ],
+        "tail": [
+            ("Вопросы и ответы", [
+                ("P0192-00 и P0192 - это одно и то же?", "Первые пять символов называют неисправность, суффикс уточняет вид. В руководстве Tata кодом считается запись целиком, например P0192-00."),
+                ("P0180-11 и P0180-12 - один и тот же датчик?", "Да, датчик температуры топлива, но неисправности разные: замыкание на массу и замыкание на плюс или обрыв."),
+                ("Что означает U0102-00 в руководстве Tata?", "В руководстве Tata он назван общим отключением от шины CAN, причина - внутренний отказ электроники блока управления. Руководство советует осмотреть блок на повреждения; при устойчивой ошибке блок меняют, затем стирают код и проверяют заново."),
+            ]),
+        ],
+    },
+    "brand-en:tata": {
+        "head": [
+            ("What this page covers", [
+                "Tata Motors records engine codes in an OBD-II style format: the letter P, four characters and, after a hyphen, two more, for example P0192-00. On the site the same code may be written without the hyphen (P019200). Together they are one code: the first five characters name the fault and the last two refine its type.",
+                "This is confirmed by Tata Motors' official diagnostic manual for the 3.3L NGE BS-VI engine with the MD1CS018 control unit (version 1.0 of 15 Aug 2019, 545 pages), in which every entry is laid out this way, with a description, probable causes and the effect on the vehicle. We found no confirmation of the format for other Tata engines, so do not carry descriptions across without checking.",
+            ]),
+            ("How to read the codes on this page", [
+                "The base P0192 and the suffix -00 together are one code. The same base with different suffixes is a different fault. In the Tata manual, for example, the fuel temperature sensor has four entries: P0180-11 (signal shorted to ground), P0180-12 (shorted to battery or open), P0180-1C (signal with an implausible gradient, that is, jumping) and P0180-1F (implausible signal).",
+                "The suffixes repeat from component to component: -11 appears in entries for a short to ground, -12 for a short to battery, -13 for an open circuit (for example, P0627-11, P0627-12 and P0627-13 for the fuel pump relay). This is a pattern in the manual, not a table from a standard, so check the meaning of each suffix against the entry and not from memory.",
+                "Most entries end in -00. A zero suffix means the type is not specified: the meaning is only in the description.",
+                "Codes beginning with the letter U concern the link between controllers. In the Tata manual U0102-00 is named an overall disconnection from the CAN bus (Overall disconnection to CAN bus), and the cause given is an internal failure of the control unit electronics. In the general SAE standard the same number U0102 means lost communication with the transfer case control module, so read the description from the manual, not from memory.",
+            ]),
+            ("Main systems and typical causes", [
+                "Rail and fuel supply. Rail pressure sensor: P0192-00 is a short to ground, P0193-00 is a short to battery or an open circuit. For P0192-00 the manual lists a torque reduction and the MIL on. There are separate entries for rail pressure deviations (P0087-00, P0088-00).",
+                "Air and boost. Mass air flow sensor, manifold pressure sensor, air temperature sensor, boost actuator. There are many entries for different circuits of one component, and it matters to tell the supply circuit from the signal circuit.",
+                "Injection. Separate entries for an open injector circuit by cylinder (P0201-00 is cylinder 1, then in order) and for a short on the high and low side of each injector (the P1201-00 series onward). The cylinder number is part of the code.",
+                "Exhaust gas recirculation (EGR) and exhaust aftertreatment. The EGR valve, its position sensor, cooling, and the temperatures before and after the catalyst and the particulate filter.",
+                "Shaft sensors. P0335-00 is an open crankshaft sensor, P0340-00 is no camshaft signal.",
+            ]),
+            ("Order of checks", [
+                "1. Write the code down in full, with the suffix. Without the suffix the entry is incomplete.",
+                "2. Match it with the description in the manual: the component, the circuit (supply, signal, ground) and the failure type.",
+                "3. Start with the battery voltage, then the sensor connector and pins on both sides. In the Tata manual the typical sequence is: supply voltage, connector, pins, then continuity of the signal wires.",
+                "4. For shorts to ground and to battery, inspect the harness for chafing and moisture, then the sensor.",
+                "5. Replace a sensor when the circuit is good. A new sensor without fixing the harness gives the same code.",
+                "6. Clear the codes after the repair and check for a repeat on a trip.",
+            ]),
+            ("For the driver on the road", [
+                "In the Tata manual the effect on the vehicle is a separate line. For some codes it is a torque reduction (P0192-00), P0001-00 lists limp-home mode, and network codes (U0102-00) have a staged restriction: torque reduction at the low level and creep mode at the severe level. For a number of temperature sensors no effect is given (NA) and only the MIL is lit. If power has dropped or the MIL is lit together with other lamps, stop and contact a workshop.",
+                "Do not ignore rail, injector and shaft sensor codes: driving with them can lead to loss of power and engine stall.",
+            ]),
+            ("For the technician", [
+                "Work from the manual for your engine and module version. The base of the code is the same, but the checks differ between Tata engines. Do not use a description from another engine's table.",
+                "Record the freeze-frame and the occurrence count with the code.",
+            ]),
+            ("Related pages", [
+                "[[/en/problemy/gorit-check-engine.html|Check Engine is on]], [[/en/problemy/upala-moshchnost.html|loss of power]], [[/en/problemy/problemy-s-toplivom.html|fuel problems]]",
+                "[[/en/problemy/oshibka-adblue.html|AdBlue fault]], [[/en/problemy/datchik-nox.html|NOx sensor]]",
+            ]),
+        ],
+        "tail": [
+            ("Questions and answers", [
+                ("Are P0192-00 and P0192 the same thing?", "The first five characters name the fault and the suffix refines the type. In the Tata manual the code is the whole entry, for example P0192-00."),
+                ("Are P0180-11 and P0180-12 the same sensor?", "Yes, the fuel temperature sensor, but the faults differ: a short to ground and a short to battery or open circuit."),
+                ("What does U0102-00 mean in the Tata manual?", "The Tata manual names it an overall disconnection from the CAN bus, with an internal failure of the control unit electronics as the cause. It advises inspecting the unit for damage; if the error persists, the unit is replaced, then the code is cleared and checked again."),
+            ]),
+        ],
+    },
+    "brand:cumminsisf": {
+        "head": [
+            ("Что разобрано на этой странице", [
+                "Cummins ISF - это дизели ISF 2.8 и ISF 3.8 для лёгких грузовиков и фургонов. Их серийно выпускает совместное предприятие Cummins и Foton, поэтому двигатель встречается на машинах разных марок. Страница относится к двигателю, а не к кузовным системам машины.",
+                "Коды на странице записаны собственной нумерацией Cummins: короткие номера вроде 111. Это не SPN. Рядом с таким номером в таблицах Cummins всегда стоит пара J1939 (SPN и FMI) и цвет лампы.",
+            ]),
+            ("Как читать коды этой страницы", [
+                "В таблице Cummins у каждой неисправности три значения: собственный номер, SPN и FMI. Они стоят в разных столбцах, и перепутать их легко. Неисправность 111 - это критический внутренний отказ блока управления (SPN 629, FMI 12, красная лампа). А SPN 111 в стандарте - это датчик уровня охлаждающей жидкости.",
+                "Поэтому не вводите номер 111 в поиск по SPN: вы получите совсем другой узел. Вводите его там, где ищут коды ISF, или переводите в SPN по таблице Cummins.",
+                "Цвет лампы входит в запись. По руководству Cummins жёлтая лампа (Check Engine) требует сервиса при первой возможности, красная лампа Stop Engine - остановки, как только это безопасно.",
+            ]),
+            ("Что есть и чего нет в руководстве по ремонту", [
+                "Руководство по ремонту двигателя ISF3.8 CM2220 (бюллетень 4021704) прямо сообщает, что оно не содержит электронной диагностики топливной системы, и предлагает пользоваться деревьями поиска неисправностей, только когда электронных кодов нет. Для кодов нужен отдельный документ Cummins по неисправностям той же версии блока управления.",
+                "Практический вывод: код ISF нельзя «расшифровать» по общему справочнику ремонта. Нужен номер Cummins, SPN, FMI и версия блока (для 3.8 это CM2220). Две версии блока одного двигателя могут иметь разные пороги и перечень кодов.",
+            ]),
+            ("Порядок проверки", [
+                "1. Запишите номер Cummins, SPN, FMI и цвет лампы. Отметьте, активен код или записан в прошлом.",
+                "2. Если рядом в записи стоит слово ECM или «внутренний отказ», код сообщает о блоке управления, а не о датчике. Сначала питание, масса, предохранитель и разъёмы блока.",
+                "3. Для кодов питания (например, потеря питания при включённом зажигании) осмотрите клеммы аккумулятора, массу двигателя и реле главного питания. Просевшее питание приводит к нескольким кодам подряд.",
+                "4. Для кодов с электрическим FMI (3, 4, 5) начинайте с разъёма и жгута датчика.",
+                "5. Стирайте коды после ремонта и проверяйте повтор на ходу.",
+            ]),
+            ("Водителю в рейсе", [
+                "Красная лампа Stop Engine - остановка, как только это безопасно, без попыток доехать. Жёлтая лампа - обращение в сервис при первой возможности. Лампа MIL (контроль выбросов) вместе с красной лампой тоже означает остановку.",
+                "Не сбрасывайте коды отключением аккумулятора перед сервисом: стёртая история лишает мастера подсказки, в каких условиях код появился.",
+            ]),
+            ("Мастеру в сервисе", [
+                "Сверяйте версию блока управления. Для ISF 3.8 это CM2220 по руководству Cummins. Номера неисправностей одного семейства Cummins в целом совпадают у разных двигателей, но не каждый номер есть у каждого двигателя.",
+                "Не меняйте блок ради одного кода внутреннего отказа без проверки питания и массы блока: после замены такая запись часто возвращается.",
+            ]),
+            ("Связанные страницы", [
+                "[[/marki/cumminsisb.html|Cummins ISB]], [[/marki/cumminsism.html|Cummins ISM]], [[/marki/cumminsisx.html|Cummins ISX]]",
+                "[[/kody/spn-629.html|SPN 629 - контроллер №1]], [[/kody/spn-111.html|SPN 111 - уровень охлаждающей жидкости]], [[/kody/spn-627.html|SPN 627 - источник питания]]",
+            ]),
+        ],
+        "tail": [
+            ("Вопросы и ответы", [
+                ("Код 111 на ISF - это SPN 111?", "Нет. Неисправность Cummins 111 - внутренний отказ блока управления (SPN 629, FMI 12). SPN 111 в стандарте - датчик уровня охлаждающей жидкости."),
+                ("Горит красная лампа. Можно ли доехать?", "Красная лампа означает остановку, как только это безопасно. Доезжать до сервиса на своём ходу не следует."),
+            ]),
+        ],
+    },
+    "brand-en:cumminsisf": {
+        "head": [
+            ("What this page covers", [
+                "Cummins ISF means the ISF 2.8 and ISF 3.8 diesels for light trucks and vans. They are built in series by the Cummins and Foton joint venture, so the engine appears on vehicles of different makes. The page covers the engine, not the body systems of the vehicle.",
+                "The codes on the page use Cummins' own numbering: short numbers such as 111. These are not SPNs. Next to such a number, Cummins tables always give a J1939 pair (SPN and FMI) and a lamp colour.",
+            ]),
+            ("How to read the codes on this page", [
+                "In a Cummins table every fault has three values: its own number, an SPN and an FMI. They sit in separate columns and are easy to mix up. Fault 111 is a critical internal failure of the control module (SPN 629, FMI 12, red lamp). And SPN 111 in the standard is the coolant level sensor.",
+                "So do not type 111 into an SPN search: you will get a completely different component. Enter it where ISF codes are searched, or translate it to an SPN with the Cummins table.",
+                "The lamp colour is part of the entry. According to Cummins, the amber lamp (Check Engine) calls for service at the first opportunity, and the red Stop Engine lamp calls for a stop as soon as it is safe.",
+            ]),
+            ("What the repair manual does and does not contain", [
+                "The ISF3.8 CM2220 service manual (bulletin 4021704) states that it does not contain electronic troubleshooting of the fuel system, and tells the reader to use its troubleshooting trees only when there are no electronic codes. For codes you need a separate Cummins fault code document for the same control module version.",
+                "In practice, an ISF code cannot be decoded from a general repair guide. You need the Cummins number, the SPN, the FMI and the module version (for the 3.8 it is CM2220). Two module versions of the same engine can have different thresholds and different lists of codes.",
+            ]),
+            ("Order of checks", [
+                "1. Write down the Cummins number, SPN, FMI and lamp colour. Note whether the code is active or stored.",
+                "2. If the entry mentions the ECM or an internal failure, the code reports on the control module, not on a sensor. Power, ground, fuse and the module connectors first.",
+                "3. For power codes (for example, power lost with the ignition on), inspect the battery terminals, the engine ground and the main power relay. Sagging power produces several codes in a row.",
+                "4. For codes with an electrical FMI (3, 4, 5), start with the sensor connector and harness.",
+                "5. Clear the codes after the repair and check for a repeat on the road.",
+            ]),
+            ("For the driver on the road", [
+                "The red Stop Engine lamp means stop as soon as it is safe, with no attempt to reach the destination. The amber lamp means a workshop visit at the first opportunity. The MIL (emissions) lamp together with the red lamp also means stop.",
+                "Do not clear codes by disconnecting the battery before the workshop: erased history takes away the technician's clue as to the conditions in which the code appeared.",
+            ]),
+            ("For the technician", [
+                "Check the control module version. For the ISF 3.8 it is CM2220 according to Cummins. Fault numbers within one Cummins family generally match across engines, but not every number exists on every engine.",
+                "Do not replace the module for a single internal-failure code without checking its power and ground: after replacement such an entry often returns.",
+            ]),
+            ("Related pages", [
+                "[[/en/marki/cumminsisb.html|Cummins ISB]], [[/en/marki/cumminsism.html|Cummins ISM]], [[/en/marki/cumminsisx.html|Cummins ISX]]",
+                "[[/en/kody/spn-629.html|SPN 629 - controller #1]], [[/en/kody/spn-111.html|SPN 111 - coolant level]], [[/en/kody/spn-627.html|SPN 627 - power supply]]",
+            ]),
+        ],
+        "tail": [
+            ("Questions and answers", [
+                ("Is code 111 on an ISF the same as SPN 111?", "No. Cummins fault 111 is an internal failure of the control module (SPN 629, FMI 12). SPN 111 in the standard is the coolant level sensor."),
+                ("The red lamp is on. Can I make it to the workshop?", "The red lamp means stop as soon as it is safe. Do not continue under your own power to the workshop."),
+            ]),
+        ],
+    },
+    "brand:cumminsisb": {
+        "head": [
+            ("Что разобрано на этой странице", [
+                "Это раздел двигателя Cummins ISB. Он выделен отдельным блоком, потому что у Cummins своя система записи: рядом с парой J1939 (SPN и FMI) стоит собственный номер неисправности и цвет лампы. На странице КамАЗ этот двигатель тоже упомянут отдельно: его коды разнесены по своему блоку, а не смешаны с кодами самой машины.",
+                "Код двигателя и код машины могут прийти из разных блоков. Если сканер показывает источник кода, запишите его: один и тот же номер в другом блоке может означать другое.",
+            ]),
+            ("Номер Cummins и SPN - два разных номера", [
+                "В таблице Cummins каждая строка содержит собственный номер неисправности, SPN, FMI, цвет лампы и описание. Примеры: неисправность 111 - критический внутренний отказ блока управления, она записана под SPN 629 и FMI 12 с красной лампой; неисправность 343 - внутренний отказ блока управления, предупреждающего уровня, тоже под SPN 629 и FMI 12. Один SPN может скрывать несколько разных номеров Cummins, поэтому по SPN и FMI вы можете выйти не на ту строку.",
+                "И наоборот, одинаковые цифры не говорят об одной неисправности. Номер Cummins 111 и SPN 111 (уровень охлаждающей жидкости) никак не связаны.",
+            ]),
+            ("Общие номера у разных двигателей Cummins", [
+                "Номера неисправностей у Cummins общие для нескольких семейств двигателей: в сводной таблице Cummins по промышленным двигателям серии Q для строки 111 отмечены сразу все двигатели таблицы (QSB 6.7, QSL 9, QSX 15, QSB 4.5, QSF 3.8, QSG12). Это показывает принцип; для дорожного ISB нужна таблица именно вашего двигателя. Но у других строк отметки стоят только у части двигателей. Поэтому код, найденный для ISB, не обязан существовать у соседнего двигателя, и наоборот.",
+                "Практический вывод: ищите код именно по своему двигателю и версии блока. Таблица соседнего двигателя годится как подсказка, но не как подтверждение.",
+            ]),
+            ("Порядок проверки", [
+                "1. Запишите номер Cummins, SPN, FMI, цвет лампы и состояние кода (активен или записан).",
+                "2. Электрические FMI (3, 4, 5): разъём, жгут, масса у датчика. Только после этого датчик.",
+                "3. Данные недостоверны (FMI 2) или частота обновления аномальна (FMI 9): подозревайте сеть J1939 и питание, а не датчик.",
+                "4. Внутренний отказ блока управления: питание, масса, предохранитель, разъёмы блока. Замена блока без этого часто возвращает запись.",
+                "5. Стирайте коды после ремонта и проверяйте повтор на ходу.",
+            ]),
+            ("Водителю в рейсе", [
+                "По руководству Cummins, жёлтая лампа означает обслуживание при первой возможности, красная лампа Stop Engine - остановку, как только это безопасно. Лампа MIL вместе с красной лампой Stop Engine тоже означает остановку и обращение к специалистам.",
+                "Если лампа красная, не пытайтесь дотянуть до сервиса: продолжение движения может усугубить поломку.",
+            ]),
+            ("Мастеру в сервисе", [
+                "Сверяйте номер Cummins со SPN в одной строке одной таблицы. Не переносите описание из таблицы другого двигателя без проверки отметки двигателя.",
+                "Записывайте вместе с кодом кадр стоп-данных и число повторов. Повторяющийся код при тех же условиях указывает на причину, а единичный - на случайный сбой.",
+            ]),
+            ("Связанные страницы", [
+                "[[/marki/kamaz.html|КамАЗ]], [[/marki/cumminsisf.html|Cummins ISF]], [[/marki/cumminsisx.html|Cummins ISX]]",
+                "[[/kody/spn-629.html|SPN 629 - контроллер №1]], [[/kody/spn-639.html|SPN 639 - сеть J1939 №1]]",
+            ]),
+        ],
+        "tail": [
+            ("Вопросы и ответы", [
+                ("Номер Cummins и SPN - это одно и то же?", "Нет. Номер Cummins собственный, SPN из J1939. В таблице Cummins они стоят в разных столбцах рядом с FMI и цветом лампы."),
+                ("Один SPN, а номеров Cummins несколько. Как выбрать?", "Смотрите FMI и описание в строке. Например, SPN 629 с FMI 12 встречается у разных неисправностей блока управления, и различает их именно номер Cummins."),
+                ("Код нашёл в таблице другого двигателя Cummins. Можно доверять?", "Как подсказке - да. Как подтверждению - нет: у части строк отметки есть не у всех двигателей."),
+            ]),
+        ],
+    },
+    "brand-en:cumminsisb": {
+        "head": [
+            ("What this page covers", [
+                "This section covers the Cummins ISB engine. It is a separate block because Cummins has its own recording system: next to the J1939 pair (SPN and FMI) there is its own fault number and a lamp colour. On the KAMAZ page this engine is also mentioned separately: its codes are kept in their own block rather than mixed with the codes of the truck itself.",
+                "An engine code and a truck code can come from different controllers. If the scan tool shows the source of the code, write it down: the same number in another block can mean something else.",
+            ]),
+            ("The Cummins number and the SPN are two different numbers", [
+                "In a Cummins table each row holds its own fault number, an SPN, an FMI, a lamp colour and a description. Examples: fault 111 is a critical internal failure of the control module, recorded under SPN 629 and FMI 12 with a red lamp; fault 343 is a warning-level internal failure of the control module, also under SPN 629 and FMI 12. One SPN can hide several Cummins numbers, so going by SPN and FMI alone may land you on the wrong row.",
+                "And the other way round: equal digits do not mean the same fault. Cummins number 111 and SPN 111 (coolant level) are unrelated.",
+            ]),
+            ("Shared numbers across Cummins engines", [
+                "Cummins fault numbers are shared by several engine families: in the Cummins summary table for industrial Q-series engines, row 111 is marked for every engine in the table (QSB 6.7, QSL 9, QSX 15, QSB 4.5, QSF 3.8, QSG12). This shows the principle; for a road ISB you need the table for your own engine. Other rows, however, are marked for only some of the engines. So a code found for the ISB does not have to exist on a neighbouring engine, and the reverse.",
+                "In practice: look the code up for your own engine and module version. A neighbouring engine's table works as a hint, not as confirmation.",
+            ]),
+            ("Order of checks", [
+                "1. Write down the Cummins number, SPN, FMI, lamp colour and code state (active or stored).",
+                "2. Electrical FMI (3, 4, 5): connector, harness, ground at the sensor. The sensor only after that.",
+                "3. Data erratic (FMI 2) or an abnormal update rate (FMI 9): suspect the J1939 network and the power supply, not the sensor.",
+                "4. Internal failure of the control module: power, ground, fuse, module connectors. Replacing the module without this often brings the entry back.",
+                "5. Clear the codes after the repair and check for a repeat on the road.",
+            ]),
+            ("For the driver on the road", [
+                "According to Cummins, the amber lamp means service at the first opportunity and the red Stop Engine lamp means stop as soon as it is safe. The MIL lamp together with the red Stop Engine lamp also means stop and contact specialists.",
+                "If the lamp is red, do not try to limp to the workshop: continuing to drive can make the damage worse.",
+            ]),
+            ("For the technician", [
+                "Match the Cummins number with the SPN in one row of one table. Do not carry a description over from another engine's table without checking the engine mark.",
+                "Record the freeze-frame and the occurrence count with the code. A code that repeats under the same conditions points to a cause; a one-off points to a random glitch.",
+            ]),
+            ("Related pages", [
+                "[[/en/marki/kamaz.html|KAMAZ]], [[/en/marki/cumminsisf.html|Cummins ISF]], [[/en/marki/cumminsisx.html|Cummins ISX]]",
+                "[[/en/kody/spn-629.html|SPN 629 - controller #1]], [[/en/kody/spn-639.html|SPN 639 - J1939 network #1]]",
+            ]),
+        ],
+        "tail": [
+            ("Questions and answers", [
+                ("Are the Cummins number and the SPN the same thing?", "No. The Cummins number is its own; the SPN is from J1939. In a Cummins table they sit in separate columns next to the FMI and the lamp colour."),
+                ("One SPN but several Cummins numbers. How do I choose?", "Look at the FMI and the description in the row. For example, SPN 629 with FMI 12 occurs for different control module faults, and it is the Cummins number that tells them apart."),
+                ("I found the code in another Cummins engine's table. Can I trust it?", "As a hint, yes. As confirmation, no: some rows are marked for only some engines."),
+            ]),
+        ],
+    },
+    "brand:weichai": {
+        "head": [
+            ("Что разобрано на этой странице", [
+                "Weichai - производитель дизелей, которые ставят на китайские тяжёлые грузовики. Страница относится к двигателям WP10 и WP12. Для WP10 нам удалось найти руководство производителя (серия Landking, Евро-3): двигатель с электронно управляемой топливной системой Common Rail фирмы Bosch. Что формат записи кодов у WP12 и более поздних версий совпадает, мы не подтвердили, поэтому проверяйте его по своей машине.",
+                "По этому руководству коды двигателя Weichai бывают трёхзначными: например, 114 (сигнал датчика коленчатого вала ненормален), 134 (открыт клапан ограничения давления в рампе), 242 (слишком высокая температура охлаждающей жидкости). Это не SPN: номер из трёх цифр записан по собственной системе двигателя.",
+            ]),
+            ("Как читать коды этой страницы", [
+                "Трёхзначный код читается миганием лампы диагностики. Лампа даёт серию вспышек каждый раз, когда выключатель диагностики посылает импульс, и между цифрами кода проходит секунда. В руководстве трёхзначный код показан на примере 321; как именно считать вспышки, берите из руководства. Блок хранит в памяти до десяти ошибок.",
+                "Тот же код можно прочитать диагностическим оборудованием. Руководство называет два способа: диагностический прибор или лампа с кодом вспышек.",
+                "Для сброса вручную в руководстве указано удержание выключателя диагностики при включённом зажигании в течение 4-8 секунд. Те коды, которые остались после сброса, - текущие неисправности. Аппаратные неисправности нужно устранять до очистки памяти блока.",
+                "Не путайте число из трёх цифр с SPN: SPN называет узел по стандарту J1939 и идёт в паре с FMI. Если на странице встретилась пара SPN и FMI, это другой способ записи, и сверять номер из трёх цифр с ним напрямую нельзя.",
+            ]),
+            ("Примеры из руководства", [
+                [
+                    "114 - сигнал датчика вращения коленчатого вала ненормален; 112 - то же из-за ослабленного разъёма датчика (случай из практики в руководстве).",
+                    "134 - открыт клапан ограничения давления в рампе. Руководство разбирает случаи, когда причина оказывалась не в самом клапане.",
+                    "143 - обрыв цепи форсунки третьего цилиндра. Номер цилиндра входит в код.",
+                    "221 - ненормальный сигнал педали акселератора.",
+                    "242 - слишком высокая температура охлаждающей жидкости; 324 - неисправность сигнала частоты вращения.",
+                ],
+                "Примеры иллюстрируют формат. Полный перечень с причинами и действиями смотрите в руководстве на свой двигатель.",
+            ]),
+            ("Порядок проверки", [
+                "1. Считайте все коды, запишите их по порядку появления и отметьте, какие остались после сброса.",
+                "2. Начните с питания и разъёмов: в разобранных случаях руководства причиной не раз оказывались неплотный разъём или жгут.",
+                "3. Для кодов датчика коленчатого вала и частоты вращения проверьте разъём, зазор и состояние зубчатого венца по руководству.",
+                "4. Для кодов давления в рампе не меняйте клапан сразу: проверьте топливо, фильтр и подачу, потом клапан.",
+                "5. После ремонта сбросьте память и проверьте повтор.",
+            ]),
+            ("Водителю в рейсе", [
+                "Записи о температуре охлаждающей жидкости и давлении топлива не откладывайте. Если двигатель теряет мощность, глохнет или перегревается, остановитесь. Одну только запись из таблицы с неясным описанием за повод ехать дальше не считайте.",
+            ]),
+            ("Связанные страницы", [
+                "[[/problemy/peregrev-dvigatelya.html|перегрев двигателя]], [[/problemy/problemy-s-toplivom.html|проблемы с топливом]], [[/problemy/glohnet-na-hodu.html|глохнет на ходу]]",
+            ]),
+        ],
+        "tail": [
+            ("Вопросы и ответы", [
+                ("Код 114 - это SPN 114?", "Нет. Это трёхзначный код двигателя Weichai. SPN идёт в паре с FMI в формате J1939."),
+                ("Как прочитать код без сканера?", "По руководству WP10 - миганием лампы диагностики: три цифры, между ними секунда. Подробности процедуры берите из руководства на свою машину."),
+                ("Очистил память, код вернулся. Что это значит?", "Неисправность осталась. Руководство советует устранить аппаратную причину до очистки памяти."),
+            ]),
+        ],
+    },
+    "brand-en:weichai": {
+        "head": [
+            ("What this page covers", [
+                "Weichai makes diesels fitted to Chinese heavy trucks. The page covers the WP10 and WP12 engines. For the WP10 we found the manufacturer's manual (Landking series, Euro III): an engine with an electronically controlled Bosch common rail fuel system. We did not confirm that the code format of the WP12 and later versions is the same, so check it on your own truck.",
+                "According to this manual, Weichai engine codes can be three digits: for example, 114 (crankshaft sensor signal abnormal), 134 (rail pressure limiting valve open), 242 (coolant temperature too high). These are not SPNs: the three-digit number follows the engine's own system.",
+            ]),
+            ("How to read the codes on this page", [
+                "A three-digit code is read from the diagnostic lamp flashes. The lamp gives a sequence of flashes each time the diagnostic switch sends a pulse, and there is a one-second pause between the digits of a code. The manual shows a three-digit code with the example 321; take the way to count the flashes from the manual. The controller keeps up to ten errors in memory.",
+                "The same code can be read with diagnostic equipment. The manual names two ways: a diagnostic tool or the lamp with the flash code.",
+                "For a manual reset the manual says to hold the diagnostic switch with the ignition on for 4 to 8 seconds. Codes that remain after the reset are current faults. Hardware faults should be fixed before the controller memory is cleared.",
+                "Do not confuse a three-digit number with an SPN: the SPN names the component under J1939 and comes paired with an FMI. If the page shows an SPN and FMI pair, that is a different way of recording and a three-digit number cannot be compared with it directly.",
+            ]),
+            ("Examples from the manual", [
+                [
+                    "114 - crankshaft rotation sensor signal abnormal; 112 - the same because of a loose sensor connector (a case in the manual).",
+                    "134 - rail pressure limiting valve open. The manual works through cases where the cause turned out not to be the valve itself.",
+                    "143 - open circuit of the cylinder 3 injector. The cylinder number is part of the code.",
+                    "221 - abnormal accelerator pedal signal.",
+                    "242 - coolant temperature too high; 324 - speed signal fault.",
+                ],
+                "The examples illustrate the format. For the full list with causes and actions see the manual for your engine.",
+            ]),
+            ("Order of checks", [
+                "1. Read all the codes, write them down in order of appearance and note which remained after the reset.",
+                "2. Start with power and connectors: in the cases analysed in the manual the cause more than once turned out to be a loose connector or harness.",
+                "3. For crankshaft sensor and speed codes, check the connector, the gap and the condition of the tone wheel according to the manual.",
+                "4. For rail pressure codes, do not replace the valve at once: check the fuel, the filter and the supply, then the valve.",
+                "5. After the repair, reset the memory and check for a repeat.",
+            ]),
+            ("For the driver on the road", [
+                "Do not put off entries about coolant temperature and fuel pressure. If the engine loses power, stalls or overheats, stop. Do not treat a lone entry with an unclear description as a reason to keep driving.",
+            ]),
+            ("Related pages", [
+                "[[/en/problemy/peregrev-dvigatelya.html|engine overheating]], [[/en/problemy/problemy-s-toplivom.html|fuel problems]], [[/en/problemy/glohnet-na-hodu.html|engine stalls while driving]]",
+            ]),
+        ],
+        "tail": [
+            ("Questions and answers", [
+                ("Is code 114 the same as SPN 114?", "No. It is a three-digit Weichai engine code. The SPN comes paired with an FMI in the J1939 format."),
+                ("How do I read a code without a scan tool?", "According to the WP10 manual, from the diagnostic lamp flashes: three digits with a one-second pause between them. Take the procedure details from the manual for your truck."),
+                ("I cleared the memory and the code came back. What does that mean?", "The fault is still there. The manual advises fixing the hardware cause before clearing the memory."),
+            ]),
+        ],
+    },
+})
