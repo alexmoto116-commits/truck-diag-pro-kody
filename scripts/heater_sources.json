@@ -2462,6 +2462,7 @@
      ],
      "remedy": "Заменить блок управления; блокировку снять (включить, вынуть предохранитель, вставить через 2 с и включить снова).",
      "ru": "Ошибка блока управления, блокировка отопителя или неисправен внутренний датчик комнатной температуры.",
+     "single_manual": true,
      "sources": [
       {
        "doc": "Webasto Air Top Evo 40 / 55, Workshop Manual, 5.4 Fault code displayed in control element, Fig. 503",
@@ -2488,6 +2489,7 @@
      ],
      "remedy": "",
      "ru": "Общая группа: предохранители, проводка, блокировка отопителя, блок управления.",
+     "single_manual": true,
      "sources": [
       {
        "doc": "Webasto Thermo Pro 90, Workshop Manual, 5.5 Fault code table",
@@ -2572,6 +2574,7 @@
      ],
      "remedy": "Проверить подачу топлива, датчик температуры выхлопа на отложения, держатель испарителя.",
      "ru": "Пламя не образовалось (83 здесь - превышена максимальная подача).",
+     "single_manual": true,
      "sources": [
       {
        "doc": "Webasto Air Top Evo 40 / 55, Workshop Manual, 5.4 Fault code displayed in control element, Fig. 503",
@@ -2594,6 +2597,7 @@
      ],
      "remedy": "",
      "ru": "Пламя не появилось.",
+     "single_manual": true,
      "sources": [
       {
        "doc": "Webasto Thermo Pro 90, Workshop Manual, 5.5 Fault code table",
@@ -2674,6 +2678,7 @@
      ],
      "remedy": "Те же проверки, что для F01.",
      "ru": "Пламя погасло в работе и не восстановилось после повторной попытки.",
+     "single_manual": true,
      "sources": [
       {
        "doc": "Webasto Air Top Evo 40 / 55, Workshop Manual, 5.4 Fault code displayed in control element, Fig. 503",
@@ -2694,6 +2699,7 @@
      ],
      "remedy": "",
      "ru": "Пламя погасло в работе.",
+     "single_manual": true,
      "sources": [
       {
        "doc": "Webasto Thermo Pro 90, Workshop Manual, 5.5 Fault code table",
@@ -2771,6 +2777,7 @@
      ],
      "remedy": "",
      "ru": "Напряжение ниже 10,5/20,5 В дольше 20 с (84) или выше 16/32 В дольше 6 с (04).",
+     "single_manual": true,
      "sources": [
       {
        "doc": "Webasto Air Top Evo 40 / 55, Workshop Manual, 5.4 Fault code displayed in control element, Fig. 503",
@@ -2791,6 +2798,7 @@
      ],
      "remedy": "",
      "ru": "В таблице - 'Supply voltage too high'.",
+     "single_manual": true,
      "sources": [
       {
        "doc": "Webasto Thermo Pro 90, Workshop Manual, 5.5 Fault code table",
@@ -2864,6 +2872,7 @@
      ],
      "remedy": "Проверить датчик температуры выхлопа, заменить при необходимости.",
      "ru": "Датчик температуры выхлопа увидел пламя до начала горения.",
+     "single_manual": true,
      "sources": [
       {
        "doc": "Webasto Air Top Evo 40 / 55, Workshop Manual, 5.4 Fault code displayed in control element, Fig. 503",
@@ -2883,6 +2892,7 @@
      ],
      "remedy": "",
      "ru": "Пламя обнаружено до горения (датчик температуры выхлопа).",
+     "single_manual": true,
      "sources": [
       {
        "doc": "Webasto Thermo Pro 90, Workshop Manual, 5.5 Fault code table",
@@ -2991,6 +3001,7 @@
      ],
      "remedy": "",
      "ru": "Короткое замыкание/обрыв датчика температуры.",
+     "single_manual": true,
      "sources": [
       {
        "doc": "Webasto Thermo Pro 90, Workshop Manual, 5.5 Fault code table",
@@ -3067,6 +3078,7 @@
      ],
      "remedy": "Проверить проводку и насос.",
      "ru": "Обрыв или КЗ в цепи топливного насоса.",
+     "single_manual": true,
      "sources": [
       {
        "doc": "Webasto Air Top Evo 40 / 55, Workshop Manual, 5.4 Fault code displayed in control element, Fig. 503",
@@ -3087,6 +3099,7 @@
      ],
      "remedy": "",
      "ru": "КЗ/обрыв топливного насоса.",
+     "single_manual": true,
      "sources": [
       {
        "doc": "Webasto Thermo Pro 90, Workshop Manual, 5.5 Fault code table",
@@ -3271,6 +3284,7 @@
      ],
      "remedy": "Проверить свечу, заменить при необходимости.",
      "ru": "КЗ или обрыв свечи накаливания.",
+     "single_manual": true,
      "sources": [
       {
        "doc": "Webasto Air Top Evo 40 / 55, Workshop Manual, 5.4 Fault code displayed in control element, Fig. 503",
@@ -3292,6 +3306,7 @@
      ],
      "remedy": "",
      "ru": "КЗ цепи свечи.",
+     "single_manual": true,
      "sources": [
       {
        "doc": "Webasto Thermo Pro 90, Workshop Manual, 5.5 Fault code table",
@@ -3377,6 +3392,7 @@
      ],
      "remedy": "Найти причину перегрева в воздуховодах.",
      "ru": "Перегрев по датчику выходящего воздуха или по датчику платы либо превышен градиент температуры.",
+     "single_manual": true,
      "sources": [
       {
        "doc": "Webasto Air Top Evo 40 / 55, Workshop Manual, 5.4 Fault code displayed in control element, Fig. 503",
@@ -3398,6 +3414,7 @@
      ],
      "remedy": "",
      "ru": "Перегрев отопителя.",
+     "single_manual": true,
      "sources": [
       {
        "doc": "Webasto Thermo Pro 90, Workshop Manual, 5.5 Fault code table",
@@ -3480,6 +3497,7 @@
      ],
      "remedy": "",
      "ru": "КЗ цепи насоса.",
+     "single_manual": true,
      "sources": [
       {
        "doc": "Webasto Thermo Pro 90, Workshop Manual, 5.5 Fault code table",
@@ -3530,6 +3548,7 @@
      ],
      "remedy": "",
      "ru": "КЗ цепи выключателя массы.",
+     "single_manual": true,
      "sources": [
       {
        "doc": "Webasto Thermo Pro 90, Workshop Manual, 5.5 Fault code table",
@@ -3576,6 +3595,7 @@
      ],
      "remedy": "",
      "ru": "КЗ цепи вентилятора.",
+     "single_manual": true,
      "sources": [
       {
        "doc": "Webasto Thermo Pro 90, Workshop Manual, 5.5 Fault code table",
@@ -3651,6 +3671,7 @@
      ],
      "remedy": "Проверить датчик, заменить при необходимости.",
      "ru": "КЗ или обрыв датчика.",
+     "single_manual": true,
      "sources": [
       {
        "doc": "Webasto Air Top Evo 40 / 55, Workshop Manual, 5.4 Fault code displayed in control element, Fig. 503",
@@ -3671,6 +3692,7 @@
      ],
      "remedy": "",
      "ru": "КЗ/обрыв датчика перегрева.",
+     "single_manual": true,
      "sources": [
       {
        "doc": "Webasto Thermo Pro 90, Workshop Manual, 5.5 Fault code table",
@@ -3744,6 +3766,7 @@
      ],
      "remedy": "",
      "ru": "Цепь питания свечи неисправна.",
+     "single_manual": true,
      "sources": [
       {
        "doc": "Webasto Thermo Pro 90, Workshop Manual, 5.5 Fault code table",
@@ -3788,6 +3811,7 @@
      ],
      "remedy": "Проверить проходимость воздуха горения и выхлопа, настройку CO2, сажу в теплообменнике.",
      "ru": "Превышен верхний предел температуры выхлопных газов.",
+     "single_manual": true,
      "sources": [
       {
        "doc": "Webasto Air Top Evo 40 / 55, Workshop Manual, 5.4 Fault code displayed in control element, Fig. 503",
@@ -3808,6 +3832,7 @@
      ],
      "remedy": "",
      "ru": "Слишком высокая температура выхлопных газов.",
+     "single_manual": true,
      "sources": [
       {
        "doc": "Webasto Thermo Pro 90, Workshop Manual, 5.5 Fault code table",
@@ -3854,6 +3879,7 @@
      ],
      "remedy": "Заменить датчик температуры выхлопа.",
      "ru": "КЗ на массу (1A) или обрыв (9A) датчика температуры выхлопных газов.",
+     "single_manual": true,
      "sources": [
       {
        "doc": "Webasto Air Top Evo 40 / 55, Workshop Manual, 5.4 Fault code displayed in control element, Fig. 503",
@@ -3874,6 +3900,7 @@
      ],
      "remedy": "",
      "ru": "Обрыв или КЗ датчика температуры выхлопа.",
+     "single_manual": true,
      "sources": [
       {
        "doc": "Webasto Thermo Pro 90, Workshop Manual, 5.5 Fault code table",
@@ -3895,6 +3922,7 @@
      ],
      "remedy": "Проверить проводку, заменить элемент управления.",
      "ru": "Обрыв или КЗ на плюс в цепи датчика уставки.",
+     "single_manual": true,
      "sources": [
       {
        "doc": "Webasto Air Top Evo 40 / 55, Workshop Manual, 5.4 Fault code displayed in control element, Fig. 503",
@@ -3916,6 +3944,7 @@
      ],
      "remedy": "Проверить датчики и заменить неисправный.",
      "ru": "Не пройдена проверка достоверности датчиков.",
+     "single_manual": true,
      "sources": [
       {
        "doc": "Webasto Air Top Evo 40 / 55, Workshop Manual, 5.4 Fault code displayed in control element, Fig. 503",
