@@ -37,7 +37,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import build_pages as bp                                    # noqa: E402
 import build_en_pages as be                                 # noqa: E402
 from build_lang_pages import extract_js_object               # noqa: E402
-from marki_problemy_texts import BRAND_TEXT, PROBLEM_TEXT    # noqa: E402
+from marki_problemy_texts import BRAND_TEXT, PROBLEM_TEXT, EXTRA_BLOCKS    # noqa: E402
 
 ROOT = bp.ROOT
 SITE = bp.SITE
@@ -363,6 +363,12 @@ def page_en(path, title, desc, h1, sub, sections, section=None, rel_ru=None, her
               and not path.endswith('index.html') else None)
     body.append(bp.search_form(_марка, ph=u'Your code, e.g. 1078/3', action=u'/en/', btn=u'Search', label=u'Fault code'))
     body.append(u'<p class="sub">%s</p>' % sub)
+    # Дописанные английские блоки марки (EXTRA_BLOCKS, ключ brand-en:<марка>):
+    # 'head' идёт сразу после вводного блока, 'tail' - в конец, как на русской.
+    _ekey = u'brand-en:%s' % _марка if _марка else None
+    if _ekey and _ekey in EXTRA_BLOCKS:
+        sections = (list(sections[:1]) + [bp.extra_html(_ekey, 'head')]
+                    + list(sections[1:]) + [bp.extra_html(_ekey, 'tail')])
     body.extend(sections)
     body.append(u'<p class="cta">Know the code number? <a href="%s">Type it into the '
                 u'search</a> — or paste the whole list from the scanner and we will '
