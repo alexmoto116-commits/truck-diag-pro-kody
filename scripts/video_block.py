@@ -6,10 +6,13 @@
 (spn-97, planar-13, eberspacher-011). Поля: topic (тема в подписи), duration (секунды), poster (путь от корня сайта; файл лежит в assets/video/), w, h,
 vk, vk_embed, youtube, dzen, telegram.
 
-Плеер заранее не грузится: картинка-ссылка. Если задан vk_embed, по нажатию
-вставляется iframe ВК-плеера (скрипт попадает на страницу только в этом
-случае), иначе ссылка просто открывается в новой вкладке.
-Разметку VideoObject не ставим: плеера на странице нет, а Google требует видео на странице.
+Плеер заранее не грузится: обложка с кнопкой. Если задан youtube_id, по нажатию
+вставляется iframe youtube-nocookie (31.10.2026); иначе, если задан vk_embed, -
+плеер ВК; иначе ссылка просто открывается в новой вкладке. Скрипт попадает на
+страницу только когда есть встраиваемый плеер.
+Разметка VideoObject (JSON-LD) ставится, когда есть youtube_id, name и uploadDate:
+поля name, uploadDate (с поясом), duration берутся со страницы ролика на Ютубе
+и лежат в video_razbory.json. thumbnailUrl - своя обложка (постоянный адрес).
 """
 import io, json, os, re
 from html import escape
@@ -43,7 +46,7 @@ CSS = u"""<style>
 JS = u"""<script>
 document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('.vplay[data-embed]');
 if(!a||e.metaKey||e.ctrlKey||e.shiftKey)return;e.preventDefault();var f=document.createElement('iframe');
-f.src=a.getAttribute('data-embed');f.allow='autoplay; encrypted-media; fullscreen; picture-in-picture';f.allowFullscreen=true;
+f.src=a.getAttribute('data-embed');f.setAttribute('referrerpolicy','strict-origin-when-cross-origin');f.allow='autoplay; encrypted-media; fullscreen; picture-in-picture';f.allowFullscreen=true;
 f.title=a.getAttribute('data-title')||'Видеоразбор';a.textContent='';a.appendChild(f);a.parentNode.classList.add('on');
 a.removeAttribute('href');});
 </script>"""
@@ -52,6 +55,27 @@ a.removeAttribute('href');});
 def _yt_id(url):
     m = re.search(r'(?:shorts/|v=|youtu\.be/|embed/)([\w-]{11})', url or '')
     return m.group(1) if m else None
+
+
+def _iso_dur(sec):
+    return 'PT%dM%dS' % (sec // 60, sec % 60)
+
+
+def ld(slug):
+    """JSON-LD VideoObject или пустая строка, если данных не хватает."""
+    v = DATA.get(slug)
+    if not v or not v.get('youtube_id') or not v.get('name') or not v.get('uploadDate'):
+        return u''
+    obj = {'@context': 'https://schema.org', '@type': 'VideoObject',
+           'name': v['name'],
+           'description': u'Видеоразбор: %s. Что означает код, можно ли ехать и что проверить.' % v['topic'],
+           'thumbnailUrl': [SITE + v['poster']],
+           'uploadDate': v['uploadDate'],
+           'embedUrl': 'https://www.youtube.com/embed/' + v['youtube_id'],
+           'inLanguage': 'ru'}
+    if v.get('duration'):
+        obj['duration'] = _iso_dur(int(v['duration']))
+    return u'<script type="application/ld+json">%s</script>' % json.dumps(obj, ensure_ascii=False)
 
 
 def has(slug):
@@ -65,7 +89,10 @@ def block(slug):
     topic = v['topic']
     cap = u'Видеоразбор: %s, %d с' % (topic, v['duration'])
     primary = v.get('vk') or v.get('youtube') or v.get('dzen') or v.get('telegram') or TG
-    embed = v.get('vk_embed')
+    yt = v.get('youtube_id')
+    embed = ('https://www.youtube-nocookie.com/embed/%s?autoplay=1&rel=0&playsinline=1' % yt) if yt else v.get('vk_embed')
+    if yt:
+        primary = v.get('youtube') or primary
     links = []
     for key, name in (('vk', u'ВК'), ('youtube', u'Ютуб'), ('rutube', u'Рутуб'), ('telegram', u'Телеграм'), ('dzen', u'Дзен')):
         if v.get(key):
@@ -90,4 +117,5 @@ def block(slug):
     out.append(u'</section>')
     if embed:
         out.append(JS)
+    out.append(ld(slug))
     return u''.join(out)

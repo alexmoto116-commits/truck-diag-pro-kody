@@ -295,6 +295,41 @@ def build():
         return ((i18n.get(key) if key else None) or brand_en.get(b)
                 or brand_names.get(b, b))
 
+    # Перелинковка (31.10.2026): страница кода ссылается на марки и на проблемы,
+    # где этот код перечислен. Пул кодов проблемы считается так же, как на
+    # страницах en/problemy/ (см. build_en_marki_problemy.py).
+    import build_en_marki_problemy as _bemp                 # noqa: E402
+    ru_sym = {r[0]: r for r in bp.SYMPTOMS}
+    sym_en = [(sl, ru_sym[sl][4], ru_sym[sl][6]) for sl in _bemp.SYMPTOMS_EN if sl in ru_sym]
+    by_sys_open_en = {}
+    for s_ in sorted(open_en):
+        by_sys_open_en.setdefault(sys_of.get(s_, 'other'), []).append(s_)
+    pools_en = bp.problem_pools(sym_en, open_en, by_sys_open_en,
+                                lambda x: bool(stop_of.get(x)), sorted(open_en))
+    probs_of_code = {}
+    for sl_, cs_ in pools_en.items():
+        for c_ in cs_:
+            probs_of_code.setdefault(c_, []).append(sl_)
+
+    blocks_open_en = {m for m in bp.KAMAZ_GROUP if any(m in per_en.get(x, {}) for x in open_en)}
+
+    def links_block_en(spn, makes):
+        out = []
+        bl = sorted((b for b in makes if b not in OWN_NUMBERING_EN),
+                    key=lambda b: (bp.ЧАСТЫЕ_МАРКИ.index(b) if b in bp.ЧАСТЫЕ_МАРКИ else 99, bname(b)))
+        if bl:
+            out.append(u'<section><h2>Makes with this code</h2><p class="jump">%s</p></section>'
+                       % u''.join(u'<a href="%s">%s</a>' % (
+                           ('../marki/kamaz.html' + ('#blk-' + b if b in blocks_open_en else ''))
+                           if b in bp.BLOCK_ONLY else '../marki/%s.html' % b,
+                           bp.esc(bname(b))) for b in bl))
+        pr = probs_of_code.get(spn, [])[:4]
+        if pr:
+            out.append(u'<section><h2>Related problems</h2><ul class="near">%s</ul></section>'
+                       % u''.join(u'<li><a href="../problemy/%s.html"><span class="nm">%s</span></a></li>'
+                                  % (sl, bp.esc(_bemp.SYMPTOMS_EN[sl][1])) for sl in pr))
+        return u''.join(out)
+
     def brand_list(spn, limit=0):
         names = sorted(bname(b) for b in per_en.get(spn, {}))
         if not names:
@@ -581,6 +616,7 @@ def build():
             body.append(u'<section><h2>Related codes</h2><ul class="near">%s</ul></section>'
                         % ''.join(code_link(s, 'spn-%d.html' % s) for s in similar))
 
+        body.append(links_block_en(spn, makes))
         body.append(bp.extra_html('code-en:%d' % spn, 'tail'))
         body.append(u'<p class="cta">%s</p>' % TX['cta'])
         body.append(u'</div>\n' + bp.CF_SNIPPET + u'\n</body>\n</html>\n')

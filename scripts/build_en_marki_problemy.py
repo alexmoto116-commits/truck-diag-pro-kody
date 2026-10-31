@@ -532,6 +532,26 @@ def build():
     en_marki, en_problemy = set(), set()
 
     # --- по маркам: SPN/FMI (стандарт) -----------------------------
+    # Перелинковка (31.10.2026): какие коды перечислены на страницах проблем.
+    ru_sym_ = {r[0]: r for r in bp.SYMPTOMS}
+    by_sys_open_ = {}
+    for s_ in sorted(set(written) - closed):
+        by_sys_open_.setdefault(sys_of.get(s_, 'other'), []).append(s_)
+    pools_en = bp.problem_pools([(sl, ru_sym_[sl][4], ru_sym_[sl][6]) for sl in SYMPTOMS_EN if sl in ru_sym_],
+                                set(written) - closed, by_sys_open_, is_stop, sorted(set(written) - closed))
+
+    def brand_probs_en(b, members):
+        if b in bp.OWN_NUMBERING:
+            return u''
+        codes = [x for x in sorted(set(written) - closed) if any(m in per_en.get(x, {}) for m in members)]
+        pr = bp.brand_problems(codes, pools_en)
+        if not pr:
+            return u''
+        return (u'<section><h2>Related problems</h2><p class="lead">Problem pages that cover codes of this make.</p>'
+                u'<ul class="near">%s</ul></section>'
+                % u''.join(u'<li><a href="../problemy/%s.html"><span class="nm">%s</span></a></li>'
+                           % (sl, bp.esc(SYMPTOMS_EN[sl][1])) for sl in pr))
+
     brands = ru_db['brands']
     for b in sorted(brands, key=lambda x: bname(x)):
         if b in bp.BLOCK_ONLY:
@@ -633,6 +653,7 @@ def build():
                            lambda s, _r: is_stop(s),
                            [t for _, t in (dealer_rows_en or [])],
                            exclude=stop_codes))
+        secs.append(brand_probs_en(b, members))
         secs.insert(0, brand_intro_en(b, nums, top))
         if b in bp.HEATER_BRANDS:
             secs.append(heater_section_en(b, bname(b)))
@@ -703,6 +724,7 @@ def build():
         bn_en = bname(b)
         secs = [u'<section><h2>%s</h2>%s</section>'
                 % (MK['dealerHead'] % bn_en, bp.pcode_table(bp.sample_rows(rows)))]
+        secs.append(brand_probs_en(b, [b]))
         secs.insert(0, brand_intro_en(
             b, {'dealer': len(rows)},
             bp.top_spns(b, per_en, lambda s: s in set(written) and s not in closed,
