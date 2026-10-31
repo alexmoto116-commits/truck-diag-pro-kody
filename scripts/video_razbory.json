@@ -7,7 +7,7 @@
   "vk": "https://vk.ru/clip-242705793_456239019",
   "vk_embed": null,
   "youtube": "https://youtube.com/shorts/9eU06hw1h58",
-  "dzen": null,
+  "dzen": "https://dzen.ru/shorts/6ae59600b7a7eb3f828f7f4e",
   "telegram": "https://t.me/codetruck/5",
   "duration": 28,
   "rutube": "https://rutube.ru/shorts/3b69f43f8c77ef1e031ce7caabbb5e56/"
@@ -19,8 +19,8 @@
   "h": 480,
   "vk": "https://vk.ru/clip-242705793_456239018",
   "vk_embed": null,
-  "youtube": null,
-  "dzen": null,
+  "youtube": "https://youtube.com/shorts/wyw_N1MuGtk",
+  "dzen": "https://dzen.ru/shorts/6ae3428d4e1c1848277d8711",
   "telegram": "https://t.me/codetruck/6",
   "duration": 36,
   "rutube": "https://rutube.ru/shorts/9fb09e11738aa16335f65ca06d8eb926/"
@@ -37,5 +37,44 @@
   "telegram": "https://t.me/codetruck/7",
   "duration": 35,
   "rutube": "https://rutube.ru/shorts/6a11d7db3f51811b50483ab15209639c/"
+ },
+ "spn-107": {
+  "topic": "Мерседес SPN 107 — перепад на воздушном фильтре",
+  "poster": "/assets/video/spn-107.webp",
+  "w": 270,
+  "h": 480,
+  "vk": "https://vk.ru/clip-242705793_456239020",
+  "vk_embed": null,
+  "youtube": "https://youtube.com/shorts/XG9kLfA7ZzM",
+  "dzen": "https://dzen.ru/shorts/6ae58f71ffd69737bf79fef6",
+  "telegram": "https://t.me/codetruck/9",
+  "duration": 32,
+  "rutube": "https://rutube.ru/shorts/72fc941f3255a6f39d37b05cc3b9a792/"
+ },
+ "webasto-f01": {
+  "topic": "Вебасто F01 и F02 — нет запуска и срыв пламени",
+  "poster": "/assets/video/webasto-f01-f02.webp",
+  "w": 270,
+  "h": 480,
+  "vk": "https://vk.ru/clip-242705793_456239021",
+  "vk_embed": null,
+  "youtube": "https://youtube.com/shorts/O0iMZTg-elU",
+  "dzen": "https://dzen.ru/shorts/6ae58fedffd69737bf7aaa17",
+  "telegram": "https://t.me/codetruck/10",
+  "duration": 37,
+  "rutube": "https://rutube.ru/shorts/b5bf36fb8ff3b5219d1cc2798261af38/"
+ },
+ "webasto-f02": {
+  "topic": "Вебасто F01 и F02 — нет запуска и срыв пламени",
+  "poster": "/assets/video/webasto-f01-f02.webp",
+  "w": 270,
+  "h": 480,
+  "vk": "https://vk.ru/clip-242705793_456239021",
+  "vk_embed": null,
+  "youtube": "https://youtube.com/shorts/O0iMZTg-elU",
+  "dzen": "https://dzen.ru/shorts/6ae58fedffd69737bf7aaa17",
+  "telegram": "https://t.me/codetruck/10",
+  "duration": 37,
+  "rutube": "https://rutube.ru/shorts/b5bf36fb8ff3b5219d1cc2798261af38/"
  }
 }
