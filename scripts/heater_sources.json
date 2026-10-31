@@ -3142,6 +3142,7 @@
      ],
      "remedy": "Проверить работу вентилятора воздуха горения, при необходимости заменить.",
      "ru": "Неисправен вентилятор воздуха горения (обрыв/КЗ, низкие обороты, защита от блокировки). F08 - вентилятор.",
+     "single_manual": true,
      "sources": [
       {
        "doc": "Webasto Thermo Top Evo HD / RV, Workshop Manual 9040512A 01/2020, 4.8 Fault codes (аналоговые F-коды и HEX) и 4.9 WTT",
@@ -3168,6 +3169,7 @@
      ],
      "remedy": "Устранить причину блокировки; проверить магниты вентилятора, заменить блок привода.",
      "ru": "Обрыв, КЗ, перегрузка или блокировка двигателя вентиляторов.",
+     "single_manual": true,
      "sources": [
       {
        "doc": "Webasto Air Top Evo 40 / 55, Workshop Manual, 5.4 Fault code displayed in control element, Fig. 503",
@@ -3189,6 +3191,7 @@
      ],
      "remedy": "",
      "ru": "КЗ/блокировка вентилятора.",
+     "single_manual": true,
      "sources": [
       {
        "doc": "Webasto Thermo Pro 90, Workshop Manual, 5.5 Fault code table",
