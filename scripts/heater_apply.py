@@ -72,10 +72,13 @@ def cmd_sources():
     f = {}
     for model, rows in wa['f_codes'].items():
         for r in rows:
-            f.setdefault(r['code'], []).append({
+            row = {
                 'model': model, 'title': r['ru_title'], 'ru': r['ru'], 'en': r['en'],
                 'pc': r['pc'], 'remedy': r.get('remedy_ru') or '', 'note': r.get('note') or '',
-                'confidence': r.get('confidence') or '', 'sources': src_list(r['sources'])})
+                'confidence': r.get('confidence') or '', 'sources': src_list(r['sources'])}
+            if r.get('single_manual'):      # пометка «по одному заводскому руководству»
+                row['single_manual'] = True
+            f.setdefault(r['code'], []).append(row)
     disp = []
     for d in wa['display']:
         if not d.get('how') or d['how'].startswith('НЕ ПОДТВЕРЖДЕНО'):

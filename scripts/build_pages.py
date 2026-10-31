@@ -1435,6 +1435,37 @@ def code_desc_ru(spn, name, sys_key, makes, brand_names, urgent, how):
     return cut_words(u'%s%s. %s %s' % (head, sysc, urg, variants[-1]))
 
 
+def problem_pools(rows, have, by_sys_open, stop_fn, ordered):
+    """Какие коды перечислены на странице проблемы: сначала «ехать нельзя» (до 12),
+    затем остальные (до 12) - ровно так же, как это печатают страницы problemy/.
+    rows - (slug, sys_key, spns); have - открытые коды; by_sys_open - открытые коды
+    по системам; ordered - все открытые коды по порядку. Возвращает {slug: [коды]};
+    проблемы без кодов в словарь не попадают."""
+    res = {}
+    for slug, sys_key, spns in rows:
+        if spns:
+            pool = [x for x in spns if x in have]
+        elif sys_key:
+            pool = list(by_sys_open.get(sys_key, []))
+        else:
+            pool = [x for x in ordered if x in have and stop_fn(x)]
+        stop_codes = [x for x in pool if stop_fn(x)][:12]
+        rest = [x for x in pool if x not in stop_codes][:12]
+        if stop_codes or rest:
+            res[slug] = stop_codes + rest
+    return res
+
+
+def brand_problems(codes, pools, limit=6):
+    """Проблемы, на страницах которых перечислены коды марки: по числу общих кодов,
+    при равенстве - в порядке списка SYMPTOMS (pools - упорядоченный словарь)."""
+    cs = set(codes)
+    scored = [(len(cs & set(v)), -i, slug) for i, (slug, v) in enumerate(pools.items())]
+    scored = [t for t in scored if t[0] > 0]
+    scored.sort(reverse=True)
+    return [t[2] for t in scored[:limit]]
+
+
 def build(en_spns=()):
     """en_spns - SPN, у которых есть английская страница: только на них
     ставится hreflang и только они попадают в sitemap с адресом /en/.
@@ -1567,6 +1598,59 @@ def build(en_spns=()):
     # коды с разделом «Как проверить своими руками» - в первую очередь в «Похожих»
     from own_checks import CHECKS as _DIY_CHECKS
     DIY_KEYS = set(_DIY_CHECKS)
+
+    def is_stop(spn, makes):
+        fmis = sorted({f for rows in makes.values() for f, _ in rows})
+        return page_stop(system_of(spn, std_name(spn)), fmis, urgent_fmi_for(spn, urgent_fmi, makes),
+                         spn in urgent_spn)
+
+    # Перелинковка (31.10.2026): какие коды перечислены на страницах проблем.
+    # Нужно до цикла по кодам: страница кода ссылается на проблемы, где она названа.
+    sym_h1 = {row[0]: row[2] for row in SYMPTOMS}
+    pools_ru = problem_pools([(r[0], r[4], r[6]) for r in SYMPTOMS], set(open_keep), by_sys,
+                             lambda x: is_stop(x, per_spn.get(x, {})), open_keep)
+    probs_of_code = {}
+    for slug_, codes_ in pools_ru.items():
+        for c_ in codes_:
+            probs_of_code.setdefault(c_, []).append(slug_)
+
+    blocks_open = {m for m in KAMAZ_GROUP if any(m in per_spn.get(x, {}) for x in open_keep)}
+
+    def brand_label(b):
+        return BLOCK_SHORT.get(b) or brand_names.get(b, b)
+
+    def brand_href(b):
+        # страницы марки есть у всех марок с кодом; блоки КАМАЗ живут на странице КамАЗ
+        # якорь блока есть на странице КамАЗ, только если в блоке есть открытый код
+        if b in BLOCK_ONLY:
+            return '../marki/kamaz.html' + ('#blk-' + b if b in blocks_open else '')
+        return '../marki/%s.html' % b
+
+    def brand_probs_ru(b, members):
+        if b in OWN_NUMBERING:
+            return u''
+        codes = [x for x in open_keep if any(m in per_spn.get(x, {}) for m in members)]
+        pr = brand_problems(codes, pools_ru)
+        if not pr:
+            return u''
+        return (u'<section><h2>Связанные проблемы</h2><p class="lead">Страницы проблем, где разобраны '
+                u'коды этой марки.</p><ul class="near">%s</ul></section>'
+                % u''.join(u'<li><a href="../problemy/%s.html"><span class="nm">%s</span></a></li>'
+                           % (sl, esc(sym_h1[sl])) for sl in pr))
+
+    def links_block_ru(spn, makes):
+        out = []
+        bl = sorted((b for b in makes if b not in OWN_NUMBERING),
+                    key=lambda b: (ЧАСТЫЕ_МАРКИ.index(b) if b in ЧАСТЫЕ_МАРКИ else 99, brand_label(b)))
+        if bl:
+            out.append(u'<section><h2>Марки с этим кодом</h2><p class="jump">%s</p></section>'
+                       % u''.join(u'<a href="%s">%s</a>' % (brand_href(b), esc(brand_label(b))) for b in bl))
+        pr = probs_of_code.get(spn, [])[:4]
+        if pr:
+            out.append(u'<section><h2>Связанные проблемы</h2><ul class="near">%s</ul></section>'
+                       % u''.join(u'<li><a href="../problemy/%s.html"><span class="nm">%s</span></a></li>'
+                                  % (sl, esc(sym_h1[sl])) for sl in pr))
+        return u''.join(out)
 
     out_dir = os.path.join(ROOT, 'kody')
     for f in glob.glob(os.path.join(out_dir, 'spn-*.html')):
@@ -1803,6 +1887,7 @@ def build(en_spns=()):
             body.append(u'<section><h2>Похожие коды</h2><ul class="near">%s</ul></section>'
                         % u''.join(code_link(s, 'spn-%d.html' % s) for s in similar))
 
+        body.append(links_block_ru(spn, makes))
         body.append(u'<p class="cta">Сканер выдал несколько кодов? '
                     u'<a href="../">Вставьте весь список</a> — покажем первопричину.</p>')
         body.append(soc_foot())
@@ -1817,11 +1902,6 @@ def build(en_spns=()):
     # чек на камазе», «ошибка адблю» - и на такие запросы у справочника
     # ответа не было. Эти страницы ловят вопрос и уводят к разбору.
     # ---------------------------------------------------------------
-    def is_stop(spn, makes):
-        fmis = sorted({f for rows in makes.values() for f, _ in rows})
-        return page_stop(system_of(spn, std_name(spn)), fmis, urgent_fmi_for(spn, urgent_fmi, makes),
-                         spn in urgent_spn)
-
     def code_links(spns, prefix='../kody/'):
         return ''.join(code_link(s, '%sspn-%d.html' % (prefix, s)) for s in spns)
 
@@ -2140,6 +2220,7 @@ def build(en_spns=()):
         top = ([] if own else
                top_spns(b, per_spn, open_ok, is_stop, [t for _, t in (dealer_rows or [])],
                         exclude=stop_codes))
+        secs.append(brand_probs_ru(b, members))
         secs.insert(0, brand_intro(b, nums, top))
         path = 'marki/%s.html' % b
         title = u'Коды ошибок %s | codetruck.ru' % bn
@@ -2185,6 +2266,7 @@ def build(en_spns=()):
         secs = [u'<section><h2>Примеры кодов %s</h2>%s</section>'
                 % (esc(bn), pcode_table(sample_rows(rows)))]
 
+        secs.append(brand_probs_ru(b, [b]))
         secs.insert(0, brand_intro(b, {'dealer': len(rows)},
                                    top_spns(b, per_spn, lambda s: s in set(written) and s not in noindex,
                                             is_stop, [t for _, t in rows])))

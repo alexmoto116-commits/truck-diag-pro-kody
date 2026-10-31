@@ -557,8 +557,14 @@ def _code_page(lang, b, code, entry, prev_c, next_c):
         for r in rows:
             pcl = u', '.join((u'<a href="%s">%s</a>' % (_page_url(lang, 'webasto', x), x))
                              if _is_live_now('webasto', x) else x for x in r['pc'])
+            # Пометка из данных (поле single_manual в heater_sources.json): строка модели
+            # подтверждена одним заводским руководством (решение Алекса 31.10.2026).
+            mdl = bp.esc(r['model'])
+            if r.get('single_manual'):
+                mdl += (u'<span style="display:block;font-size:12.5px;color:#94A2B4">%s</span>'
+                        % (u'по одному заводскому руководству' if ru else u'single factory manual'))
             tr.append(u'<tr><td>%s</td><td><b>%s.</b> %s</td><td class="fmi">%s</td></tr>'
-                      % (bp.esc(r['model']), bp.esc(r['title'] if ru else r['en']),
+                      % (mdl, bp.esc(r['title'] if ru else r['en']),
                          bp.esc(r['ru']) if ru else u'', pcl))
             srcs += r['sources']
         what_text = ((u'Код %s показывает таймер или пульт Webasto. Смысл зависит от модели отопителя, поэтому ниже — '
