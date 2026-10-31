@@ -200,7 +200,7 @@
   "012": {
    "confidence": "2+ заводских/независимых",
    "en": "Overheating at the overheating sensor",
-   "hydronic_note": "В Hydronic тот же номер: перегрев воды (>130 °C), проверка водяного контура и насоса.",
+   "hydronic_note": "В Hydronic тот же номер: перегрев по датчику перегрева (порог в программе: у Hydronic 16-35 выше 130 °C, у D4W SC и D5W S выше 125 °C), проверка водяного контура.",
    "kind": "airtronic",
    "level": "driver+service",
    "model": "Airtronic D2/D4",
@@ -221,6 +221,21 @@
      "doc": "avtonomka.srv58.ru, Коды ошибок воздушных отопителей Eberspacher (русский перевод)",
      "page": "таблица Airtronic D2/D3/B4/D4/M/D4Plus/D4S",
      "url": "https://avtonomka.srv58.ru/cod_error_eberspacher_airtronic.html"
+    },
+    {
+     "doc": "Eberspächer Hydronic 16-35 Troubleshooting and Repair Guide (завод), код 012: температура на датчике перегрева >130 °C",
+     "page": "таблица кодов",
+     "url": "https://cdn.shopify.com/s/files/1/0530/5362/0413/files/Hydronic-16-35-Troubleshooting-and-Repair-Guide.pdf"
+    },
+    {
+     "doc": "Eberspächer Hydronic D4W SC Workshop Manual (завод), код 012: >125 °C",
+     "page": "таблица кодов",
+     "url": "https://www.dieselheat.com.au/wp-content/uploads/Eberspacher_Hydronic_D4WSC_Workshop_Manual.pdf"
+    },
+    {
+     "doc": "Espar Hydronic D5 WS Repair Instructions 201852050000 (завод), код 012: >125 °C",
+     "page": "таблица кодов",
+     "url": "https://cdn.shopify.com/s/files/1/0530/5362/0413/files/20-22_Espar_D5_WS_Repair_Instructions_201852050000_15602.pdf"
     }
    ],
    "title": "Перегрев у датчика перегрева"
