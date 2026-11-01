@@ -348,6 +348,186 @@
       }
     },
     {
+      "id": "flame_out_p3",
+      "pattern": "(?!)",
+      "ru": {
+        "meaning": "Срыв пламени: пламя погасло во время работы или не удержалось. Это симптом, причины ищут в топливе, воздухе и розжиге.",
+        "causes": [
+          "Недостаточная подача топлива: пустой или загрязнённый фильтр, воздух в линии, слабый топливный насос.",
+          "Нарушение подачи воздуха: закупорка воздухозабора или выхлопа, снег и лёд.",
+          "Загрязнённая камера сгорания, нагар на форсунке или дюзе.",
+          "Слабое пламя из-за низкого напряжения питания или неисправности датчика пламени."
+        ],
+        "checks": [
+          "Проверьте уровень топлива и отсутствие воды в дизтопливе; в холод убедитесь, что топливо подходит по сезону.",
+          "Проверьте, не перекрыт ли воздухозабор и выхлоп, нет ли льда и грязи.",
+          "Осмотрите топливную линию отопителя на перегибы, подтёки и подсос воздуха в соединениях.",
+          "Проверьте напряжение АКБ при пуске: провал указывает на слабую батарею или плохой контакт."
+        ],
+        "service": "Если срывы повторяются при чистом топливе и свободном воздухе, в сервисе проверяют насос, камеру сгорания и датчик пламени."
+      },
+      "en": {
+        "meaning": "Flame-out: the flame went out during operation or could not hold. It is a symptom; the causes are looked for in the fuel, the air and the ignition.",
+        "causes": [
+          "Too little fuel: an empty or dirty filter, air in the line, or a weak fuel pump.",
+          "Interrupted air supply: a blocked air intake or exhaust, snow and ice.",
+          "A dirty combustion chamber, with soot on the nozzle or jet.",
+          "A weak flame caused by low supply voltage or a faulty flame sensor."
+        ],
+        "checks": [
+          "Check the fuel level and that the diesel has no water; in the cold, make sure the fuel suits the season.",
+          "Check that the air intake and exhaust are not blocked and free of ice and dirt.",
+          "Inspect the heater fuel line for kinks, leaks and air being drawn in at the joints.",
+          "Check the battery voltage at start-up: a drop points to a weak battery or a poor contact."
+        ],
+        "service": "If the flame-outs keep coming back with clean fuel and free air, a service checks the pump, the combustion chamber and the flame sensor."
+      }
+    },
+    {
+      "id": "flame_out_p78",
+      "pattern": "(?!)",
+      "ru": {
+        "meaning": "Срыв пламени: пламя погасло во время работы или не удержалось. Это симптом, причины ищут в топливе, воздухе и розжиге.",
+        "causes": [
+          "Недостаточная подача топлива: пустой или загрязнённый фильтр, воздух в линии, слабый топливный насос.",
+          "Нарушение подачи воздуха: закупорка воздухозабора или выхлопа, снег и лёд.",
+          "Загрязнённая камера сгорания, нагар на форсунке или дюзе.",
+          "Слабое пламя из-за низкого напряжения питания или неисправности датчика пламени."
+        ],
+        "checks": [
+          "Проверьте уровень топлива и отсутствие воды в дизтопливе; в холод убедитесь, что топливо подходит по сезону.",
+          "Проверьте, не перекрыт ли воздухозабор и выхлоп, нет ли льда и грязи.",
+          "Осмотрите топливную линию отопителя на перегибы, подтёки и подсос воздуха в соединениях.",
+          "Проверьте напряжение АКБ при пуске: провал указывает на слабую батарею или плохой контакт."
+        ],
+        "service": "Если срывы повторяются при чистом топливе и свободном воздухе, в сервисе проверяют насос, камеру сгорания и датчик пламени."
+      },
+      "en": {
+        "meaning": "Flame-out: the flame went out during operation or could not hold. It is a symptom; the causes are looked for in the fuel, the air and the ignition.",
+        "causes": [
+          "Too little fuel: an empty or dirty filter, air in the line, or a weak fuel pump.",
+          "Interrupted air supply: a blocked air intake or exhaust, snow and ice.",
+          "A dirty combustion chamber, with soot on the nozzle or jet.",
+          "A weak flame caused by low supply voltage or a faulty flame sensor."
+        ],
+        "checks": [
+          "Check the fuel level and that the diesel has no water; in the cold, make sure the fuel suits the season.",
+          "Check that the air intake and exhaust are not blocked and free of ice and dirt.",
+          "Inspect the heater fuel line for kinks, leaks and air being drawn in at the joints.",
+          "Check the battery voltage at start-up: a drop points to a weak battery or a poor contact."
+        ],
+        "service": "If the flame-outs keep coming back with clean fuel and free air, a service checks the pump, the combustion chamber and the flame sensor."
+      }
+    },
+    {
+      "id": "flame_out_w03",
+      "pattern": "(?!)",
+      "ru": {
+        "meaning": "Срыв пламени: пламя погасло во время работы или не удержалось. Это симптом, причины ищут в топливе, воздухе и розжиге.",
+        "causes": [
+          "Недостаточная подача топлива: пустой или загрязнённый фильтр, воздух в линии, слабый топливный насос.",
+          "Нарушение подачи воздуха: закупорка воздухозабора или выхлопа, снег и лёд.",
+          "Загрязнённая камера сгорания, нагар на форсунке или дюзе.",
+          "Слабое пламя из-за низкого напряжения питания или неисправности датчика пламени."
+        ],
+        "checks": [
+          "Проверьте уровень топлива и отсутствие воды в дизтопливе; в холод убедитесь, что топливо подходит по сезону.",
+          "Проверьте, не перекрыт ли воздухозабор и выхлоп, нет ли льда и грязи.",
+          "Осмотрите топливную линию отопителя на перегибы, подтёки и подсос воздуха в соединениях.",
+          "Проверьте напряжение АКБ при пуске: провал указывает на слабую батарею или плохой контакт."
+        ],
+        "service": "Если срывы повторяются при чистом топливе и свободном воздухе, в сервисе проверяют насос, камеру сгорания и датчик пламени."
+      },
+      "en": {
+        "meaning": "Flame-out: the flame went out during operation or could not hold. It is a symptom; the causes are looked for in the fuel, the air and the ignition.",
+        "causes": [
+          "Too little fuel: an empty or dirty filter, air in the line, or a weak fuel pump.",
+          "Interrupted air supply: a blocked air intake or exhaust, snow and ice.",
+          "A dirty combustion chamber, with soot on the nozzle or jet.",
+          "A weak flame caused by low supply voltage or a faulty flame sensor."
+        ],
+        "checks": [
+          "Check the fuel level and that the diesel has no water; in the cold, make sure the fuel suits the season.",
+          "Check that the air intake and exhaust are not blocked and free of ice and dirt.",
+          "Inspect the heater fuel line for kinks, leaks and air being drawn in at the joints.",
+          "Check the battery voltage at start-up: a drop points to a weak battery or a poor contact."
+        ],
+        "service": "If the flame-outs keep coming back with clean fuel and free air, a service checks the pump, the combustion chamber and the flame sensor."
+      }
+    },
+    {
+      "id": "flame_out_w83",
+      "pattern": "(?!)",
+      "ru": {
+        "meaning": "Срыв пламени: пламя погасло во время работы или не удержалось. Это симптом, причины ищут в топливе, воздухе и розжиге.",
+        "causes": [
+          "Недостаточная подача топлива: пустой или загрязнённый фильтр, воздух в линии, слабый топливный насос.",
+          "Нарушение подачи воздуха: закупорка воздухозабора или выхлопа, снег и лёд.",
+          "Загрязнённая камера сгорания, нагар на форсунке или дюзе.",
+          "Слабое пламя из-за низкого напряжения питания или неисправности датчика пламени."
+        ],
+        "checks": [
+          "Проверьте уровень топлива и отсутствие воды в дизтопливе; в холод убедитесь, что топливо подходит по сезону.",
+          "Проверьте, не перекрыт ли воздухозабор и выхлоп, нет ли льда и грязи.",
+          "Осмотрите топливную линию отопителя на перегибы, подтёки и подсос воздуха в соединениях.",
+          "Проверьте напряжение АКБ при пуске: провал указывает на слабую батарею или плохой контакт."
+        ],
+        "service": "Если срывы повторяются при чистом топливе и свободном воздухе, в сервисе проверяют насос, камеру сгорания и датчик пламени."
+      },
+      "en": {
+        "meaning": "Flame-out: the flame went out during operation or could not hold. It is a symptom; the causes are looked for in the fuel, the air and the ignition.",
+        "causes": [
+          "Too little fuel: an empty or dirty filter, air in the line, or a weak fuel pump.",
+          "Interrupted air supply: a blocked air intake or exhaust, snow and ice.",
+          "A dirty combustion chamber, with soot on the nozzle or jet.",
+          "A weak flame caused by low supply voltage or a faulty flame sensor."
+        ],
+        "checks": [
+          "Check the fuel level and that the diesel has no water; in the cold, make sure the fuel suits the season.",
+          "Check that the air intake and exhaust are not blocked and free of ice and dirt.",
+          "Inspect the heater fuel line for kinks, leaks and air being drawn in at the joints.",
+          "Check the battery voltage at start-up: a drop points to a weak battery or a poor contact."
+        ],
+        "service": "If the flame-outs keep coming back with clean fuel and free air, a service checks the pump, the combustion chamber and the flame sensor."
+      }
+    },
+    {
+      "id": "flame_out_wf02",
+      "pattern": "(?!)",
+      "ru": {
+        "meaning": "Срыв пламени: пламя погасло во время работы или не удержалось. Это симптом, причины ищут в топливе, воздухе и розжиге.",
+        "causes": [
+          "Недостаточная подача топлива: пустой или загрязнённый фильтр, воздух в линии, слабый топливный насос.",
+          "Нарушение подачи воздуха: закупорка воздухозабора или выхлопа, снег и лёд.",
+          "Загрязнённая камера сгорания, нагар на форсунке или дюзе.",
+          "Слабое пламя из-за низкого напряжения питания или неисправности датчика пламени."
+        ],
+        "checks": [
+          "Проверьте уровень топлива и отсутствие воды в дизтопливе; в холод убедитесь, что топливо подходит по сезону.",
+          "Проверьте, не перекрыт ли воздухозабор и выхлоп, нет ли льда и грязи.",
+          "Осмотрите топливную линию отопителя на перегибы, подтёки и подсос воздуха в соединениях.",
+          "Проверьте напряжение АКБ при пуске: провал указывает на слабую батарею или плохой контакт."
+        ],
+        "service": "Если срывы повторяются при чистом топливе и свободном воздухе, в сервисе проверяют насос, камеру сгорания и датчик пламени."
+      },
+      "en": {
+        "meaning": "Flame-out: the flame went out during operation or could not hold. It is a symptom; the causes are looked for in the fuel, the air and the ignition.",
+        "causes": [
+          "Too little fuel: an empty or dirty filter, air in the line, or a weak fuel pump.",
+          "Interrupted air supply: a blocked air intake or exhaust, snow and ice.",
+          "A dirty combustion chamber, with soot on the nozzle or jet.",
+          "A weak flame caused by low supply voltage or a faulty flame sensor."
+        ],
+        "checks": [
+          "Check the fuel level and that the diesel has no water; in the cold, make sure the fuel suits the season.",
+          "Check that the air intake and exhaust are not blocked and free of ice and dirt.",
+          "Inspect the heater fuel line for kinks, leaks and air being drawn in at the joints.",
+          "Check the battery voltage at start-up: a drop points to a weak battery or a poor contact."
+        ],
+        "service": "If the flame-outs keep coming back with clean fuel and free air, a service checks the pump, the combustion chamber and the flame sensor."
+      }
+    },
+    {
       "id": "no_start",
       "pattern": "Неудачный запуск|не запускается|исчерпаны|Недостаточный градиент",
       "ru": {
@@ -911,8 +1091,8 @@
     "webasto:91": "control",
     "webasto:02": "no_start",
     "webasto:82": "no_start",
-    "webasto:03": "flame_out",
-    "webasto:83": "flame_out",
+    "webasto:03": "flame_out_w03",
+    "webasto:83": "flame_out_w83",
     "webasto:04": "high_voltage",
     "webasto:05": "flame_early",
     "webasto:06": "overheat",
@@ -941,7 +1121,7 @@
     "webasto:84": "low_voltage",
     "webasto:F00": "control",
     "webasto:F01": "no_start",
-    "webasto:F02": "flame_out",
+    "webasto:F02": "flame_out_wf02",
     "webasto:F03": "voltage_both",
     "webasto:F04": "flame_early",
     "webasto:F05": "flame_sensor",
@@ -961,9 +1141,9 @@
     "webasto:F15": "generic",
     "planar:1": "overheat",
     "planar:2": "overheat",
-    "planar:3": "flame_out",
+    "planar:3": "flame_out_p3",
     "planar:29": "flame_out_p29",
-    "planar:78": "flame_out",
+    "planar:78": "flame_out_p78",
     "planar:4": "internal",
     "planar:6": "internal",
     "planar:5": "flame_sensor",
