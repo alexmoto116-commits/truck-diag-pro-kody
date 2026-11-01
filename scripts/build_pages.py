@@ -377,6 +377,15 @@ def page_stop(sys_key, fmis, urgent_fmi, urgent_spn_hit):
     return lvl == 'now' or page_blind(sys_key, fmis, urgent_fmi, urgent_spn_hit)
 
 
+# Датчики скорости колёс оси 1 и 2: при неисправности ABS на этом колесе
+# отключена, обычные тормоза работают (Bendix EC-60, «ABS Partial Shutdown»;
+# см. tiktok-codetruck\stati\istochniki-14.md). Общее правило RISK_MAP для
+# тормозной системы («now») здесь не меняем - оно относится ко всем кодам
+# тормозов. Решение Алекса 01.11.2026: датчик колеса АБС - АБС отключается,
+# рабочие тормоза действуют, вердикт «Ехать осторожно» (как в ролике и статье).
+ABS_WARN_SPN = {789, 790, 791, 792}
+
+
 def causal_rules(spn):
     """Правила CAUSAL, где код - первопричина и/или следствие.
 
@@ -1600,6 +1609,8 @@ def build(en_spns=()):
     DIY_KEYS = set(_DIY_CHECKS)
 
     def is_stop(spn, makes):
+        if spn in ABS_WARN_SPN:
+            return False
         fmis = sorted({f for rows in makes.values() for f, _ in rows})
         return page_stop(system_of(spn, std_name(spn)), fmis, urgent_fmi_for(spn, urgent_fmi, makes),
                          spn in urgent_spn)
@@ -1691,10 +1702,16 @@ def build(en_spns=()):
         urgent_spn_hit = spn in urgent_spn
         _, worst_lvl, _ = page_risk(sys_key, seen_all_early, urg_here, urgent_spn_hit)
         stop = page_stop(sys_key, seen_all_early, urg_here, urgent_spn_hit)
+        if spn in ABS_WARN_SPN:
+            stop = False
+            worst_lvl = 'base'
         if stop:
             verdict = (u'<b>По этому коду ехать нельзя.</b> Он относится к неисправностям, '
                        u'при которых остановиться нужно при первой безопасной возможности: '
                        u'дальше поедет дороже.')
+        elif spn in ABS_WARN_SPN:
+            verdict = (u'<b>Ехать можно осторожно.</b> ABS на этом колесе отключена, обычные тормоза '
+                       u'работают. На скользкой дороге тормозить плавно. Исправить в ближайшее время.')
         else:
             # Строку про лампу и мощность даём только срочным кодам (помеченным
             # заводом или с срочным FMI): у остальных она была одинаковой на 1600 страницах.
@@ -1794,7 +1811,7 @@ def build(en_spns=()):
         _tier = tier_of(worst_lvl)
         body.append(u'<p class="vline t-%s"><b>%s</b><span class="hz">%s</span></p>'
                     % (_tier,
-                       u'Ехать нельзя' if stop else (u'Ехать осторожно' if sys_key == 'dpf' else u'Ехать можно'),
+                       u'Ехать нельзя' if stop else (u'Ехать осторожно' if (sys_key == 'dpf' or spn in ABS_WARN_SPN) else u'Ехать можно'),
                        esc(risk_model()['h'].get(worst_lvl, u''))))
 
         if makes and std_name(spn):
@@ -2477,10 +2494,12 @@ def build(en_spns=()):
             'noindex_en': set(written) & noindex_en,
             'sys': dict((s, system_of(s, std_name(s))) for s in written),
             'stop': dict((s, is_stop(s, per_spn.get(s, {}))) for s in written),
-            'lvl': dict((s, page_risk(system_of(s, std_name(s)),
-                                      sorted({f for rows in per_spn.get(s, {}).values()
-                                              for f, _ in rows}),
-                                      urgent_fmi_for(s, urgent_fmi, per_spn.get(s, {})), s in urgent_spn)[1]) for s in written),
+            'lvl': dict((s, 'base' if s in ABS_WARN_SPN else
+                         page_risk(system_of(s, std_name(s)),
+                                   sorted({f for rows in per_spn.get(s, {}).values()
+                                           for f, _ in rows}),
+                                   urgent_fmi_for(s, urgent_fmi, per_spn.get(s, {})), s in urgent_spn)[1])
+                        for s in written),
             'by_sys': by_sys}
 
 

@@ -486,6 +486,10 @@ def build():
                 verdict = (u'<b>You can drive on while the DPF lamp is steady and power is not reduced</b> — '
                            u'plan a regeneration. If the lamp flashes or is red, or power has dropped, stop and '
                            u'run a parked regeneration per the manufacturer’s procedure; if that fails, see a shop.')
+            # Решение Алекса 01.11.2026: датчик колеса АБС - «Ехать осторожно» (см. bp.ABS_WARN_SPN).
+            if spn in bp.ABS_WARN_SPN:
+                verdict = (u'<b>Drive with caution.</b> The ABS on this wheel is off, but the service brakes '
+                           u'work. On a slippery road brake gently. Get it repaired soon.')
         if std_name(spn):
             page_name = TX['titleStd'] % (spn, name)
             desc = TX['descStd'] % (spn, name)
@@ -553,7 +557,7 @@ def build():
         lvl = lvl_of.get(spn, 'plan')
         tier = bp.tier_of(lvl)
         body.append(u'<p class="vline t-%s"><b>%s</b><span class="hz">%s</span></p>'
-                    % (tier, i18n['vStop'] if stop_of.get(spn) else (u'Drive with caution' if sys_key == 'dpf' else i18n['vWarn']),
+                    % (tier, i18n['vStop'] if stop_of.get(spn) else (u'Drive with caution' if (sys_key == 'dpf' or spn in bp.ABS_WARN_SPN) else i18n['vWarn']),
                        bp.esc(risk_h.get(lvl, u''))))
         if not makes:
             body.append(u'<p class="sub">%s</p>' % (TX['subNone'] % spn))
