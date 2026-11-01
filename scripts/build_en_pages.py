@@ -189,13 +189,16 @@ def own_section_en(spn):
     return u''.join(out)
 
 
-def code_desc_en(spn, name, sysname, names, urgent, how):
+def code_desc_en(spn, name, sysname, names, urgent, how, caution=False):
     """Описание английской страницы кода (до 155 знаков). Смысл тот же, что у
     русского bp.code_desc_ru: номер и название, система, срочность, марки для
     FMI и, если есть, раздел «how to check it yourself»."""
     head = (u'SPN %d — %s' % (spn, name)) if name else (u'SPN %d' % spn)
     sysc = (u': %s system' % sysname) if sysname else u''
-    urg = u'Do not drive.' if urgent else u'Safe to drive to a service.'
+    if caution:
+        urg = u'Drive with caution.'
+    else:
+        urg = u'Do not drive.' if urgent else u'Safe to drive to a service.'
     tail = u', how to check it yourself' if how else u''
     variants = []
     for n in (3, 2, 1):
@@ -511,7 +514,8 @@ def build():
                                             if sys_key != 'other' else None),
                                 [bname(b) for b in ordered_b],
                                 spn in urgent_spn or any(f in uf_here for f in seen),
-                                spn in OWN_EN or bool(i18n.get(ACT_KEY.get(sys_key, ''))))
+                                spn in OWN_EN or bool(i18n.get(ACT_KEY.get(sys_key, ''))),
+                                caution=spn in bp.ABS_WARN_SPN)
         title = bp.fit_title(page_name)  # без суффикса сайта, не длиннее 65, без многоточия
         rel = 'kody/spn-%d.html' % spn
         canon = '%s/en/%s' % (SITE, rel)

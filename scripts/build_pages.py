@@ -1419,13 +1419,17 @@ def similar_codes(spn, bucket, exclude, diy, lo=5, hi=8):
     return first
 
 
-def code_desc_ru(spn, name, sys_key, makes, brand_names, urgent, how):
+def code_desc_ru(spn, name, sys_key, makes, brand_names, urgent, how, caution=False):
     """Описание страницы кода (до 155 знаков): номер и название, система,
     срочность, марки для FMI и, если есть, раздел «как проверить».
-    makes - марки без своей нумерации (ZF, Ford сюда не входят)."""
+    makes - марки без своей нумерации (ZF, Ford сюда не входят).
+    caution - код из ABS_WARN_SPN: «Ехать осторожно», а не «Ехать нельзя»."""
     head = (u'SPN %d — %s' % (spn, name)) if name else (u'SPN %d' % spn)
     sysc = (u': система «%s»' % SYS_TITLE[sys_key]) if sys_key in SYS_TITLE and sys_key != 'other' else u''
-    urg = u'Ехать нельзя.' if urgent else u'Можно доехать до сервиса.'
+    if caution:
+        urg = u'Ехать осторожно.'
+    else:
+        urg = u'Ехать нельзя.' if urgent else u'Можно доехать до сервиса.'
     ordered = sorted(makes, key=lambda b: (ЧАСТЫЕ_МАРКИ.index(b) if b in ЧАСТЫЕ_МАРКИ else 99,
                                            brand_names.get(b, b)))
     names = [brand_names.get(b, b) for b in ordered]
@@ -1764,7 +1768,8 @@ def build(en_spns=()):
         if spn not in noindex:
             desc = code_desc_ru(spn, name, sys_key, makes, brand_names,
                                 urgent_spn_hit or any(f in urg_here for f in seen_all_early),
-                                spn in DIY_KEYS or bool(advice_for(sys_key, seen_all_early)))
+                                spn in DIY_KEYS or bool(advice_for(sys_key, seen_all_early)),
+                                caution=spn in ABS_WARN_SPN)
         # Сайт в title не пишем: название сайта и так в og:site_name, а лишние
         # знаки уходят из выдачи. Номер SPN в начале делает заголовки разными.
         # Обрезка без многоточия, по границе слова (см. fit_title).
