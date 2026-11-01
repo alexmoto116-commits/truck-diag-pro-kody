@@ -315,7 +315,7 @@
       "id": "flame_out_p29",
       "pattern": "(?!)",
       "ru": {
-        "meaning": "Срыв пламени: пламя погасло во время работы или не удержалось. Это симптом, причины ищут в топливе, воздухе и розжиге.",
+        "meaning": "Срыв пламени: пламя погасло во время работы или не удержалось. После срыва пламени при работе отопитель сам пробует запуститься повторно, до трёх раз подряд. Это симптом, причины ищут в топливе, воздухе и розжиге.",
         "causes": [
           "Недостаточная подача топлива: пустой или загрязнённый фильтр, воздух в линии, слабый топливный насос.",
           "Нарушение подачи воздуха: закупорка воздухозабора или выхлопа, снег и лёд.",
@@ -331,7 +331,7 @@
         "service": "Если срывы повторяются при чистом топливе и свободном воздухе, в сервисе проверяют насос, камеру сгорания и датчик пламени."
       },
       "en": {
-        "meaning": "Flame-out: the flame went out during operation or could not hold. It is a symptom; the causes are looked for in the fuel, the air and the ignition.",
+        "meaning": "Flame-out: the flame went out during operation or could not hold. After a flame-out during operation, the heater tries to start again by itself, up to three times in a row. It is a symptom; the causes are looked for in the fuel, the air and the ignition.",
         "causes": [
           "Too little fuel: an empty or dirty filter, air in the line, or a weak fuel pump.",
           "Interrupted air supply: a blocked air intake or exhaust, snow and ice.",
@@ -351,7 +351,7 @@
       "id": "flame_out_p3",
       "pattern": "(?!)",
       "ru": {
-        "meaning": "Срыв пламени: пламя погасло во время работы или не удержалось. Это симптом, причины ищут в топливе, воздухе и розжиге.",
+        "meaning": "Срыв пламени: пламя погасло во время работы или не удержалось. После срыва пламени при работе отопитель сам пробует запуститься повторно, до трёх раз подряд. Это симптом, причины ищут в топливе, воздухе и розжиге.",
         "causes": [
           "Недостаточная подача топлива: пустой или загрязнённый фильтр, воздух в линии, слабый топливный насос.",
           "Нарушение подачи воздуха: закупорка воздухозабора или выхлопа, снег и лёд.",
@@ -367,7 +367,7 @@
         "service": "Если срывы повторяются при чистом топливе и свободном воздухе, в сервисе проверяют насос, камеру сгорания и датчик пламени."
       },
       "en": {
-        "meaning": "Flame-out: the flame went out during operation or could not hold. It is a symptom; the causes are looked for in the fuel, the air and the ignition.",
+        "meaning": "Flame-out: the flame went out during operation or could not hold. After a flame-out during operation, the heater tries to start again by itself, up to three times in a row. It is a symptom; the causes are looked for in the fuel, the air and the ignition.",
         "causes": [
           "Too little fuel: an empty or dirty filter, air in the line, or a weak fuel pump.",
           "Interrupted air supply: a blocked air intake or exhaust, snow and ice.",
@@ -387,7 +387,7 @@
       "id": "flame_out_p78",
       "pattern": "(?!)",
       "ru": {
-        "meaning": "Срыв пламени: пламя погасло во время работы или не удержалось. Это симптом, причины ищут в топливе, воздухе и розжиге.",
+        "meaning": "Срыв пламени: пламя погасло во время работы или не удержалось. После срыва пламени при работе отопитель сам пробует запуститься повторно, до трёх раз подряд. Это симптом, причины ищут в топливе, воздухе и розжиге.",
         "causes": [
           "Недостаточная подача топлива: пустой или загрязнённый фильтр, воздух в линии, слабый топливный насос.",
           "Нарушение подачи воздуха: закупорка воздухозабора или выхлопа, снег и лёд.",
@@ -403,7 +403,7 @@
         "service": "Если срывы повторяются при чистом топливе и свободном воздухе, в сервисе проверяют насос, камеру сгорания и датчик пламени."
       },
       "en": {
-        "meaning": "Flame-out: the flame went out during operation or could not hold. It is a symptom; the causes are looked for in the fuel, the air and the ignition.",
+        "meaning": "Flame-out: the flame went out during operation or could not hold. After a flame-out during operation, the heater tries to start again by itself, up to three times in a row. It is a symptom; the causes are looked for in the fuel, the air and the ignition.",
         "causes": [
           "Too little fuel: an empty or dirty filter, air in the line, or a weak fuel pump.",
           "Interrupted air supply: a blocked air intake or exhaust, snow and ice.",
@@ -423,7 +423,7 @@
       "id": "flame_out_w03",
       "pattern": "(?!)",
       "ru": {
-        "meaning": "Срыв пламени: пламя погасло во время работы или не удержалось. Это симптом, причины ищут в топливе, воздухе и розжиге.",
+        "meaning": "Срыв пламени: пламя погасло во время работы или не удержалось. Пламя погасло в работе и не образовалось снова после попытки повторного запуска. Это симптом, причины ищут в топливе, воздухе и розжиге.",
         "causes": [
           "Недостаточная подача топлива: пустой или загрязнённый фильтр, воздух в линии, слабый топливный насос.",
           "Нарушение подачи воздуха: закупорка воздухозабора или выхлопа, снег и лёд.",
@@ -439,7 +439,7 @@
         "service": "Если срывы повторяются при чистом топливе и свободном воздухе, в сервисе проверяют насос, камеру сгорания и датчик пламени."
       },
       "en": {
-        "meaning": "Flame-out: the flame went out during operation or could not hold. It is a symptom; the causes are looked for in the fuel, the air and the ignition.",
+        "meaning": "Flame-out: the flame went out during operation or could not hold. The flame went out during operation and did not form again after a restart attempt. It is a symptom; the causes are looked for in the fuel, the air and the ignition.",
         "causes": [
           "Too little fuel: an empty or dirty filter, air in the line, or a weak fuel pump.",
           "Interrupted air supply: a blocked air intake or exhaust, snow and ice.",
