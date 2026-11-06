@@ -189,13 +189,15 @@ def own_section_en(spn):
     return u''.join(out)
 
 
-def code_desc_en(spn, name, sysname, names, urgent, how, caution=False):
+def code_desc_en(spn, name, sysname, names, urgent, how, caution=False, urg_text=None):
     """Описание английской страницы кода (до 155 знаков). Смысл тот же, что у
     русского bp.code_desc_ru: номер и название, система, срочность, марки для
     FMI и, если есть, раздел «how to check it yourself»."""
     head = (u'SPN %d — %s' % (spn, name)) if name else (u'SPN %d' % spn)
     sysc = (u': %s system' % sysname) if sysname else u''
-    if caution:
+    if urg_text:
+        urg = urg_text
+    elif caution:
         urg = u'Drive with caution.'
     else:
         urg = u'Do not drive.' if urgent else u'Safe to drive to a service.'
@@ -334,7 +336,8 @@ def build():
         return u''.join(out)
 
     def brand_list(spn, limit=0):
-        names = sorted(bname(b) for b in per_en.get(spn, {}))
+        names = sorted(bname(b) for b in per_en.get(spn, {})
+                       if not (spn == bp.SPN168 and b in bp.SPN168_DROP_BRANDS))
         if not names:
             return u''
         if limit and len(names) > limit:
@@ -429,12 +432,14 @@ def build():
     # больше. У русской версии на этот случай есть общий текст (gen/genUrgent/
     # elecGen), английский перевод для него в app.js лежал неиспользованным -
     # из-за чего английские карточки выходили заметно тоньше русских.
-    def risk_section(sys_key, fmis, urgent_spn_hit, uf=None):
+    def risk_section(sys_key, fmis, urgent_spn_hit, uf=None, spn=None):
         uf = urgent_fmi if uf is None else uf
         key, lvl, _ = bp.page_risk(sys_key, fmis, uf, urgent_spn_hit)
         if not key or key not in risk_tx:
             return u''
         happens, ends = risk_tx[key][0], risk_tx[key][1]
+        if spn == bp.SPN168:
+            happens, ends = bp.SPN168_RISK['en']
         note = u''
         rule = risk_map.get(sys_key)
         # Оговорку про электрический код ставим, только если такие FMI на
@@ -447,13 +452,13 @@ def build():
         # Метка производителя перевешивает наш спокойный вывод - говорим
         # о расхождении вслух, как и русская версия.
         if (urgent_spn_hit or any(f in uf for f in (fmis or []))) and lvl != 'now':
-            note += u'<p class="rkn">%s</p>' % bp.esc(risk_flag)
+            note += u'<p class="rkn">%s</p>' % bp.esc(bp.SPN168_FLAG['en'] if spn == bp.SPN168 else risk_flag)
         tier = bp.tier_of(lvl)
         return (u'<section><h2>%s</h2>'
                 u'<div class="risk t-%s"><span class="rkb">Time you have: %s</span>'
                 u'<p>%s</p><p>%s</p>%s</div></section>'
                 % (bp.esc(risk_title), tier,
-                   bp.esc(risk_h[lvl]), bp.esc(happens), bp.esc(ends), note))
+                   bp.esc(bp.SPN168_HZ['en'] if spn == bp.SPN168 else risk_h[lvl]), bp.esc(happens), bp.esc(ends), note))
 
     if not os.path.isdir(OUT):
         os.makedirs(OUT)
@@ -462,6 +467,8 @@ def build():
 
     for spn in written:
         makes = per_en.get(spn, {})
+        if spn == bp.SPN168:
+            makes = bp.fix_spn168(makes, 'en')
         # как у русской: ZF/Ford со своей нумерацией не смешиваем с обычными
         # марками - есть обычные, их блоки не печатаем
         own_here_en = {}
@@ -490,6 +497,8 @@ def build():
                            u'plan a regeneration. If the lamp flashes or is red, or power has dropped, stop and '
                            u'run a parked regeneration per the manufacturer’s procedure; if that fails, see a shop.')
             # Решение Алекса 01.11.2026: датчик колеса АБС - «Ехать осторожно» (см. bp.ABS_WARN_SPN).
+            if spn == bp.SPN168:
+                verdict = bp.SPN168_VERDICT['en']
             if spn in bp.ABS_WARN_SPN:
                 verdict = (u'<b>Drive with caution.</b> The ABS on this wheel is off, but the service brakes '
                            u'work. On a slippery road brake gently. Get it repaired soon.')
@@ -515,7 +524,8 @@ def build():
                                 [bname(b) for b in ordered_b],
                                 spn in urgent_spn or any(f in uf_here for f in seen),
                                 spn in OWN_EN or bool(i18n.get(ACT_KEY.get(sys_key, ''))),
-                                caution=spn in bp.ABS_WARN_SPN)
+                                caution=spn in bp.ABS_WARN_SPN,
+                                urg_text=bp.SPN168_URG['en'] if spn == bp.SPN168 else None)
         title = bp.fit_title(page_name)  # без суффикса сайта, не длиннее 65, без многоточия
         rel = 'kody/spn-%d.html' % spn
         canon = '%s/en/%s' % (SITE, rel)
@@ -529,6 +539,8 @@ def build():
         rkey, _, _ = bp.page_risk(sys_key, seen, uf_here, spn in urgent_spn)
         if rkey and rkey in risk_tx:
             happens, ends = risk_tx[rkey][0], risk_tx[rkey][1]
+            if spn == bp.SPN168:
+                happens, ends = bp.SPN168_RISK['en']
             faq.append({'@type': 'Question',
                         'name': u'What happens if I keep driving with SPN %d?' % spn,
                         'acceptedAnswer': {'@type': 'Answer', 'text': happens + u' ' + ends}})
@@ -562,7 +574,7 @@ def build():
         tier = bp.tier_of(lvl)
         body.append(u'<p class="vline t-%s"><b>%s</b><span class="hz">%s</span></p>'
                     % (tier, i18n['vStop'] if stop_of.get(spn) else (u'Drive with caution' if (sys_key == 'dpf' or spn in bp.ABS_WARN_SPN) else i18n['vWarn']),
-                       bp.esc(risk_h.get(lvl, u''))))
+                       bp.esc(bp.SPN168_HZ['en'] if spn == bp.SPN168 else risk_h.get(lvl, u''))))
         if not makes:
             body.append(u'<p class="sub">%s</p>' % (TX['subNone'] % spn))
         else:
@@ -602,8 +614,10 @@ def build():
                         % (TX['fmiCommon'], fmi_table(common, spn, bp.urgent_fmi_for(spn, urgent_fmi))))
 
         body.append(u'<section><h2>%s</h2><p>%s</p></section>' % (TX['canDrive'], verdict))
-        body.append(risk_section(sys_key, seen, spn in urgent_spn, uf_here))
+        body.append(risk_section(sys_key, seen, spn in urgent_spn, uf_here, spn))
         act = i18n.get(ACT_KEY.get(sys_key, ''))
+        if spn == bp.SPN168:
+            act = bp.SPN168_ADVICE['en']
         if act:
             body.append(u'<section><h2>%s</h2><p>%s</p></section>'
                         % (TX['checkNow'], bp.esc(act)))

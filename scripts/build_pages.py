@@ -386,6 +386,92 @@ def page_stop(sys_key, fmis, urgent_fmi, urgent_spn_hit):
 ABS_WARN_SPN = {789, 790, 791, 792}
 
 
+# ---------------------------------------------------------------
+# SPN 168 (напряжение АКБ): правки страницы по сверке источников от 06.11.2026
+# (tiktok-codetruck\stati\istochniki-17-spn168.md, раздел 5). Таблицы марок в
+# assets/dtc.enc.js общие (их читают приложение и страницы марок), поэтому
+# правим только то, что попадает на страницу кода SPN 168 (ru и en), а сами
+# таблицы не трогаем.
+# ---------------------------------------------------------------
+SPN168 = 168
+# Строки, которые по сверке не подтверждены или описывают другой параметр.
+# Renault FMI 8 (педаль), Mercedes FMI 0 (охлаждающая жидкость), International
+# FMI 2/8/17 (по стандарту J1939: 2 - данные некорректны, 8 - аномальная частота,
+# 17 - ниже нормы; описания смешаны из других SPN), ZF AS-Tronic FMI 8 (педаль).
+SPN168_DROP_ROWS = {'renault': {8}, 'mercedes': {0}, 'international': {2, 8, 17}}
+SPN168_DROP_BRANDS = frozenset(['zfastronic'])
+# Detroit Diesel: FMI 0 - DDEC VI Troubleshooting Manual, раздел 12.1, стр. 12-3;
+# FMI 1 - Detroit TSB GHG17 (сводка). Цифры порогов не приводим.
+SPN168_DETROIT = {
+    'ru': [(0, u'Напряжение аккумулятора высокое. Проверить генератор.'),
+           (1, u'Напряжение аккумулятора ниже нормы. Проверить клеммы и массы аккумуляторов, ремень генератора.')],
+    'en': [(0, u'Battery voltage high. Check the alternator.'),
+           (1, u'Battery voltage below normal. Check the battery terminals and grounds, and the alternator belt.')],
+}
+SPN168_URG = {'ru': u'Доехать можно, но ремонт не откладывайте.', 'en': u'You can drive to a shop, but do not put the repair off.'}
+SPN168_HZ = {'ru': u'До места ремонта', 'en': u'To the repair shop'}
+SPN168_VERDICT = {
+    'ru': (u'<b>Доехать до ближайшего места ремонта можно, но не откладывайте</b> — если горит только '
+           u'жёлтая лампа и мощность в норме. Красная лампа, падение мощности или трудности с пуском — '
+           u'остановитесь.'),
+    'en': (u'<b>You can drive to the nearest repair shop, but do not put it off</b> — if only the amber '
+           u'lamp is on and power is normal. A red lamp, a drop in power or trouble starting — stop.'),
+}
+SPN168_RISK = {
+    'ru': (u'Напряжение питания, которое видит блок управления, вышло за норму: выше или ниже, '
+           u'смотря по FMI. Пока горит только жёлтая лампа и мощность в норме, двигатель обычно '
+           u'продолжает работать.',
+           u'Причина чаще всего в генераторе и его ремне, клеммах и массах или в слабых '
+           u'аккумуляторах. Не откладывайте: если питание продолжит проседать, часть функций '
+           u'может быть ограничена.'),
+    'en': (u'The supply voltage the ECU sees is out of range — high or low, depending on the FMI. While only '
+           u'the amber lamp is on and power is normal, the engine usually keeps running.',
+           u'The cause is most often the alternator and its belt, the terminals and grounds, or weak '
+           u'batteries. Do not put it off: if the supply keeps sagging, some functions may be limited.'),
+}
+SPN168_FLAG = {
+    'ru': (u'По стандарту J1939 FMI 0 и 1 — наиболее серьёзный уровень; при FMI 17 и 18 источники '
+           u'описывают жёлтую лампу. Если сомневаешься, надёжнее остановиться и посмотреть на месте.'),
+    'en': (u'In J1939 FMI 0 and 1 are the most severe level; for FMI 17 and 18 the sources describe an '
+           u'amber lamp. If in doubt, it is safer to stop and look on the spot.'),
+}
+SPN168_ADVICE = {
+    'ru': (u'Проверьте клеммы аккумулятора и массу — окисление и слабая затяжка сыплют ложные коды по '
+           u'всей машине. Затем померьте напряжение на заглушенном и на работающем моторе: на '
+           u'работающем генератор должен заряжать, а напряжение не выходить за норму бортовой сети 24 В.'),
+    'en': (u'Check the battery terminals and the ground — corrosion and loose terminals scatter false codes '
+           u'across the whole truck. Then measure the voltage with the engine off and running: with the '
+           u'engine running the alternator should be charging, and the voltage should stay within the '
+           u'normal range of the 24 V on-board system.'),
+}
+
+
+def fix_spn168(makes, lang):
+    """Строки страницы SPN 168 после правок по сверке (см. SPN168_* выше).
+    makes - {марка: [(fmi, текст)]}; возвращает новый словарь, исходный не меняет."""
+    out = {}
+    for b, rows in makes.items():
+        if b in SPN168_DROP_BRANDS:
+            continue
+        drop = SPN168_DROP_ROWS.get(b, set())
+        new = []
+        for f, t in rows:
+            if f in drop:
+                continue
+            if b == 'renault' and f == 17:
+                # по стандарту J1939 FMI 17 - ниже нормы
+                t = t.replace(u'слишком высокое', u'слишком низкое').replace(u'too high', u'too low')
+            if b in ('maz', 'yamz'):
+                # мигающий код 1-2-4 как SPN 168 не подтверждён
+                t = re.sub(u'\\s*(Мигающий код|Blink code): 1-2-4\\.', u'', t)
+            new.append((f, t))
+        if b == 'detroitdiesel':
+            have = {f for f, _ in new}
+            new += [r for r in SPN168_DETROIT[lang] if r[0] not in have]
+        out[b] = new
+    return out
+
+
 def causal_rules(spn):
     """Правила CAUSAL, где код - первопричина и/или следствие.
 
@@ -404,6 +490,8 @@ def risk_section(sys_key, fmis, urgent_fmi, urgent_spn_hit, spn=None):
     if not key or key not in R['tx']:
         return u''
     happens, ends = R['tx'][key][0], R['tx'][key][1]
+    if spn == SPN168:
+        happens, ends = SPN168_RISK['ru']
     # Оговорку про электрический код показываем, только если у системы
     # действительно есть отдельный электрический вариант и такие FMI на
     # странице встречаются: иначе это чужой текст.
@@ -418,13 +506,13 @@ def risk_section(sys_key, fmis, urgent_fmi, urgent_spn_hit, spn=None):
     # значит мы разошлись с заводом и обязаны сказать об этом.
     flagged = urgent_spn_hit or any(f in urgent_fmi for f in (fmis or []))
     if flagged and lvl != 'now':
-        note += u'<p class="rkn">%s</p>' % esc(R['flag'])
+        note += u'<p class="rkn">%s</p>' % esc(SPN168_FLAG['ru'] if spn == SPN168 else R['flag'])
     tier = tier_of(lvl)
     head = esc(R['title']) + (u' с SPN %d' % spn if spn else u'')
     return (u'<section><h2>%s</h2>'
             u'<div class="risk t-%s"><span class="rkb">Запас времени: %s</span>'
             u'<p>%s</p><p>%s</p>%s</div></section>'
-            % (head, tier, esc(R['h'][lvl]), esc(happens), esc(ends), note))
+            % (head, tier, esc(SPN168_HZ['ru'] if spn == SPN168 else R['h'][lvl]), esc(happens), esc(ends), note))
 
 
 def system_of(spn, name):
@@ -1419,14 +1507,16 @@ def similar_codes(spn, bucket, exclude, diy, lo=5, hi=8):
     return first
 
 
-def code_desc_ru(spn, name, sys_key, makes, brand_names, urgent, how, caution=False):
+def code_desc_ru(spn, name, sys_key, makes, brand_names, urgent, how, caution=False, urg_text=None):
     """Описание страницы кода (до 155 знаков): номер и название, система,
     срочность, марки для FMI и, если есть, раздел «как проверить».
     makes - марки без своей нумерации (ZF, Ford сюда не входят).
     caution - код из ABS_WARN_SPN: «Ехать осторожно», а не «Ехать нельзя»."""
     head = (u'SPN %d — %s' % (spn, name)) if name else (u'SPN %d' % spn)
     sysc = (u': система «%s»' % SYS_TITLE[sys_key]) if sys_key in SYS_TITLE and sys_key != 'other' else u''
-    if caution:
+    if urg_text:
+        urg = urg_text
+    elif caution:
         urg = u'Ехать осторожно.'
     else:
         urg = u'Ехать нельзя.' if urgent else u'Можно доехать до сервиса.'
@@ -1594,7 +1684,9 @@ def build(en_spns=()):
 
     def brand_list(spn, limit=0):
         names = [brand_names.get(b, b) for b in
-                 sorted(per_spn.get(spn, {}), key=lambda x: brand_names.get(x, x))]
+                 sorted((b for b in per_spn.get(spn, {})
+                         if not (spn == SPN168 and b in SPN168_DROP_BRANDS)),
+                        key=lambda x: brand_names.get(x, x))]
         if not names:
             return u''
         if limit and len(names) > limit:
@@ -1676,6 +1768,8 @@ def build(en_spns=()):
         name = name_of(spn)
         sys_key = system_of(spn, std_name(spn))
         makes = per_spn.get(spn, {})
+        if spn == SPN168:
+            makes = fix_spn168(makes, 'ru')
         # У ZF AS-Tronic и Ford номер свой: рядом с обычными марками их строка
         # спорит с заголовком. Если обычные марки есть - ZF/Ford уходят ссылкой
         # на свою страницу; если их нет - страница про них и закрыта (noindex).
@@ -1730,6 +1824,8 @@ def build(en_spns=()):
                            u'запланируйте регенерацию. Если лампа мигает или красная, либо мощность '
                            u'упала, остановитесь и выполните стояночную регенерацию по инструкции '
                            u'производителя; не получается — сервис.')
+        if spn == SPN168:
+            verdict = SPN168_VERDICT['ru']
         # Заводской номер вне стандарта ищут вместе с маркой («spn 4099 knorr»),
         # поэтому у таких кодов марка стоит прямо в заголовке; у стандартных
         # SPN она там лишняя - имя узла и так однозначно.
@@ -1769,7 +1865,8 @@ def build(en_spns=()):
             desc = code_desc_ru(spn, name, sys_key, makes, brand_names,
                                 urgent_spn_hit or any(f in urg_here for f in seen_all_early),
                                 spn in DIY_KEYS or bool(advice_for(sys_key, seen_all_early)),
-                                caution=spn in ABS_WARN_SPN)
+                                caution=spn in ABS_WARN_SPN,
+                                urg_text=SPN168_URG['ru'] if spn == SPN168 else None)
         # Сайт в title не пишем: название сайта и так в og:site_name, а лишние
         # знаки уходят из выдачи. Номер SPN в начале делает заголовки разными.
         # Обрезка без многоточия, по границе слова (см. fit_title).
@@ -1783,6 +1880,8 @@ def build(en_spns=()):
         rk_key, _, _ = page_risk(sys_key, seen_all_early, urg_here, urgent_spn_hit)
         if rk_key and rk_key in risk_model()['tx']:
             happens, ends = risk_model()['tx'][rk_key][0], risk_model()['tx'][rk_key][1]
+            if spn == SPN168:
+                happens, ends = SPN168_RISK['ru']
             faq.append({'@type': 'Question',
                         'name': u'Что будет, если ехать дальше с кодом SPN %d?' % spn,
                         'acceptedAnswer': {'@type': 'Answer', 'text': happens + u' ' + ends}})
@@ -1817,7 +1916,7 @@ def build(en_spns=()):
         body.append(u'<p class="vline t-%s"><b>%s</b><span class="hz">%s</span></p>'
                     % (_tier,
                        u'Ехать нельзя' if stop else (u'Ехать осторожно' if (sys_key == 'dpf' or spn in ABS_WARN_SPN) else u'Ехать можно'),
-                       esc(risk_model()['h'].get(worst_lvl, u''))))
+                       esc(SPN168_HZ['ru'] if spn == SPN168 else risk_model()['h'].get(worst_lvl, u''))))
 
         if makes and std_name(spn):
             # Марки называем поимённо: раньше здесь стояло «у 3 марок», и самые
@@ -1889,6 +1988,8 @@ def build(en_spns=()):
         body.append(risk_section(sys_key, seen_all_early, urg_here, urgent_spn_hit, spn))
 
         _совет = advice_for(sys_key, seen_all_early)
+        if spn == SPN168:
+            _совет = SPN168_ADVICE['ru']
         if _совет:
             body.append(u'<section><h2>Что проверить на месте</h2><p>%s</p></section>'
                         % _совет)

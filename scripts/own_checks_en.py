@@ -51,17 +51,16 @@ CHECKS = {
                 'sees the wrong voltage: the cause is in the batteries, the alternator, or the '
                 'wires and grounds between them and the ECU.',
         'нормы': [
-            ('Two charged 12 V batteries, engine off', '25.2…25.6 V'),
-            ('Engine running, alternator charging', '27.5…28.8 V'),
-            ('During cranking', 'not below 18 V'),
-            ('Difference between the battery terminals and the ECU input under load', 'not more than 0.5 V'),
+            ('Two charged 12 V batteries, engine off', 'voltage normal for a 24 V on-board system'),
+            ('Engine running, alternator charging', 'voltage higher than with the engine off, but normal for a 24 V system'),
+            ('Battery terminals and the ECU input under load', 'nearly the same voltage, no noticeable drop'),
         ],
         'шаги': [
             'Measure at the battery terminals with the engine off, then with it running.',
-            'Above 29.5 V with the engine running — alternator regulator. Below 27 V — alternator, '
+            'Voltage above normal with the engine running — alternator regulator. Below normal — alternator, '
             'belt, or the wire from the alternator.',
             'Battery voltage is normal but the ECU sees less: measure at the ECU power connector '
-            'with a load on (headlights, heater fan). A difference of more than 0.5 V means poor '
+            'with a load on (headlights, heater fan). A noticeable drop means poor '
             'contact: the battery terminals, the ECU ground, the engine-to-frame ground, the power fuse.',
             'The code appears only when cranking — check the batteries with a load tester or meter: '
             'a sagging battery drops the voltage and the ECU restarts.',
