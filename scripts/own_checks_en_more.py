@@ -227,15 +227,15 @@ CHECKS = {
             ("Oil level on the dipstick", "within the marks per the manual"),
         ],
         "шаги": [
-            "Check the gearbox oil level and condition with the dipstick, or per the manual.",
-            "FMI 0 (International: readings above normal): check whether the gearbox is actually overheated, and the sensor itself.",
-            "FMI 12 (Sitrak: no TRF1 frame on the bus): see the general J1939 bus methods higher up the list.",
+            "Red lamp or oil hotter than normal (FMI 0, 15, 16): stop, let the gearbox cool down, check the oil level and condition and look for leaks; if the level is normal, check the external cooler, if there is one.",
+            "Amber lamp (FMI 2, 4, 5, 6 — erratic data, short to ground, open circuit or short to supply, reference voltage out of range): check the temperature sensor, its connector and the wiring.",
+            "After a gearbox unit replacement, make sure the temperature sensor is configured in the unit.",
         ],
         "причины": [
-            "Low level or contaminated oil.",
-            "Gearbox overheating.",
-            "The sensor itself.",
-            "CAN bus gaps.",
+            "Low oil level (too little oil, a leak).",
+            "Faulty temperature sensor, connector or wiring.",
+            "Sensor not configured in the unit after a unit replacement.",
+            "Mechanical lubrication failure inside the gearbox.",
         ],
     },
 

@@ -461,6 +461,52 @@ SPN_FIX = {
         'urg': SPN168_URG, 'hz': SPN168_HZ, 'verdict': SPN168_VERDICT,
         'risk': SPN168_RISK, 'flag': SPN168_FLAG, 'advice': SPN168_ADVICE,
     },
+    177: {
+        # SPN 177 - температура масла КПП (сверка istochniki-15.md, Eaton Endurant FC 212).
+        # Renault FMI 4 («неисправность CAN») противоречит FMI 4 по Eaton (замыкание на массу);
+        # SITRAK FMI 12 («нет кадра TRF1») - источник только сама страница.
+        'drop_brands': frozenset(['renault', 'sitrak']),
+        'no_elec_note': True,
+        'lvl': 'short',
+        'vline': {'ru': u'Ехать осторожно', 'en': u'Drive with caution'},
+        'hz': {'ru': u'Недалеко, до сервиса', 'en': u'Not far, to a shop'},
+        'urg': {'ru': u'Жёлтая лампа — до сервиса можно.', 'en': u'Amber lamp: a shop is reachable.'},
+        'desc': {
+            'ru': (u'SPN 177 (%s): жёлтая лампа — до сервиса можно, но недалеко; красная лампа или горячее '
+                   u'масло — остановитесь. Как проверить своими руками.'),
+            'en': (u'SPN 177 (%s): amber lamp, a shop is reachable but not far; red lamp or hot oil, stop. '
+                   u'How to check it yourself.'),
+        },
+        'verdict': {
+            'ru': (u'<b>Жёлтая лампа (датчик или проводка, FMI 2, 4, 5, 6) — доехать до сервиса можно, но '
+                   u'недалеко.</b> Красная лампа или масло горячее нормы (FMI 0, 15, 16) — остановитесь и '
+                   u'дайте коробке остыть.'),
+            'en': (u'<b>Amber lamp (sensor or wiring, FMI 2, 4, 5, 6) — you can drive to a shop, but not '
+                   u'far.</b> Red lamp or oil hotter than normal (FMI 0, 15, 16) — stop and let the gearbox cool down.'),
+        },
+        'risk': {
+            'ru': (u'Код про температуру масла коробки передач. Если масло горячее нормы (FMI 0, 15, 16), '
+                   u'загораются жёлтая и красная лампы (зависит от производителя машины), переключения '
+                   u'могут ухудшиться. При неисправном датчике или проводке (FMI 2, 4, 5, 6) по руководству '
+                   u'Eaton горит жёлтая лампа, режимов ограничения нет.',
+                   u'Красная лампа или горячее масло — остановитесь, дайте коробке остыть и проверьте уровень '
+                   u'масла, затем внешний охладитель, если он есть. Жёлтая лампа при неисправном датчике или '
+                   u'проводке — до сервиса можно доехать, но недалеко.'),
+            'en': (u'The code is about the gearbox oil temperature. If the oil is hotter than normal (FMI 0, 15, 16), '
+                   u'the amber and red lamps come on (depends on the vehicle maker) and shifting may get worse. '
+                   u'With a faulty sensor or wiring (FMI 2, 4, 5, 6) the Eaton manual gives an amber lamp and no '
+                   u'limp-home modes.',
+                   u'Red lamp or hot oil — stop, let the gearbox cool down and check the oil level, then the '
+                   u'external cooler if there is one. Amber lamp with a faulty sensor or wiring — a shop is '
+                   u'reachable, but not far.'),
+        },
+        'advice': {
+            'ru': (u'Дайте коробке остыть, проверьте уровень и состояние масла коробки, осмотрите коробку на '
+                   u'течи. Если уровень в норме, проверьте внешний охладитель масла коробки, если он есть.'),
+            'en': (u'Let the gearbox cool down, check the gearbox oil level and condition, and look for leaks. '
+                   u'If the level is normal, check the external gearbox oil cooler, if there is one.'),
+        },
+    },
     94: {
         # Foton FMI 1, КамАЗ-5490 FMI 1 и 14, Renault FMI 8/16, ZF FMI 8 (тормоз),
         # International (лампа вместо FMI): сверка п. 2, 3, 5, 7, 8, 9
@@ -588,6 +634,8 @@ def fix_spn168(makes, lang, spn=SPN168):
         if b == 'detroitdiesel' and cfg.get('detroit'):
             have = {f for f, _ in new}
             new += [r for r in cfg['detroit'][lang] if r[0] not in have]
+        if not new and rows:
+            continue
         out[b] = new
     return out
 
@@ -609,6 +657,7 @@ def risk_section(sys_key, fmis, urgent_fmi, urgent_spn_hit, spn=None):
     key, lvl, flag = page_risk(sys_key, fmis, urgent_fmi, urgent_spn_hit)
     if not key or key not in R['tx']:
         return u''
+    lvl = fx(spn, 'lvl') or lvl
     happens, ends = R['tx'][key][0], R['tx'][key][1]
     if fx(spn, 'risk', 'ru'):
         happens, ends = fx(spn, 'risk', 'ru')
@@ -1924,6 +1973,9 @@ def build(en_spns=()):
         if spn in ABS_WARN_SPN:
             stop = False
             worst_lvl = 'base'
+        if fx(spn, 'lvl'):
+            stop = False
+            worst_lvl = fx(spn, 'lvl')
         if stop:
             verdict = (u'<b>По этому коду ехать нельзя.</b> Он относится к неисправностям, '
                        u'при которых остановиться нужно при первой безопасной возможности: '
@@ -2038,7 +2090,7 @@ def build(en_spns=()):
         _tier = tier_of(worst_lvl)
         body.append(u'<p class="vline t-%s"><b>%s</b><span class="hz">%s</span></p>'
                     % (_tier,
-                       u'Ехать нельзя' if stop else (u'Ехать осторожно' if (sys_key == 'dpf' or spn in ABS_WARN_SPN) else u'Ехать можно'),
+                       fx(spn, 'vline', 'ru') or (u'Ехать нельзя' if stop else (u'Ехать осторожно' if (sys_key == 'dpf' or spn in ABS_WARN_SPN) else u'Ехать можно')),
                        esc(fx(spn, 'hz', 'ru') or risk_model()['h'].get(worst_lvl, u''))))
 
         if makes and std_name(spn):

@@ -437,6 +437,7 @@ def build():
         key, lvl, _ = bp.page_risk(sys_key, fmis, uf, urgent_spn_hit)
         if not key or key not in risk_tx:
             return u''
+        lvl = bp.fx(spn, 'lvl') or lvl
         happens, ends = risk_tx[key][0], risk_tx[key][1]
         if bp.fx(spn, 'risk', 'en'):
             happens, ends = bp.fx(spn, 'risk', 'en')
@@ -488,7 +489,7 @@ def build():
         name = name_of(spn)
         brands_short, brands_all = brand_list(spn, 3), brand_list(spn)
 
-        if stop_of.get(spn):
+        if stop_of.get(spn) and not bp.fx(spn, 'lvl'):
             verdict = u'<b>%s.</b> %s' % (i18n['vStop'], i18n['vStopSub'])
         else:
             verdict = u'<b>%s.</b> %s' % (i18n['vWarn'], i18n['vWarnSub'])
@@ -572,10 +573,10 @@ def build():
         body.append(u'<h1>%s</h1>' % bp.esc(page_name))
         body.append(bp.search_form(ph=u'Another code, e.g. %d/3' % spn, action=u'/en/', btn=u'Search',
                                    label=u'Fault code'))
-        lvl = lvl_of.get(spn, 'plan')
+        lvl = bp.fx(spn, 'lvl') or lvl_of.get(spn, 'plan')
         tier = bp.tier_of(lvl)
         body.append(u'<p class="vline t-%s"><b>%s</b><span class="hz">%s</span></p>'
-                    % (tier, i18n['vStop'] if stop_of.get(spn) else (u'Drive with caution' if (sys_key == 'dpf' or spn in bp.ABS_WARN_SPN) else i18n['vWarn']),
+                    % (tier, bp.fx(spn, 'vline', 'en') or (i18n['vStop'] if (stop_of.get(spn) and not bp.fx(spn, 'lvl')) else (u'Drive with caution' if (sys_key == 'dpf' or spn in bp.ABS_WARN_SPN) else i18n['vWarn'])),
                        bp.esc(bp.fx(spn, 'hz', 'en') or risk_h.get(lvl, u''))))
         if not makes:
             body.append(u'<p class="sub">%s</p>' % (TX['subNone'] % spn))
