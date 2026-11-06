@@ -84,19 +84,19 @@ CHECKS = {
     },
 
     94: {
-        "узел": "Fuel pressure in the supply system: a sensor on the line before the high-pressure pump. The unit uses it to see whether there is enough pressure for injection. Low pressure causes loss of power and stalling.",
+        "узел": "Fuel pressure in the supply system: a pressure sensor (its location depends on the make). The unit uses it to see whether there is enough pressure for injection. Low pressure can cause loss of power and the engine stopping.",
         "нормы": [
             ("Fuel pressure at idle and under load", "per the manufacturer's manual"),
             ("Sensor signal with the engine off", "neither zero nor at plus — per diagnostics"),
         ],
         "шаги": [
-            "FMI 1, 17 (low pressure, Foton): check the filters, the transfer pump and the air on the suction side (clear tube, bubbles).",
-            "FMI 0, 1, 2, 3 (KamAZ: input shorted to plus or ground): unplug the sensor connector and measure to plus and to ground with the ignition on.",
-            "FMI 0, 3, 4, 8 (Renault: injection pressure above normal): check the sensor and the pressure regulator; if it repeats — per the injection system troubleshooting guide.",
-            "FMI 4, 6 (International: fuel supply limitation lamp): check the lamp and the fuel supply per the manual.",
+            "Pressure below normal: check the filters, the transfer pump and the air on the suction side (clear tube, bubbles); in winter, whether the fuel has waxed.",
+            "FMI 3 or 4 (electrical): unplug the sensor connector and measure to plus and to ground with the ignition on.",
+            "Pressure above normal: check the sensor and the pressure regulator; if it repeats — per the injection system troubleshooting guide.",
         ],
         "причины": [
             "Clogged fuel filters.",
+            "In winter — wax in summer-grade fuel and a filter clogged by it.",
             "Air leak on the suction side.",
             "Transfer pump or pressure regulator.",
             "Pressure sensor or its connector.",

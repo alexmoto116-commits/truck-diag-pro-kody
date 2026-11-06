@@ -446,28 +446,148 @@ SPN168_ADVICE = {
 }
 
 
-def fix_spn168(makes, lang):
-    """Строки страницы SPN 168 после правок по сверке (см. SPN168_* выше).
+# ---------------------------------------------------------------
+# SPN 94 (давление топлива) и SPN 4364 (эффективность катализатора SCR): правки по
+# сверкам istochniki-18-spn94.md и istochniki-19-spn4364.md (06.11.2026).
+# Тот же приём, что у SPN 168: правим только страницу кода (ru и en), общие
+# таблицы марок не трогаем.
+# ---------------------------------------------------------------
+_RE_MR2_RU = u'\\s*Код по K-line на КамАЗ-5490: MR2 \\d+\\.'
+_RE_MR2_EN = u'\\s*K-line code on KamAZ-5490: MR2 \\d+\\.'
+SPN_FIX = {
+    168: {
+        'drop_rows': SPN168_DROP_ROWS, 'drop_brands': SPN168_DROP_BRANDS,
+        'detroit': SPN168_DETROIT,
+        'urg': SPN168_URG, 'hz': SPN168_HZ, 'verdict': SPN168_VERDICT,
+        'risk': SPN168_RISK, 'flag': SPN168_FLAG, 'advice': SPN168_ADVICE,
+    },
+    94: {
+        # Foton FMI 1, КамАЗ-5490 FMI 1 и 14, Renault FMI 8/16, ZF FMI 8 (тормоз),
+        # International (лампа вместо FMI): сверка п. 2, 3, 5, 7, 8, 9
+        'drop_rows': {'foton': {1}, 'kamaz5490': {1, 14}, 'renault': {8, 16}},
+        'drop_brands': frozenset(['zfastronic', 'international']),
+        'strip': {
+            # номера MR2 КамАЗ-5490 не подтверждены (п. 9)
+            'kamaz5490': [(_RE_MR2_RU, _RE_MR2_EN)],
+            # Renault FMI 3: обрыв цепи - другой FMI (п. 4)
+            'renault': [(u'обрыв в цепи, ', u'open circuit, ')],
+        },
+        'no_elec_note': True,
+        'desc': {
+            'ru': u'SPN 94 (%s): доехать до стоянки или сервиса можно, если мощность в норме. Значения FMI, как проверить своими руками.',
+            'en': u'SPN 94 (%s): you can drive to a stop or a shop if power is normal. FMI values, how to check it yourself.',
+        },
+        'urg': {'ru': u'Доехать можно, если мощность в норме.', 'en': u'You can drive on if power is normal.'},
+        'hz': {'ru': u'До стоянки или сервиса', 'en': u'To a stop or a shop'},
+        'verdict': {
+            'ru': (u'<b>Доехать до ближайшей стоянки или сервиса можно, если мощность в норме</b>. '
+                   u'При падении мощности, перебоях или остановке двигателя — остановитесь.'),
+            'en': (u'<b>You can drive to the nearest stop or a shop if power is normal</b>. '
+                   u'If power drops, the engine misfires or stalls — stop.'),
+        },
+        'risk': {
+            'ru': (u'Топливо поступает под давлением вне нормы, и двигателю может не хватать подачи. '
+                   u'Это может проявиться падением мощности и перебоями на подъёме и под нагрузкой, '
+                   u'а в тяжёлом случае остановкой двигателя.',
+                   u'Если мощность в норме, до ближайшей стоянки или сервиса дотянуть можно; при падении '
+                   u'мощности, рывках или остановке двигателя остановитесь. Сначала проверьте топливные '
+                   u'фильтры и подсос воздуха, зимой — парафинизацию топлива.'),
+            'en': (u'The fuel pressure is out of range, and the engine may not get enough fuel. It can show up as '
+                   u'a loss of power and hesitation uphill and under load, and in a severe case the engine stopping.',
+                   u'If power is normal you can make it to the nearest stop or a shop; if power drops, the engine '
+                   u'jerks or stops, stop. First check the fuel filters and air leaks on the suction side, and in '
+                   u'winter fuel waxing.'),
+        },
+        'flag': {
+            'ru': (u'По стандарту J1939 FMI 0 и 1 — наиболее серьёзный уровень. Если сомневаешься, '
+                   u'надёжнее остановиться и посмотреть на месте.'),
+            'en': (u'In J1939 FMI 0 and 1 are the most severe level. If in doubt, it is safer to stop and '
+                   u'look on the spot.'),
+        },
+        'advice': {
+            'ru': (u'Проверьте топливный фильтр и отстойник, слейте воду. Зимой добавьте к подозрениям '
+                   u'парафинизацию солярки: летнее топливо на морозе и забитый им фильтр. Если FMI 3 или 4 — '
+                   u'это электрика: осмотрите разъём и жгут датчика.'),
+            'en': (u'Check the fuel filter and the water trap, drain the water. In winter add fuel waxing to the '
+                   u'suspects: summer-grade diesel in the cold and a filter clogged by it. If the FMI is 3 or 4 it '
+                   u'is electrical: inspect the sensor connector and harness.'),
+        },
+    },
+    4364: {
+        'no_elec_note': True,
+        'urg': {'ru': u'Доехать до сервиса можно, не откладывая.', 'en': u'You can drive to a shop, but do not put it off.'},
+        'hz': {'ru': u'До сервиса, не откладывая', 'en': u'To a shop, without delay'},
+        'verdict': {
+            'ru': (u'<b>Доехать до сервиса можно, но не откладывайте</b>. Если включилось ограничение '
+                   u'мощности или скорости — остановитесь и разберитесь.'),
+            'en': (u'<b>You can drive to a shop, but do not put it off</b>. If a power or speed limit has '
+                   u'kicked in — stop and sort it out.'),
+        },
+        'risk': {
+            'ru': (u'Блок по двум датчикам NOx — до катализатора SCR и после него — считает, сколько NOx '
+                   u'катализатор снимает. Если мало, ставит этот код.',
+                   u'Может включиться ограничение мощности или скорости — этого требуют нормы по выбросам; '
+                   u'условия зависят от производителя. Планируйте ремонт сейчас, а не когда ограничение '
+                   u'уже включилось.'),
+            'en': (u'The unit uses two NOx sensors, before the SCR catalyst and after it, to work out how much NOx '
+                   u'the catalyst removes. If it is too little, the unit sets this code.',
+                   u'A power or speed limit may switch on, as the emissions rules require; the conditions depend on '
+                   u'the manufacturer. Plan the repair now, not after the limit has already kicked in.'),
+        },
+        'advice': {
+            'ru': (u'Проверьте качество, срок годности и уровень AdBlue, затем дозатор и подсос выхлопа до '
+                   u'датчиков NOx. Если с AdBlue всё в порядке, нужен сканер: смотрите показания NOx до и после '
+                   u'катализатора.'),
+            'en': (u'Check the quality, shelf life and level of the AdBlue, then the doser and any exhaust leak '
+                   u'before the NOx sensors. If the AdBlue is fine, you need a scan tool: look at the NOx readings '
+                   u'before and after the catalyst.'),
+        },
+        'desc': {
+            'ru': u'SPN 4364 (%s): что означает код по стандарту J1939, можно ли ехать и что проверить своими руками.',
+            'en': u'SPN 4364 (%s): what the code means in J1939, whether you can drive and what to check yourself.',
+        },
+    },
+}
+
+
+def fx(spn, key, lang=None):
+    """Значение правки страницы кода (SPN_FIX) или None."""
+    v = SPN_FIX.get(spn, {}).get(key)
+    if v is not None and lang is not None and isinstance(v, dict):
+        return v.get(lang)
+    return v
+
+
+def fix_spn168(makes, lang, spn=SPN168):
+    """Строки страницы кода после правок по сверке (см. SPN_FIX).
     makes - {марка: [(fmi, текст)]}; возвращает новый словарь, исходный не меняет."""
+    cfg = SPN_FIX[spn]
+    drop_brands = cfg.get('drop_brands', frozenset())
     out = {}
     for b, rows in makes.items():
-        if b in SPN168_DROP_BRANDS:
+        if b in drop_brands:
             continue
-        drop = SPN168_DROP_ROWS.get(b, set())
+        drop = cfg.get('drop_rows', {}).get(b, set())
         new = []
         for f, t in rows:
             if f in drop:
                 continue
-            if b == 'renault' and f == 17:
-                # по стандарту J1939 FMI 17 - ниже нормы
-                t = t.replace(u'слишком высокое', u'слишком низкое').replace(u'too high', u'too low')
-            if b in ('maz', 'yamz'):
-                # мигающий код 1-2-4 как SPN 168 не подтверждён
-                t = re.sub(u'\\s*(Мигающий код|Blink code): 1-2-4\\.', u'', t)
+            if spn == SPN168:
+                if b == 'renault' and f == 17:
+                    # по стандарту J1939 FMI 17 - ниже нормы
+                    t = t.replace(u'слишком высокое', u'слишком низкое').replace(u'too high', u'too low')
+                if b in ('maz', 'yamz'):
+                    # мигающий код 1-2-4 как SPN 168 не подтверждён
+                    t = re.sub(u'\\s*(Мигающий код|Blink code): 1-2-4\\.', u'', t)
+            for a in cfg.get('strip', {}).get(b, []):
+                if b == 'kamaz5490':
+                    t = re.sub(a[0] if lang == 'ru' else a[1], u'', t)
+                elif spn == 94 and f == 3:
+                    t = t.replace(a[0] if lang == 'ru' else a[1], u'')
             new.append((f, t))
-        if b == 'detroitdiesel':
+        if b == 'detroitdiesel' and cfg.get('detroit'):
             have = {f for f, _ in new}
-            new += [r for r in SPN168_DETROIT[lang] if r[0] not in have]
+            new += [r for r in cfg['detroit'][lang] if r[0] not in have]
         out[b] = new
     return out
 
@@ -490,14 +610,15 @@ def risk_section(sys_key, fmis, urgent_fmi, urgent_spn_hit, spn=None):
     if not key or key not in R['tx']:
         return u''
     happens, ends = R['tx'][key][0], R['tx'][key][1]
-    if spn == SPN168:
-        happens, ends = SPN168_RISK['ru']
+    if fx(spn, 'risk', 'ru'):
+        happens, ends = fx(spn, 'risk', 'ru')
     # Оговорку про электрический код показываем, только если у системы
     # действительно есть отдельный электрический вариант и такие FMI на
     # странице встречаются: иначе это чужой текст.
     note = u''
     m = R['map'].get(sys_key)
-    if m and m.get('elec') and any(f in fmi_elec() for f in (fmis or [])) and key != m['elec'][0]:
+    if (m and m.get('elec') and any(f in fmi_elec() for f in (fmis or [])) and key != m['elec'][0]
+            and not fx(spn, 'no_elec_note')):
         e = R['tx'][m['elec'][0]]
         note = u'<p class="rkn">%s %s</p>' % (esc(e[0]), esc(e[1]))
     # Флаг из risk_of() относится к одному коду; на странице кодов много,
@@ -506,13 +627,13 @@ def risk_section(sys_key, fmis, urgent_fmi, urgent_spn_hit, spn=None):
     # значит мы разошлись с заводом и обязаны сказать об этом.
     flagged = urgent_spn_hit or any(f in urgent_fmi for f in (fmis or []))
     if flagged and lvl != 'now':
-        note += u'<p class="rkn">%s</p>' % esc(SPN168_FLAG['ru'] if spn == SPN168 else R['flag'])
+        note += u'<p class="rkn">%s</p>' % esc(fx(spn, 'flag', 'ru') or R['flag'])
     tier = tier_of(lvl)
     head = esc(R['title']) + (u' с SPN %d' % spn if spn else u'')
     return (u'<section><h2>%s</h2>'
             u'<div class="risk t-%s"><span class="rkb">Запас времени: %s</span>'
             u'<p>%s</p><p>%s</p>%s</div></section>'
-            % (head, tier, esc(SPN168_HZ['ru'] if spn == SPN168 else R['h'][lvl]), esc(happens), esc(ends), note))
+            % (head, tier, esc(fx(spn, 'hz', 'ru') or R['h'][lvl]), esc(happens), esc(ends), note))
 
 
 def system_of(spn, name):
@@ -1685,7 +1806,7 @@ def build(en_spns=()):
     def brand_list(spn, limit=0):
         names = [brand_names.get(b, b) for b in
                  sorted((b for b in per_spn.get(spn, {})
-                         if not (spn == SPN168 and b in SPN168_DROP_BRANDS)),
+                         if b not in (fx(spn, 'drop_brands') or ())),
                         key=lambda x: brand_names.get(x, x))]
         if not names:
             return u''
@@ -1768,8 +1889,8 @@ def build(en_spns=()):
         name = name_of(spn)
         sys_key = system_of(spn, std_name(spn))
         makes = per_spn.get(spn, {})
-        if spn == SPN168:
-            makes = fix_spn168(makes, 'ru')
+        if spn in SPN_FIX:
+            makes = fix_spn168(makes, 'ru', spn)
         # У ZF AS-Tronic и Ford номер свой: рядом с обычными марками их строка
         # спорит с заголовком. Если обычные марки есть - ZF/Ford уходят ссылкой
         # на свою страницу; если их нет - страница про них и закрыта (noindex).
@@ -1824,8 +1945,8 @@ def build(en_spns=()):
                            u'запланируйте регенерацию. Если лампа мигает или красная, либо мощность '
                            u'упала, остановитесь и выполните стояночную регенерацию по инструкции '
                            u'производителя; не получается — сервис.')
-        if spn == SPN168:
-            verdict = SPN168_VERDICT['ru']
+        if fx(spn, 'verdict', 'ru'):
+            verdict = fx(spn, 'verdict', 'ru')
         # Заводской номер вне стандарта ищут вместе с маркой («spn 4099 knorr»),
         # поэтому у таких кодов марка стоит прямо в заголовке; у стандартных
         # SPN она там лишняя - имя узла и так однозначно.
@@ -1866,7 +1987,9 @@ def build(en_spns=()):
                                 urgent_spn_hit or any(f in urg_here for f in seen_all_early),
                                 spn in DIY_KEYS or bool(advice_for(sys_key, seen_all_early)),
                                 caution=spn in ABS_WARN_SPN,
-                                urg_text=SPN168_URG['ru'] if spn == SPN168 else None)
+                                urg_text=fx(spn, 'urg', 'ru'))
+        if fx(spn, 'desc', 'ru'):
+            desc = fx(spn, 'desc', 'ru') % (name or u'SPN %d' % spn)
         # Сайт в title не пишем: название сайта и так в og:site_name, а лишние
         # знаки уходят из выдачи. Номер SPN в начале делает заголовки разными.
         # Обрезка без многоточия, по границе слова (см. fit_title).
@@ -1880,8 +2003,8 @@ def build(en_spns=()):
         rk_key, _, _ = page_risk(sys_key, seen_all_early, urg_here, urgent_spn_hit)
         if rk_key and rk_key in risk_model()['tx']:
             happens, ends = risk_model()['tx'][rk_key][0], risk_model()['tx'][rk_key][1]
-            if spn == SPN168:
-                happens, ends = SPN168_RISK['ru']
+            if fx(spn, 'risk', 'ru'):
+                happens, ends = fx(spn, 'risk', 'ru')
             faq.append({'@type': 'Question',
                         'name': u'Что будет, если ехать дальше с кодом SPN %d?' % spn,
                         'acceptedAnswer': {'@type': 'Answer', 'text': happens + u' ' + ends}})
@@ -1916,7 +2039,7 @@ def build(en_spns=()):
         body.append(u'<p class="vline t-%s"><b>%s</b><span class="hz">%s</span></p>'
                     % (_tier,
                        u'Ехать нельзя' if stop else (u'Ехать осторожно' if (sys_key == 'dpf' or spn in ABS_WARN_SPN) else u'Ехать можно'),
-                       esc(SPN168_HZ['ru'] if spn == SPN168 else risk_model()['h'].get(worst_lvl, u''))))
+                       esc(fx(spn, 'hz', 'ru') or risk_model()['h'].get(worst_lvl, u''))))
 
         if makes and std_name(spn):
             # Марки называем поимённо: раньше здесь стояло «у 3 марок», и самые
@@ -1988,8 +2111,8 @@ def build(en_spns=()):
         body.append(risk_section(sys_key, seen_all_early, urg_here, urgent_spn_hit, spn))
 
         _совет = advice_for(sys_key, seen_all_early)
-        if spn == SPN168:
-            _совет = SPN168_ADVICE['ru']
+        if fx(spn, 'advice', 'ru'):
+            _совет = fx(spn, 'advice', 'ru')
         if _совет:
             body.append(u'<section><h2>Что проверить на месте</h2><p>%s</p></section>'
                         % _совет)
