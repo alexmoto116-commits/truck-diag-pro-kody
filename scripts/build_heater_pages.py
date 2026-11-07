@@ -170,7 +170,7 @@ def topic_sections(lang, entry, text, key=None, lead=u'', remedy=u''):
     out += [
         u'<section><h2>%s</h2><p>%s</p><ol>%s</ol></section>'
         % (h['zero_causes' if zero else 'causes'], bp.esc(h['causes_intro']), _li(t['causes'])),
-        u'<section><h2>%s</h2><ol>%s</ol></section>' % (h['steps'], _li(cm['steps'])),
+        u'<section><h2>%s</h2><ol>%s</ol></section>' % (h['steps'], _li(t.get('steps') or cm['steps'])),
         u'<section><h2>%s</h2><p>%s</p><ul>%s</ul></section>'
         % (h['check'], bp.esc(h['check_intro']), _li(_checks_for(key, t['checks'] + cm['checks']))),
         u'<section><h2>%s</h2><p>%s</p><p>%s</p></section>'

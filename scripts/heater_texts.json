@@ -964,6 +964,40 @@
       }
     },
     {
+      "id": "lockout_f12",
+      "pattern": "(?!)",
+      "ru": {
+        "meaning": "Смысл кода и условие, при котором он появляется, названы в заводском тексте выше. Блокировка F12 снимается только отключением питания, повторный пуск её не сбрасывает.",
+        "causes": [
+          "Причина зависит от условия, названного в заводском тексте кода: блокировка включается после повторных серьёзных ошибок, поэтому ищите прежнюю ошибку."
+        ],
+        "steps": [
+          "Запишите код, время появления и условия: холодный пуск, работа на ходу или стоянка, напряжение в бортовой сети.",
+          "Снимите питание с отопителя: выключите его, выньте предохранитель отопителя и вставьте обратно. Повторный пуск без этого блокировку не снимает. У Thermo Top Evo по руководству Webasto 9040512A (п. 4.5): включите отопитель, в первые 10 секунд выньте предохранитель, держите его вынутым не меньше 10 секунд и вставьте.",
+          "Если блокировка повторилась, не сбрасывайте её раз за разом: ищите причину (топливо, свеча накаливания, датчик перегрева) по проверкам ниже и обратитесь в сервис."
+        ],
+        "checks": [
+          "Осмотрите разъёмы и провода узла, названного в коде."
+        ],
+        "service": "Если блокировка возвращается после сброса питанием, нужна диагностика в сервисе: он читает предыдущие ошибки и находит причину."
+      },
+      "en": {
+        "meaning": "The meaning of the code and the condition under which it appears are given in the factory text above. The F12 lockout is cleared only by cutting the power; a restart does not reset it.",
+        "causes": [
+          "The cause depends on the condition named in the factory text of the code: the lockout is set after repeated serious faults, so look for the earlier fault."
+        ],
+        "steps": [
+          "Write down the code, when it appeared and the conditions: cold start, driving or idling, and the vehicle voltage.",
+          "Cut the power to the heater: switch it off, pull the heater fuse and put it back. A restart alone does not clear the lockout. For the Thermo Top Evo, per Webasto manual 9040512A (4.5): switch the heater on, pull the fuse within the first 10 seconds, keep it out for at least 10 seconds, then insert it.",
+          "If the lockout comes back, do not keep resetting it: look for the cause (fuel, glow plug, overheat sensor) with the checks below and go to a service."
+        ],
+        "checks": [
+          "Look at the connectors and wires of the part named in the code."
+        ],
+        "service": "If the lockout returns after a power reset, a service diagnosis is needed: it reads the earlier faults and finds the cause."
+      }
+    },
+    {
       "id": "generic",
       "pattern": "(?!)",
       "ru": {
@@ -1136,7 +1170,7 @@
     "webasto:F10": "overheat",
     "webasto:F16": "overheat",
     "webasto:F11": "generic",
-    "webasto:F12": "generic",
+    "webasto:F12": "lockout_f12",
     "webasto:F13": "generic",
     "webasto:F15": "generic",
     "planar:1": "overheat",
