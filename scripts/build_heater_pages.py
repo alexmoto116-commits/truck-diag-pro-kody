@@ -143,6 +143,17 @@ def src_section(lang, srcs):
         u'Источник' if ru else u'Source', u''.join(li))
 
 
+# Коды, где проверка предохранителя не относится к причине (по заводской таблице предохранители -
+# причина другого кода): общий пункт про предохранитель на их страницах не показываем.
+NO_FUSE_CHECK = {'planar:17'}
+
+
+def _checks_for(key, checks):
+    if key in NO_FUSE_CHECK:
+        return [c for c in checks if u'редохранител' not in c and u'fuse' not in c.lower()]
+    return checks
+
+
 def topic_sections(lang, entry, text, key=None, lead=u'', remedy=u''):
     """Разделы страницы кода: что значит, (заводская рекомендация), почему, что проверить,
     сервис, езда, опасность. lead - готовый html после основного текста (модель, Hydronic),
@@ -161,7 +172,7 @@ def topic_sections(lang, entry, text, key=None, lead=u'', remedy=u''):
         % (h['zero_causes' if zero else 'causes'], bp.esc(h['causes_intro']), _li(t['causes'])),
         u'<section><h2>%s</h2><ol>%s</ol></section>' % (h['steps'], _li(cm['steps'])),
         u'<section><h2>%s</h2><p>%s</p><ul>%s</ul></section>'
-        % (h['check'], bp.esc(h['check_intro']), _li(t['checks'] + cm['checks'])),
+        % (h['check'], bp.esc(h['check_intro']), _li(_checks_for(key, t['checks'] + cm['checks']))),
         u'<section><h2>%s</h2><p>%s</p><p>%s</p></section>'
         % (h['service'], bp.esc(t['service']), bp.esc(cm['service'])),
         u'<section><h2>%s</h2><p>%s</p><p>%s</p></section>'
@@ -174,9 +185,18 @@ def topic_sections(lang, entry, text, key=None, lead=u'', remedy=u''):
 TITLE_LIM = 65
 
 
+def _strip_parens(text):
+    """Убирает скобки вместе с вложенными: «A (б; в: F12 (Г, Д))» -> «A» (внутренние первыми)."""
+    prev = None
+    while prev != text:
+        prev = text
+        text = re.sub(r'\s*\([^()]*\)', u'', text)
+    return text.strip()
+
+
 def _short(text):
     """Текст кода без скобок-пояснений: «Блокировка отопителя»."""
-    return re.sub(r'\s*\([^)]*\)', u'', text).strip().rstrip(u'.')
+    return _strip_parens(text).rstrip(u'.')
 
 
 def _lower_first(s):
@@ -187,8 +207,21 @@ def _slug(brand, code):
     return u'%s-%s' % (brand, code.lower())
 
 
-def _unconfirmed(entry):
-    return UNCONFIRMED in (entry.get('ru') or '')
+def _single_source(b, code):
+    """Код Webasto подтверждён одним заводским руководством (confidence «1 источник»;
+    у F-кода - все строки моделей). Такие страницы закрываются noindex и не идут в карты сайта."""
+    if b != 'webasto':
+        return False
+    rec = rec_of(b, code)
+    if not rec:
+        return False
+    if 'rows' in rec:
+        return bool(rec['rows']) and all(r.get('confidence', u'').startswith(u'1 ') for r in rec['rows'])
+    return (rec.get('confidence') or u'').startswith(u'1 ')
+
+
+def _unconfirmed(entry, b=None, code=None):
+    return UNCONFIRMED in (entry.get('ru') or '') or bool(b and _single_source(b, code))
 
 
 def load_release():
@@ -204,9 +237,27 @@ def load_release():
     return out
 
 
-def make_title(prefix, short, lang_sep=u' — '):
+# Заголовки, которые не помещаются в TITLE_LIM и при обрезке теряют смысл («...выход вентиляции свежим»).
+# Здесь - готовая короткая формулировка части после тире.
+TITLE_OVERRIDE = {
+    'ru': {
+        'eberspacher:004': u'КЗ выхода вентилятора свежего воздуха',
+        'eberspacher:025': u'диагностический провод: КЗ на плюс',
+        'webasto:09': u'привод вентилятора: КЗ на массу, перегрузка',
+    },
+    'en': {
+        'eberspacher:004': u'short circuit, fresh-air output',
+        'eberspacher:025': u'diagnostic wire short to positive',
+        'webasto:09': u'fan drive short to earth, overload',
+    },
+}
+
+
+def make_title(prefix, short, lang_sep=u' — ', override=None):
     """Заголовок кода: без многоточия и без названия сайта, не длиннее TITLE_LIM.
     Обрезка по слову - bp.fit_title (build_pages.py)."""
+    if override:
+        short = override
     core = prefix + lang_sep + _lower_first(short) if short else prefix
     title = bp.fit_title(core)
     if len(title) > TITLE_LIM:
@@ -398,10 +449,10 @@ DRIVER_EN = [
     u'MultiControl / SmartControl: codes F01-F15 on the display (F16-F19 show as "- -"); over W-Bus the display may show '
     u'hexadecimal codes Hxx instead.',
 ]
-NO_F_RU = (u'Пульты Telestart и ThermoCall номер ошибки не показывают — смотрите таймер или пульт в кабине '
-           u'(по руководствам Telestart T91, T100 HTM и ThermoCall, которые удалось проверить).')
-NO_F_EN = (u'Telestart and ThermoCall remotes do not show the error number: look at the timer or the control in the cab '
-           u'(according to the Telestart T91, T100 HTM and ThermoCall manuals that could be checked).')
+NO_F_RU = (u'В руководствах дистанционных пультов Telestart (T91, краткая инструкция T100 HTM) и ThermoCall TC4, '
+           u'которые удалось прочитать, номер F-кода не описан. Ищите код на таймере или элементе управления в кабине.')
+NO_F_EN = (u'The manuals of the Telestart (T91, T100 HTM quick guide) and ThermoCall TC4 remote controls that we could '
+           u'read do not describe an F-code number. Look for the code on the timer or the control in the cab.')
 
 
 def driver_section(lang):
@@ -501,8 +552,11 @@ def _code_page(lang, b, code, entry, prev_c, next_c):
                     pcs.append(x)
         if len(pcs) <= 4:
             h1 = prefix + ((u' (ПК-коды %s)' if ru else u' (PC codes %s)') % u', '.join(sorted(pcs)))
-    title = make_title(prefix, short)
+    title = make_title(prefix, short, override=TITLE_OVERRIDE[lang].get('%s:%s' % (b, code)))
     full = text if b == 'planar' else short
+    single = _single_source(b, code)
+    if single:
+        full += (u' (по одному заводскому руководству)' if ru else u' (single factory manual)')
     desc = make_desc(lang, prefix, full)
     rel = ('otopiteli/%s.html' if ru else 'en/otopiteli/%s.html') % _slug(b, code)
     model_txt = u''
@@ -587,6 +641,13 @@ def _code_page(lang, b, code, entry, prev_c, next_c):
         what_text = rec['ru'] if ru else rec['en']
         remedy = _remedy_section(lang, rec.get('remedy'))
         srcs = rec['sources']
+    if single:
+        pre.insert(0, u'<div class="risk"><p><b>%s</b> %s</p></div>' % (
+            (u'Код подтверждён одним заводским руководством.' if ru else u'This code is confirmed by a single factory manual.'),
+            (u'Второго заводского источника нет, поэтому смысл сверьте с инструкцией вашей модели. '
+             u'Страница закрыта от индексации поисковиками.' if ru else
+             u'There is no second factory source, so check the meaning against the manual for your model. '
+             u'This page is excluded from search indexing.')))
     sections = list(pre)
     sections += topic_sections(lang, entry, what_text, key, lead, remedy)
     sections += [p for p in post if p]
@@ -609,7 +670,7 @@ def _code_page(lang, b, code, entry, prev_c, next_c):
     sections.append(u'<section><h2>%s</h2><ul class="near">%s</ul></section>'
                     % (s_more, u''.join(u'<li><a href="%s"><span class="nm">%s</span></a></li>'
                                         % (h, bp.esc(t)) for h, t in more)))
-    noindex = _unconfirmed(entry)
+    noindex = _unconfirmed(entry, b, code)
     html = render(lang, rel, title, desc, h1, sub, sections, here=h1, brand=b, noindex=noindex)
     return rel, html, noindex
 
@@ -620,6 +681,26 @@ def _row(lang, b, code, is_live, text, first=None):
     if is_live(b, code):
         cell = u'<a href="%s">%s</a>' % (_page_url(lang, b, code), cell)
     return cell
+
+
+def _f_meaning(lang, code):
+    """Смысл F-кода для оглавления. Если у моделей смысл разный - по моделям, а не одна строка."""
+    rec = rec_of('webasto', code)
+    if not rec:
+        return short_of('webasto', code, lang)
+    key = 'title' if lang == 'ru' else 'en'
+    groups = []
+    for r in rec['rows']:
+        s = _short(r[key])
+        for g in groups:
+            if g[0] == s:
+                g[1].append(r['model'])
+                break
+        else:
+            groups.append((s, [r['model']]))
+    if len(groups) == 1:
+        return groups[0][0]
+    return u'; '.join(u'%s: %s' % (u', '.join(ms), s) for s, ms in groups)
 
 
 def _webasto_tables(lang, rows, is_live):
@@ -643,7 +724,7 @@ def _webasto_tables(lang, rows, is_live):
         pcl = u', '.join(u'<a href="%s">%s</a>' % (_page_url(lang, 'webasto', x), x)
                          if is_live('webasto', x) else x for x in sorted(pl))
         tr.append(u'<tr><td class="fmi">%s</td><td>%s</td><td>%s</td></tr>'
-                  % (_row(lang, 'webasto', code, is_live, None), bp.esc(short_of('webasto', code, lang)), pcl))
+                  % (_row(lang, 'webasto', code, is_live, None), bp.esc(_f_meaning(lang, code)), pcl))
     if tr:
         out.append(u'<table>%s%s</table>' % (th, u''.join(tr)))
     # 2) ПК-код -> F-код на таймере
@@ -697,10 +778,12 @@ def _index_page(lang, codes_by, is_live):
         head = (h_tpl % (name, len(rows))) if not ru else (u'%s — %s' % (name, bp.n_codes(len(rows))))
         mk = (u'/marki/%s.html' if ru else u'/en/marki/%s.html') % b
         if b == 'webasto' and sources().get('webasto'):
-            note = (u'У Webasto две системы кодов. На таймере и пульте водитель видит F-код, в программе Webasto Thermo '
-                    u'Test — ПК-код; один F-код объединяет несколько ПК-кодов.' if ru else
-                    u'Webasto has two code systems. The driver sees an F-code on the timer or control; the Webasto '
-                    u'Thermo Test program shows a PC code. One F-code covers several PC codes.')
+            note = (u'У Webasto две системы кодов. F-код водитель видит на таймере или на элементе управления с '
+                    u'дисплеем (MultiControl, SmartControl); в программе Webasto Thermo Test — ПК-код. '
+                    u'Один F-код объединяет несколько ПК-кодов. Значение F-кода зависит от модели отопителя.' if ru else
+                    u'Webasto has two code systems. The driver sees an F-code on the timer or on a control with a display '
+                    u'(MultiControl, SmartControl); the Webasto Thermo Test program shows a PC code. One F-code '
+                    u'covers several PC codes. The meaning of an F-code depends on the heater model.')
             sections.append(u'<section id="%s"><h2>%s</h2><p class="lead"><a href="%s">%s</a></p><p class="lead">%s</p>'
                             u'%s</section>' % (b, bp.esc(head), mk, lbl_more, bp.esc(note),
                                                _webasto_tables(lang, rows, is_live)))
