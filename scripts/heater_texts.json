@@ -964,6 +964,148 @@
       }
     },
     {
+      "id": "lockout_w07",
+      "pattern": "(?!)",
+      "ru": {
+        "meaning": "Смысл кода и условие, при котором он появляется, названы в заводском тексте выше. Блокировка 07 (на таймере F12) снимается только отключением питания, повторный пуск её не сбрасывает.",
+        "causes": [
+          "Блокировка включается после повторных серьёзных ошибок (по счётчикам: ошибки более 3 раз, неудачные запуски более 9 раз, перегревы более 3 раз), поэтому ищите прежнюю ошибку."
+        ],
+        "steps": [
+          "Запишите код, время появления и условия: холодный пуск, работа на ходу или стоянка, напряжение в бортовой сети.",
+          "Снимите питание с отопителя. У Air Top 2000 ST по инструкции к таймеру Webasto: при включённом отопителе выньте предохранитель и вставьте обратно. У Air Top Evo 40/55 по руководству Webasto: включите отопитель, выньте предохранитель, вставьте его через 2 секунды и включите отопитель снова.",
+          "Если блокировка повторилась, не сбрасывайте её раз за разом: ищите причину (топливо, воздух, свеча накаливания, датчик перегрева) по проверкам ниже и обратитесь в сервис."
+        ],
+        "checks": [
+          "Осмотрите разъёмы и провода узла, названного в коде."
+        ],
+        "service": "Если блокировка возвращается после сброса питанием, нужна диагностика в сервисе: он читает предыдущие ошибки и находит причину."
+      },
+      "en": {
+        "meaning": "The meaning of the code and the condition under which it appears are given in the factory text above. Lockout 07 (F12 on the timer) is cleared only by cutting the power; a restart does not reset it.",
+        "causes": [
+          "The lockout is set after repeated serious faults (by the counters: faults more than 3 times, failed starts more than 9 times, overheats more than 3 times), so look for the earlier fault."
+        ],
+        "steps": [
+          "Write down the code, when it appeared and the conditions: cold start, driving or idling, and the vehicle voltage.",
+          "Cut the power to the heater. For the Air Top 2000 ST, per the Webasto timer instructions: with the heater on, pull the fuse and put it back. For the Air Top Evo 40/55, per the Webasto manual: switch the heater on, pull the fuse, put it back after 2 seconds and switch the heater on again.",
+          "If the lockout comes back, do not keep resetting it: look for the cause (fuel, air, glow plug, overheat sensor) with the checks below and go to a service."
+        ],
+        "checks": [
+          "Look at the connectors and wires of the part named in the code."
+        ],
+        "service": "If the lockout returns after a power reset, a service diagnosis is needed: it reads the earlier faults and finds the cause."
+      }
+    },
+    {
+      "id": "lockout_e050",
+      "pattern": "(?!)",
+      "ru": {
+        "meaning": "Смысл кода и условие, при котором он появляется, названы в заводском тексте выше. Блок не запустит отопитель, пока блокировка не снята стиранием памяти ошибок.",
+        "causes": [
+          "Серия неудачных пусков (до 255) из-за топлива, воздуха или розжига: блокировка лишь следствие, ищите причину в прежних ошибках."
+        ],
+        "steps": [
+          "Запишите код, время появления и условия: холодный пуск, работа на ходу или стоянка, напряжение в бортовой сети.",
+          "Выключите отопитель. Снимите блокировку стиранием памяти ошибок: таймером, диагностическим прибором, пультом TP5 / EasyStart R+ или таймером EasyStart T (заводская таблица Airtronic D2/D4, стр. 25). У Hydronic 16-35 порядок описан на стр. 15-20 руководства.",
+          "Если блокировка повторилась, не сбрасывайте её раз за разом: ищите причину (топливо, воздух, розжиг) по проверкам ниже и обратитесь в сервис."
+        ],
+        "checks": [
+          "Проверьте топливо: в баке есть дизель, фильтр и магистраль не забиты.",
+          "Проверьте воздухозаборник и выхлопную трубу: они свободны от снега, льда и грязи."
+        ],
+        "service": "Если блокировка возвращается после стирания памяти ошибок, нужна диагностика в сервисе: он читает прежние ошибки и находит причину неудачных пусков."
+      },
+      "en": {
+        "meaning": "The meaning of the code and the condition under which it appears are given in the factory text above. The control unit will not start the heater until the lockout is cleared by deleting the fault memory.",
+        "causes": [
+          "A series of failed starts (up to 255) from fuel, air or ignition problems: the lockout is only a consequence, look for the cause in the earlier faults."
+        ],
+        "steps": [
+          "Write down the code, when it appeared and the conditions: cold start, driving or idling, and the vehicle voltage.",
+          "Switch the heater off. Clear the lockout by deleting the fault memory with the timer, a diagnostic unit, the TP5 remote control / EasyStart R+ or the EasyStart T timer (factory Airtronic D2/D4 table, p. 25). For the Hydronic 16-35 the procedure is on pp. 15-20 of the guide.",
+          "If the lockout comes back, do not keep resetting it: look for the cause (fuel, air, ignition) with the checks below and go to a service."
+        ],
+        "checks": [
+          "Check the fuel: there is diesel in the tank, the filter and line are not blocked.",
+          "Check the air intake and exhaust pipe: free of snow, ice and dirt."
+        ],
+        "service": "If the lockout returns after deleting the fault memory, a service diagnosis is needed: it reads the earlier faults and finds the cause of the failed starts."
+      }
+    },
+    {
+      "id": "lockout_e015",
+      "pattern": "(?!)",
+      "ru": {
+        "meaning": "Смысл кода и условие, при котором он появляется, названы в заводском тексте выше. Повторным пуском эта блокировка не снимается.",
+        "causes": [
+          "Перегрев, из-за которого сработала защита (код 017 у Airtronic, три кода 012 подряд у Hydronic 16-35): блокировка лишь следствие, ищите причину перегрева."
+        ],
+        "steps": [
+          "Запишите код, время появления и условия: холодный пуск, работа на ходу или стоянка, напряжение в бортовой сети.",
+          "У Airtronic D2/D4 завод по таблице (стр. 24) предписывает заменить блок управления: это работа сервиса. У Hydronic 16-35 блок разблокируют стиранием памяти ошибок (руководство, стр. 21; порядок на стр. 15-20): диагностическим прибором, модульным таймером, пультом TP5 или EasyStart R+ / T.",
+          "Если блокировка повторилась, не сбрасывайте её раз за разом: ищите причину перегрева по проверкам ниже и обратитесь в сервис."
+        ],
+        "checks": [
+          "Осмотрите разъёмы и провода датчика перегрева.",
+          "Проверьте, не перекрыт ли выход горячего воздуха или воды (воздуховоды, насос, воздух в контуре)."
+        ],
+        "service": "Если блокировка возвращается, нужна диагностика в сервисе: он читает прежние ошибки, проверяет датчик перегрева и при необходимости блок управления."
+      },
+      "en": {
+        "meaning": "The meaning of the code and the condition under which it appears are given in the factory text above. A restart does not clear this lockout.",
+        "causes": [
+          "An overheat that tripped the protection (code 017 on the Airtronic, three codes 012 in a row on the Hydronic 16-35): the lockout is only a consequence, look for the cause of the overheating."
+        ],
+        "steps": [
+          "Write down the code, when it appeared and the conditions: cold start, driving or idling, and the vehicle voltage.",
+          "For the Airtronic D2/D4 the factory table (p. 24) calls for replacing the control unit: that is a service job. For the Hydronic 16-35 the control box is unlocked by deleting the fault memory (guide p. 21; procedure on pp. 15-20): with a diagnostic unit, the module timer, the TP5 remote control or EasyStart R+ / T.",
+          "If the lockout comes back, do not keep resetting it: look for the cause of the overheating with the checks below and go to a service."
+        ],
+        "checks": [
+          "Look at the connector and wires of the overheat sensor.",
+          "Check that the hot air or water outlet is not blocked (ducts, pump, air in the circuit)."
+        ],
+        "service": "If the lockout returns, a service diagnosis is needed: it reads the earlier faults, checks the overheat sensor and, if necessary, the control unit."
+      }
+    },
+    {
+      "id": "lockout_e016",
+      "pattern": "(?!)",
+      "ru": {
+        "meaning": "Смысл кода и условие, при котором он появляется, названы в заводском тексте выше. Блок управления заблокирован и не запустит отопитель, пока блокировка не снята.",
+        "causes": [
+          "Код 058 («пламя в режиме догорания») возник три раза подряд: блокировка лишь следствие, ищите причину в прежних ошибках."
+        ],
+        "steps": [
+          "Запишите код, время появления и условия: холодный пуск, работа на ходу или стоянка, напряжение в бортовой сети.",
+          "Выключите отопитель. Разблокируйте блок управления стиранием памяти ошибок (Hydronic 16-35, стр. 21; порядок на стр. 15-20): диагностическим прибором, модульным таймером, пультом TP5 или EasyStart R+ / T.",
+          "Если блокировка повторилась, не сбрасывайте её раз за разом: код 058 значит, что пламя не гасло при догорании, ищите причину по проверкам ниже и обратитесь в сервис."
+        ],
+        "checks": [
+          "Проверьте топливо: в баке есть дизель, фильтр и магистраль не забиты.",
+          "Осмотрите разъёмы и провода узлов отопителя."
+        ],
+        "service": "Если блокировка возвращается после стирания памяти ошибок, нужна диагностика в сервисе: он читает прежние ошибки и находит причину."
+      },
+      "en": {
+        "meaning": "The meaning of the code and the condition under which it appears are given in the factory text above. The control box is locked and will not start the heater until the lockout is cleared.",
+        "causes": [
+          "Code 058 (flame in after-run) occurred three times in a row: the lockout is only a consequence, look for the cause in the earlier faults."
+        ],
+        "steps": [
+          "Write down the code, when it appeared and the conditions: cold start, driving or idling, and the vehicle voltage.",
+          "Switch the heater off. Unlock the control box by deleting the fault memory (Hydronic 16-35, p. 21; procedure on pp. 15-20): with a diagnostic unit, the module timer, the TP5 remote control or EasyStart R+ / T.",
+          "If the lockout comes back, do not keep resetting it: code 058 means the flame did not go out in the after-run, so look for the cause with the checks below and go to a service."
+        ],
+        "checks": [
+          "Check the fuel: there is diesel in the tank, the filter and line are not blocked.",
+          "Look at the connectors and wires of the heater parts."
+        ],
+        "service": "If the lockout returns after deleting the fault memory, a service diagnosis is needed: it reads the earlier faults and finds the cause."
+      }
+    },
+    {
       "id": "lockout_f12",
       "pattern": "(?!)",
       "ru": {
@@ -1084,9 +1226,9 @@
     "eberspacher:063": "sensor",
     "eberspacher:071": "sensor",
     "eberspacher:072": "sensor",
-    "eberspacher:015": "lockout",
-    "eberspacher:016": "lockout",
-    "eberspacher:050": "lockout",
+    "eberspacher:015": "lockout_e015",
+    "eberspacher:016": "lockout_e016",
+    "eberspacher:050": "lockout_e050",
     "eberspacher:018": "glow",
     "eberspacher:019": "glow",
     "eberspacher:020": "glow",
@@ -1131,7 +1273,7 @@
     "webasto:05": "flame_early",
     "webasto:06": "overheat",
     "webasto:17": "overheat",
-    "webasto:07": "lockout",
+    "webasto:07": "lockout_w07",
     "webasto:08": "fuel",
     "webasto:88": "fuel",
     "webasto:09": "blower",
