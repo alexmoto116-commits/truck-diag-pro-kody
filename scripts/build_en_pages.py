@@ -523,7 +523,8 @@ def build():
             desc = code_desc_en(spn, name, (i18n.get(SYS_KEY.get(sys_key, 'sysOther'))
                                             if sys_key != 'other' else None),
                                 [bname(b) for b in ordered_b],
-                                spn in urgent_spn or any(f in uf_here for f in seen),
+                                # фраза про езду - из того же вердикта, что и плашка
+                                bool(stop_of.get(spn)) and not bp.fx(spn, 'lvl'),
                                 spn in OWN_EN or bool(i18n.get(ACT_KEY.get(sys_key, ''))),
                                 caution=spn in bp.ABS_WARN_SPN,
                                 urg_text=bp.fx(spn, 'urg', 'en'))

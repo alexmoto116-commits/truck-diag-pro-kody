@@ -2042,8 +2042,9 @@ def build(en_spns=()):
         # Описание открытой страницы строим из её данных (см. code_desc_ru);
         # у закрытых от индекса оставляем прежний общий текст.
         if spn not in noindex:
+            # Фраза про езду - из того же вердикта, что и плашка (stop), а не из сырого флага срочности.
             desc = code_desc_ru(spn, name, sys_key, makes, brand_names,
-                                urgent_spn_hit or any(f in urg_here for f in seen_all_early),
+                                stop,
                                 spn in DIY_KEYS or bool(advice_for(sys_key, seen_all_early)),
                                 caution=spn in ABS_WARN_SPN,
                                 urg_text=fx(spn, 'urg', 'ru'))
