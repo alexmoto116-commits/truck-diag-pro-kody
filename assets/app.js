@@ -441,6 +441,7 @@
       dealerBase: 'дилерская база — {brand}',
       dealerOffline: 'дилерская база сейчас недоступна — показан только открытый словарь.',
       dailyLimit: 'Лимит поисков на сегодня исчерпан (50 в сутки). Попробуйте завтра.',
+      rateLimited: 'Слишком много запросов подряд — подождите минуту и повторите.',
       scanStep: 'номер сканера',
       fmiOwn: 'FMI по таблице производителя блока',
       j1939Caption: 'По стандарту J1939 (двигатели Bosch и другие блоки со стандартной нумерацией)',
@@ -607,6 +608,7 @@
       dealerBase: 'dealer database — {brand}',
       dealerOffline: 'The dealer database is unavailable right now — only the factory table is shown.',
       dailyLimit: 'Daily search limit reached (50 per day). Please try again tomorrow.',
+      rateLimited: 'Too many searches in a row — please wait a minute and try again.',
       scanStep: 'scanner code',
       fmiOwn: 'FMI per the unit maker\'s table',
       j1939Caption: 'Per J1939 standard (Bosch engines and other units with standard numbering)',
@@ -755,6 +757,7 @@
       dealerBase: 'Händlerdatenbank — {brand}',
       dealerOffline: 'Die Händlerdatenbank ist derzeit nicht erreichbar — nur die Werkstabelle wird angezeigt.',
       dailyLimit: 'Tageslimit für Suchen erreicht (50 pro Tag). Bitte morgen erneut versuchen.',
+      rateLimited: 'Zu viele Suchen hintereinander — bitte eine Minute warten und erneut versuchen.',
       scanStep: 'Scanner-Code',
       scanMany: 'Nummer <b>{code}</b> entspricht mehreren Codes im Kombiinstrument — prüfen Sie, welcher angezeigt wird.',
       stepCode: 'Code', stepDecoding: 'Bedeutung',
@@ -885,6 +888,7 @@
       dealerBase: 'base concessionnaire — {brand}',
       dealerOffline: 'La base concessionnaire est indisponible — seule la table constructeur est affichée.',
       dailyLimit: 'Limite quotidienne de recherches atteinte (50 par jour). Réessayez demain.',
+      rateLimited: 'Trop de recherches d’affilée — patientez une minute puis réessayez.',
       scanStep: 'code de la valise',
       scanMany: 'Le numéro <b>{code}</b> correspond à plusieurs codes au tableau de bord — vérifiez celui qui s’affiche.',
       stepCode: 'code', stepDecoding: 'signification',
@@ -1015,6 +1019,7 @@
       dealerBase: 'base de concesionarios — {brand}',
       dealerOffline: 'La base de concesionarios no está disponible — solo se muestra la tabla de fábrica.',
       dailyLimit: 'Se alcanzó el límite diario de búsquedas (50 al día). Inténtalo mañana.',
+      rateLimited: 'Demasiadas búsquedas seguidas — espera un minuto e inténtalo de nuevo.',
       scanStep: 'código del escáner',
       scanMany: 'El número <b>{code}</b> corresponde a varios códigos del cuadro — comprueba cuál se muestra.',
       stepCode: 'código', stepDecoding: 'significado',
@@ -1145,6 +1150,7 @@
       dealerBase: 'base de concessionárias — {brand}',
       dealerOffline: 'A base de concessionárias está indisponível — mostrada apenas a tabela de fábrica.',
       dailyLimit: 'Limite diário de pesquisas atingido (50 por dia). Tente novamente amanhã.',
+      rateLimited: 'Pesquisas demais seguidas — aguarde um minuto e tente novamente.',
       scanStep: 'código do scanner',
       scanMany: 'O número <b>{code}</b> corresponde a vários códigos no painel — verifique qual aparece.',
       stepCode: 'código', stepDecoding: 'significado',
@@ -1275,6 +1281,7 @@
       dealerBase: 'baza dealerska — {brand}',
       dealerOffline: 'Baza dealerska jest teraz niedostępna — pokazano tylko tabelę fabryczną.',
       dailyLimit: 'Wyczerpano dzienny limit wyszukiwań (50 dziennie). Spróbuj jutro.',
+      rateLimited: 'Za dużo wyszukiwań pod rząd — poczekaj minutę i spróbuj ponownie.',
       scanStep: 'kod ze skanera',
       scanMany: 'Numer <b>{code}</b> odpowiada kilku kodom na zestawie wskaźników — sprawdź, który pokazuje panel.',
       stepCode: 'kod', stepDecoding: 'znaczenie',
@@ -1405,6 +1412,7 @@
       dealerBase: 'bayi veritabanı — {brand}',
       dealerOffline: 'Bayi veritabanı şu an kullanılamıyor — yalnızca fabrika tablosu gösteriliyor.',
       dailyLimit: 'Günlük arama limiti doldu (günde 50). Lütfen yarın tekrar deneyin.',
+      rateLimited: 'Art arda çok fazla arama — lütfen bir dakika bekleyip tekrar deneyin.',
       scanStep: 'tarayıcı kodu',
       scanMany: '<b>{code}</b> numarası gösterge panelindeki birden fazla koda karşılık gelir — hangisinin göründüğünü kontrol edin.',
       stepCode: 'kod', stepDecoding: 'anlam',
@@ -1535,6 +1543,7 @@
       dealerBase: 'डीलर डेटाबेस — {brand}',
       dealerOffline: 'डीलर डेटाबेस अभी उपलब्ध नहीं है — केवल फैक्ट्री तालिका दिखाई जा रही है।',
       dailyLimit: 'आज की खोज सीमा पूरी हो गई (प्रतिदिन 50)। कृपया कल फिर कोशिश करें।',
+      rateLimited: 'लगातार बहुत ज़्यादा खोजें — कृपया एक मिनट रुकें और फिर कोशिश करें।',
       scanStep: 'स्कैनर कोड',
       scanMany: 'नंबर <b>{code}</b> डैश के कई कोड से मेल खाता है — देखें कि पैनल कौन सा दिखा रहा है।',
       stepCode: 'कोड', stepDecoding: 'अर्थ',
@@ -1665,6 +1674,7 @@
       dealerBase: '经销商数据库 — {brand}',
       dealerOffline: '经销商数据库暂时不可用 — 仅显示厂家表。',
       dailyLimit: '今日搜索次数已用完（每天 50 次）。请明天再试。',
+      rateLimited: '连续搜索过于频繁 — 请等待一分钟后再试。',
       scanStep: '扫描仪代码',
       scanMany: '代码 <b>{code}</b> 对应仪表盘上的多个代码 — 请核对仪表显示的是哪一个。',
       stepCode: '代码', stepDecoding: '含义',
@@ -2934,7 +2944,7 @@
           if(body && body.error === 'daily_limit'){
             var lim = new Error('pcode daily limit'); lim.dailyLimit = true; throw lim;
           }
-          throw new Error('pcode api 429');
+          var rl = new Error('pcode api 429'); rl.rateLimited = (body && body.error === 'rate_limited') || !body || !body.error; throw rl;
         });
       }
       if(r.status === 400){
@@ -3041,6 +3051,7 @@
   function pcodeErrorText(e, brand){
     if(e && e.badCode) return note(brand ? t('badCodeFor', {brand: brandName(brand) || brand}) : t('badCode'));
     if(isDailyLimit(e)) return note(t('dailyLimit'));
+    if(e && e.rateLimited) return note(t('rateLimited'));
     if(e && e.network) return note(t('pcodeApiError'));
     return note(t('pcodeServerError'));
   }

@@ -461,6 +461,13 @@ SPN_FIX = {
         'urg': SPN168_URG, 'hz': SPN168_HZ, 'verdict': SPN168_VERDICT,
         'risk': SPN168_RISK, 'flag': SPN168_FLAG, 'advice': SPN168_ADVICE,
     },
+    157: {
+        # SPN 157 - давление в дозирующей рампе (Detroit): по бюллетеню мощность падает на 25 %,
+        # мотор не глохнет. Плашка уже писала «Ехать можно, до ближайшей остановки»,
+        # а описание - «Ехать нельзя». Выравниваем описание (ru и en).
+        'urg': {'ru': u'Ехать можно, до ближайшей остановки.',
+                'en': u'Safe to drive to the nearest safe stop.'},
+    },
     177: {
         # SPN 177 - температура масла КПП (сверка istochniki-15.md, Eaton Endurant FC 212).
         # Renault FMI 4 («неисправность CAN») противоречит FMI 4 по Eaton (замыкание на массу);
