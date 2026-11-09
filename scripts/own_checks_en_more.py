@@ -1686,6 +1686,7 @@ CHECKS = {
             "FMI 0, 2, 4, 9 (DAF and Dongfeng: very high NOx, emission above the limit): check the urea supply, the catalyst and the inlet sensor.",
             "FMI 15 (KamAZ: raised emission before cleaning): this is about the engine, not the catalyst — check the engine's mode per the manual.",
             "FMI 15, 17, 19 (Sitrak: NOx sensor reading too high): sensor connector, supply and wire.",
+            "FMI 20, 21 (Detroit DD5/DD13/DD15/DD16, GHG14/GHG17): Detroit words them the opposite way to J1939 — FMI 20 is outlet NOx sensor drift LOW, FMI 21 is drift HIGH. Cummins and the J1939 standard: FMI 20 high, FMI 21 low. Check the wording in your own software.",
         ],
         "причины": [
             "Catalyst that has lost efficiency.",

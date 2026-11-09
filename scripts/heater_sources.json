@@ -2890,7 +2890,7 @@
      "pc": [
       "05"
      ],
-     "remedy": "",
+     "remedy": "Проверить работу датчика температуры выхлопа, при необходимости заменить; проверить предварительное давление в топливной системе перед насосом; проверить подачу топливного насоса.",
      "ru": "Пламя обнаружено до горения (датчик температуры выхлопа).",
      "single_manual": true,
      "sources": [
@@ -4734,14 +4734,14 @@
    },
    "84": {
     "confidence": "2+ заводских",
-    "en": "Operating voltage lower than minimum for too long",
+    "en": "Operating voltage lower than minimum for too long. Timer shows F03. If you see \"H84\" or \"F84\" (how this hexadecimal code is printed in the Thermo Pro 90 table and shown over W-bus), it is the same code",
     "f": {
      "Air Top 2000 ST": "F03",
      "Air Top Evo 40/55": "F03",
      "Thermo Pro 90": "F03",
      "Thermo Top Evo": "F03"
     },
-    "ru": "Напряжение ниже 10,5/21 В дольше 20 с. На таймере F03.",
+    "ru": "Напряжение ниже 10,5/21 В дольше 20 с. На таймере F03. Если вы видите «H84» или «F84» (так этот код записан в шестнадцатеричной таблице Thermo Pro 90 и выводится по W-bus), это он же.",
     "sources": [
      {
       "doc": "Webasto Air Top 2000 ST, Repair Manual, 5.4 Error code output, Fig. 503 (издание с dieselheat.com.au)",

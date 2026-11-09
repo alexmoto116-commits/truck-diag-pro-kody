@@ -2297,7 +2297,7 @@ def build(en_spns=()):
               + ld_script(breadcrumb_ld(brand_names.get(brand, h1) if brand else h1, canon, section))
               + (ld_script(extra_ld) if extra_ld else u''))
         # вопросы-ответы дописанных блоков (марки/проблемы) - в разметку FAQPage (09.11.2026)
-        _faq = extra_faq(ekey) if ekey in FAQ_BRANDS_0911 else []
+        _faq = extra_faq(ekey) if ekey else []   # все марки/проблемы с видимым блоком вопросов (09.11.2026)
         if _faq:
             ld += ld_script({'@context': 'https://schema.org', '@type': 'FAQPage', 'mainEntity': _faq})
         body = [HEAD.format(title=esc(title), desc=esc(desc), canon=canon,

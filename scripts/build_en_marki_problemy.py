@@ -354,7 +354,7 @@ def page_en(path, title, desc, h1, sub, sections, section=None, rel_ru=None, her
                         'inLanguage': 'en'})
           + bp.ld_script(breadcrumb_en(here or h1, canon, section)))
     _m0 = (os.path.basename(path)[:-5] if path.startswith('en/marki/') and not path.endswith('index.html') else None)
-    _faq = bp.extra_faq(u'brand-en:%s' % _m0) if _m0 in ('deutz', 'wabco', 'allison') else []
+    _faq = bp.extra_faq(u'brand-en:%s' % _m0) if _m0 else []
     if _faq:       # вопросы-ответы дописанных блоков - в FAQPage (09.11.2026)
         ld += bp.ld_script({'@context': 'https://schema.org', '@type': 'FAQPage', 'mainEntity': _faq})
     body = [bp.HEAD.format(title=bp.esc(title), desc=bp.esc(desc), canon=canon,
