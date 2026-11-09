@@ -1,16 +1,16 @@
 {
 "pages": {
 "https://codetruck.ru/": {
-"d": "2026-10-29",
-"h": "77a05e345df6"
+"d": "2026-11-09",
+"h": "23cb65a12622"
 },
 "https://codetruck.ru/de/": {
-"d": "2026-10-29",
+"d": "2026-11-09",
 "h": "99a1cac51d58"
 },
 "https://codetruck.ru/en/": {
-"d": "2026-10-29",
-"h": "6d8226fb9ab8"
+"d": "2026-11-09",
+"h": "326f6c521a4c"
 },
 "https://codetruck.ru/en/kody/": {
 "d": "2026-11-08",
@@ -18,7 +18,7 @@
 },
 "https://codetruck.ru/en/kody/spn-100.html": {
 "d": "2026-11-09",
-"h": "6b29dbabc257"
+"h": "5d95c492782b"
 },
 "https://codetruck.ru/en/kody/spn-10001.html": {
 "d": "2026-10-31",
@@ -50,7 +50,7 @@
 },
 "https://codetruck.ru/en/kody/spn-102.html": {
 "d": "2026-11-09",
-"h": "7ca2b7ce0fcd"
+"h": "8c85813a80f5"
 },
 "https://codetruck.ru/en/kody/spn-103.html": {
 "d": "2026-10-31",
@@ -130,7 +130,7 @@
 },
 "https://codetruck.ru/en/kody/spn-107.html": {
 "d": "2026-11-09",
-"h": "c0d619b5227e"
+"h": "b1408426985d"
 },
 "https://codetruck.ru/en/kody/spn-1071.html": {
 "d": "2026-11-08",
@@ -178,7 +178,7 @@
 },
 "https://codetruck.ru/en/kody/spn-110.html": {
 "d": "2026-11-09",
-"h": "4957ac9cf822"
+"h": "4deaaf39517a"
 },
 "https://codetruck.ru/en/kody/spn-1108.html": {
 "d": "2026-10-31",
@@ -478,7 +478,7 @@
 },
 "https://codetruck.ru/en/kody/spn-1761.html": {
 "d": "2026-11-09",
-"h": "583f3cb4298b"
+"h": "59715e0b6e81"
 },
 "https://codetruck.ru/en/kody/spn-177.html": {
 "d": "2026-11-06",
@@ -665,8 +665,8 @@
 "h": "9a7ae4669a79"
 },
 "https://codetruck.ru/en/kody/spn-3251.html": {
-"d": "2026-10-31",
-"h": "604e7156a605"
+"d": "2026-11-09",
+"h": "deb2ce23f67b"
 },
 "https://codetruck.ru/en/kody/spn-3361.html": {
 "d": "2026-10-31",
@@ -1394,7 +1394,7 @@
 },
 "https://codetruck.ru/en/kody/spn-97.html": {
 "d": "2026-11-09",
-"h": "d2c9ee98361c"
+"h": "7ed51611e9c3"
 },
 "https://codetruck.ru/en/kody/spn-970.html": {
 "d": "2026-10-31",
@@ -1702,7 +1702,7 @@
 },
 "https://codetruck.ru/en/otopiteli/eberspacher-011.html": {
 "d": "2026-11-09",
-"h": "bde22abf1de1"
+"h": "7c48ccea91ae"
 },
 "https://codetruck.ru/en/otopiteli/eberspacher-012.html": {
 "d": "2026-10-31",
@@ -1954,7 +1954,7 @@
 },
 "https://codetruck.ru/en/otopiteli/planar-13.html": {
 "d": "2026-11-09",
-"h": "6c004ab2fd9e"
+"h": "3f944c499b91"
 },
 "https://codetruck.ru/en/otopiteli/planar-15.html": {
 "d": "2026-10-28",
@@ -1965,8 +1965,8 @@
 "h": "931ae7887f18"
 },
 "https://codetruck.ru/en/otopiteli/planar-2.html": {
-"d": "2026-10-28",
-"h": "59da335db854"
+"d": "2026-11-09",
+"h": "6a40034589a6"
 },
 "https://codetruck.ru/en/otopiteli/planar-20.html": {
 "d": "2026-10-28",
@@ -1982,7 +1982,7 @@
 },
 "https://codetruck.ru/en/otopiteli/planar-29.html": {
 "d": "2026-11-09",
-"h": "1b1532411142"
+"h": "a413faa75e94"
 },
 "https://codetruck.ru/en/otopiteli/planar-3.html": {
 "d": "2026-11-01",
@@ -1993,24 +1993,24 @@
 "h": "760da19de862"
 },
 "https://codetruck.ru/en/otopiteli/planar-4.html": {
-"d": "2026-10-28",
-"h": "c7f89d0f9056"
+"d": "2026-11-09",
+"h": "162b3a99e345"
 },
 "https://codetruck.ru/en/otopiteli/planar-5.html": {
 "d": "2026-10-28",
 "h": "9b53748825b7"
 },
 "https://codetruck.ru/en/otopiteli/planar-6.html": {
-"d": "2026-10-28",
-"h": "49662a5b8df9"
+"d": "2026-11-09",
+"h": "8a2a415fdda1"
 },
 "https://codetruck.ru/en/otopiteli/planar-7.html": {
 "d": "2026-10-28",
 "h": "012b64d7279b"
 },
 "https://codetruck.ru/en/otopiteli/planar-78.html": {
-"d": "2026-11-01",
-"h": "65f9220bdbe0"
+"d": "2026-11-09",
+"h": "a89b396f3225"
 },
 "https://codetruck.ru/en/otopiteli/planar-8.html": {
 "d": "2026-10-28",
@@ -2157,68 +2157,68 @@
 "h": "276756b3dd13"
 },
 "https://codetruck.ru/en/otopiteli/webasto-f00.html": {
-"d": "2026-11-08",
-"h": "da226ff2c0c6"
+"d": "2026-11-09",
+"h": "f5213b4ddb2e"
 },
 "https://codetruck.ru/en/otopiteli/webasto-f01.html": {
 "d": "2026-11-09",
-"h": "c6e5de8636bd"
+"h": "951c89014eea"
 },
 "https://codetruck.ru/en/otopiteli/webasto-f02.html": {
 "d": "2026-11-09",
-"h": "dc15624efb5e"
+"h": "7596a5c3698d"
 },
 "https://codetruck.ru/en/otopiteli/webasto-f03.html": {
 "d": "2026-11-09",
-"h": "62476c3d61a2"
+"h": "0aac6be82064"
 },
 "https://codetruck.ru/en/otopiteli/webasto-f04.html": {
-"d": "2026-11-08",
-"h": "79b7f5ce90bd"
+"d": "2026-11-09",
+"h": "3e8f6348855c"
 },
 "https://codetruck.ru/en/otopiteli/webasto-f05.html": {
-"d": "2026-11-08",
-"h": "95d217d58ee3"
+"d": "2026-11-09",
+"h": "79d306517703"
 },
 "https://codetruck.ru/en/otopiteli/webasto-f06.html": {
-"d": "2026-11-08",
-"h": "d65e2911a572"
+"d": "2026-11-09",
+"h": "23ef44b71a83"
 },
 "https://codetruck.ru/en/otopiteli/webasto-f07.html": {
-"d": "2026-11-08",
-"h": "9198a6ababe9"
+"d": "2026-11-09",
+"h": "9ba4c0fa0d99"
 },
 "https://codetruck.ru/en/otopiteli/webasto-f08.html": {
-"d": "2026-11-08",
-"h": "7eec544f9677"
+"d": "2026-11-09",
+"h": "032326328fbe"
 },
 "https://codetruck.ru/en/otopiteli/webasto-f09.html": {
-"d": "2026-11-08",
-"h": "5d4b0cb523c5"
+"d": "2026-11-09",
+"h": "5eac95ae1aae"
 },
 "https://codetruck.ru/en/otopiteli/webasto-f10.html": {
 "d": "2026-11-09",
-"h": "d943d43e620b"
+"h": "de752b57f6b8"
 },
 "https://codetruck.ru/en/otopiteli/webasto-f11.html": {
-"d": "2026-11-08",
-"h": "3654fa24d5d1"
+"d": "2026-11-09",
+"h": "c5c0e0dcf882"
 },
 "https://codetruck.ru/en/otopiteli/webasto-f12.html": {
-"d": "2026-11-08",
-"h": "59c5c07d1a20"
+"d": "2026-11-09",
+"h": "81248c32830f"
 },
 "https://codetruck.ru/en/otopiteli/webasto-f13.html": {
-"d": "2026-11-08",
-"h": "598d0e285f43"
+"d": "2026-11-09",
+"h": "592da6613b88"
 },
 "https://codetruck.ru/en/otopiteli/webasto-f14.html": {
-"d": "2026-11-08",
-"h": "f03684d4a109"
+"d": "2026-11-09",
+"h": "4a227a015aac"
 },
 "https://codetruck.ru/en/otopiteli/webasto-f15.html": {
-"d": "2026-11-08",
-"h": "1566a244d21e"
+"d": "2026-11-09",
+"h": "ab0f1f1a4ba0"
 },
 "https://codetruck.ru/en/otopiteli/webasto-f16.html": {
 "d": "2026-11-08",
@@ -2344,16 +2344,72 @@
 "d": "2026-11-09",
 "h": "dad99883bbe8"
 },
+"https://codetruck.ru/en/razbory/": {
+"d": "2026-11-09",
+"h": "ebe93542cd80"
+},
+"https://codetruck.ru/en/razbory/eberspacher-011.html": {
+"d": "2026-11-09",
+"h": "2d77b9f84c36"
+},
+"https://codetruck.ru/en/razbory/kamaz-spn-97-voda-v-toplive.html": {
+"d": "2026-11-09",
+"h": "d9243e061c20"
+},
+"https://codetruck.ru/en/razbory/mercedes-actros-spn-107.html": {
+"d": "2026-11-09",
+"h": "02796334160f"
+},
+"https://codetruck.ru/en/razbory/planar-kod-13-i-miganiya-pu5.html": {
+"d": "2026-11-09",
+"h": "8aded0068b41"
+},
+"https://codetruck.ru/en/razbory/planar-kod-29-sryv-plameni.html": {
+"d": "2026-11-09",
+"h": "9fbd110051b4"
+},
+"https://codetruck.ru/en/razbory/sazhevyy-filtr-dpf.html": {
+"d": "2026-11-09",
+"h": "cd13a0a56891"
+},
+"https://codetruck.ru/en/razbory/spn-100-davlenie-masla.html": {
+"d": "2026-11-09",
+"h": "a6da94ccaf27"
+},
+"https://codetruck.ru/en/razbory/spn-102-davlenie-nadduva.html": {
+"d": "2026-11-09",
+"h": "ec5c65a4a515"
+},
+"https://codetruck.ru/en/razbory/spn-110-peregrev.html": {
+"d": "2026-11-09",
+"h": "b635da3e76aa"
+},
+"https://codetruck.ru/en/razbory/spn-1761-mochevina-adblue.html": {
+"d": "2026-11-09",
+"h": "8068ca45f1ce"
+},
+"https://codetruck.ru/en/razbory/webasto-f-kody-i-sluzhebnye-kody.html": {
+"d": "2026-11-09",
+"h": "b136f2cb7515"
+},
+"https://codetruck.ru/en/razbory/webasto-f03.html": {
+"d": "2026-11-09",
+"h": "20fa623db2d9"
+},
+"https://codetruck.ru/en/razbory/webasto-f10.html": {
+"d": "2026-11-09",
+"h": "37e5beda8682"
+},
 "https://codetruck.ru/es/": {
-"d": "2026-10-29",
+"d": "2026-11-09",
 "h": "eb0e262bf18a"
 },
 "https://codetruck.ru/fr/": {
-"d": "2026-10-29",
+"d": "2026-11-09",
 "h": "d856041af00c"
 },
 "https://codetruck.ru/hi/": {
-"d": "2026-10-29",
+"d": "2026-11-09",
 "h": "5e394b3f0075"
 },
 "https://codetruck.ru/kody/": {
@@ -2362,7 +2418,7 @@
 },
 "https://codetruck.ru/kody/spn-100.html": {
 "d": "2026-11-09",
-"h": "60194b7aed41"
+"h": "836d457f9f42"
 },
 "https://codetruck.ru/kody/spn-10003.html": {
 "d": "2026-10-31",
@@ -2374,7 +2430,7 @@
 },
 "https://codetruck.ru/kody/spn-102.html": {
 "d": "2026-11-09",
-"h": "3dba48609e8f"
+"h": "4fc339bae6f8"
 },
 "https://codetruck.ru/kody/spn-103.html": {
 "d": "2026-10-31",
@@ -2414,7 +2470,7 @@
 },
 "https://codetruck.ru/kody/spn-107.html": {
 "d": "2026-11-09",
-"h": "272bac0ed7df"
+"h": "26c91dae69b7"
 },
 "https://codetruck.ru/kody/spn-1071.html": {
 "d": "2026-11-08",
@@ -2442,7 +2498,7 @@
 },
 "https://codetruck.ru/kody/spn-110.html": {
 "d": "2026-11-09",
-"h": "8cf1c592dc71"
+"h": "7c06667848d5"
 },
 "https://codetruck.ru/kody/spn-111.html": {
 "d": "2026-10-31",
@@ -2546,7 +2602,7 @@
 },
 "https://codetruck.ru/kody/spn-1761.html": {
 "d": "2026-11-09",
-"h": "03789e726a76"
+"h": "c7015b23cb4d"
 },
 "https://codetruck.ru/kody/spn-177.html": {
 "d": "2026-11-06",
@@ -2589,8 +2645,8 @@
 "h": "af714bab9ddb"
 },
 "https://codetruck.ru/kody/spn-3251.html": {
-"d": "2026-10-31",
-"h": "524a42a5c492"
+"d": "2026-11-09",
+"h": "db892e863541"
 },
 "https://codetruck.ru/kody/spn-3361.html": {
 "d": "2026-10-31",
@@ -2890,7 +2946,7 @@
 },
 "https://codetruck.ru/kody/spn-97.html": {
 "d": "2026-11-09",
-"h": "08546b1094f5"
+"h": "737d0eb50afb"
 },
 "https://codetruck.ru/kody/spn-98.html": {
 "d": "2026-10-31",
@@ -3182,7 +3238,7 @@
 },
 "https://codetruck.ru/otopiteli/eberspacher-011.html": {
 "d": "2026-11-09",
-"h": "167f23af475c"
+"h": "caf398afd965"
 },
 "https://codetruck.ru/otopiteli/eberspacher-012.html": {
 "d": "2026-10-31",
@@ -3434,7 +3490,7 @@
 },
 "https://codetruck.ru/otopiteli/planar-13.html": {
 "d": "2026-11-09",
-"h": "546a9ea6b747"
+"h": "c722ff9a3d4e"
 },
 "https://codetruck.ru/otopiteli/planar-15.html": {
 "d": "2026-10-29",
@@ -3445,8 +3501,8 @@
 "h": "b4c0cb2cc5f3"
 },
 "https://codetruck.ru/otopiteli/planar-2.html": {
-"d": "2026-10-29",
-"h": "c2e83b7fc143"
+"d": "2026-11-09",
+"h": "a17ec4e30f7d"
 },
 "https://codetruck.ru/otopiteli/planar-20.html": {
 "d": "2026-10-29",
@@ -3462,7 +3518,7 @@
 },
 "https://codetruck.ru/otopiteli/planar-29.html": {
 "d": "2026-11-09",
-"h": "c66d3be8f563"
+"h": "0177b4f8f5e1"
 },
 "https://codetruck.ru/otopiteli/planar-3.html": {
 "d": "2026-11-01",
@@ -3473,24 +3529,24 @@
 "h": "13d92ab5854a"
 },
 "https://codetruck.ru/otopiteli/planar-4.html": {
-"d": "2026-10-29",
-"h": "243fcf656df1"
+"d": "2026-11-09",
+"h": "a73987d0e1f9"
 },
 "https://codetruck.ru/otopiteli/planar-5.html": {
 "d": "2026-10-29",
 "h": "44205b8faf7d"
 },
 "https://codetruck.ru/otopiteli/planar-6.html": {
-"d": "2026-10-29",
-"h": "a2cf83637d82"
+"d": "2026-11-09",
+"h": "9679dde9cf36"
 },
 "https://codetruck.ru/otopiteli/planar-7.html": {
 "d": "2026-10-29",
 "h": "4e4725607572"
 },
 "https://codetruck.ru/otopiteli/planar-78.html": {
-"d": "2026-11-01",
-"h": "339d913499e4"
+"d": "2026-11-09",
+"h": "7959b97766d2"
 },
 "https://codetruck.ru/otopiteli/planar-8.html": {
 "d": "2026-10-29",
@@ -3637,68 +3693,68 @@
 "h": "8ec3a25b87a8"
 },
 "https://codetruck.ru/otopiteli/webasto-f00.html": {
-"d": "2026-11-08",
-"h": "1e82fed87aa3"
+"d": "2026-11-09",
+"h": "0b501ea33912"
 },
 "https://codetruck.ru/otopiteli/webasto-f01.html": {
 "d": "2026-11-09",
-"h": "c85737c5edcd"
+"h": "d7f6366cee91"
 },
 "https://codetruck.ru/otopiteli/webasto-f02.html": {
 "d": "2026-11-09",
-"h": "c3579c6479b1"
+"h": "71be26bf4a62"
 },
 "https://codetruck.ru/otopiteli/webasto-f03.html": {
 "d": "2026-11-09",
-"h": "d38f51eca6e6"
+"h": "07457af02d7c"
 },
 "https://codetruck.ru/otopiteli/webasto-f04.html": {
 "d": "2026-11-09",
-"h": "c9f3d886fbfe"
+"h": "43fdd6fe502b"
 },
 "https://codetruck.ru/otopiteli/webasto-f05.html": {
-"d": "2026-11-08",
-"h": "530b4239eda2"
+"d": "2026-11-09",
+"h": "dea462f86efa"
 },
 "https://codetruck.ru/otopiteli/webasto-f06.html": {
-"d": "2026-11-08",
-"h": "b6347a975da7"
+"d": "2026-11-09",
+"h": "be2ec687fb81"
 },
 "https://codetruck.ru/otopiteli/webasto-f07.html": {
-"d": "2026-11-08",
-"h": "896a3091707f"
+"d": "2026-11-09",
+"h": "34bacdfa99bd"
 },
 "https://codetruck.ru/otopiteli/webasto-f08.html": {
-"d": "2026-11-08",
-"h": "f9b8dee4c1fb"
+"d": "2026-11-09",
+"h": "e28f2d9bfc0d"
 },
 "https://codetruck.ru/otopiteli/webasto-f09.html": {
-"d": "2026-11-08",
-"h": "03dc6da2d83c"
+"d": "2026-11-09",
+"h": "2cc6369f7a76"
 },
 "https://codetruck.ru/otopiteli/webasto-f10.html": {
 "d": "2026-11-09",
-"h": "c32edbb4119d"
+"h": "489124a61702"
 },
 "https://codetruck.ru/otopiteli/webasto-f11.html": {
-"d": "2026-11-08",
-"h": "d0d6766817f3"
+"d": "2026-11-09",
+"h": "03c6b094731f"
 },
 "https://codetruck.ru/otopiteli/webasto-f12.html": {
-"d": "2026-11-08",
-"h": "6c5afd66dcfd"
+"d": "2026-11-09",
+"h": "32ec7ff80fc4"
 },
 "https://codetruck.ru/otopiteli/webasto-f13.html": {
-"d": "2026-11-08",
-"h": "8efd7a147a76"
+"d": "2026-11-09",
+"h": "eafac96afb3b"
 },
 "https://codetruck.ru/otopiteli/webasto-f14.html": {
-"d": "2026-11-08",
-"h": "f5d13f946711"
+"d": "2026-11-09",
+"h": "1c59d9947f71"
 },
 "https://codetruck.ru/otopiteli/webasto-f15.html": {
-"d": "2026-11-08",
-"h": "3a5d959fb94f"
+"d": "2026-11-09",
+"h": "88d1236eaba4"
 },
 "https://codetruck.ru/otopiteli/webasto-f16.html": {
 "d": "2026-11-08",
@@ -3709,7 +3765,7 @@
 "h": "ac9346194ad9"
 },
 "https://codetruck.ru/pl/": {
-"d": "2026-10-29",
+"d": "2026-11-09",
 "h": "7212258e20bd"
 },
 "https://codetruck.ru/problemy/": {
@@ -3829,15 +3885,71 @@
 "h": "34896ec351bd"
 },
 "https://codetruck.ru/pt/": {
-"d": "2026-10-29",
+"d": "2026-11-09",
 "h": "9ef366dfd6e9"
 },
+"https://codetruck.ru/razbory/": {
+"d": "2026-11-09",
+"h": "2c379976aefa"
+},
+"https://codetruck.ru/razbory/eberspacher-011.html": {
+"d": "2026-11-09",
+"h": "25b2719fa576"
+},
+"https://codetruck.ru/razbory/kamaz-spn-97-voda-v-toplive.html": {
+"d": "2026-11-09",
+"h": "eb96b7d9e9fd"
+},
+"https://codetruck.ru/razbory/mercedes-actros-spn-107.html": {
+"d": "2026-11-09",
+"h": "9170f1a66064"
+},
+"https://codetruck.ru/razbory/planar-kod-13-i-miganiya-pu5.html": {
+"d": "2026-11-09",
+"h": "63beae61013c"
+},
+"https://codetruck.ru/razbory/planar-kod-29-sryv-plameni.html": {
+"d": "2026-11-09",
+"h": "bd70b4c0ee7f"
+},
+"https://codetruck.ru/razbory/sazhevyy-filtr-dpf.html": {
+"d": "2026-11-09",
+"h": "1c45ef35cc9a"
+},
+"https://codetruck.ru/razbory/spn-100-davlenie-masla.html": {
+"d": "2026-11-09",
+"h": "322afafbbf67"
+},
+"https://codetruck.ru/razbory/spn-102-davlenie-nadduva.html": {
+"d": "2026-11-09",
+"h": "2a997df8a95d"
+},
+"https://codetruck.ru/razbory/spn-110-peregrev.html": {
+"d": "2026-11-09",
+"h": "504b5a92a25f"
+},
+"https://codetruck.ru/razbory/spn-1761-mochevina-adblue.html": {
+"d": "2026-11-09",
+"h": "a463abd5ec15"
+},
+"https://codetruck.ru/razbory/webasto-f-kody-i-sluzhebnye-kody.html": {
+"d": "2026-11-09",
+"h": "2036908d05c3"
+},
+"https://codetruck.ru/razbory/webasto-f03.html": {
+"d": "2026-11-09",
+"h": "263e1af2181e"
+},
+"https://codetruck.ru/razbory/webasto-f10.html": {
+"d": "2026-11-09",
+"h": "6128e4ca2a7c"
+},
 "https://codetruck.ru/tr/": {
-"d": "2026-10-29",
+"d": "2026-11-09",
 "h": "245b67397ed8"
 },
 "https://codetruck.ru/zh/": {
-"d": "2026-10-29",
+"d": "2026-11-09",
 "h": "e9b515d472f5"
 }
 },
@@ -4223,6 +4335,34 @@
 "https://codetruck.ru/en/otopiteli/planar-30.html",
 "https://codetruck.ru/en/otopiteli/planar-78.html",
 "https://codetruck.ru/en/otopiteli/",
+"https://codetruck.ru/razbory/",
+"https://codetruck.ru/razbory/kamaz-spn-97-voda-v-toplive.html",
+"https://codetruck.ru/razbory/spn-100-davlenie-masla.html",
+"https://codetruck.ru/razbory/spn-110-peregrev.html",
+"https://codetruck.ru/razbory/spn-102-davlenie-nadduva.html",
+"https://codetruck.ru/razbory/mercedes-actros-spn-107.html",
+"https://codetruck.ru/razbory/sazhevyy-filtr-dpf.html",
+"https://codetruck.ru/razbory/spn-1761-mochevina-adblue.html",
+"https://codetruck.ru/razbory/eberspacher-011.html",
+"https://codetruck.ru/razbory/planar-kod-13-i-miganiya-pu5.html",
+"https://codetruck.ru/razbory/planar-kod-29-sryv-plameni.html",
+"https://codetruck.ru/razbory/webasto-f-kody-i-sluzhebnye-kody.html",
+"https://codetruck.ru/razbory/webasto-f03.html",
+"https://codetruck.ru/razbory/webasto-f10.html",
+"https://codetruck.ru/en/razbory/",
+"https://codetruck.ru/en/razbory/kamaz-spn-97-voda-v-toplive.html",
+"https://codetruck.ru/en/razbory/spn-100-davlenie-masla.html",
+"https://codetruck.ru/en/razbory/spn-110-peregrev.html",
+"https://codetruck.ru/en/razbory/spn-102-davlenie-nadduva.html",
+"https://codetruck.ru/en/razbory/mercedes-actros-spn-107.html",
+"https://codetruck.ru/en/razbory/sazhevyy-filtr-dpf.html",
+"https://codetruck.ru/en/razbory/spn-1761-mochevina-adblue.html",
+"https://codetruck.ru/en/razbory/eberspacher-011.html",
+"https://codetruck.ru/en/razbory/planar-kod-13-i-miganiya-pu5.html",
+"https://codetruck.ru/en/razbory/planar-kod-29-sryv-plameni.html",
+"https://codetruck.ru/en/razbory/webasto-f-kody-i-sluzhebnye-kody.html",
+"https://codetruck.ru/en/razbory/webasto-f03.html",
+"https://codetruck.ru/en/razbory/webasto-f10.html",
 "https://codetruck.ru/kody/spn-38.html",
 "https://codetruck.ru/kody/spn-51.html",
 "https://codetruck.ru/kody/spn-70.html",

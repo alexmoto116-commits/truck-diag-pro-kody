@@ -252,5 +252,22 @@
   "youtube_id": "2RUDGS7Dhg0",
   "name": "Планар: все коды ошибок и мигания ПУ-5 — что значат и что делать",
   "uploadDate": "2026-10-31T01:18:57-07:00"
+ },
+ "webasto-dlinny": {
+  "topic": "Webasto — все F-коды таймера",
+  "poster": "/assets/video/webasto-dlinny.webp",
+  "w": 480,
+  "h": 270,
+  "vk": "https://vkvideo.ru/video-242705793_456239033",
+  "vk_embed": null,
+  "youtube": "https://www.youtube.com/watch?v=9JDccNi5GKY",
+  "dzen": "https://dzen.ru/video/watch/6af1dbfc08c95d6913374130",
+  "telegram": "https://t.me/codetruck/35",
+  "duration": 419,
+  "rutube": "https://rutube.ru/video/f3227f98d88cc6961b4b1d450e8d67c9/",
+  "youtube_id": "9JDccNi5GKY",
+  "name": "Webasto: все F-коды таймера (Air Top 2000 ST и Thermo Top Evo)",
+  "uploadDate": "2026-11-09T16:17:00+03:00",
+  "hold": true
  }
 }

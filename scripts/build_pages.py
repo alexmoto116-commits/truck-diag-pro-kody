@@ -1037,6 +1037,7 @@ SECTIONS = {
     'marki':    (u'Марки', 'marki/'),
     'problemy': (u'Неисправности', 'problemy/'),
     'otopiteli': (u'Отопители', 'otopiteli/'),
+    'razbory': (u'Разборы', 'razbory/'),
 }
 
 # Автономные отопители: каждый код - своя страница (scripts/build_heater_pages.py).
@@ -1269,6 +1270,7 @@ h2.mk{{font-family:var(--sans-fallback,inherit);font-size:17.5px;letter-spacing:
 # страницах: ролики русские. Английские и другие версии получают прежний HEAD.
 import socials as _soc
 import video_block as _vid
+import razbory_data as _razd
 
 
 def _esc_br(t):
@@ -1387,8 +1389,8 @@ LASTMOD_DB = 'sitemap-lastmod.json'
 # по протоколу запрещены, поэтому полные ru/en в индекс не входят).
 SITEMAPS = [('sitemap-ru.xml', lambda u: '/en/' not in u),
             ('sitemap-en.xml', lambda u: '/en/' in u)]
-MAP_SECTIONS = ['kody', 'marki', 'problemy', 'otopiteli', 'main']
-SECTION_DIRS = ('kody', 'marki', 'problemy', 'otopiteli')
+MAP_SECTIONS = ['kody', 'marki', 'problemy', 'otopiteli', 'razbory', 'main']
+SECTION_DIRS = ('kody', 'marki', 'problemy', 'otopiteli', 'razbory')
 
 
 def section_of(u):
@@ -1399,6 +1401,8 @@ def section_of(u):
     parts = rest.strip('/').split('/')
     if len(parts) >= 2 and parts[0] in SECTION_DIRS:
         return parts[0]
+    if parts[0] == 'razbory':   # оглавление раздела - в карту раздела (09.11.2026)
+        return 'razbory'
     return 'main'
 
 
@@ -2149,6 +2153,7 @@ def build(en_spns=()):
                         u'для него в справочнике нет — ниже стандартное значение FMI.</p>' % spn)
 
         body.append(_vid.block('spn-%d' % spn))
+        body.append(_razd.back_link('kody/spn-%d.html' % spn, 'ru'))   # «Подробный разбор», 09.11.2026
 
         # свой разбор: где узел, что мерить, цифры, причины (own_checks.py) -
         # этого нет ни в заводских строках, ни у других справочников
@@ -2800,10 +2805,14 @@ def build(en_spns=()):
     # файлы сам и отдаёт адреса для карт; noindex-страницы в них не входят.
     import build_heater_pages as heater                    # noqa: E402
     heater_urls = heater.build(pcode=pcode)['urls']
+    # Разборы: оглавление и статьи ru/en (scripts/build_razbory.py), 09.11.2026.
+    import build_razbory as razbory                        # noqa: E402
+    razbory_urls = razbory.build()['urls']
     urls = ([SITE + '/']
             + ['%s/%s/' % (SITE, lang) for lang in LANG_HOMEPAGES]
             + ['%s/%s' % (SITE, p) for p in extra]
             + heater_urls
+            + razbory_urls
             + ['%s/kody/spn-%d.html' % (SITE, s) for s in written if s not in noindex]
             + (['%s/en/kody/' % SITE] if en_spns else [])
             + ['%s/en/kody/spn-%d.html' % (SITE, s)

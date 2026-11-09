@@ -246,6 +246,10 @@ def build():
     for lang in LANGS:
         d = dict(i18n[lang])
         html = socials.strip_index(base)
+        # Ссылка на раздел «Разборы» (09.11.2026): есть только у ru и en, у остальных языков вырезается
+        html = re.sub(r'\n  <p class="allof"><!--razb-->.*?<!--/razb--></p>',
+                      (u'\n  <p class="allof"><a href="/en/razbory/">Breakdowns: codes and faults in detail</a></p>' if lang == 'en' else u''),
+                      html, count=1, flags=re.S)
         if counts is not None:
             d['metaDescription'] = patch_counts(d['metaDescription'], counts, lang, meta=True)
             d['purposeStats'] = patch_counts(d['purposeStats'], counts, lang)

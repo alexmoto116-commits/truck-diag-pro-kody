@@ -29,6 +29,8 @@ try:
     DATA = json.loads(io.open(os.path.join(HERE, 'video_razbory.json'), encoding='utf-8').read())
 except IOError:
     DATA = {}
+# hold: true - ролик ещё не открыт на Ютубе для всех (oembed 403): на страницы не ставим
+DATA = dict((k, v) for k, v in DATA.items() if not v.get('hold'))
 
 try:
     import video_texts as _T
@@ -143,7 +145,8 @@ L = {
 }
 
 
-def block(slug, lang='ru'):
+def block(slug, lang='ru', first=True):
+    # first=False - второй ролик на той же странице: без повторных CSS/JS, свой якорь
     v = DATA.get(slug)
     if not v:
         return u''
@@ -167,8 +170,9 @@ def block(slug, lang='ru'):
         a_attrs += u' data-embed="%s" data-title="%s"' % (escape(embed), escape(cap))
     h2 = (t.get('h2_en') if lang == 'en' else t.get('h2')) or lg['h2']
     cls = u'vplay land' if v['w'] > v['h'] else u'vplay'
-    out = [u'<section class="vid" id="video">']
-    out.append(CSS)
+    out = [u'<section class="vid" id="%s">' % ('video' if first else 'video-' + slug)]
+    if first:
+        out.append(CSS)
     out.append(u'<h2>%s</h2>' % escape(h2))
     out.append(u'<div class="vcard"><a class="%s" %s aria-label="%s">'
                u'<img src="%s" width="%d" height="%d" loading="lazy" decoding="async" alt="%s">'
@@ -188,7 +192,7 @@ def block(slug, lang='ru'):
             out.append(u'<p>%s</p>' % escape(para.strip()))
         out.append(u'</div>')
     out.append(u'</section>')
-    if embed:
+    if embed and first:
         out.append(JS)
     out.append(ld(slug, lang))
     return u''.join(out)

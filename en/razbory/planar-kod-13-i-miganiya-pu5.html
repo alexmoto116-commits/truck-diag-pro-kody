@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Planar code 13 and PU-5 blinks - correspondence table</title>
+<meta name="description" content="Planar has two code systems: the number on the controller display and the PU-5 blinks. A correspondence table, a look at 13, 29, 78, 04 and 06, and what to check yourself.">
+<link rel="canonical" href="https://codetruck.ru/en/razbory/planar-kod-13-i-miganiya-pu5.html">
+<link rel="alternate" hreflang="ru" href="https://codetruck.ru/razbory/planar-kod-13-i-miganiya-pu5.html">
+<link rel="alternate" hreflang="en" href="https://codetruck.ru/en/razbory/planar-kod-13-i-miganiya-pu5.html">
+<link rel="alternate" hreflang="x-default" href="https://codetruck.ru/razbory/planar-kod-13-i-miganiya-pu5.html">
+<meta name="theme-color" content="#05070A">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://codetruck.ru/en/razbory/planar-kod-13-i-miganiya-pu5.html">
+<meta property="og:site_name" content="codetruck.ru">
+<meta property="og:locale" content="en_US">
+<meta property="og:title" content="Planar: why code 13 and 13 blinks are different faults">
+<meta property="og:description" content="Planar has two code systems: the number on the controller display and the PU-5 blinks. A correspondence table, a look at 13, 29, 78, 04 and 06, and what to check yourself.">
+<meta property="og:image" content="https://codetruck.ru/assets/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<!-- Yandex.Metrika counter -->
+<script type="text/javascript">
+    (function(m,e,t,r,i,k,a){
+        m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+        m[i].l=1*new Date();
+        for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
+        k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
+    })(window, document,'script','https://mc.yandex.ru/metrika/tag.js?id=111407659', 'ym');
+
+    ym(111407659, 'init', {ssr:true, webvisor:true, clickmap:true, ecommerce:"dataLayer", referrer: document.referrer, url: location.href, accurateTrackBounce:true, trackLinks:true});
+</script>
+<noscript><div><img src="https://mc.yandex.ru/watch/111407659" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+<!-- /Yandex.Metrika counter -->
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "Planar: why code 13 and 13 blinks are different faults", "description": "Planar has two code systems: the number on the controller display and the PU-5 blinks. A correspondence table, a look at 13, 29, 78, 04 and 06, and what to check yourself.", "inLanguage": "en", "datePublished": "2026-11-09", "dateModified": "2026-11-09", "image": "https://codetruck.ru/assets/og.png", "mainEntityOfPage": "https://codetruck.ru/en/razbory/planar-kod-13-i-miganiya-pu5.html", "author": {"@type": "Organization", "name": "codetruck", "url": "https://codetruck.ru/"}, "publisher": {"@type": "Organization", "name": "codetruck", "url": "https://codetruck.ru/"}}</script><script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Are two blinks on the PU-5 code 02?", "acceptedAnswer": {"@type": "Answer", "text": "No. Two blinks correspond to repair code 13 (failed to start after two attempts). Code 02 on the PU-5 is twelve blinks."}}, {"@type": "Question", "name": "What do three blinks on the PU-5 mean?", "acceptedAnswer": {"@type": "Answer", "text": "Flame-out during operation: in the repair table that is codes 29 and 08 (and 78 with air in the fuel system). There is no code 03 in the repair table."}}, {"@type": "Question", "name": "Can the temperature sensor be replaced separately for code 04 or 06?", "acceptedAnswer": {"@type": "Answer", "text": "No, it is built into the control unit. The whole unit is replaced, and that is service work."}}, {"@type": "Question", "name": "Where do 13 blinks come from?", "acceptedAnswer": {"@type": "Answer", "text": "That is code 35, flame-out due to a voltage dip, and only on the Planar 8DM. It has nothing to do with code 13."}}]}</script><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://codetruck.ru/en/"}, {"@type": "ListItem", "position": 2, "name": "Breakdowns", "item": "https://codetruck.ru/en/razbory/"}, {"@type": "ListItem", "position": 3, "name": "Planar: why code 13 and 13 blinks are different faults", "item": "https://codetruck.ru/en/razbory/planar-kod-13-i-miganiya-pu5.html"}]}</script>
+<style>
+body{margin:0;background:#05070A;color:#EAF0F7;font-family:"Segoe UI Variable Display","Segoe UI",Inter,system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+.w{max-width:680px;margin:0 auto;padding:36px 20px 70px}
+a{color:#6FE3D3}
+.tick{font-family:"Cascadia Mono",Consolas,monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#8B9AAC;margin-bottom:16px}
+.tick a{display:inline-flex;align-items:center;min-height:44px}
+.tick a{color:#8B9AAC;text-decoration:none;border-bottom:1px solid rgba(139,154,172,.4)}
+.tick a:first-child{color:#6FE3D3;font-weight:700;font-size:12.5px;border-bottom-color:rgba(111,227,211,.55);border-radius:6px;padding:0 6px;margin-left:-6px}
+@media (prefers-reduced-motion: no-preference){.tick a:first-child{animation:tickGlow 4.5s ease-out 1}}
+@keyframes tickGlow{0%,25%{background:rgba(111,227,211,.32);box-shadow:0 0 16px 2px rgba(111,227,211,.5)}100%{background:rgba(111,227,211,0);box-shadow:0 0 0 rgba(111,227,211,0)}}
+.tick .sep{margin:0 10px;color:#4C5A6B}
+h1{font-size:26px;line-height:1.25;margin:0 0 8px;letter-spacing:-.01em}
+.sub{color:#94A2B4;font-size:14.5px;margin:0 0 28px}
+.mono{font-family:"Cascadia Mono",Consolas,monospace}
+table{width:100%;border-collapse:collapse;margin:0 0 28px;font-size:14.5px}
+th{text-align:left;font-family:"Cascadia Mono",Consolas,monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#7A8998;padding:0 10px 8px 0;border-bottom:1px solid rgba(255,255,255,.12);font-weight:600}
+td{padding:9px 10px 9px 0;border-bottom:1px solid rgba(255,255,255,.06);vertical-align:top}
+td.fmi{font-family:"Cascadia Mono",Consolas,monospace;color:#6FE3D3;white-space:nowrap;width:1%}
+tr.hit td.fmi{color:#FF6B5A}
+h2{font-family:"Cascadia Mono",Consolas,monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#7A8998;margin:0 0 12px;font-weight:600}
+section{margin-bottom:32px}
+/* Раньше это были плашки в строку - хорошо, пока подпись короткая.
+   Теперь в ссылке полное название узла, и на телефоне плашки рвались:
+   «SPN» и номер вставали друг под другом, ширина скакала. Строка во всю
+   ширину с колонкой номера читается сверху вниз и не зависит от длины. */
+.near{margin:0;padding:0;list-style:none;border-top:1px solid rgba(255,255,255,.06)}
+.near li{margin:0;border-bottom:1px solid rgba(255,255,255,.06)}
+.near a{display:flex;align-items:baseline;gap:12px;min-height:44px;padding:10px 2px;
+  text-decoration:none;color:#AFBECD;font-size:14.5px;line-height:1.45}
+.near a:hover{color:#EAF0F7}
+.near a .mono{color:#6FE3D3;flex:none;min-width:5.4em}
+.near a .nm{flex:1}
+.risk{border:1px solid rgba(255,255,255,.13);border-radius:14px;padding:14px 16px;background:rgba(255,255,255,.022)}
+.risk .rkb{display:inline-block;font-family:"Cascadia Mono",Consolas,monospace;font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;border:1px solid;border-radius:6px;padding:3px 8px;margin-bottom:12px}
+.risk p{margin:0;font-size:15px;line-height:1.6;color:#CBD7E3}
+.risk p+p{margin-top:9px;color:#AFBECD}
+.risk .rkn{margin-top:12px;font-size:13.5px;color:#94A2B4}
+.risk.t-now{color:#FF6B5A;border-color:rgba(255,107,90,.3)}
+.risk.t-warn{color:#FF9B3D;border-color:rgba(255,155,61,.28)}
+.risk.t-calm{color:#6FE3D3;border-color:rgba(111,227,211,.28)}
+.lead{margin:0 0 18px;font-size:14.5px;color:#94A2B4}
+td.fmi .alt{display:block;font-size:11px;letter-spacing:.02em;color:#7A8998;margin-top:2px}
+.lines{margin:0;padding:0;list-style:none}
+.lines li{padding:9px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:14.5px;color:#94A2B4}
+.lines a{text-decoration:none;border-bottom:1px solid rgba(111,227,211,.35)}
+/* Ответ на главный вопрос - сразу под заголовком. Подробный блок риска
+   ниже объясняет, а эта строка отвечает: человек на обочине не должен
+   пролистывать десять заводских таблиц, чтобы узнать, ехать ему или нет. */
+.vline{display:inline-flex;align-items:baseline;flex-wrap:wrap;gap:4px 10px;
+  margin:0 0 24px;padding:9px 14px;border:1px solid;border-radius:10px;font-size:15px}
+.vline b{font-weight:650}
+.vline .hz{font-size:13.5px;opacity:.85}
+.vline.t-now{color:#FF6B5A;border-color:rgba(255,107,90,.35);background:rgba(255,107,90,.06)}
+.vline.t-warn{color:#FF9B3D;border-color:rgba(255,155,61,.3);background:rgba(255,155,61,.05)}
+.vline.t-calm{color:#6FE3D3;border-color:rgba(111,227,211,.3);background:rgba(111,227,211,.05)}
+/* Марка - то, что ищут глазами. Раньше она была набрана как шапка
+   таблицы, мелким серым капсом, и терялась среди служебных подписей. */
+h2.mk{font-family:var(--sans-fallback,inherit);font-size:17.5px;letter-spacing:-.01em;
+  text-transform:none;color:#EAF0F7;font-weight:640;margin:30px 0 10px}
+.jump{margin:0 0 26px;font-size:13.5px;color:#7A8998;display:flex;flex-wrap:wrap;gap:6px 14px}
+.jump a{text-decoration:none;border-bottom:1px solid rgba(111,227,211,.35)}
+.own{margin:0;padding:0;list-style:none;border-top:1px solid rgba(255,255,255,.06)}
+.own li{display:flex;align-items:baseline;gap:12px;padding:10px 2px;border-bottom:1px solid rgba(255,255,255,.06);
+  color:#AFBECD;font-size:14.5px;line-height:1.45;scroll-margin-top:16px}
+.own li .mono{color:#6FE3D3;flex:none;min-width:5.4em}
+.own li:target{background:rgba(111,227,211,.08);color:#EAF0F7}
+.sf{display:flex;gap:8px;margin:0 0 22px}
+.sf input{flex:1;min-width:0;min-height:46px;padding:0 14px;border-radius:10px;border:1px solid rgba(111,227,211,.35);
+  background:rgba(255,255,255,.04);color:#EAF0F7;font-size:16px;font-family:inherit}
+.sf input::placeholder{color:#7A8998}
+.sf input:focus{outline:none;border-color:#6FE3D3}
+.sf button{min-height:46px;padding:0 18px;border-radius:10px;border:0;background:#6FE3D3;color:#05070A;
+  font-weight:700;font-size:15px;font-family:inherit;cursor:pointer}
+.cta{margin-top:44px;padding-top:24px;border-top:1px solid rgba(255,255,255,.06);font-size:14px;color:#94A2B4}
+</style>
+</head>
+<body>
+<div class="w">
+<div class="tick"><a href="/en/">Home</a><span class="sep">&rsaquo;</span><a href="/en/razbory/">Breakdowns</a><span class="sep">&rsaquo;</span><span>Planar: why code 13 and 13 blinks are different faults</span></div>
+<style>.art p,.art li{color:#CBD7E3;font-size:15.5px;line-height:1.65}.art ul,.art ol{margin:0 0 14px;padding-left:22px}.art p{margin:0 0 12px;max-width:68ch}.art table{margin:0 0 18px}.art td,.art th{overflow-wrap:anywhere}.art td:first-child{font-weight:600;color:#EAF0F7}.art h3.faq-q{font-size:1em;font-weight:700;margin:14px 0 4px}.art .short{border:1px solid rgba(111,227,211,.3);border-radius:12px;background:rgba(111,227,211,.05);padding:12px 16px;margin:0 0 26px}.art .short p{margin:0}.art .gt{margin:26px 0 10px;font-size:17px}.razb ul{margin:0}</style><div class="art"><h1>Planar: why code 13 and 13 blinks are different faults</h1><form class="sf" action="/en/" method="get" role="search"><input type="search" name="q" placeholder="Your code, e.g. 1078/3" aria-label="Fault code" autocomplete="off" inputmode="text"><button type="submit">Search</button></form><div class="short"><p><b>In short.</b> Code 13 on a display controller matches two blinks of the PU-5, while 13 blinks is code 35, found only on the Planar 8DM. The numbers in the two systems do not match, so first find out exactly what you are looking at.</p></div><section class="vid" id="video"><style>
+.vid .vcard{display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap}
+.vid .vplay{position:relative;display:block;flex:none;width:150px;aspect-ratio:9/16;border-radius:12px;overflow:hidden;background:#0C131C;border:1px solid rgba(255,255,255,.13)}
+.vid .vplay img{display:block;width:100%;height:100%;object-fit:cover}
+.vid .vplay .vi{position:absolute;left:50%;top:50%;width:48px;height:48px;margin:-24px 0 0 -24px;border-radius:50%;background:rgba(5,7,10,.7);border:1.5px solid #6FE3D3;display:flex;align-items:center;justify-content:center;color:#6FE3D3;transition:transform .15s,background .15s}
+.vid .vplay:hover .vi,.vid .vplay:focus-visible .vi{transform:scale(1.08);background:rgba(5,7,10,.85)}
+.vid .vplay:focus-visible{outline:2px solid #6FE3D3;outline-offset:2px}
+.vid .vtxt{flex:1 1 220px;min-width:0}
+.vid .vcap{margin:0 0 10px;font-size:15px;line-height:1.5;color:#CBD7E3}
+.vid .vlinks{margin:0 0 14px;font-size:13.5px;color:#94A2B4}
+.vid .vlinks a{display:inline-block;padding:7px 2px}
+.vid .vsub{display:inline-flex;align-items:center;min-height:44px;padding:0 16px;border-radius:10px;border:1px solid rgba(111,227,211,.45);text-decoration:none;font-size:14px;font-weight:600;line-height:1.3}
+.vid .vsub:hover{background:rgba(111,227,211,.1)}
+.vid .vcard.on .vplay{width:min(100%,360px);flex-basis:100%}
+.vid .vplay.land{width:min(100%,360px);aspect-ratio:16/9;flex-basis:100%}
+.vid .vtext{margin:16px 0 0;max-width:68ch}
+.vid .vtext h3{margin:0 0 8px;font-size:16px}
+.vid .vtext p{margin:0 0 10px;font-size:15px;line-height:1.6;color:#CBD7E3}
+.vid .vtext .vnote{font-size:13.5px;color:#94A2B4}
+.vid .vplay iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+</style><h2>Video breakdown of this code</h2><div class="vcard"><a class="vplay" href="https://youtube.com/shorts/wyw_N1MuGtk" target="_blank" rel="noopener" data-embed="https://www.youtube-nocookie.com/embed/wyw_N1MuGtk?autoplay=1&amp;rel=0&amp;playsinline=1" data-title="Video breakdown (in Russian): Planar code 13 - does not start, 2 blinks on PU-5, 37 s" aria-label="Watch: Video breakdown (in Russian): Planar code 13 - does not start, 2 blinks on PU-5, 37 s"><img src="/assets/video/planar-13.webp" width="270" height="480" loading="lazy" decoding="async" alt="Cover of the video breakdown: Planar code 13 - does not start, 2 blinks on PU-5"><span class="vi"><svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><path d="M8.5 5.5v13l10.5-6.5z"/></svg></span></a><div class="vtxt"><p class="vcap">Video breakdown (in Russian): Planar code 13 - does not start, 2 blinks on PU-5, 37 s</p><p class="vlinks">Watch: <a href="https://vk.ru/clip-242705793_456239018" target="_blank" rel="noopener">VK</a> · <a href="https://youtube.com/shorts/wyw_N1MuGtk" target="_blank" rel="noopener">YouTube</a> · <a href="https://rutube.ru/shorts/9fb09e11738aa16335f65ca06d8eb926/" target="_blank" rel="noopener">Rutube</a> · <a href="https://t.me/codetruck/6" target="_blank" rel="noopener">Telegram</a> · <a href="https://dzen.ru/shorts/6ae3428d4e1c1848277d8711" target="_blank" rel="noopener">Dzen</a></p><a class="vsub" href="https://t.me/codetruck" target="_blank" rel="noopener">Follow on Telegram — breakdowns of new codes</a></div></div><div class="vtext"><h3>Text of the video</h3><p class="vnote">The video is in Russian; below is an English translation of the narration.</p><p>The Planar will not start. Two flashes on the controller mean code 13: it failed to start in two attempts. The glow plug heats up, but there is no flame. The PU-5 blinks twice; on a display controller it shows 13.</p><p>First: the fuel - level, season, fuel line, pump. Second: clean the air intake and the exhaust. Third: the glow plug - clean the hole and the screen - and the voltage.</p></div></section><script>
+document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('.vplay[data-embed]');
+if(!a||e.metaKey||e.ctrlKey||e.shiftKey)return;e.preventDefault();var f=document.createElement('iframe');
+f.src=a.getAttribute('data-embed');f.setAttribute('referrerpolicy','strict-origin-when-cross-origin');f.allow='autoplay; encrypted-media; fullscreen; picture-in-picture';f.allowFullscreen=true;
+f.title=a.getAttribute('data-title')||'Видеоразбор';a.textContent='';a.appendChild(f);a.parentNode.classList.add('on');
+a.removeAttribute('href');});
+</script><script type="application/ld+json">{"@context": "https://schema.org", "@type": "VideoObject", "name": "Planar will not start: code 13 and 2 blinks on PU-5 - what to check", "description": "The Planar will not start. Two flashes on the controller mean code 13: it failed to start in two attempts. The glow plug heats up, but there is no flame. The PU-5 blinks twice; on a display controller it shows 13. First: the fuel - level, season, fuel line, pump.", "thumbnailUrl": ["https://codetruck.ru/assets/video/planar-13.webp"], "uploadDate": "2026-10-31T00:03:18-07:00", "embedUrl": "https://www.youtube.com/embed/wyw_N1MuGtk", "inLanguage": "ru", "transcript": "The Planar will not start. Two flashes on the controller mean code 13: it failed to start in two attempts. The glow plug heats up, but there is no flame. The PU-5 blinks twice; on a display controller it shows 13. First: the fuel - level, season, fuel line, pump. Second: clean the air intake and the exhaust. Third: the glow plug - clean the hole and the screen - and the voltage.", "duration": "PT0M37S"}</script><section><h2>Two systems, one heater</h2><p><b>Repair code</b>: a number from the repair manual table, shown on a display controller such as the PU-22: 01, 02, 13, 29, 78 and so on.</p><p><b>PU-5 blinks</b>: this controller has no display; a red LED blinks the needed number of times and pauses. Any button resets the signal.</p><p>The same failure carries different numbers in the two systems. The correspondence is given in the Autoterm user manual.</p></section><section><h2>Table: repair code and PU-5 blinks</h2><table><tr><th>Repair code</th><th>PU-5 blinks</th><th>What happened</th></tr><tr><td>01</td><td>1</td><td>Heat exchanger overheated</td></tr><tr><td>02</td><td>12</td><td>Possible overheating near the control unit</td></tr><tr><td>13</td><td>2</td><td>Failed to start after two attempts</td></tr><tr><td>29 (and 08)</td><td>3</td><td>Flame-out during operation</td></tr><tr><td>78</td><td>3</td><td>Flame-out (air bubble, pump, flame indicator)</td></tr><tr><td>09</td><td>4</td><td>Glow plug</td></tr><tr><td>05</td><td>5</td><td>Flame indicator</td></tr><tr><td>04 / 06</td><td>6</td><td>Temperature sensor in the control unit</td></tr><tr><td>17</td><td>7</td><td>Fuel pump</td></tr><tr><td>20</td><td>8</td><td>No link between the controller and the unit</td></tr><tr><td>12 and 15</td><td>9</td><td>Voltage: high and low share one number</td></tr><tr><td>16</td><td>10</td><td>Ventilation time exceeded</td></tr><tr><td>10, 27, 28</td><td>11</td><td>Air blower</td></tr></table><p>Three traps follow from the table. Two blinks on the PU-5 are not code 02 but code 13. Four blinks are not 04 but the glow plug (09). And 13 blinks are not code 13 but code 35: flame-out caused by a voltage dip, present only on the Planar 8DM.</p></section><section><h2>The most common codes</h2><p><b>13: the heater did not start.</b> Two automatic start attempts failed. The manual says to check the fuel (is there any, and is it suitable for the temperature), the fuel line for leaks and blockage, the air intake and exhaust, the blower and whether the glow plug heats. Checking the plug and the voltage at the unit counts as repair work.</p><p><b>29 and 78: flame-out.</b> The flame went out during operation. Causes: too little fuel, a faulty pump or flame indicator; for 78 an air bubble in the fuel system is added. On the PU-5 both codes give three blinks.</p><p><b>04 and 06: temperature sensor in the unit.</b> It is built into the control unit and is not replaced separately; it has no wiring. The only cure is replacing the unit, which is service work.</p></section><section><h2>What to check yourself</h2><ul><li>fuel in the tank and whether it suits the season;</li><li>exhaust and air intake: the passage must be clear;</li><li>fuel line: leaks and tight clamps;</li><li>blower: no sticking and no foreign objects.</li></ul></section><section><h2>When to see a workshop</h2><ul><li>code 04 or 06: the control unit must be replaced;</li><li>13 or 29 repeat after the fuel, exhaust and fuel line were checked;</li><li>the plug, fuel pump or flame indicator needs testing;</li><li>you could not find the cause from the list above.</li></ul></section><section><h2>Questions and answers</h2><h3 class="faq-q">Are two blinks on the PU-5 code 02?</h3><p>No. Two blinks correspond to repair code 13 (failed to start after two attempts). Code 02 on the PU-5 is twelve blinks.</p><h3 class="faq-q">What do three blinks on the PU-5 mean?</h3><p>Flame-out during operation: in the repair table that is codes 29 and 08 (and 78 with air in the fuel system). There is no code 03 in the repair table.</p><h3 class="faq-q">Can the temperature sensor be replaced separately for code 04 or 06?</h3><p>No, it is built into the control unit. The whole unit is replaced, and that is service work.</p><h3 class="faq-q">Where do 13 blinks come from?</h3><p>That is code 35, flame-out due to a voltage dip, and only on the Planar 8DM. It has nothing to do with code 13.</p></section><section><h2>Code pages on the site</h2><ul class="lines"><li><a href="/en/otopiteli/planar-13.html">Code 13 - failed to start</a></li><li><a href="/en/otopiteli/planar-29.html">Code 29 - flame-out</a></li><li><a href="/en/otopiteli/planar-78.html">Code 78 - flame-out, air in the fuel</a></li><li><a href="/en/otopiteli/planar-4.html">Code 4 - temperature sensor in the unit</a></li><li><a href="/en/otopiteli/planar-6.html">Code 6 - temperature sensor in the unit</a></li><li><a href="/en/otopiteli/planar-2.html">Code 2 - possible overheating</a></li><li><a href="/en/marki/planar.html">All Planar codes</a></li></ul></section><p class="sub">Checked against manufacturer manuals and tables; the same facts as in our videos and articles. The decision to drive remains with the driver.</p><p><a href="/en/razbory/">&larr; All breakdowns</a></p></div><p class="cta">Cannot find your code? <a href="/en/">Type it into the search</a> — or paste the whole list from the scanner and we will show which fault is the real one.</p></div>
+<!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "177421bba4084e9fa25718d86f1781b0"}'></script><!-- End Cloudflare Web Analytics -->
+</body>
+</html>

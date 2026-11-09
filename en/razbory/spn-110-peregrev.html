@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SPN 110: engine overheating - what to do</title>
+<meta name="description" content="SPN 110 is engine coolant temperature. A table of FMI 0, 15, 16, 3 and 4, how to check overheating safely and when a workshop is needed.">
+<link rel="canonical" href="https://codetruck.ru/en/razbory/spn-110-peregrev.html">
+<link rel="alternate" hreflang="ru" href="https://codetruck.ru/razbory/spn-110-peregrev.html">
+<link rel="alternate" hreflang="en" href="https://codetruck.ru/en/razbory/spn-110-peregrev.html">
+<link rel="alternate" hreflang="x-default" href="https://codetruck.ru/razbory/spn-110-peregrev.html">
+<meta name="theme-color" content="#05070A">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://codetruck.ru/en/razbory/spn-110-peregrev.html">
+<meta property="og:site_name" content="codetruck.ru">
+<meta property="og:locale" content="en_US">
+<meta property="og:title" content="SPN 110: coolant temperature - when to stop">
+<meta property="og:description" content="SPN 110 is engine coolant temperature. A table of FMI 0, 15, 16, 3 and 4, how to check overheating safely and when a workshop is needed.">
+<meta property="og:image" content="https://codetruck.ru/assets/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<!-- Yandex.Metrika counter -->
+<script type="text/javascript">
+    (function(m,e,t,r,i,k,a){
+        m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+        m[i].l=1*new Date();
+        for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
+        k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
+    })(window, document,'script','https://mc.yandex.ru/metrika/tag.js?id=111407659', 'ym');
+
+    ym(111407659, 'init', {ssr:true, webvisor:true, clickmap:true, ecommerce:"dataLayer", referrer: document.referrer, url: location.href, accurateTrackBounce:true, trackLinks:true});
+</script>
+<noscript><div><img src="https://mc.yandex.ru/watch/111407659" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+<!-- /Yandex.Metrika counter -->
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "SPN 110: coolant temperature - when to stop", "description": "SPN 110 is engine coolant temperature. A table of FMI 0, 15, 16, 3 and 4, how to check overheating safely and when a workshop is needed.", "inLanguage": "en", "datePublished": "2026-11-09", "dateModified": "2026-11-09", "image": "https://codetruck.ru/assets/og.png", "mainEntityOfPage": "https://codetruck.ru/en/razbory/spn-110-peregrev.html", "author": {"@type": "Organization", "name": "codetruck", "url": "https://codetruck.ru/"}, "publisher": {"@type": "Organization", "name": "codetruck", "url": "https://codetruck.ru/"}}</script><script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Can I drive with SPN 110 FMI 0?", "acceptedAnswer": {"@type": "Answer", "text": "No. Stop at the first safe opportunity and let the engine cool."}}, {"@type": "Question", "name": "Can I open the expansion tank cap?", "acceptedAnswer": {"@type": "Answer", "text": "Not on a hot engine: the liquid under pressure is thrown out as steam."}}, {"@type": "Question", "name": "How do I tell real overheating from a sensor fault?", "acceptedAnswer": {"@type": "Answer", "text": "Compare the dashboard with an infrared thermometer on the upper radiator hose. If they match, the overheating is real."}}, {"@type": "Question", "name": "What do FMI 3 and 4 mean?", "acceptedAnswer": {"@type": "Answer", "text": "The sensor circuit: voltage above normal or short to positive (3), below normal or to ground (4). It is not proof that the engine is overheated."}}]}</script><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://codetruck.ru/en/"}, {"@type": "ListItem", "position": 2, "name": "Breakdowns", "item": "https://codetruck.ru/en/razbory/"}, {"@type": "ListItem", "position": 3, "name": "SPN 110: coolant temperature - when to stop", "item": "https://codetruck.ru/en/razbory/spn-110-peregrev.html"}]}</script>
+<style>
+body{margin:0;background:#05070A;color:#EAF0F7;font-family:"Segoe UI Variable Display","Segoe UI",Inter,system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+.w{max-width:680px;margin:0 auto;padding:36px 20px 70px}
+a{color:#6FE3D3}
+.tick{font-family:"Cascadia Mono",Consolas,monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#8B9AAC;margin-bottom:16px}
+.tick a{display:inline-flex;align-items:center;min-height:44px}
+.tick a{color:#8B9AAC;text-decoration:none;border-bottom:1px solid rgba(139,154,172,.4)}
+.tick a:first-child{color:#6FE3D3;font-weight:700;font-size:12.5px;border-bottom-color:rgba(111,227,211,.55);border-radius:6px;padding:0 6px;margin-left:-6px}
+@media (prefers-reduced-motion: no-preference){.tick a:first-child{animation:tickGlow 4.5s ease-out 1}}
+@keyframes tickGlow{0%,25%{background:rgba(111,227,211,.32);box-shadow:0 0 16px 2px rgba(111,227,211,.5)}100%{background:rgba(111,227,211,0);box-shadow:0 0 0 rgba(111,227,211,0)}}
+.tick .sep{margin:0 10px;color:#4C5A6B}
+h1{font-size:26px;line-height:1.25;margin:0 0 8px;letter-spacing:-.01em}
+.sub{color:#94A2B4;font-size:14.5px;margin:0 0 28px}
+.mono{font-family:"Cascadia Mono",Consolas,monospace}
+table{width:100%;border-collapse:collapse;margin:0 0 28px;font-size:14.5px}
+th{text-align:left;font-family:"Cascadia Mono",Consolas,monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#7A8998;padding:0 10px 8px 0;border-bottom:1px solid rgba(255,255,255,.12);font-weight:600}
+td{padding:9px 10px 9px 0;border-bottom:1px solid rgba(255,255,255,.06);vertical-align:top}
+td.fmi{font-family:"Cascadia Mono",Consolas,monospace;color:#6FE3D3;white-space:nowrap;width:1%}
+tr.hit td.fmi{color:#FF6B5A}
+h2{font-family:"Cascadia Mono",Consolas,monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#7A8998;margin:0 0 12px;font-weight:600}
+section{margin-bottom:32px}
+/* Раньше это были плашки в строку - хорошо, пока подпись короткая.
+   Теперь в ссылке полное название узла, и на телефоне плашки рвались:
+   «SPN» и номер вставали друг под другом, ширина скакала. Строка во всю
+   ширину с колонкой номера читается сверху вниз и не зависит от длины. */
+.near{margin:0;padding:0;list-style:none;border-top:1px solid rgba(255,255,255,.06)}
+.near li{margin:0;border-bottom:1px solid rgba(255,255,255,.06)}
+.near a{display:flex;align-items:baseline;gap:12px;min-height:44px;padding:10px 2px;
+  text-decoration:none;color:#AFBECD;font-size:14.5px;line-height:1.45}
+.near a:hover{color:#EAF0F7}
+.near a .mono{color:#6FE3D3;flex:none;min-width:5.4em}
+.near a .nm{flex:1}
+.risk{border:1px solid rgba(255,255,255,.13);border-radius:14px;padding:14px 16px;background:rgba(255,255,255,.022)}
+.risk .rkb{display:inline-block;font-family:"Cascadia Mono",Consolas,monospace;font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;border:1px solid;border-radius:6px;padding:3px 8px;margin-bottom:12px}
+.risk p{margin:0;font-size:15px;line-height:1.6;color:#CBD7E3}
+.risk p+p{margin-top:9px;color:#AFBECD}
+.risk .rkn{margin-top:12px;font-size:13.5px;color:#94A2B4}
+.risk.t-now{color:#FF6B5A;border-color:rgba(255,107,90,.3)}
+.risk.t-warn{color:#FF9B3D;border-color:rgba(255,155,61,.28)}
+.risk.t-calm{color:#6FE3D3;border-color:rgba(111,227,211,.28)}
+.lead{margin:0 0 18px;font-size:14.5px;color:#94A2B4}
+td.fmi .alt{display:block;font-size:11px;letter-spacing:.02em;color:#7A8998;margin-top:2px}
+.lines{margin:0;padding:0;list-style:none}
+.lines li{padding:9px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:14.5px;color:#94A2B4}
+.lines a{text-decoration:none;border-bottom:1px solid rgba(111,227,211,.35)}
+/* Ответ на главный вопрос - сразу под заголовком. Подробный блок риска
+   ниже объясняет, а эта строка отвечает: человек на обочине не должен
+   пролистывать десять заводских таблиц, чтобы узнать, ехать ему или нет. */
+.vline{display:inline-flex;align-items:baseline;flex-wrap:wrap;gap:4px 10px;
+  margin:0 0 24px;padding:9px 14px;border:1px solid;border-radius:10px;font-size:15px}
+.vline b{font-weight:650}
+.vline .hz{font-size:13.5px;opacity:.85}
+.vline.t-now{color:#FF6B5A;border-color:rgba(255,107,90,.35);background:rgba(255,107,90,.06)}
+.vline.t-warn{color:#FF9B3D;border-color:rgba(255,155,61,.3);background:rgba(255,155,61,.05)}
+.vline.t-calm{color:#6FE3D3;border-color:rgba(111,227,211,.3);background:rgba(111,227,211,.05)}
+/* Марка - то, что ищут глазами. Раньше она была набрана как шапка
+   таблицы, мелким серым капсом, и терялась среди служебных подписей. */
+h2.mk{font-family:var(--sans-fallback,inherit);font-size:17.5px;letter-spacing:-.01em;
+  text-transform:none;color:#EAF0F7;font-weight:640;margin:30px 0 10px}
+.jump{margin:0 0 26px;font-size:13.5px;color:#7A8998;display:flex;flex-wrap:wrap;gap:6px 14px}
+.jump a{text-decoration:none;border-bottom:1px solid rgba(111,227,211,.35)}
+.own{margin:0;padding:0;list-style:none;border-top:1px solid rgba(255,255,255,.06)}
+.own li{display:flex;align-items:baseline;gap:12px;padding:10px 2px;border-bottom:1px solid rgba(255,255,255,.06);
+  color:#AFBECD;font-size:14.5px;line-height:1.45;scroll-margin-top:16px}
+.own li .mono{color:#6FE3D3;flex:none;min-width:5.4em}
+.own li:target{background:rgba(111,227,211,.08);color:#EAF0F7}
+.sf{display:flex;gap:8px;margin:0 0 22px}
+.sf input{flex:1;min-width:0;min-height:46px;padding:0 14px;border-radius:10px;border:1px solid rgba(111,227,211,.35);
+  background:rgba(255,255,255,.04);color:#EAF0F7;font-size:16px;font-family:inherit}
+.sf input::placeholder{color:#7A8998}
+.sf input:focus{outline:none;border-color:#6FE3D3}
+.sf button{min-height:46px;padding:0 18px;border-radius:10px;border:0;background:#6FE3D3;color:#05070A;
+  font-weight:700;font-size:15px;font-family:inherit;cursor:pointer}
+.cta{margin-top:44px;padding-top:24px;border-top:1px solid rgba(255,255,255,.06);font-size:14px;color:#94A2B4}
+</style>
+</head>
+<body>
+<div class="w">
+<div class="tick"><a href="/en/">Home</a><span class="sep">&rsaquo;</span><a href="/en/razbory/">Breakdowns</a><span class="sep">&rsaquo;</span><span>SPN 110: coolant temperature - when to stop</span></div>
+<style>.art p,.art li{color:#CBD7E3;font-size:15.5px;line-height:1.65}.art ul,.art ol{margin:0 0 14px;padding-left:22px}.art p{margin:0 0 12px;max-width:68ch}.art table{margin:0 0 18px}.art td,.art th{overflow-wrap:anywhere}.art td:first-child{font-weight:600;color:#EAF0F7}.art h3.faq-q{font-size:1em;font-weight:700;margin:14px 0 4px}.art .short{border:1px solid rgba(111,227,211,.3);border-radius:12px;background:rgba(111,227,211,.05);padding:12px 16px;margin:0 0 26px}.art .short p{margin:0}.art .gt{margin:26px 0 10px;font-size:17px}.razb ul{margin:0}</style><div class="art"><h1>SPN 110: coolant temperature - when to stop</h1><form class="sf" action="/en/" method="get" role="search"><input type="search" name="q" placeholder="Your code, e.g. 1078/3" aria-label="Fault code" autocomplete="off" inputmode="text"><button type="submit">Search</button></form><div class="short"><p><b>In short.</b> With FMI 0, 15 and 16 treat the overheating as real: stop at the first safe opportunity and let the engine cool. FMI 3 and 4 point to the sensor circuit, but until the temperature is checked with a second thermometer, assume the overheating is real.</p></div><section class="vid" id="video"><style>
+.vid .vcard{display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap}
+.vid .vplay{position:relative;display:block;flex:none;width:150px;aspect-ratio:9/16;border-radius:12px;overflow:hidden;background:#0C131C;border:1px solid rgba(255,255,255,.13)}
+.vid .vplay img{display:block;width:100%;height:100%;object-fit:cover}
+.vid .vplay .vi{position:absolute;left:50%;top:50%;width:48px;height:48px;margin:-24px 0 0 -24px;border-radius:50%;background:rgba(5,7,10,.7);border:1.5px solid #6FE3D3;display:flex;align-items:center;justify-content:center;color:#6FE3D3;transition:transform .15s,background .15s}
+.vid .vplay:hover .vi,.vid .vplay:focus-visible .vi{transform:scale(1.08);background:rgba(5,7,10,.85)}
+.vid .vplay:focus-visible{outline:2px solid #6FE3D3;outline-offset:2px}
+.vid .vtxt{flex:1 1 220px;min-width:0}
+.vid .vcap{margin:0 0 10px;font-size:15px;line-height:1.5;color:#CBD7E3}
+.vid .vlinks{margin:0 0 14px;font-size:13.5px;color:#94A2B4}
+.vid .vlinks a{display:inline-block;padding:7px 2px}
+.vid .vsub{display:inline-flex;align-items:center;min-height:44px;padding:0 16px;border-radius:10px;border:1px solid rgba(111,227,211,.45);text-decoration:none;font-size:14px;font-weight:600;line-height:1.3}
+.vid .vsub:hover{background:rgba(111,227,211,.1)}
+.vid .vcard.on .vplay{width:min(100%,360px);flex-basis:100%}
+.vid .vplay.land{width:min(100%,360px);aspect-ratio:16/9;flex-basis:100%}
+.vid .vtext{margin:16px 0 0;max-width:68ch}
+.vid .vtext h3{margin:0 0 8px;font-size:16px}
+.vid .vtext p{margin:0 0 10px;font-size:15px;line-height:1.6;color:#CBD7E3}
+.vid .vtext .vnote{font-size:13.5px;color:#94A2B4}
+.vid .vplay iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+</style><h2>Video breakdown of this code</h2><div class="vcard"><a class="vplay" href="https://youtube.com/shorts/g1hlplLczyA" target="_blank" rel="noopener" data-embed="https://www.youtube-nocookie.com/embed/g1hlplLczyA?autoplay=1&amp;rel=0&amp;playsinline=1" data-title="Video breakdown (in Russian): SPN 110 - engine overheating, 36 s" aria-label="Watch: Video breakdown (in Russian): SPN 110 - engine overheating, 36 s"><img src="/assets/video/spn-110.webp" width="270" height="480" loading="lazy" decoding="async" alt="Cover of the video breakdown: SPN 110 - engine overheating"><span class="vi"><svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><path d="M8.5 5.5v13l10.5-6.5z"/></svg></span></a><div class="vtxt"><p class="vcap">Video breakdown (in Russian): SPN 110 - engine overheating, 36 s</p><p class="vlinks">Watch: <a href="https://vk.ru/clip-242705793_456239027" target="_blank" rel="noopener">VK</a> · <a href="https://youtube.com/shorts/g1hlplLczyA" target="_blank" rel="noopener">YouTube</a> · <a href="https://rutube.ru/shorts/d08f91a297fb8b56758ea3915dd71512/" target="_blank" rel="noopener">Rutube</a> · <a href="https://t.me/codetruck/25" target="_blank" rel="noopener">Telegram</a> · <a href="https://dzen.ru/shorts/6ae9f9146a553d026f65f77e" target="_blank" rel="noopener">Dzen</a></p><a class="vsub" href="https://t.me/codetruck" target="_blank" rel="noopener">Follow on Telegram — breakdowns of new codes</a></div></div><div class="vtext"><h3>Text of the video</h3><p class="vnote">The video is in Russian; below is an English translation of the narration.</p><p>SPN 110. The engine has overheated. What to do? This is the engine coolant temperature. FMI 0, 15 and 16 mean above normal. Do not drive: stop and let the engine cool down. Do not open the coolant tank cap.</p><p>Then check the coolant level, the radiator and the fan belt. FMI 3 and 4 point to the sensor circuit: check the connector and the wiring.</p></div></section><script>
+document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('.vplay[data-embed]');
+if(!a||e.metaKey||e.ctrlKey||e.shiftKey)return;e.preventDefault();var f=document.createElement('iframe');
+f.src=a.getAttribute('data-embed');f.setAttribute('referrerpolicy','strict-origin-when-cross-origin');f.allow='autoplay; encrypted-media; fullscreen; picture-in-picture';f.allowFullscreen=true;
+f.title=a.getAttribute('data-title')||'Видеоразбор';a.textContent='';a.appendChild(f);a.parentNode.classList.add('on');
+a.removeAttribute('href');});
+</script><script type="application/ld+json">{"@context": "https://schema.org", "@type": "VideoObject", "name": "SPN 110: engine overheating - do not drive", "description": "SPN 110. The engine has overheated. What to do? This is the engine coolant temperature. FMI 0, 15 and 16 mean above normal. Do not drive: stop and let the engine cool down. Do not open the coolant tank cap. Then check the coolant level, the radiator and the fan belt.", "thumbnailUrl": ["https://codetruck.ru/assets/video/spn-110.webp"], "uploadDate": "2026-11-03T07:05:49-08:00", "embedUrl": "https://www.youtube.com/embed/g1hlplLczyA", "inLanguage": "ru", "transcript": "SPN 110. The engine has overheated. What to do? This is the engine coolant temperature. FMI 0, 15 and 16 mean above normal. Do not drive: stop and let the engine cool down. Do not open the coolant tank cap. Then check the coolant level, the radiator and the fan belt. FMI 3 and 4 point to the sensor circuit: check the connector and the wiring.", "duration": "PT0M36S"}</script><section><h2>FMI breakdown</h2><p>SPN 110 in J1939 is Engine coolant temperature.</p><table><tr><th>FMI</th><th>Meaning</th><th>What to do</th></tr><tr><td>0</td><td>Above normal, most severe level (Cummins ISB 6.7: FC 151)</td><td>Stop, let it cool</td></tr><tr><td>16</td><td>Above normal, medium urgency (Cummins FC 146)</td><td>Do not drive, find the cause</td></tr><tr><td>15</td><td>Above normal, low urgency (Cummins FC 2963)</td><td>Do not drive, find the cause</td></tr><tr><td>3</td><td>Sensor circuit voltage above normal or short to positive (Cummins FC 144)</td><td>Check connector and wiring</td></tr><tr><td>4</td><td>Sensor circuit voltage below normal or short to ground (Cummins FC 145)</td><td>Check connector and wiring</td></tr></table><p>Temperature thresholds and the unit's reaction (warning, derate, shutdown) differ between manufacturers: check the manual for your engine.</p></section><section><h2>Can you drive</h2><p>No. The time reserve in overheating is measured in minutes, and pushing on &quot;to the nearest place&quot; quickly destroys the cylinder head and gasket. With FMI 3 and 4 first check whether the sensor is lying.</p></section><section><h2>Order of actions</h2><ol><li>Stop and let the engine cool.</li><li>Do not open the expansion tank cap on a hot engine: the liquid under pressure is thrown out as steam.</li><li>When cooled, check the coolant level, the fan belt and clutch, and radiator dirt.</li><li>Compare the dashboard with an infrared thermometer on the upper radiator hose: a match means the overheating is real.</li><li>No match: inspect the sensor connector and wiring; a break gives a falsely high voltage, a short gives a false overheat.</li></ol></section><section><h2>When to see a workshop</h2><ul><li>temperature really is high with a normal coolant level: a faulty thermostat, pump, fan clutch or an air lock after a coolant change are possible;</li><li>FMI 3 or 4 repeats after the connector and wiring were checked: diagnostics of the sensor and its circuit.</li></ul></section><section><h2>Questions and answers</h2><h3 class="faq-q">Can I drive with SPN 110 FMI 0?</h3><p>No. Stop at the first safe opportunity and let the engine cool.</p><h3 class="faq-q">Can I open the expansion tank cap?</h3><p>Not on a hot engine: the liquid under pressure is thrown out as steam.</p><h3 class="faq-q">How do I tell real overheating from a sensor fault?</h3><p>Compare the dashboard with an infrared thermometer on the upper radiator hose. If they match, the overheating is real.</p><h3 class="faq-q">What do FMI 3 and 4 mean?</h3><p>The sensor circuit: voltage above normal or short to positive (3), below normal or to ground (4). It is not proof that the engine is overheated.</p></section><section><h2>Code pages on the site</h2><ul class="lines"><li><a href="/en/kody/spn-110.html">SPN 110 - coolant temperature</a></li><li><a href="/en/kody/spn-111.html">SPN 111 - coolant level</a></li><li><a href="/en/problemy/greetsya-v-goru.html">Overheating uphill</a></li><li><a href="/en/kody/spn-100.html">SPN 100 - oil pressure</a></li></ul></section><p class="sub">Checked against manufacturer manuals and tables; the same facts as in our videos and articles. The decision to drive remains with the driver.</p><p><a href="/en/razbory/">&larr; All breakdowns</a></p></div><p class="cta">Cannot find your code? <a href="/en/">Type it into the search</a> — or paste the whole list from the scanner and we will show which fault is the real one.</p></div>
+<!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "177421bba4084e9fa25718d86f1781b0"}'></script><!-- End Cloudflare Web Analytics -->
+</body>
+</html>

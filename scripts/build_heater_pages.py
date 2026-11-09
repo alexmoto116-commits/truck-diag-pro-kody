@@ -283,7 +283,11 @@ def _vid_block(rel, lang='ru'):
         return u''
     slug = os.path.basename(rel)[:-len('.html')]
     if slug == 'index':
-        slug = 'planar-dlinny'
+        # оглавление: длинный Планар и (09.11.2026) длинный Webasto; CSS и JS - один раз
+        out = video_block.block('planar-dlinny', lang)
+        if video_block.has('webasto-dlinny'):
+            out += video_block.block('webasto-dlinny', lang, first=not video_block.has('planar-dlinny'))
+        return out
     return video_block.block(slug, lang)
 
 
@@ -324,6 +328,8 @@ def render(lang, rel, title, desc, h1, sub, sections, here, brand=None, noindex=
     body.append(u'<p class="sub">%s</p>' % sub)
     if rel.startswith('otopiteli/') or rel.startswith('en/otopiteli/'):
         body.append(_vid_block(rel, lang))
+        if rel.endswith('.html'):
+            body.append(bp._razd.back_link(rel[len('en/'):] if rel.startswith('en/') else rel, lang))
     body.extend(sections)
     body.append(cta)
     body.append(bp.soc_foot(lang))
