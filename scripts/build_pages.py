@@ -949,21 +949,48 @@ def rich(t):
 _LINK_TOKEN = re.compile(r'\[\[([^|\]]+)\|([^\]]+)\]\]')
 
 
+_BOLD = re.compile(r'\*\*(.+?)\*\*')
+
+
+def _xt(t):
+    # экранирование + ссылки [[адрес|текст]] + **жирный** (механизм 09.11.2026)
+    return _BOLD.sub(r'<b>\1</b>', _LINK_TOKEN.sub(r'<a href="\1">\2</a>', esc(t)))
+
+
+def _extra_list(key, part):
+    # блоки ключа и добавка ключа+'+' (см. dopisyvanie_texts.py)
+    out = []
+    for k in (key, key + '+'):
+        out.extend(EXTRA_BLOCKS.get(k, {}).get(part) or [])
+    return out
+
+
+def extra_faq(key):
+    # вопросы-ответы из дописанных блоков - для разметки FAQPage
+    res = []
+    for _h2, items in _extra_list(key, 'head') + _extra_list(key, 'tail'):
+        for it in items:
+            if isinstance(it, tuple):
+                res.append({'@type': 'Question', 'name': it[0],
+                            'acceptedAnswer': {'@type': 'Answer',
+                                               'text': _BOLD.sub(r'\1', _LINK_TOKEN.sub(r'\2', it[1]))}})
+    return res
+
+
 def extra_html(key, part):
     # part: 'head' - после вводного блока, 'tail' - в конец страницы
-    blocks = EXTRA_BLOCKS.get(key, {}).get(part) or []
+    blocks = _extra_list(key, part)
     out = []
     for h2, items in blocks:
         inner = []
         for it in items:
             if isinstance(it, tuple):          # вопрос-ответ
                 q, a = it
-                inner.append(u'<h3 class="faq-q">%s</h3><p>%s</p>' % (esc(q), _LINK_TOKEN.sub(r'<a href="\1">\2</a>', esc(a))))
+                inner.append(u'<h3 class="faq-q">%s</h3><p>%s</p>' % (esc(q), _xt(a)))
             elif isinstance(it, list):         # маркированный список
-                inner.append(u'<ul>%s</ul>' % u''.join(
-                    u'<li>%s</li>' % _LINK_TOKEN.sub(r'<a href="\1">\2</a>', esc(x)) for x in it))
+                inner.append(u'<ul>%s</ul>' % u''.join(u'<li>%s</li>' % _xt(x) for x in it))
             else:
-                inner.append(u'<p>%s</p>' % _LINK_TOKEN.sub(r'<a href="\1">\2</a>', esc(it)))
+                inner.append(u'<p>%s</p>' % _xt(it))
         out.append(u'<section><h2>%s</h2>%s</section>' % (esc(h2), u''.join(inner)))
     html_out = u''.join(out)
     if 'faq-q' in html_out:
@@ -2080,6 +2107,7 @@ def build(en_spns=()):
                                            'text': u'%s: %s.' % (name or u'SPN %d' % spn,
                                                                  db['fmi'][str(f)])}})
 
+        faq.extend(extra_faq('code:%d' % spn))
         ld = (ld_script({'@context': 'https://schema.org', '@type': 'TechArticle',
                          'headline': title, 'description': desc, 'url': canon})
               + ld_script(breadcrumb_ld(page_name, canon, 'kody'))
@@ -2194,6 +2222,7 @@ def build(en_spns=()):
                         % u''.join(code_link(s, 'spn-%d.html' % s) for s in similar))
 
         body.append(links_block_ru(spn, makes))
+        body.append(extra_html('code:%d' % spn, 'tail'))
         body.append(u'<p class="cta">Сканер выдал несколько кодов? '
                     u'<a href="../">Вставьте весь список</a> — покажем первопричину.</p>')
         body.append(soc_foot())
@@ -2250,7 +2279,7 @@ def build(en_spns=()):
         m_ekey = re.match(r'problemy/([^/]+)\.html$', path)
         if m_ekey:
             ekey = 'problem:%s' % m_ekey.group(1)
-        if ekey and ekey in EXTRA_BLOCKS:
+        if ekey and (ekey in EXTRA_BLOCKS or ekey + '+' in EXTRA_BLOCKS):
             sections = (list(sections[:1]) + [extra_html(ekey, 'head')]
                         + list(sections[1:]) + [extra_html(ekey, 'tail')])
         # Рубрику публикуем как /kody/, а не /kody/index.html: ссылки в

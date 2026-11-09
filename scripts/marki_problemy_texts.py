@@ -2879,3 +2879,8 @@ EXTRA_BLOCKS.update({
         ],
     },
 })
+
+
+# Дописывание 09.11.2026: тексты лежат в dopis_*.py, слияние - dopisyvanie_texts.py
+from dopisyvanie_texts import ALL as _DOPIS
+EXTRA_BLOCKS.update(_DOPIS)

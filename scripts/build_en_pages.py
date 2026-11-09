@@ -558,6 +558,7 @@ def build():
                                            'text': u'%s: %s.' % (name or u'SPN %d' % spn,
                                                                  fmi_en[str(f)])}})
 
+        faq.extend(bp.extra_faq('code-en:%d' % spn))
         ld = (bp.ld_script({'@context': 'https://schema.org', '@type': 'TechArticle',
                             'headline': title, 'description': desc, 'url': canon,
                             'inLanguage': 'en'})

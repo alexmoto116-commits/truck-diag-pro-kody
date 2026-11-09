@@ -366,7 +366,7 @@ def page_en(path, title, desc, h1, sub, sections, section=None, rel_ru=None, her
     # Дописанные английские блоки марки (EXTRA_BLOCKS, ключ brand-en:<марка>):
     # 'head' идёт сразу после вводного блока, 'tail' - в конец, как на русской.
     _ekey = u'brand-en:%s' % _марка if _марка else None
-    if _ekey and _ekey in EXTRA_BLOCKS:
+    if _ekey and (_ekey in EXTRA_BLOCKS or _ekey + '+' in EXTRA_BLOCKS):
         sections = (list(sections[:1]) + [bp.extra_html(_ekey, 'head')]
                     + list(sections[1:]) + [bp.extra_html(_ekey, 'tail')])
     body.extend(sections)
