@@ -1081,6 +1081,8 @@ SECTIONS = {
     'problemy': (u'Неисправности', 'problemy/'),
     'otopiteli': (u'Отопители', 'otopiteli/'),
     'razbory': (u'Разборы', 'razbory/'),
+    'j1587': (u'Коды J1587', 'j1587/'),
+    'vag-otopiteli': (u'Отопители VAG', 'vag-otopiteli/'),
 }
 
 # Автономные отопители: каждый код - своя страница (scripts/build_heater_pages.py).
@@ -1432,8 +1434,8 @@ LASTMOD_DB = 'sitemap-lastmod.json'
 # по протоколу запрещены, поэтому полные ru/en в индекс не входят).
 SITEMAPS = [('sitemap-ru.xml', lambda u: '/en/' not in u),
             ('sitemap-en.xml', lambda u: '/en/' in u)]
-MAP_SECTIONS = ['kody', 'marki', 'problemy', 'otopiteli', 'razbory', 'main']
-SECTION_DIRS = ('kody', 'marki', 'problemy', 'otopiteli', 'razbory')
+MAP_SECTIONS = ['kody', 'marki', 'problemy', 'otopiteli', 'razbory', 'j1587', 'vag-otopiteli', 'main']
+SECTION_DIRS = ('kody', 'marki', 'problemy', 'otopiteli', 'razbory', 'j1587', 'vag-otopiteli')
 
 
 def section_of(u):
@@ -1444,8 +1446,8 @@ def section_of(u):
     parts = rest.strip('/').split('/')
     if len(parts) >= 2 and parts[0] in SECTION_DIRS:
         return parts[0]
-    if parts[0] == 'razbory':   # оглавление раздела - в карту раздела (09.11.2026)
-        return 'razbory'
+    if parts[0] in ('razbory', 'j1587', 'vag-otopiteli'):   # оглавление раздела - в карту раздела (09.11.2026)
+        return parts[0]
     return 'main'
 
 
@@ -2806,6 +2808,10 @@ def build(en_spns=()):
                 u'<p class="lead">Отопители кабины: каждый код отдельной страницей с '
                 u'проверками. <a href="/otopiteli/">Оглавление кодов Eberspächer, Webasto '
                 u'и Планар</a>.</p></section>')
+    secs.append(u'<section><h2>Старые грузовики и отопители VAG</h2>'
+                u'<p class="lead">Коды старых американских и европейских грузовиков в формате MID, PID, SID, FMI: '
+                u'<a href="/j1587/">коды J1587/J1708</a>. Ошибки автономных отопителей в VCDS на VW, Audi, Skoda: '
+                u'<a href="/vag-otopiteli/">отопители VAG, блок 18</a>.</p></section>')
 
     extra.append(page(
         'marki/index.html',
@@ -2851,11 +2857,15 @@ def build(en_spns=()):
     # Разборы: оглавление и статьи ru/en (scripts/build_razbory.py), 09.11.2026.
     import build_razbory as razbory                        # noqa: E402
     razbory_urls = razbory.build()['urls']
+    # Новые разделы 09.11.2026: коды J1587/J1708 (MID/PID/SID/FMI) и ошибки отопителей VAG (VCDS, блок 18).
+    import novye_kody as novye                              # noqa: E402
+    novye_urls = novye.build()['urls']
     urls = ([SITE + '/']
             + ['%s/%s/' % (SITE, lang) for lang in LANG_HOMEPAGES]
             + ['%s/%s' % (SITE, p) for p in extra]
             + heater_urls
             + razbory_urls
+            + novye_urls
             + ['%s/kody/spn-%d.html' % (SITE, s) for s in written if s not in noindex]
             + (['%s/en/kody/' % SITE] if en_spns else [])
             + ['%s/en/kody/spn-%d.html' % (SITE, s)
