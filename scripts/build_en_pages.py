@@ -501,7 +501,7 @@ def build():
             if bp.fx(spn, 'verdict', 'en'):
                 verdict = bp.fx(spn, 'verdict', 'en')
             if spn in bp.ABS_WARN_SPN:
-                verdict = (u'<b>Drive with caution.</b> The ABS on this wheel is off, but the service brakes '
+                verdict = (u'<b>Drive with caution.</b> The ABS on this wheel or axle may be off, but the service brakes '
                            u'work. On a slippery road brake gently. Get it repaired soon.')
         if std_name(spn):
             page_name = TX['titleStd'] % (spn, name)

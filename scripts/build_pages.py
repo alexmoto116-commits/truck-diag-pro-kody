@@ -383,7 +383,8 @@ def page_stop(sys_key, fmis, urgent_fmi, urgent_spn_hit):
 # тормозной системы («now») здесь не меняем - оно относится ко всем кодам
 # тормозов. Решение Алекса 01.11.2026: датчик колеса АБС - АБС отключается,
 # рабочие тормоза действуют, вердикт «Ехать осторожно» (как в ролике и статье).
-ABS_WARN_SPN = {789, 790, 791, 792}
+# Решение Алекса 09.11.2026: клапаны АБС (795-800, 938, 939, 1438) - тоже «Ехать осторожно».
+ABS_WARN_SPN = {789, 790, 791, 792, 795, 796, 797, 798, 799, 800, 938, 939, 1438}
 
 
 # ---------------------------------------------------------------
@@ -601,6 +602,22 @@ SPN_FIX = {
         },
     },
 }
+
+
+FAN_FIX = {
+    'lvl': 'watch',
+    'vline': {'ru': u'Ехать можно, следить за температурой', 'en': u'Drive, watch the temperature'},
+    'hz': {'ru': u'Следить за t° двигателя', 'en': u'Watch engine temperature'},
+    'verdict': {
+        'ru': (u'<b>Ехать можно, следите за температурой охлаждающей жидкости.</b> Если стрелка идёт к красной '
+               u'зоне или горит красная лампа — остановитесь и дайте двигателю остыть. Проверьте вентилятор '
+               u'в ближайшее время.'),
+        'en': (u'<b>You can drive, but watch the coolant temperature.</b> If the gauge climbs toward the red '
+               u'zone or a red lamp comes on, stop and let the engine cool down. Have the fan checked soon.'),
+    },
+}
+for _s in (985, 986, 1071, 1639):
+    SPN_FIX.setdefault(_s, {}).update(FAN_FIX)
 
 
 def fx(spn, key, lang=None):
@@ -1918,7 +1935,7 @@ def build(en_spns=()):
     DIY_KEYS = set(_DIY_CHECKS)
 
     def is_stop(spn, makes):
-        if spn in ABS_WARN_SPN:
+        if spn in ABS_WARN_SPN or fx(spn, 'lvl'):
             return False
         fmis = sorted({f for rows in makes.values() for f, _ in rows})
         return page_stop(system_of(spn, std_name(spn)), fmis, urgent_fmi_for(spn, urgent_fmi, makes),
@@ -2024,7 +2041,7 @@ def build(en_spns=()):
                        u'при которых остановиться нужно при первой безопасной возможности: '
                        u'дальше поедет дороже.')
         elif spn in ABS_WARN_SPN:
-            verdict = (u'<b>Ехать можно осторожно.</b> ABS на этом колесе отключена, обычные тормоза '
+            verdict = (u'<b>Ехать можно осторожно.</b> АБС на этом колесе или оси может быть отключена, обычные тормоза '
                        u'работают. На скользкой дороге тормозить плавно. Исправить в ближайшее время.')
         else:
             # Строку про лампу и мощность даём только срочным кодам (помеченным
