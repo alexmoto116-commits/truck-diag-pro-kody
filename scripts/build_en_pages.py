@@ -437,7 +437,7 @@ def build():
         key, lvl, _ = bp.page_risk(sys_key, fmis, uf, urgent_spn_hit)
         if not key or key not in risk_tx:
             return u''
-        lvl = bp.fx(spn, 'lvl') or lvl
+        lvl = bp.fx(spn, 'lvl') or ('base' if spn in bp.ABS_WARN_SPN else lvl)
         happens, ends = risk_tx[key][0], risk_tx[key][1]
         if bp.fx(spn, 'risk', 'en'):
             happens, ends = bp.fx(spn, 'risk', 'en')

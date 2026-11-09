@@ -616,8 +616,34 @@ FAN_FIX = {
                u'zone or a red lamp comes on, stop and let the engine cool down. Have the fan checked soon.'),
     },
 }
+FAN_FIX['risk'] = {
+    'ru': (u'Вентилятор не включается или работает не так, как нужно: в жару или под нагрузкой '
+           u'температура двигателя может расти. Пока стрелка в норме, ехать можно.',
+           u'Следите за стрелкой температуры. Дошла до красной зоны или загорелась красная лампа — '
+           u'остановитесь, дайте двигателю остыть; крышку расширительного бачка на горячую не открывайте. '
+           u'Проверку вентилятора не откладывайте.'),
+    'en': (u'The fan may not switch on or may not run as it should: in heat or under load the engine '
+           u'temperature can climb. While the gauge stays normal, you can drive.',
+           u'Keep an eye on the temperature gauge. If it reaches the red zone or a red lamp comes on, '
+           u'stop and let the engine cool down; never open the expansion tank cap while hot. '
+           u'Do not put off checking the fan.'),
+}
 for _s in (985, 986, 1071, 1639):
     SPN_FIX.setdefault(_s, {}).update(FAN_FIX)
+
+# Риск-блок и ответ «что будет, если ехать дальше» у АБС: мягкий, под вердикт «Ехать осторожно».
+ABS_RISK = {
+    'ru': (u'АБС на этом колесе или оси может не работать, обычные тормоза при этом действуют. '
+           u'На сухой дороге заметной разницы можно не почувствовать.',
+           u'На скользкой дороге тормозите плавно и держите дистанцию больше обычной. '
+           u'Ремонт не откладывайте: загорелась красная лампа тормозов или педаль стала мягкой — остановитесь.'),
+    'en': (u'The ABS on this wheel or axle may be out of action, while the service brakes still work. '
+           u'On a dry road you may notice no difference.',
+           u'On a slippery road brake gently and keep a longer following distance. '
+           u'Do not put the repair off: if the red brake lamp comes on or the pedal feels soft, stop.'),
+}
+for _s in ABS_WARN_SPN:
+    SPN_FIX.setdefault(_s, {})['risk'] = ABS_RISK
 
 
 def fx(spn, key, lang=None):
@@ -681,7 +707,7 @@ def risk_section(sys_key, fmis, urgent_fmi, urgent_spn_hit, spn=None):
     key, lvl, flag = page_risk(sys_key, fmis, urgent_fmi, urgent_spn_hit)
     if not key or key not in R['tx']:
         return u''
-    lvl = fx(spn, 'lvl') or lvl
+    lvl = fx(spn, 'lvl') or ('base' if spn in ABS_WARN_SPN else lvl)
     happens, ends = R['tx'][key][0], R['tx'][key][1]
     if fx(spn, 'risk', 'ru'):
         happens, ends = fx(spn, 'risk', 'ru')
