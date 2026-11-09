@@ -965,6 +965,11 @@ def _extra_list(key, part):
     return out
 
 
+# марки, у которых вопросы-ответы дописаны 09.11.2026: FAQPage ставим пока им (у остальных марок/проблем
+# есть такие же вопросы в тексте, разметка для них - отдельное решение)
+FAQ_BRANDS_0911 = ('brand:deutz', 'brand:wabco', 'brand:allison')
+
+
 def extra_faq(key):
     # вопросы-ответы из дописанных блоков - для разметки FAQPage
     res = []
@@ -2291,6 +2296,10 @@ def build(en_spns=()):
                          'headline': title, 'description': desc, 'url': canon})
               + ld_script(breadcrumb_ld(brand_names.get(brand, h1) if brand else h1, canon, section))
               + (ld_script(extra_ld) if extra_ld else u''))
+        # вопросы-ответы дописанных блоков (марки/проблемы) - в разметку FAQPage (09.11.2026)
+        _faq = extra_faq(ekey) if ekey in FAQ_BRANDS_0911 else []
+        if _faq:
+            ld += ld_script({'@context': 'https://schema.org', '@type': 'FAQPage', 'mainEntity': _faq})
         body = [HEAD.format(title=esc(title), desc=esc(desc), canon=canon,
                             ogtitle=esc(h1), mid=METRIKA_ID, ld=ld,
                             nav=nav_of(section, brand_names.get(brand, h1) if brand else h1),

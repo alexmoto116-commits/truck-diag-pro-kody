@@ -275,10 +275,16 @@ def make_desc(lang, prefix, full):
     return bp.cut_words(d, 160)
 
 
-def _vid_block(rel):
-    """Блок «Видеоразбор этого кода» для страницы otopiteli/<slug>.html."""
+def _vid_block(rel, lang='ru'):
+    """Блок «Видеоразбор этого кода» для страницы otopiteli/<slug>.html (и en/otopiteli/).
+    Оглавление otopiteli/index.html показывает длинный ролик «Планар - все коды»."""
     import video_block
-    return video_block.block(os.path.basename(rel)[:-len('.html')]) if rel.endswith('.html') else u''
+    if not rel.endswith('.html'):
+        return u''
+    slug = os.path.basename(rel)[:-len('.html')]
+    if slug == 'index':
+        slug = 'planar-dlinny'
+    return video_block.block(slug, lang)
 
 
 def render(lang, rel, title, desc, h1, sub, sections, here, brand=None, noindex=False):
@@ -316,8 +322,8 @@ def render(lang, rel, title, desc, h1, sub, sections, here, brand=None, noindex=
                u'the whole list from the scanner and we will show which fault is the real one.</p>'
                % (u'/en/?mode=heater&amp;b=%s' % brand if brand else u'/en/?mode=heater'))
     body.append(u'<p class="sub">%s</p>' % sub)
-    if ru and rel.startswith('otopiteli/'):
-        body.append(_vid_block(rel))
+    if rel.startswith('otopiteli/') or rel.startswith('en/otopiteli/'):
+        body.append(_vid_block(rel, lang))
     body.extend(sections)
     body.append(cta)
     body.append(bp.soc_foot(lang))

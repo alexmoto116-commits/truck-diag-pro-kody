@@ -587,6 +587,7 @@ def build():
                         % ((TX['subStd'] if std_name(spn) else TX['subOwn'])
                            % (spn, bp.esc(brands_all))))
 
+        body.append(bp._vid.block('spn-%d' % spn, 'en'))   # видеоразбор + текст ролика (перевод), 09.11.2026
         # свой разбор - в том же месте, что и на русской странице (до таблиц марок)
         body.append(bp.extra_html('code-en:%d' % spn, 'head'))
         own = own_section_en(spn)
