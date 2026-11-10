@@ -1458,6 +1458,51 @@ def url_to_file(url):
     return os.path.join(ROOT, rel.replace('/', os.sep))
 
 
+def closed_by_keep():
+    """Адреса марок и проблем (ru и en), закрытые списком index_keep.json
+    (ключи «марки» и «проблемы» - slug открытых страниц; пара ru+en по одному slug).
+    Без этих ключей ничего не закрывается. Адрес страницы остаётся, закрываются
+    только индекс (noindex) и карта сайта."""
+    path = os.path.join(ROOT, 'scripts', 'index_keep.json')
+    if not os.path.isfile(path):
+        return []
+    d = json.loads(io.open(path, encoding='utf-8').read())
+    closed = []
+    for key, sec in ((u'марки', 'marki'), (u'проблемы', 'problemy')):
+        if key not in d:
+            continue
+        opened = set(d[key])
+        base = os.path.join(ROOT, sec)
+        if not os.path.isdir(base):
+            continue
+        for f in sorted(os.listdir(base)):
+            if not f.endswith('.html') or f == 'index.html' or f[:-5] in opened:
+                continue
+            closed.append('%s/%s/%s' % (SITE, sec, f))
+            if os.path.isfile(os.path.join(ROOT, 'en', sec, f)):
+                closed.append('%s/en/%s/%s' % (SITE, sec, f))
+    return closed
+
+
+def close_pages(closed):
+    """Ставит noindex, follow закрытым страницам (если ещё не стоит)."""
+    meta = u'<meta name="robots" content="noindex, follow">'
+    n = 0
+    for u in closed:
+        f = url_to_file(u)
+        try:
+            h = io.open(f, encoding='utf-8').read()
+        except IOError:
+            continue
+        if 'name="robots"' in h:
+            continue
+        h2 = h.replace(u'<meta charset="utf-8">', u'<meta charset="utf-8">\n' + meta, 1)
+        if h2 != h:
+            io.open(f, 'w', encoding='utf-8', newline='\n').write(h2)
+            n += 1
+    return n
+
+
 def write_sitemap(urls=None):
     """Пересобирает карты сайта, сохраняя даты у неизменившихся страниц."""
     path = os.path.join(ROOT, LASTMOD_DB)
@@ -1466,6 +1511,11 @@ def write_sitemap(urls=None):
         db = json.loads(io.open(path, encoding='utf-8').read())
     if urls is None:
         urls = db.get('urls') or []
+    closed = closed_by_keep()
+    if closed:
+        close_pages(closed)
+        cs = set(closed)
+        urls = [u for u in urls if u not in cs]
     today = date.today().isoformat()
     pages = db.get('pages', {})
     fresh = {}
@@ -1498,6 +1548,10 @@ def write_sitemap(urls=None):
     written_files = []
     for name, part, in_index in jobs:
         if not part:
+            # пустой раздел (всё закрыто noindex): старый файл карты убираем, иначе он остался бы со старыми адресами
+            stale = os.path.join(ROOT, name)
+            if os.path.isfile(stale):
+                os.remove(stale)
             continue
         sm = ['<?xml version="1.0" encoding="UTF-8"?>',
               '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
