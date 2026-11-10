@@ -342,7 +342,7 @@ HUB_V = {
     'ru': dict(h1=u'Ошибки автономных отопителей VAG в VCDS и ODIS',
                title=u'Ошибки отопителя VAG в VCDS: блок 18 Aux. Heat, коды',
                desc=u'Ошибки автономных отопителей Webasto и Eberspächer на VW T5, T6, Crafter, Touareg, Audi, Skoda в VCDS и ODIS (блок 18 Aux. Heat): '
-                    u'01406, 01410, 02251, 02243 и другие, можно ли ехать и что проверить.',
+                    u'01406, 01410, 02251 и другие, можно ли ехать и что проверить.',
                intro=u'Если автономный отопитель (Webasto, Eberspächer) поставлен или заложен на заводе в машину концерна VAG, его блок управления виден в '
                      u'VCDS и ODIS как <b>адрес 18, Aux. Heat</b> (иногда 0B, Sec. Air Heating, для воздушного отопителя). Ошибки там записываются '
                      u'пятизначными кодами (0xxxx) или на новых машинах короткими четырёхзначными. Отопитель на управление и тормоза не влияет, '
@@ -350,19 +350,19 @@ HUB_V = {
                cols=[u'Код', u'Что значит', u'Можно ли ехать'],
                n=u'%d страниц', go_calm=u'Ехать можно',
                srcnote=u'Описания составлены по заводским таблицам Audi (A4 8E, A2), Ross-Tech wiki и темам Ross-Tech и t6forum. '
-                       u'Код 02243 описан только по форумам: пометка на его странице. Дилерские базы не использовались.',
+                       u'Дилерские базы не использовались.',
                more=u'Родственные разделы: <a href="/otopiteli/">коды Eberspächer, Webasto и Планар (заводские коды самого отопителя)</a>.'),
     'en': dict(h1=u'Auxiliary heater faults on VAG cars in VCDS and ODIS',
                title=u'VAG heater fault codes in VCDS: address 18 Aux. Heat',
                desc=u'Auxiliary Webasto and Eberspacher heater faults on VW T5, T6, Crafter, Touareg, Audi and Skoda in VCDS and ODIS (address 18 Aux. Heat): '
-                    u'01406, 01410, 02251, 02243 and others, whether you can drive and what to check.',
+                    u'01406, 01410, 02251 and others, whether you can drive and what to check.',
                intro=u'If an auxiliary heater (Webasto, Eberspacher) is fitted to a VAG group vehicle, its control unit appears in VCDS and ODIS as '
                      u'<b>address 18, Aux. Heat</b> (sometimes 0B, Sec. Air Heating, for an air heater). Faults are stored as five-digit codes (0xxxx) or, on newer vehicles, short four-digit ones. '
                      u'The heater does not affect steering or brakes, so you can almost always drive; the task is to find the cause and not to leave the heater on if you smell fuel or see smoke.',
                cols=[u'Code', u'What it means', u'Can you drive'],
                n=u'%d pages', go_calm=u'You can drive',
                srcnote=u'The descriptions are based on factory Audi tables (A4 8E, A2), the Ross-Tech wiki and Ross-Tech and t6forum threads. '
-                       u'Code 02243 is described by forums only: it is marked on its page. Dealer databases were not used.',
+                       u'Dealer databases were not used.',
                more=u'Related section: <a href="/en/otopiteli/">Eberspacher, Webasto and Planar heater codes (the heater own factory codes)</a>.'),
 }
 
@@ -385,7 +385,7 @@ def v_hub(lang):
              p[lang]['badge']] for p in vd.PAGES]
     body.append(u'<section><h2>%s</h2>%s</section>' % (u'Все коды' if lang == 'ru' else u'All codes', _tbl(H['cols'], rows)))
     body.append(u'<section><p>%s</p></section>' % H['more'])
-    body.append(_src_html(['a4', 'a2', 'rt02251', 'rtf', 't6a', 't6b', 't6c'], vd.SRC, lang))
+    body.append(_src_html(['a4', 'a2', 'rt02251', 'rtf', 't6a'], vd.SRC, lang))
     body.append(u'<p class="sub">%s</p>' % esc(H['srcnote']))
     return rel, _foot(lang, body)
 
