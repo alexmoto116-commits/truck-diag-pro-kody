@@ -783,6 +783,10 @@ def build():
     secs.append(u'<section><h2>Heaters</h2><p class="lead">Cab heaters: every code has its own '
                 u'page with checks. <a href="/en/otopiteli/">Index of Eberspächer, Webasto and '
                 u'Planar codes</a>.</p></section>')
+    secs.append(u'<section><h2>Older trucks and VAG heaters</h2><p class="lead">Codes of older American '
+                u'and European trucks as MID, PID, SID, FMI: <a href="/en/j1587/">J1587/J1708 codes</a>. '
+                u'Auxiliary heater faults in VCDS on VW, Audi, Skoda: '
+                u'<a href="/en/vag-otopiteli/">VAG heaters, address 18</a>.</p></section>')
 
     page_en('en/marki/index.html',
             u'Truck fault codes by make — decoded | codetruck.ru',
