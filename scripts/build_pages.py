@@ -53,7 +53,12 @@ BRAKE_MAKES = frozenset(['kamazebs', 'wabco', 'knorrbremse', 'meritor', 'bendix'
 _FMI_SPN = {}
 
 
-def urgent_fmi_for(spn, urgent_fmi, makes=None):
+def urgent_fmi_for(spn, urgent_fmi, makes=None, sys_key=None):
+    """FMI 0/1 срочные у страницы. Тормозные марки добавляют срочность своим
+    строкам FMI 0/1 только на странице тормозной системы (sys_key == 'brake'),
+    как BRAKE_BRANDS в urgent() assets/app.js: на странице другого узла (датчик
+    скорости колеса у Meritor, дополнительный выход и т.п.) строка тормозной марки
+    не делает код срочным. Решение Алекса 14.11.2026."""
     if not _FMI_SPN:
         _FMI_SPN['set'] = set(load_db()['urgentFmiSpn'])
     keys = _FMI_SPN['set']
@@ -62,9 +67,10 @@ def urgent_fmi_for(spn, urgent_fmi, makes=None):
         out = {f for f in uf if any(k.endswith('.%d' % f) for k in keys)}
     else:
         out = {f for f in uf if ('%d.%d' % (spn, f)) in keys}
-    for b, rows in (makes or {}).items():
-        if b in BRAKE_MAKES:
-            out |= {f for f, _ in rows if f in uf}
+    if sys_key == 'brake':
+        for b, rows in (makes or {}).items():
+            if b in BRAKE_MAKES:
+                out |= {f for f, _ in rows if f in uf}
     return out
 
 
@@ -313,6 +319,11 @@ def risk_model():
         _RISK_JS['fmiRange'] = extract_js_object('FMI_RANGE')
         # Напоминания о плановом обслуживании - не «ехать нельзя» (см. SERVICE_SPN).
         _RISK_JS['service'] = extract_js_object('SERVICE_SPN')
+        # Моторный тормоз и ретардер - своя система enginebrake; регулярное
+        # выражение берём из app.js, а не копией (там же его проверяет systemOf()).
+        _src = io.open(os.path.join(ROOT, 'assets', 'app.js'), encoding='utf-8').read()
+        _m = re.search(r'var\s+ENG_BRAKE_RE\s*=\s*/(.*)/([a-z]*)\s*;', _src)
+        _RISK_JS['engBrakeRe'] = re.compile(_m.group(1), re.I | re.U)
     return _RISK_JS
 
 
@@ -384,7 +395,13 @@ def page_stop(sys_key, fmis, urgent_fmi, urgent_spn_hit):
 # тормозов. Решение Алекса 01.11.2026: датчик колеса АБС - АБС отключается,
 # рабочие тормоза действуют, вердикт «Ехать осторожно» (как в ролике и статье).
 # Решение Алекса 09.11.2026: клапаны АБС (795-800, 938, 939, 1438) - тоже «Ехать осторожно».
-ABS_WARN_SPN = {789, 790, 791, 792, 795, 796, 797, 798, 799, 800, 938, 939, 1438}
+# Решение Алекса 14.11.2026 (разбор расхождений вердиктов): ещё датчики и клапаны АБС по осям
+# и узлы Meritor/Knorr/Bendix того же ряда - 793, 794 (датчик оси 3), 1, 806, 807, 932, 933,
+# 43-45, 49, 50 (Meritor, клапаны модулятора), 520530-520536, 4086-4089, 1243, 1792.
+ABS_WARN_SPN = {789, 790, 791, 792, 795, 796, 797, 798, 799, 800, 938, 939, 1438,
+                793, 794, 1, 806, 807, 932, 933, 43, 44, 45, 49, 50,
+                520530, 520531, 520532, 520533, 520534, 520535, 520536,
+                4086, 4087, 4088, 4089, 1243, 1792}
 
 
 # ---------------------------------------------------------------
@@ -645,6 +662,22 @@ ABS_RISK = {
 for _s in ABS_WARN_SPN:
     SPN_FIX.setdefault(_s, {})['risk'] = ABS_RISK
 
+# Правка вердиктов по разбору расхождений 14.11.2026 (решение Алекса): уровень задаём
+# вручную там, где система по названию/FMI дала неверный вердикт. Ключ 'lvl' - уровень
+# запаса времени (RISK_RANK в app.js); 'stop': True - «Ехать нельзя» (усиление),
+# иначе плашка «Ехать можно».
+# Смягчение: информационные и не тормозные сигналы.
+for _s in (563, 575, 1069, 4074, 4075, 4076, 524270, 524271, 524272):
+    SPN_FIX.setdefault(_s, {})['lvl'] = 'plan'     # можно, до ближайшего ТО
+for _s in (598, 924, 925, 1553):
+    SPN_FIX.setdefault(_s, {})['lvl'] = 'watch'    # можно, следить самому
+# 46 - по разбору «можно, хватит доехать до базы» (в списке Алекса ABS 43-50 его нет)
+SPN_FIX.setdefault(46, {})['lvl'] = 'base'
+# Усиление: коды, по которым «можно» было ошибкой.
+SPN_FIX.setdefault(131128, {}).update({'lvl': 'now', 'stop': True})
+for _s in (131130, 1239, 1240, 520226, 3607, 1110):
+    SPN_FIX.setdefault(_s, {}).update({'lvl': 'short', 'stop': True})
+
 
 def fx(spn, key, lang=None):
     """Значение правки страницы кода (SPN_FIX) или None."""
@@ -750,6 +783,8 @@ def system_of(spn, name):
     for k, lst in R['sysSpn'].items():
         if spn in lst:
             return k
+    if R['engBrakeRe'].search(name or ''):
+        return 'enginebrake'
     low = (name or '').lower()
     for k, words in R['sysWord'].items():
         for w in words:
@@ -759,6 +794,26 @@ def system_of(spn, name):
                 continue
             return k
     return 'other'
+
+
+# Строки с собственной нумерацией (ZF AS-Tronic, Ford; у Renault Trucks при SPN <= 300
+# номера - тоже заводские AS-Tronic): номер у них не SPN по стандарту J1939, поэтому
+# стандартное имя SPN систему страницы не определяет. Решение Алекса 14.11.2026.
+SYS_OWN_NUM_BRANDS = ('ford', 'zfastronic')
+
+
+def own_numbering_only(spn, brands):
+    """Все марочные строки страницы - с собственной нумерацией (не J1939)."""
+    brands = list(brands)
+    return bool(brands) and all(b in SYS_OWN_NUM_BRANDS or (b == 'renault' and spn <= 300)
+                                for b in brands)
+
+
+def sys_for_name(spn, makes, std):
+    """Система страницы кода: имя из стандарта (std) берём, только если есть строки
+    со стандартной нумерацией (иначе имя относится не к этим строкам)."""
+    name = u'' if own_numbering_only(spn, makes or ()) else std
+    return system_of(spn, name)
 
 # ------------------------------------------------------- имя кода из таблиц
 # Больше половины кодов - заводские номера, которых нет ни в стандарте J1939,
@@ -1917,6 +1972,9 @@ def build(en_spns=()):
         s = str(spn)
         return spn_cur.get(s) or universal.get(s) or u''
 
+    def sys_for(spn, makes):
+        return sys_for_name(spn, makes, std_name(spn))
+
     derived = derive_names(per_spn, [s for s in keep if not std_name(s) and s in per_spn])
 
     # Страницы, которые держим на месте (на них уже ведут ссылки, удаление
@@ -2010,7 +2068,7 @@ def build(en_spns=()):
     # соседи по системе - для перелинковки
     by_sys = {}
     for spn in open_keep:
-        by_sys.setdefault(system_of(spn, std_name(spn)), []).append(spn)
+        by_sys.setdefault(sys_for(spn, per_spn.get(spn, {})), []).append(spn)
 
     # коды с разделом «Как проверить своими руками» - в первую очередь в «Похожих»
     from own_checks import CHECKS as _DIY_CHECKS
@@ -2018,9 +2076,10 @@ def build(en_spns=()):
 
     def is_stop(spn, makes):
         if spn in ABS_WARN_SPN or fx(spn, 'lvl'):
-            return False
+            return bool(fx(spn, 'stop'))
         fmis = sorted({f for rows in makes.values() for f, _ in rows})
-        return page_stop(system_of(spn, std_name(spn)), fmis, urgent_fmi_for(spn, urgent_fmi, makes),
+        sk = sys_for(spn, makes)
+        return page_stop(sk, fmis, urgent_fmi_for(spn, urgent_fmi, makes, sk),
                          spn in urgent_spn)
 
     # Перелинковка (31.10.2026): какие коды перечислены на страницах проблем.
@@ -2076,10 +2135,11 @@ def build(en_spns=()):
         os.remove(f)
 
     written = []
+    page_stop_of, page_lvl_of = {}, {}   # то, что напечатано на ru-странице: en берёт отсюда же
     for spn in keep:
         name = name_of(spn)
-        sys_key = system_of(spn, std_name(spn))
         makes = per_spn.get(spn, {})
+        sys_key = sys_for(spn, makes)
         if spn in SPN_FIX:
             makes = fix_spn168(makes, 'ru', spn)
         # У ZF AS-Tronic и Ford номер свой: рядом с обычными марками их строка
@@ -2108,7 +2168,7 @@ def build(en_spns=()):
         # «обычно ехать можно» над собственной же строкой «запас времени: до
         # ближайшей остановки» и текстом «продолжать движение без разбора
         # нельзя» - то есть спорили сами с собой, а не только с виджетом.
-        urg_here = urgent_fmi_for(spn, urgent_fmi, makes)
+        urg_here = urgent_fmi_for(spn, urgent_fmi, makes, sys_key)
         urgent_spn_hit = spn in urgent_spn
         _, worst_lvl, _ = page_risk(sys_key, seen_all_early, urg_here, urgent_spn_hit)
         stop = page_stop(sys_key, seen_all_early, urg_here, urgent_spn_hit)
@@ -2116,8 +2176,11 @@ def build(en_spns=()):
             stop = False
             worst_lvl = 'base'
         if fx(spn, 'lvl'):
-            stop = False
+            # 'stop' в SPN_FIX - усиление: «Ехать нельзя» с заданным запасом времени
+            stop = bool(fx(spn, 'stop'))
             worst_lvl = fx(spn, 'lvl')
+        page_stop_of[spn] = stop
+        page_lvl_of[spn] = worst_lvl
         if stop:
             verdict = (u'<b>По этому коду ехать нельзя.</b> Он относится к неисправностям, '
                        u'при которых остановиться нужно при первой безопасной возможности: '
@@ -2276,7 +2339,7 @@ def build(en_spns=()):
             body.append(u'<section><h2 class="mk" id="mk-%s">%s</h2>%s%s</section>'
                         % (b, esc(block_head(b, brand_names)),
                            (u'<p class="sub">%s</p>' % esc(note)) if note else u'',
-                           fmi_table(rows, urgent_fmi_for(spn, urgent_fmi, {b: rows}))))
+                           fmi_table(rows, urgent_fmi_for(spn, urgent_fmi, {b: rows}, sys_key))))
 
         if own_here:
             пункты = []
@@ -2568,7 +2631,7 @@ def build(en_spns=()):
         # с выборкой примеров (см. load_pcode и sample_rows). Не объединять.
         by_sys_brand = {}
         for s in ([] if own or b == 'kamaz' else mine_open):
-            by_sys_brand.setdefault(system_of(s, std_name(s)), []).append(s)
+            by_sys_brand.setdefault(sys_for(s, per_spn.get(s, {})), []).append(s)
         if b == 'kamaz':
             for m in KAMAZ_GROUP:
                 ms = [s for s in mine_open if m in per_spn.get(s, {})]
@@ -2576,7 +2639,7 @@ def build(en_spns=()):
                     continue
                 msys = {}
                 for s in ms:
-                    msys.setdefault(system_of(s, std_name(s)), []).append(s)
+                    msys.setdefault(sys_for(s, per_spn.get(s, {})), []).append(s)
                 parts = [u'<h3>%s — %s</h3><ul class="near">%s</ul>'
                          % (esc(SYS_TITLE[k]), n_codes(len(msys[k])), code_links(msys[k]))
                          for k in SYS_ORDER_BRAND if msys.get(k)]
@@ -2935,13 +2998,19 @@ def build(en_spns=()):
     return {'written': written,
             'noindex': set(written) & noindex,
             'noindex_en': set(written) & noindex_en,
-            'sys': dict((s, system_of(s, std_name(s))) for s in written),
+            'sys': dict((s, sys_for(s, per_spn.get(s, {}))) for s in written),
             'stop': dict((s, is_stop(s, per_spn.get(s, {}))) for s in written),
+            # Вердикт и уровень ровно такие, как напечатаны на русской странице
+            # (там они считаются по строкам без ZF/Ford): английская сборка
+            # раньше пересчитывала их по всем строкам, и языки расходились.
+            'page_stop': page_stop_of,
+            'page_lvl': page_lvl_of,
             'lvl': dict((s, 'base' if s in ABS_WARN_SPN else
-                         page_risk(system_of(s, std_name(s)),
+                         page_risk(sys_for(s, per_spn.get(s, {})),
                                    sorted({f for rows in per_spn.get(s, {}).values()
                                            for f, _ in rows}),
-                                   urgent_fmi_for(s, urgent_fmi, per_spn.get(s, {})), s in urgent_spn)[1])
+                                   urgent_fmi_for(s, urgent_fmi, per_spn.get(s, {}),
+                                                  sys_for(s, per_spn.get(s, {}))), s in urgent_spn)[1])
                         for s in written),
             'by_sys': by_sys}
 

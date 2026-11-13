@@ -269,6 +269,8 @@ def build():
     written = [s for s in info['written'] if s in en_set]
     sys_of, stop_of, by_sys = info['sys'], info['stop'], info['by_sys']
     lvl_of = info['lvl']
+    # то, что напечатано на русской странице (вердикт и уровень) - английская берёт ровно это
+    pstop_of, plvl_of = info['page_stop'], info['page_lvl']
     # закрытые от индекса (их ровно столько же, сколько у русской версии)
     closed_en = set(info.get('noindex_en', ()))
     closed_ru = set(info.get('noindex', ()))
@@ -437,7 +439,7 @@ def build():
         key, lvl, _ = bp.page_risk(sys_key, fmis, uf, urgent_spn_hit)
         if not key or key not in risk_tx:
             return u''
-        lvl = bp.fx(spn, 'lvl') or ('base' if spn in bp.ABS_WARN_SPN else lvl)
+        lvl = plvl_of.get(spn) or bp.fx(spn, 'lvl') or ('base' if spn in bp.ABS_WARN_SPN else lvl)
         happens, ends = risk_tx[key][0], risk_tx[key][1]
         if bp.fx(spn, 'risk', 'en'):
             happens, ends = bp.fx(spn, 'risk', 'en')
@@ -484,12 +486,12 @@ def build():
         # про конкретное сочетание), и ниже в таблице, поэтому считаем сразу.
         seen = sorted({f for rows in makes.values() for f, _ in rows})
         seen_std = sorted({f for m, rows in makes.items() if m not in own_fmi for f, _ in rows})
-        uf_here = bp.urgent_fmi_for(spn, urgent_fmi, makes)
         sys_key = sys_of.get(spn, 'other')
+        uf_here = bp.urgent_fmi_for(spn, urgent_fmi, makes, sys_key)
         name = name_of(spn)
         brands_short, brands_all = brand_list(spn, 3), brand_list(spn)
 
-        if stop_of.get(spn) and not bp.fx(spn, 'lvl'):
+        if pstop_of.get(spn):
             verdict = u'<b>%s.</b> %s' % (i18n['vStop'], i18n['vStopSub'])
         else:
             verdict = u'<b>%s.</b> %s' % (i18n['vWarn'], i18n['vWarnSub'])
@@ -524,7 +526,7 @@ def build():
                                             if sys_key != 'other' else None),
                                 [bname(b) for b in ordered_b],
                                 # фраза про езду - из того же вердикта, что и плашка
-                                bool(stop_of.get(spn)) and not bp.fx(spn, 'lvl'),
+                                bool(pstop_of.get(spn)),
                                 spn in OWN_EN or bool(i18n.get(ACT_KEY.get(sys_key, ''))),
                                 caution=spn in bp.ABS_WARN_SPN,
                                 urg_text=bp.fx(spn, 'urg', 'en'))
@@ -575,10 +577,10 @@ def build():
         body.append(u'<h1>%s</h1>' % bp.esc(page_name))
         body.append(bp.search_form(ph=u'Another code, e.g. %d/3' % spn, action=u'/en/', btn=u'Search',
                                    label=u'Fault code'))
-        lvl = bp.fx(spn, 'lvl') or lvl_of.get(spn, 'plan')
+        lvl = plvl_of.get(spn) or lvl_of.get(spn, 'plan')
         tier = bp.tier_of(lvl)
         body.append(u'<p class="vline t-%s"><b>%s</b><span class="hz">%s</span></p>'
-                    % (tier, bp.fx(spn, 'vline', 'en') or (i18n['vStop'] if (stop_of.get(spn) and not bp.fx(spn, 'lvl')) else (u'Drive with caution' if (sys_key == 'dpf' or spn in bp.ABS_WARN_SPN) else i18n['vWarn'])),
+                    % (tier, bp.fx(spn, 'vline', 'en') or (i18n['vStop'] if pstop_of.get(spn) else (u'Drive with caution' if (sys_key == 'dpf' or spn in bp.ABS_WARN_SPN) else i18n['vWarn'])),
                        bp.esc(bp.fx(spn, 'hz', 'en') or risk_h.get(lvl, u''))))
         if not makes:
             body.append(u'<p class="sub">%s</p>' % (TX['subNone'] % spn))
@@ -608,7 +610,7 @@ def build():
             body.append(u'<section><h2 class="mk" id="mk-%s">%s</h2>%s%s</section>'
                         % (b, bp.esc(head),
                            (u'<p class="sub">%s</p>' % bp.esc(note)) if note else u'',
-                           fmi_table(sorted(shown[b], key=lambda r: r[0]), None, bp.urgent_fmi_for(spn, urgent_fmi, {b: shown[b]}))))
+                           fmi_table(sorted(shown[b], key=lambda r: r[0]), None, bp.urgent_fmi_for(spn, urgent_fmi, {b: shown[b]}, sys_key))))
 
         if seen_std:
             std_rows = [(f, fmi_en[str(f)]) for f in seen_std if str(f) in fmi_en]

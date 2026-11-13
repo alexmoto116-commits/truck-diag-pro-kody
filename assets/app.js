@@ -2702,7 +2702,7 @@
                    CRIT_TEXT.test(low);
       } else {
         h.text = withFmiHint(tx, fmi);
-        h.urgent = urgent(spn, fmi, 'kamaz', id);
+        h.urgent = urgent(spn, fmi, 'kamaz', id, h.ru);
       }
       return h;
     }
@@ -3112,7 +3112,11 @@
   /* Тормозные системы - узел безопасности: там любой FMI 0/1 срочен (прежнее правило).
      Проверка по марке таблицы или по id блока (kamazebs из блоков КАМАЗ). */
   var BRAKE_BRANDS = {kamazebs:1, wabco:1, knorrbremse:1, meritor:1, bendix:1, haldex:1};
-  function urgent(spn, fmi, brand, blockId){
+  /* name - текст записи, по которому определяется система кода (как для riskOf):
+     FMI 0/1 от тормозной марки срочен, только если система кода - brake. Датчик
+     скорости колеса у Meritor, дополнительный выход и т.п. («other») тормозной
+     маркой срочными не становятся. Правило то же, что urgent_fmi_for() в build_pages.py. */
+  function urgent(spn, fmi, brand, blockId, name){
     /* MID 128 (двигатель): PID n - тот же параметр, что SPN n (M128-P100 -> 100). */
     var midM = /^M128-[PS](\d+)$/.exec(String(spn));
     if(midM) spn = midM[1];
@@ -3121,7 +3125,9 @@
        значение нестандартное, и смысл его знает только марка. */
     if(!fmiKnown(fmi)) return false;
     if(hasNum(DB.urgentSpn, spn)) return true;
-    if(hasNum(DB.urgentFmi, fmi) && (BRAKE_BRANDS[brand] || BRAKE_BRANDS[blockId] || fmiSpnUrgent(spn, fmi))) return true;
+    if(hasNum(DB.urgentFmi, fmi) && fmiSpnUrgent(spn, fmi)) return true;
+    if(hasNum(DB.urgentFmi, fmi) && (BRAKE_BRANDS[brand] || BRAKE_BRANDS[blockId]) &&
+       systemOf(spn, name) === 'brake') return true;
     if(brand !== 'kamaz') return false;
     if(DB.kamazUrgent.indexOf(spn + '.' + fmi) >= 0) return true;
     var spnAlt = stripZero(String(spn)), fmiAlt = stripZero(String(fmi));
@@ -3148,7 +3154,7 @@
     }
     /* Срочность - только по известному SPN. Незнакомый код и тихий режим
        (ответ закрытой базы) «критично» не получают. */
-    var u = (quiet || d.unknown) ? false : urgent(spn, fmi, brand);
+    var u = (quiet || d.unknown) ? false : urgent(spn, fmi, brand, null, d.ru || d.text);
     var shown = d.k ? d.k.split('.') : [spn, fmi];
     var code = codeLabel(shown[0]) + ' · FMI ' + shown[1];
     var steps = lead ? [lead] : [];
@@ -3291,12 +3297,12 @@
     scr  :[1761,3216,3226,3361,3363,3364,3480,
            4090,4094,4095,4096,4225,4334,4364,4809,5394,5841],
     oil  :[98,100,175,1208],
-    cool :[110,111,975,1134,4076,4193],
+    cool :[110,111,975,1134,4193],
     fuel :[94,95,97,157,164,174,651,652,653,654,655,656,657,658,1076,1077,1239,1347,1348,1349],
     air  :[102,103,105,106,107,132,411,412,1127,1172,1176,2630,2659,2789,2791,5401,5541],
     power:[158,167,168,620,627,628,629,1079,1080,3509,3510,3511,5006],
     can  :[520,639,1231,1235,1237,2003,2005,2011,523212,523216],
-    brake:[46,70,563,597,598,1086,520192],
+    brake:[46,70,563,597,1086],
     trans:[191,522,523,524,560,561,573,574,787],
     prot :[1108,1110,1569,2629,3607,5246]
   };
@@ -3448,7 +3454,7 @@
                 ownFmi:h0.ownFmi, elec:h0.elec, label:h0.label, alt:d.hits.slice(1)};
       }
       return {spn:c.spn, fmi:c.fmi, text:d.text, sys:systemOf(c.spn, d.ru || d.text),
-              urgent:urgent(c.spn, c.fmi, brand)};
+              urgent:urgent(c.spn, c.fmi, brand, null, d.ru || d.text)};
     });
     var id = function(c){ return c.spn + '.' + c.fmi; };
 
