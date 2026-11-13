@@ -2903,7 +2903,7 @@ def build(en_spns=()):
     # scripts/build_lang_pages.py - список кодов языков продублирован
     # здесь же (не тянуть импортом ради 9 строк), держать в согласии с
     # LANGS в том файле.
-    LANG_HOMEPAGES = ['en', 'de', 'fr', 'es', 'pt', 'pl', 'tr', 'hi', 'zh']
+    LANG_HOMEPAGES = ['en']
     # Отопители: страница на каждый код и оглавления, ru и en. Модуль пишет
     # файлы сам и отдаёт адреса для карт; noindex-страницы в них не входят.
     import build_heater_pages as heater                    # noqa: E402

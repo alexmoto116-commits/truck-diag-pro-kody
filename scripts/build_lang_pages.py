@@ -18,9 +18,8 @@ import io, json, os, re, subprocess, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SITE = 'https://codetruck.ru'
-LANGS = ['en', 'de', 'fr', 'es', 'pt', 'pl', 'tr', 'hi', 'zh']
-OG_LOCALE = {'en': 'en_US', 'de': 'de_DE', 'fr': 'fr_FR', 'es': 'es_ES', 'pt': 'pt_PT',
-             'pl': 'pl_PL', 'tr': 'tr_TR', 'hi': 'hi_IN', 'zh': 'zh_CN'}
+LANGS = ['en']  # de/es/fr/pt/pl/tr/hi/zh удалены 13.11.2026 (тонкие копии главной)
+OG_LOCALE = {'en': 'en_US'}
 
 
 # I18N, RISK_TX, FMI_I18N, RISK_LVL в app.js - объектные литералы JS (ключи
@@ -180,9 +179,7 @@ def patch_root_meta(text, counts, where):
 # шапке, поэтому там блок убираем. Для en строим свой: русская ссылка на корень,
 # текущий язык - обычным текстом.
 LANG_NAV_RE = re.compile(r'<nav class="langlinks".*?</nav>\n?', re.S)
-LANG_NAV_LABELS = [('ru', u'Русский'), ('en', u'English'), ('de', u'Deutsch'), ('fr', u'Français'),
-                   ('es', u'Español'), ('pt', u'Português'), ('pl', u'Polski'), ('tr', u'Türkçe'),
-                   ('hi', u'हिन्दी'), ('zh', u'中文')]
+LANG_NAV_LABELS = [('ru', u'Русский'), ('en', u'English')]
 
 
 def lang_nav(html, lang):
