@@ -467,6 +467,7 @@
       stepUrgency: 'срочность',
       urgentText: '<span class="crit">Критично</span> — остановиться при первой безопасной возможности, не тянуть.',
       notUrgentText: '<span class="warn">Ехать можно</span> — но показать код на ближайшем ТО.',
+      cautionText: '<span class="warn">Ехать осторожно</span> — хватит доехать до базы, ремонт не откладывать.',
       unknownSpnNote: 'Этого SPN нет в справочнике — скорее всего, код фирменный. Попробуйте выбрать марку выше.',
       loadError: 'Не загрузился словарь — обновите страницу.',
       spnTooBig: 'SPN {spn} — такого SPN нет в J1939 (номера бывают до 524287).',
@@ -634,6 +635,7 @@
       stepUrgency: 'urgency',
       urgentText: '<span class="crit">Critical</span> — stop as soon as it’s safe to do so, don’t keep driving.',
       notUrgentText: '<span class="warn">Safe to drive</span> — but have the code checked at the next service.',
+      cautionText: '<span class="warn">Drive with caution</span> — enough to reach the yard, do not put the repair off.',
       unknownSpnNote: 'This SPN isn’t in the database — likely a manufacturer-specific code. Try selecting a make above.',
       loadError: 'The dictionary did not load — refresh the page.',
       spnTooBig: 'SPN {spn} — there is no such SPN in J1939 (numbers go up to 524287).',
@@ -1931,7 +1933,7 @@
   var EN_FALLBACK = {sysDpf:1, actDpf:1, modeGroup:1, modeMotor:1, modeHeater:1, modeTacho:1, heaterHint:1, heaterEmpty:1,
     heaterBadCode:1, heaterNotFound:1, heaterNotFoundOne:1, brandGroupHeaters:1, brandGroupTacho:1,
     tachoHint:1, tachoPickBrand:1, tachoNotFound:1, tachoNone:1, codeEmpty:1,
-    spnTooBig:1, needSpnFmi:1, notParsed:1, dealerAtBrands:1, sysEnginebrake:1,
+    spnTooBig:1, needSpnFmi:1, notParsed:1, dealerAtBrands:1, sysEnginebrake:1, cautionText:1,
     brandlessAsk:1, brandlessNone:1, donorDecoding:1,
     brandHintPre:1, brandHintPreMany:1, brandHintPost:1, brandHintTail:1, brandHintMore:1, varOne:1, varFew:1, varMany:1};
   function t(key, vars){
@@ -3155,6 +3157,8 @@
     /* Срочность - только по известному SPN. Незнакомый код и тихий режим
        (ответ закрытой базы) «критично» не получают. */
     var u = (quiet || d.unknown) ? false : urgent(spn, fmi, brand, null, d.ru || d.text);
+    var vf = (quiet || d.unknown || OWN_FMI[brand]) ? null : verdictFix({spn:spn});
+    if(vf && vf.stop) u = true;
     var shown = d.k ? d.k.split('.') : [spn, fmi];
     var code = codeLabel(shown[0]) + ' · FMI ' + shown[1];
     var steps = lead ? [lead] : [];
@@ -3163,7 +3167,7 @@
       (d.src ? '<div class="st" style="margin-top:7px">' + esc(t('sourceLabel', {src:d.src})) + '</div>' : ''), cls:'ok'});
     if(!quiet && !d.unknown){
       steps.push(u ? {st:t('stepUrgency'), tx:t('urgentText'), cls:'hit'}
-                   : {st:t('stepUrgency'), tx:t('notUrgentText')});
+                   : {st:t('stepUrgency'), tx:t(vf && vf.key === 'absWarn' ? 'cautionText' : 'notUrgentText')});
     }
     var html = chain(steps);
     if(!quiet && !d.unknown && !OWN_FMI[brand]){
@@ -3520,8 +3524,9 @@
     })[0];
     var blind = risks.some(function(x){ return x.r.key === 'genUrgent'; });
 
+    var fixStop = list.some(function(c){ var f = verdictFix(c); return !!(f && f.stop); });
     return {root:best.root, cons:best.cons, solo:solo, worst:worst.c,
-            stop:worst.r.lvl === 'now' || blind, total:list.length};
+            stop:worst.r.lvl === 'now' || blind || fixStop, total:list.length};
   }
 
   /* "M128-P100" - это не SPN, а закодированные MID+PID/SID
@@ -3577,6 +3582,39 @@
      ушедшее масло - разные поездки. Во всём остальном по умолчанию
      считаем величину настоящей: ошибиться в сторону осторожности
      дешевле, чем наоборот. */
+  /* Ручные вердикты по номеру SPN - единственное место: их же читают сборки страниц
+     (scripts/build_pages.py, build_en_pages.py), поэтому поиск и страница кода говорят одно.
+     ABS_WARN_SPN - «Ехать осторожно»: на этих узлах АБС/EBS/ESP работа тормозов сохраняется
+     (хватит доехать до базы). VERDICT_FIX - уровень задан вручную (решение Алекса 14.11.2026):
+     plan - до ТО, watch - следить самому, base - до базы; stopShort и stopNow - усиление:
+     «Ехать нельзя» с запасом «до остановки» и «минуты». */
+  var ABS_WARN_SPN = [1, 43, 44, 45, 49, 50, 609, 630, 789, 790, 791, 792, 793, 794, 795, 796, 797, 798, 799, 800,
+                      806, 807, 932, 933, 938, 939, 1042, 1066, 1067, 1068, 1243, 1438, 1792,
+                      1807, 1808, 1809, 1810,
+                      4050, 4059, 4060, 4061, 4062, 4063, 4064, 4065, 4066, 4067, 4068, 4069, 4070, 4071, 4072, 4073,
+                      4081, 4086, 4087, 4088, 4089, 4097, 4098, 4099, 4100,
+                      520530, 520531, 520532, 520533, 520534, 520535, 520536];
+  var VERDICT_FIX = {
+    plan:[563, 575, 1069, 4074, 4075, 4076, 524270, 524271, 524272],
+    watch:[598, 924, 925, 1553],
+    base:[46],
+    stopShort:[131130, 1239, 1240, 520226, 3607, 1110],
+    stopNow:[131128]
+  };
+  /* Какой текст «что будет» подходит ручному уровню. */
+  var VERDICT_FIX_KEY = {plan:'gen', watch:'fixWatch', base:'fixBase', stopShort:'fixStop', stopNow:'fixStop'};
+  var VERDICT_FIX_LVL = {plan:'plan', watch:'watch', base:'base', stopShort:'short', stopNow:'now'};
+  function verdictFix(c){
+    if(!c || c.ownFmi || !/^\d+$/.test(String(c.spn))) return null;
+    var n = parseInt(c.spn, 10), k;
+    if(ABS_WARN_SPN.indexOf(n) >= 0) return {key:'absWarn', lvl:'base', stop:false};
+    for(k in VERDICT_FIX){
+      if(VERDICT_FIX[k].indexOf(n) >= 0)
+        return {key:VERDICT_FIX_KEY[k], lvl:VERDICT_FIX_LVL[k], stop:k.indexOf('stop') === 0};
+    }
+    return null;
+  }
+
   var RISK_MAP = {
     oil  :{elec:['oilElec','watch'],  any:['oilPhys','now']},
     cool :{elec:['coolElec','watch'], any:['coolPhys','now']},
@@ -3642,7 +3680,15 @@
       genUrgent:['Код помечен как критический: производитель считает, что продолжать движение без разбора нельзя.',
                  'Что именно откажет дальше, по одному этому коду сказать нельзя — поэтому останавливаться стоит при первой безопасной возможности и смотреть на месте.'],
       gen:['Отдельная неисправность без немедленных последствий для движения.',
-           'Показать коды на ближайшем ТО. Если появится второй код по этой же системе — откладывать уже не стоит.']
+           'Показать коды на ближайшем ТО. Если появится второй код по этой же системе — откладывать уже не стоит.'],
+      absWarn:['АБС на этом колесе или оси может не работать, обычные тормоза при этом действуют. На сухой дороге заметной разницы можно не почувствовать.',
+               'На скользкой дороге тормозите плавно и держите дистанцию больше обычной. Ремонт не откладывайте: загорелась красная лампа тормозов или педаль стала мягкой — остановитесь.'],
+      fixWatch:['Это отдельный сигнал, он не затрагивает тормоза, руль и двигатель: машина едет как обычно.',
+                'Ехать можно, следите за узлом сами. Если появится второй код по этой же системе или загорится красная лампа — остановитесь и разберитесь.'],
+      fixBase:['Неисправность не останавливает машину, рабочие тормоза и двигатель продолжают действовать.',
+               'Доехать до базы или сервиса можно, ремонт не откладывайте. Загорелась красная лампа или машина повела себя иначе — остановитесь.'],
+      fixStop:['Узел, к которому относится код, влияет на безопасность или сохранность машины, поэтому поездку лучше не продолжать.',
+               'Остановитесь при первой безопасной возможности и разберитесь на месте: дальше ехать — только дороже.']
     },
     en:{
       oilPhys:['The oil film in the bearings is already breaking down. Every minute under load is metal on metal on the crank journals.',
@@ -3678,11 +3724,21 @@
       genUrgent:['The code is flagged critical: the manufacturer considers it unsafe to keep driving without checking.',
                  'This code alone cannot say what will fail next, so stop at the first safe opportunity and look at it on the spot.'],
       gen:['A standalone fault with no immediate consequences for driving.',
-           'Show the codes at the next service. If a second code from the same system appears, stop putting it off.']
+           'Show the codes at the next service. If a second code from the same system appears, stop putting it off.'],
+      absWarn:['The ABS on this wheel or axle may be out of action, while the service brakes still work. On a dry road you may notice no difference.',
+               'On a slippery road brake gently and keep a longer following distance. Do not put the repair off: if the red brake lamp comes on or the pedal feels soft, stop.'],
+      fixWatch:['This is a standalone signal that does not affect the brakes, steering or engine: the truck drives as usual.',
+                'You can drive, but keep an eye on it yourself. If a second code from the same system appears or a red lamp comes on, stop and check.'],
+      fixBase:['The fault does not stop the truck, and the service brakes and engine keep working.',
+               'You can reach the yard or a shop, but do not put the repair off. If a red lamp comes on or the truck behaves differently, stop.'],
+      fixStop:['The part this code points to affects the safety or survival of the truck, so it is better not to keep driving.',
+               'Stop at the first safe opportunity and check on the spot: driving further only costs more.']
     }
   };
 
   function riskOf(c){
+    var vf = verdictFix(c);
+    if(vf) return {key:vf.key, lvl:vf.lvl, flag:false};
     var m = RISK_MAP[c.sys], pick;
     /* Для охлаждения «недостоверные данные» (FMI 2 и родственные) - тоже не
        физический перегрев: датчик или вентилятор врут, двигатель не греется.

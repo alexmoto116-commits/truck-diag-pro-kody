@@ -395,13 +395,29 @@ def page_stop(sys_key, fmis, urgent_fmi, urgent_spn_hit):
 # тормозов. Решение Алекса 01.11.2026: датчик колеса АБС - АБС отключается,
 # рабочие тормоза действуют, вердикт «Ехать осторожно» (как в ролике и статье).
 # Решение Алекса 09.11.2026: клапаны АБС (795-800, 938, 939, 1438) - тоже «Ехать осторожно».
-# Решение Алекса 14.11.2026 (разбор расхождений вердиктов): ещё датчики и клапаны АБС по осям
-# и узлы Meritor/Knorr/Bendix того же ряда - 793, 794 (датчик оси 3), 1, 806, 807, 932, 933,
-# 43-45, 49, 50 (Meritor, клапаны модулятора), 520530-520536, 4086-4089, 1243, 1792.
-ABS_WARN_SPN = {789, 790, 791, 792, 795, 796, 797, 798, 799, 800, 938, 939, 1438,
-                793, 794, 1, 806, 807, 932, 933, 43, 44, 45, 49, 50,
-                520530, 520531, 520532, 520533, 520534, 520535, 520536,
-                4086, 4087, 4088, 4089, 1243, 1792}
+# Решение Алекса 14.11.2026 (разбор расхождений вердиктов): список расширен. Он и VERDICT_FIX
+# живут в assets/app.js (единственное место: поиск на главной читает те же номера),
+# отсюда только читаются - как SERVICE_SPN.
+def _app_js_text():
+    return io.open(os.path.join(ROOT, 'assets', 'app.js'), encoding='utf-8').read()
+
+
+def _js_int_list(src, name):
+    m = re.search(r'var\s+%s\s*=\s*\[(.*?)\]\s*;' % name, src, re.S)
+    return [int(x) for x in re.findall(r'\d+', m.group(1))]
+
+
+def _js_verdict_fix(src):
+    m = re.search(r'var\s+VERDICT_FIX\s*=\s*\{(.*?)\}\s*;', src, re.S)
+    return dict((k, [int(x) for x in re.findall(r'\d+', v)])
+                for k, v in re.findall(r'(\w+)\s*:\s*\[(.*?)\]', m.group(1), re.S))
+
+
+_APP_SRC = _app_js_text()
+ABS_WARN_SPN = set(_js_int_list(_APP_SRC, 'ABS_WARN_SPN'))
+VERDICT_FIX = _js_verdict_fix(_APP_SRC)
+VERDICT_FIX_LVL = {'plan': 'plan', 'watch': 'watch', 'base': 'base', 'stopShort': 'short', 'stopNow': 'now'}
+VERDICT_FIX_KEY = {'plan': 'gen', 'watch': 'fixWatch', 'base': 'fixBase', 'stopShort': 'fixStop', 'stopNow': 'fixStop'}
 
 
 # ---------------------------------------------------------------
@@ -648,35 +664,24 @@ FAN_FIX['risk'] = {
 for _s in (985, 986, 1071, 1639):
     SPN_FIX.setdefault(_s, {}).update(FAN_FIX)
 
-# Риск-блок и ответ «что будет, если ехать дальше» у АБС: мягкий, под вердикт «Ехать осторожно».
-ABS_RISK = {
-    'ru': (u'АБС на этом колесе или оси может не работать, обычные тормоза при этом действуют. '
-           u'На сухой дороге заметной разницы можно не почувствовать.',
-           u'На скользкой дороге тормозите плавно и держите дистанцию больше обычной. '
-           u'Ремонт не откладывайте: загорелась красная лампа тормозов или педаль стала мягкой — остановитесь.'),
-    'en': (u'The ABS on this wheel or axle may be out of action, while the service brakes still work. '
-           u'On a dry road you may notice no difference.',
-           u'On a slippery road brake gently and keep a longer following distance. '
-           u'Do not put the repair off: if the red brake lamp comes on or the pedal feels soft, stop.'),
-}
+# Узлы «Ехать осторожно» и ручные уровни (из app.js): текст «что будет» берётся по ключу
+# absWarn / gen / fixWatch / fixBase / fixStop из RISK_TX (см. verdict_key), а не по системе.
 for _s in ABS_WARN_SPN:
-    SPN_FIX.setdefault(_s, {})['risk'] = ABS_RISK
+    SPN_FIX.setdefault(_s, {})
+VERDICT_KEY_OF = {}
+for _k, _lst in VERDICT_FIX.items():
+    for _s in _lst:
+        SPN_FIX.setdefault(_s, {})['lvl'] = VERDICT_FIX_LVL[_k]
+        if _k.startswith('stop'):
+            SPN_FIX[_s]['stop'] = True
+        VERDICT_KEY_OF[_s] = VERDICT_FIX_KEY[_k]
+for _s in ABS_WARN_SPN:
+    VERDICT_KEY_OF[_s] = 'absWarn'
 
-# Правка вердиктов по разбору расхождений 14.11.2026 (решение Алекса): уровень задаём
-# вручную там, где система по названию/FMI дала неверный вердикт. Ключ 'lvl' - уровень
-# запаса времени (RISK_RANK в app.js); 'stop': True - «Ехать нельзя» (усиление),
-# иначе плашка «Ехать можно».
-# Смягчение: информационные и не тормозные сигналы.
-for _s in (563, 575, 1069, 4074, 4075, 4076, 524270, 524271, 524272):
-    SPN_FIX.setdefault(_s, {})['lvl'] = 'plan'     # можно, до ближайшего ТО
-for _s in (598, 924, 925, 1553):
-    SPN_FIX.setdefault(_s, {})['lvl'] = 'watch'    # можно, следить самому
-# 46 - по разбору «можно, хватит доехать до базы» (в списке Алекса ABS 43-50 его нет)
-SPN_FIX.setdefault(46, {})['lvl'] = 'base'
-# Усиление: коды, по которым «можно» было ошибкой.
-SPN_FIX.setdefault(131128, {}).update({'lvl': 'now', 'stop': True})
-for _s in (131130, 1239, 1240, 520226, 3607, 1110):
-    SPN_FIX.setdefault(_s, {}).update({'lvl': 'short', 'stop': True})
+
+def verdict_key(spn, key):
+    """Ключ текста «что будет»: у ручных вердиктов - по уровню, иначе по системе."""
+    return VERDICT_KEY_OF.get(spn, key)
 
 
 def fx(spn, key, lang=None):
@@ -741,6 +746,8 @@ def risk_section(sys_key, fmis, urgent_fmi, urgent_spn_hit, spn=None):
     if not key or key not in R['tx']:
         return u''
     lvl = fx(spn, 'lvl') or ('base' if spn in ABS_WARN_SPN else lvl)
+    if spn in VERDICT_KEY_OF:
+        key = verdict_key(spn, key)
     happens, ends = R['tx'][key][0], R['tx'][key][1]
     if fx(spn, 'risk', 'ru'):
         happens, ends = fx(spn, 'risk', 'ru')
@@ -748,7 +755,7 @@ def risk_section(sys_key, fmis, urgent_fmi, urgent_spn_hit, spn=None):
     # действительно есть отдельный электрический вариант и такие FMI на
     # странице встречаются: иначе это чужой текст.
     note = u''
-    m = R['map'].get(sys_key)
+    m = None if spn in VERDICT_KEY_OF else R['map'].get(sys_key)
     if (m and m.get('elec') and any(f in fmi_elec() for f in (fmis or [])) and key != m['elec'][0]
             and not fx(spn, 'no_elec_note')):
         e = R['tx'][m['elec'][0]]
@@ -758,7 +765,7 @@ def risk_section(sys_key, fmis, urgent_fmi, urgent_spn_hit, spn=None):
     # честнее: метка производителя есть, а наш вердикт мягче «минут» -
     # значит мы разошлись с заводом и обязаны сказать об этом.
     flagged = urgent_spn_hit or any(f in urgent_fmi for f in (fmis or []))
-    if flagged and lvl != 'now':
+    if flagged and lvl != 'now' and spn not in VERDICT_KEY_OF:
         note += u'<p class="rkn">%s</p>' % esc(fx(spn, 'flag', 'ru') or R['flag'])
     tier = tier_of(lvl)
     head = esc(R['title']) + (u' с SPN %d' % spn if spn else u'')
@@ -809,11 +816,59 @@ def own_numbering_only(spn, brands):
                                 for b in brands)
 
 
+def critical_systems():
+    """Системы, у которых по RISK_MAP вердикт «минуты» или «до остановки»: смягчать
+    их по номеру собственной нумерации нельзя - страницу открывают и по SPN из J1939."""
+    m = risk_model()['map']
+    return frozenset(k for k, v in m.items() if v['any'][1] in ('now', 'short'))
+
+
+def own_std_critical(spn, makes, std):
+    """Страница только со строками собственной нумерации, но стандартное имя номера
+    относится к критичной системе: вердикт остаётся по стандартному имени."""
+    return bool(std) and own_numbering_only(spn, makes or ()) and system_of(spn, std) in critical_systems()
+
+
 def sys_for_name(spn, makes, std):
     """Система страницы кода: имя из стандарта (std) берём, только если есть строки
-    со стандартной нумерацией (иначе имя относится не к этим строкам)."""
-    name = u'' if own_numbering_only(spn, makes or ()) else std
-    return system_of(spn, name)
+    со стандартной нумерацией (иначе имя относится не к этим строкам). Исключение:
+    стандартное имя критичной системы (тормоза, масло, охлаждение, топливо, КПП...) -
+    вердикт не смягчаем, а на странице поясняем, что у Renault/ZF/Ford номер другой."""
+    if own_numbering_only(spn, makes or ()) and not own_std_critical(spn, makes, std):
+        if system_of(spn, std) == 'enginebrake':      # моторный тормоз/ретардер - стандартный смысл, оставляем
+            return 'enginebrake'
+        return system_of(spn, u'')
+    return system_of(spn, std)
+
+
+OWN_BRAND_LABEL = {
+    'ru': {'renault': u'Renault Trucks (ZF AS-Tronic)', 'zfastronic': u'ZF AS-Tronic', 'ford': u'Ford Trucks'},
+    'en': {'renault': u'Renault Trucks (ZF AS-Tronic)', 'zfastronic': u'ZF AS-Tronic', 'ford': u'Ford Trucks'},
+}
+
+
+def own_std_note(spn, makes, lang):
+    """Пояснение под вердиктом для страниц с собственной нумерацией и критичным стандартным именем."""
+    rows = None
+    labels = []
+    for b in ('renault', 'zfastronic', 'ford'):
+        if makes.get(b):
+            labels.append(OWN_BRAND_LABEL[lang][b])
+            if rows is None:
+                rows = makes[b]
+    if not rows:
+        return u''
+    txt = rows[0][1]
+    txt = re.split(u'\s*(?:Ремонт|Repair):', txt)[0].strip().rstrip(u'.')
+    if len(txt) > 170:
+        txt = txt[:170].rsplit(u' ', 1)[0] + u'…'
+    if lang == 'ru':
+        return (u'<p class="rkn">У %s этот номер означает другое: %s. Вердикт выше дан по стандартному '
+                u'значению номера в J1939: по запросу «SPN %d» эту страницу открывают водители любых марок.</p>'
+                % (esc(u' и '.join(labels)), esc(txt), spn))
+    return (u'<p class="rkn">For %s this number means something else: %s. The verdict above follows the '
+            u'standard J1939 meaning of the number, because drivers of any make land on this page.</p>'
+            % (esc(u' and '.join(labels)), esc(txt)))
 
 # ------------------------------------------------------- имя кода из таблиц
 # Больше половины кодов - заводские номера, которых нет ни в стандарте J1939,
@@ -2259,6 +2314,8 @@ def build(en_spns=()):
                          else u'Можно ли ехать с кодом SPN %d?' % spn),
                 'acceptedAnswer': {'@type': 'Answer', 'text': re.sub(r'</?b>', '', verdict)}}]
         rk_key, _, _ = page_risk(sys_key, seen_all_early, urg_here, urgent_spn_hit)
+        if rk_key:
+            rk_key = verdict_key(spn, rk_key)
         if rk_key and rk_key in risk_model()['tx']:
             happens, ends = risk_model()['tx'][rk_key][0], risk_model()['tx'][rk_key][1]
             if fx(spn, 'risk', 'ru'):
@@ -2299,6 +2356,8 @@ def build(en_spns=()):
                     % (_tier,
                        fx(spn, 'vline', 'ru') or (u'Ехать нельзя' if stop else (u'Ехать осторожно' if (sys_key == 'dpf' or spn in ABS_WARN_SPN) else u'Ехать можно')),
                        esc(fx(spn, 'hz', 'ru') or risk_model()['h'].get(worst_lvl, u''))))
+        if own_std_critical(spn, per_spn.get(spn, {}), std_name(spn)):
+            body.append(own_std_note(spn, makes, 'ru'))
 
         if makes and std_name(spn):
             # Марки называем поимённо: раньше здесь стояло «у 3 марок», и самые
@@ -2370,7 +2429,7 @@ def build(en_spns=()):
         body.append(u'<section><h2>Можно ли ехать</h2><p>%s</p></section>' % verdict)
         body.append(risk_section(sys_key, seen_all_early, urg_here, urgent_spn_hit, spn))
 
-        _совет = advice_for(sys_key, seen_all_early)
+        _совет = None if spn in VERDICT_KEY_OF else advice_for(sys_key, seen_all_early)
         if fx(spn, 'advice', 'ru'):
             _совет = fx(spn, 'advice', 'ru')
         if _совет:
@@ -3003,6 +3062,7 @@ def build(en_spns=()):
             # Вердикт и уровень ровно такие, как напечатаны на русской странице
             # (там они считаются по строкам без ZF/Ford): английская сборка
             # раньше пересчитывала их по всем строкам, и языки расходились.
+            'own_std': set(s for s in written if own_std_critical(s, per_spn.get(s, {}), std_name(s))),
             'page_stop': page_stop_of,
             'page_lvl': page_lvl_of,
             'lvl': dict((s, 'base' if s in ABS_WARN_SPN else

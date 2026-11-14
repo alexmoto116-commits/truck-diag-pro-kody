@@ -440,11 +440,13 @@ def build():
         if not key or key not in risk_tx:
             return u''
         lvl = plvl_of.get(spn) or bp.fx(spn, 'lvl') or ('base' if spn in bp.ABS_WARN_SPN else lvl)
+        if spn in bp.VERDICT_KEY_OF:
+            key = bp.verdict_key(spn, key)
         happens, ends = risk_tx[key][0], risk_tx[key][1]
         if bp.fx(spn, 'risk', 'en'):
             happens, ends = bp.fx(spn, 'risk', 'en')
         note = u''
-        rule = risk_map.get(sys_key)
+        rule = None if spn in bp.VERDICT_KEY_OF else risk_map.get(sys_key)
         # Оговорку про электрический код ставим, только если такие FMI на
         # странице действительно есть: раньше она печаталась у всей системы
         # без разбора и попадала на страницы, где электрики нет вовсе.
@@ -454,7 +456,7 @@ def build():
             note = u'<p class="rkn">%s %s</p>' % (bp.esc(e[0]), bp.esc(e[1]))
         # Метка производителя перевешивает наш спокойный вывод - говорим
         # о расхождении вслух, как и русская версия.
-        if (urgent_spn_hit or any(f in uf for f in (fmis or []))) and lvl != 'now':
+        if (urgent_spn_hit or any(f in uf for f in (fmis or []))) and lvl != 'now' and spn not in bp.VERDICT_KEY_OF:
             note += u'<p class="rkn">%s</p>' % bp.esc(bp.fx(spn, 'flag', 'en') or risk_flag)
         tier = bp.tier_of(lvl)
         return (u'<section><h2>%s</h2>'
@@ -543,6 +545,8 @@ def build():
         # Вопрос в FAQ и блок на странице должны отвечать одинаково, поэтому
         # ключ текста здесь берётся тем же способом, что и в risk_section().
         rkey, _, _ = bp.page_risk(sys_key, seen, uf_here, spn in urgent_spn)
+        if rkey:
+            rkey = bp.verdict_key(spn, rkey)
         if rkey and rkey in risk_tx:
             happens, ends = risk_tx[rkey][0], risk_tx[rkey][1]
             if bp.fx(spn, 'risk', 'en'):
@@ -582,6 +586,8 @@ def build():
         body.append(u'<p class="vline t-%s"><b>%s</b><span class="hz">%s</span></p>'
                     % (tier, bp.fx(spn, 'vline', 'en') or (i18n['vStop'] if pstop_of.get(spn) else (u'Drive with caution' if (sys_key == 'dpf' or spn in bp.ABS_WARN_SPN) else i18n['vWarn'])),
                        bp.esc(bp.fx(spn, 'hz', 'en') or risk_h.get(lvl, u''))))
+        if spn in info['own_std']:
+            body.append(bp.own_std_note(spn, makes, 'en'))
         if not makes:
             body.append(u'<p class="sub">%s</p>' % (TX['subNone'] % spn))
         else:
@@ -624,7 +630,7 @@ def build():
 
         body.append(u'<section><h2>%s</h2><p>%s</p></section>' % (TX['canDrive'], verdict))
         body.append(risk_section(sys_key, seen, spn in urgent_spn, uf_here, spn))
-        act = i18n.get(ACT_KEY.get(sys_key, ''))
+        act = None if spn in bp.VERDICT_KEY_OF else i18n.get(ACT_KEY.get(sys_key, ''))
         if bp.fx(spn, 'advice', 'en'):
             act = bp.fx(spn, 'advice', 'en')
         if act:
