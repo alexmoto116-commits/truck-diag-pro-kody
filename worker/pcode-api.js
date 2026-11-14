@@ -57,11 +57,13 @@ var KNOWN_PCODE_BRANDS = ['volvo', 'mercedes', 'scania', 'shacman', 'tata', 'ash
 // Адреса, с которых пускаем запросы (Origin / Referer): сайт и локальное
 // приложение «Каталог 3D». Точное совпадение, без слеша в конце. Чтобы добавить
 // адрес выкладки приложения - дописать сюда и развернуть воркер.
-var РАЗРЕШЁННЫЕ_ИСТОЧНИКИ = ['https://codetruck.ru', 'http://localhost:8765', 'http://127.0.0.1:8765'];
+var РАЗРЕШЁННЫЕ_ИСТОЧНИКИ = ['https://codetruck.ru', 'https://dieselcodes.com', 'http://localhost:8765', 'http://127.0.0.1:8765'];
 var ALLOWED_ORIGINS = РАЗРЕШЁННЫЕ_ИСТОЧНИКИ;
 // Сайт: для него ключ не нужен (лимит по IP). Все остальные разрешённые адреса -
 // приложения, им нужен ключ в заголовке X-Codetruck-Key.
 var SITE_ORIGIN = 'https://codetruck.ru';
+// Англоязычный сайт: тоже без ключа (лимит по IP), как SITE_ORIGIN.
+var SITE_ORIGIN_EN = 'https://dieselcodes.com';
 // Формат ключа: ct_ + 24 символа [a-z0-9] (генерирует worker/ключи.py).
 var KEY_RE = /^ct_[a-z0-9]{24}$/;
 // Запись ключа (KV apikey:<ключ>) кэшируется в памяти изолята на 60 с.
@@ -852,7 +854,7 @@ export default {
       return handlePack(request, env, url, key, pcheck);
     }
     var who;
-    if (!key && src === SITE_ORIGIN) {
+    if (!key && (src === SITE_ORIGIN || src === SITE_ORIGIN_EN)) {
       who = { daily: request.headers.get('CF-Connecting-IP') || 'unknown', limit: DAILY_LIMIT_PER_DAY };
     } else {
       if (!key) return json(request, 401, { error: 'need_key' });
