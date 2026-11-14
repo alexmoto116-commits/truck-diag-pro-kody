@@ -864,7 +864,7 @@ def build(root=None, pcode=None, today=None):
 
     urls, written, noindex, removed = [], [], [], []
     slugs = set()
-    for lang in ('ru', 'en'):
+    for lang in bp.LANGS_ON:   # en - только при CODETRUCK_EN=1
         for b, items in codes_by.items():
             for i, (code, entry) in enumerate(items):
                 slug = (lang, _slug(b, code))
@@ -896,7 +896,7 @@ def build(root=None, pcode=None, today=None):
     # Страницы кодов, которых больше нет в таблицах (убраны как выдуманные), - удаляем:
     # адрес честно отвечает 404, заглушек нет. Папка небольшая, обходим только её.
     keep = set(written)
-    for pref in ('otopiteli', 'en/otopiteli'):
+    for pref in (('otopiteli', 'en/otopiteli') if bp.EN_ENABLED else ('otopiteli',)):
         d = os.path.join(root, pref.replace('/', os.sep))
         if not os.path.isdir(d):
             continue

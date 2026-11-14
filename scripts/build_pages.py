@@ -1216,11 +1216,20 @@ def breadcrumb_ld(name, canon, section=None):
     return {'@context': 'https://schema.org', '@type': 'BreadcrumbList', 'itemListElement': items}
 
 
+# Английский раздел /en/ убран с codetruck.ru 14.11.2026: английский сайт живёт
+# на dieselcodes.com, копию текстов на двух доменах держать нельзя. Сборка
+# английских страниц и hreflang включаются только переменной окружения
+# CODETRUCK_EN=1 (код сохранён на случай, если раздел понадобится вернуть).
+# По умолчанию /en/ не создаётся, в картах сайта его нет, hreflang не ставится.
+EN_ENABLED = os.environ.get('CODETRUCK_EN') == '1'
+LANGS_ON = ('ru', 'en') if EN_ENABLED else ('ru',)
+
+
 # hreflang ставим только там, где английская страница действительно есть.
 # Обещать перевод, которого нет, хуже, чем не обещать ничего: поисковик
 # сходит по ссылке, получит 404 и перестанет доверять всей разметке.
 def alt_links(has_en, rel_path):
-    if not has_en:
+    if not EN_ENABLED or not has_en:
         return u''
     ru, en = '%s/%s' % (SITE, rel_path), '%s/en/%s' % (SITE, rel_path)
     return (u'\n<link rel="alternate" hreflang="ru" href="%s">'
@@ -1542,8 +1551,9 @@ LASTMOD_DB = 'sitemap-lastmod.json'
 # понятно, какой раздел робот берёт, а какой нет. Общий индекс
 # sitemap.xml ссылается только на карты разделов (вложенные индексы
 # по протоколу запрещены, поэтому полные ru/en в индекс не входят).
-SITEMAPS = [('sitemap-ru.xml', lambda u: '/en/' not in u),
-            ('sitemap-en.xml', lambda u: '/en/' in u)]
+SITEMAPS = [('sitemap-ru.xml', lambda u: '/en/' not in u)]
+if EN_ENABLED:
+    SITEMAPS.append(('sitemap-en.xml', lambda u: '/en/' in u))
 MAP_SECTIONS = ['kody', 'marki', 'problemy', 'otopiteli', 'razbory', 'j1587', 'vag-otopiteli', 'main']
 SECTION_DIRS = ('kody', 'marki', 'problemy', 'otopiteli', 'razbory', 'j1587', 'vag-otopiteli')
 
@@ -1649,12 +1659,18 @@ def write_sitemap(urls=None):
 
     # (имя файла, адреса, входит ли в индекс sitemap.xml)
     jobs = [(name, [u for u in urls if keep(u)], False) for name, keep in SITEMAPS]
-    for lang in ('ru', 'en'):
+    for lang in LANGS_ON:
         for sec in MAP_SECTIONS:
             part = [u for u in urls
                     if ('/en/' in u) == (lang == 'en') and section_of(u) == sec]
             jobs.append(('sitemap-%s-%s.xml' % (lang, sec), part, True))
 
+    if not EN_ENABLED:
+        # английских карт больше нет: старые файлы убираем, чтобы не остались со старыми адресами
+        for name in ['sitemap-en.xml'] + ['sitemap-en-%s.xml' % sec for sec in MAP_SECTIONS]:
+            stale = os.path.join(ROOT, name)
+            if os.path.isfile(stale):
+                os.remove(stale)
     written_files = []
     for name, part, in_index in jobs:
         if not part:
@@ -3025,17 +3041,17 @@ def build(en_spns=()):
     # scripts/build_lang_pages.py - список кодов языков продублирован
     # здесь же (не тянуть импортом ради 9 строк), держать в согласии с
     # LANGS в том файле.
-    LANG_HOMEPAGES = ['en']
+    LANG_HOMEPAGES = ['en'] if EN_ENABLED else []
     # Отопители: страница на каждый код и оглавления, ru и en. Модуль пишет
     # файлы сам и отдаёт адреса для карт; noindex-страницы в них не входят.
     import build_heater_pages as heater                    # noqa: E402
-    heater_urls = heater.build(pcode=pcode)['urls']
+    heater_urls = [u for u in heater.build(pcode=pcode)['urls'] if EN_ENABLED or '/en/' not in u]
     # Разборы: оглавление и статьи ru/en (scripts/build_razbory.py), 09.11.2026.
     import build_razbory as razbory                        # noqa: E402
-    razbory_urls = razbory.build()['urls']
+    razbory_urls = [u for u in razbory.build()['urls'] if EN_ENABLED or '/en/' not in u]
     # Новые разделы 09.11.2026: коды J1587/J1708 (MID/PID/SID/FMI) и ошибки отопителей VAG (VCDS, блок 18).
     import novye_kody as novye                              # noqa: E402
-    novye_urls = novye.build()['urls']
+    novye_urls = [u for u in novye.build()['urls'] if EN_ENABLED or '/en/' not in u]
     urls = ([SITE + '/']
             + ['%s/%s/' % (SITE, lang) for lang in LANG_HOMEPAGES]
             + ['%s/%s' % (SITE, p) for p in extra]

@@ -192,7 +192,7 @@ def hub_page(lang):
 
 def build():
     urls = []
-    for lang in ('ru', 'en'):
+    for lang in bp.LANGS_ON:   # en - только при CODETRUCK_EN=1
         rel, html = hub_page(lang)
         _write(rel, html)
         urls.append('%s/%s' % (SITE, rel[:-len('index.html')]))

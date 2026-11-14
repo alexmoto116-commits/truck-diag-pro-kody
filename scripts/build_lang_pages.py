@@ -18,7 +18,7 @@ import io, json, os, re, subprocess, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SITE = 'https://codetruck.ru'
-LANGS = ['en']  # de/es/fr/pt/pl/tr/hi/zh удалены 13.11.2026 (тонкие копии главной)
+LANGS = ['en'] if os.environ.get('CODETRUCK_EN') == '1' else []  # английский убран 14.11.2026 (живёт на dieselcodes.com), включается CODETRUCK_EN=1; de/es/fr/pt/pl/tr/hi/zh удалены 13.11.2026 (тонкие копии главной)
 OG_LOCALE = {'en': 'en_US'}
 
 

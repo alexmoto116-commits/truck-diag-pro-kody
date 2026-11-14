@@ -392,7 +392,7 @@ def v_hub(lang):
 
 def build():
     urls = []
-    for lang in ('ru', 'en'):
+    for lang in bp.LANGS_ON:   # en - только при CODETRUCK_EN=1
         for hub, pages, fn in ((j_hub, jd.PAGES, j_page), (v_hub, vd.PAGES, v_page)):
             rel, html = hub(lang)
             _write(rel, html)

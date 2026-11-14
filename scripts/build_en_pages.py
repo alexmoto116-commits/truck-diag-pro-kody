@@ -716,4 +716,8 @@ def build():
 
 
 if __name__ == '__main__':
+    import os as _os
+    if _os.environ.get('CODETRUCK_EN') != '1':
+        print(u'Английский раздел /en/ убран (14.11.2026, живёт на dieselcodes.com): сборка пропущена. Включить: CODETRUCK_EN=1.')
+        raise SystemExit(0)
     build()

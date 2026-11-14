@@ -1896,7 +1896,7 @@
     zfastronic:1, allison:1, weichai:1, teplostar:1, jingwei:1};
 
   var LANG_KEY = 'pf-lang';
-  /* /en/, /de/ и т.д. - отдельные страницы под hreflang (см. <head>: там
+  /* Языковые адреса (раньше /xx/) - отдельные страницы под hreflang (см. <head>: там
      же canonical и alternate на все версии). Каждая обязана всегда
      открываться на своём языке, иначе поисковик не сможет доверять
      hreflang - он объявляет URL источником истины по языку, а не
@@ -2274,8 +2274,10 @@
     /* Плашка нужна только там, где описания придут не на языке
        интерфейса: русскому и английскому объяснять нечего. */
     dataNote.style.display = (lang === 'ru' || lang === 'en') ? 'none' : 'block';
-    langSelect.value = lang;
-    langSelect.setAttribute('aria-label', t('langAria'));
+    if(langSelect){   /* выбора языка на главной больше нет (английский раздел убран 14.11.2026) */
+      langSelect.value = lang;
+      langSelect.setAttribute('aria-label', t('langAria'));
+    }
     fillBrands();
     applyModeUi();
     if(input.value.trim()) run();
@@ -3893,7 +3895,7 @@
     labelTheme();
   });
 
-  langSelect.addEventListener('change', function(){
+  if(langSelect) langSelect.addEventListener('change', function(){
     if(LOCK_LANG){
       var picked = langSelect.value;
       try{ localStorage.setItem(LANG_KEY, picked); }catch(e){}
