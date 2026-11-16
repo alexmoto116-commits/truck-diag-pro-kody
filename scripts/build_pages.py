@@ -496,11 +496,36 @@ SPN_FIX = {
         'risk': SPN168_RISK, 'flag': SPN168_FLAG, 'advice': SPN168_ADVICE,
     },
     157: {
-        # SPN 157 - давление в дозирующей рампе (Detroit): по бюллетеню мощность падает на 25 %,
-        # мотор не глохнет. Плашка уже писала «Ехать можно, до ближайшей остановки»,
-        # а описание - «Ехать нельзя». Выравниваем описание (ru и en).
-        'urg': {'ru': u'Ехать можно, до ближайшей остановки.',
-                'en': u'Safe to drive to the nearest safe stop.'},
+        # SPN 157 - давление в дозирующей рампе. Detroit (бюллетень MC-10142109-9999): мощность -25 %,
+        # остановка не указана; Dongfeng/Sitrak - ограничение мощности/оборотов; ролики 17.11 -
+        # «теряет мощность, может заглохнуть, красная лампа - остановиться». Решение 16.11.2026:
+        # «Ехать осторожно, до сервиса; красная лампа или потеря тяги - остановиться» (ru и en).
+        'lvl': 'base',
+        'vline': {'ru': u'Ехать осторожно', 'en': u'Drive with caution'},
+        'hz': {'ru': u'До сервиса, не откладывая', 'en': u'To a shop, do not put it off'},
+        'urg': {'ru': u'Ехать осторожно, до сервиса.', 'en': u'Drive with caution, to a shop.'},
+        'desc': {
+            'ru': (u'SPN 157 (%s): ехать осторожно, до сервиса; красная лампа или потеря тяги — остановитесь. '
+                   u'Значения FMI, как проверить своими руками.'),
+            'en': (u'SPN 157 (%s): drive with caution, to a shop; red lamp or loss of power, pull over. '
+                   u'FMI meanings, how to check it yourself.'),
+        },
+        'verdict': {
+            'ru': (u'<b>Ехать осторожно, до сервиса.</b> Давление в рампе не держится — мощность падает, '
+                   u'мотор может заглохнуть. Красная лампа или потеря тяги — остановитесь при первой безопасной возможности.'),
+            'en': (u'<b>Drive with caution, to a shop.</b> Rail pressure is not holding: power drops and the engine '
+                   u'may stall. Red lamp or loss of power: pull over at the first safe spot.'),
+        },
+        'risk': {
+            'ru': (u'Давление топлива в аккумуляторной рампе не держится. По бюллетеню Detroit мощность падает '
+                   u'примерно на 25 %; на ряде марок — ограничение мощности и оборотов, при сильном падении давления мотор может заглохнуть.',
+                   u'Доедьте до сервиса без резких нагрузок, не откладывая. Красная лампа или потеря тяги — '
+                   u'остановитесь; сначала проверьте топливные фильтры и воздух в системе, потом утечки, датчик и его разъём.'),
+            'en': (u'Fuel pressure in the common rail is not holding. Per the Detroit bulletin power drops by about 25 %; '
+                   u'some makes limit power and rpm, and with a large pressure loss the engine may stall.',
+                   u'Drive to a shop without hard loads and do not put it off. Red lamp or loss of power: pull over; '
+                   u'check the fuel filters and air in the system first, then leaks, the sensor and its connector.'),
+        },
     },
     177: {
         # SPN 177 - температура масла КПП (сверка istochniki-15.md, Eaton Endurant FC 212).
