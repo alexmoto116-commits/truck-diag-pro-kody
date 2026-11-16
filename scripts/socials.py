@@ -58,17 +58,17 @@ def foot_html():
 
 
 CSS = u"""
-.soc{display:inline-flex;align-items:center;gap:2px;margin-left:auto}
-.tick .soc a{display:inline-flex;align-items:center;justify-content:center;width:36px;height:44px;border:0;padding:0;margin:0;color:var(--d);border-radius:8px;transition:filter .15s,opacity .15s}
+.soc{display:inline-flex;align-items:center;gap:10px;margin-left:auto}
+.tick .soc a{display:inline-flex;align-items:center;justify-content:center;width:42px;height:44px;border:0;padding:0;margin:0;color:var(--d);border-radius:8px;transition:filter .15s,opacity .15s}
 .tick .soc a:first-child{margin:0;padding:0;font-size:inherit;animation:none;background:none;border-radius:8px;color:var(--d)}
 [data-theme="light"] .tick .soc a,[data-theme="light"] .tick .soc a:first-child{color:var(--c)}
 .tick .soc a:hover,.tick .soc a:focus-visible{filter:brightness(1.3)}
 [data-theme="light"] .tick .soc a:hover,[data-theme="light"] .tick .soc a:focus-visible{filter:none;opacity:.7}
 .tick .soc a:focus-visible{outline:2px solid var(--d);outline-offset:-2px}
-.tick .soc svg{display:block}
+.tick .soc svg{display:block;width:30px;height:30px}
 .tick{display:flex;flex-wrap:wrap;align-items:center}
 .tick .crumbs{display:inline-flex;flex-wrap:wrap;align-items:center}
-@media (max-width:480px){.tick .soc a{width:27px}.soc{gap:0}}
+@media (max-width:480px){.tick .soc a{width:40px}.soc{gap:4px}.tick .soc svg{width:28px;height:28px}}
 .socf{margin:14px 0 0;font-size:13.5px;color:#94A2B4;display:flex;flex-wrap:wrap;align-items:center;gap:4px 16px}
 .socf b{font-weight:600;color:#94A2B4}
 .socf a{display:inline-flex;align-items:center;gap:6px;min-height:36px;color:#94A2B4;text-decoration:none}
@@ -92,19 +92,20 @@ CSS_RE = re.compile(r'/\*soc:css\*/.*?/\*/soc:css\*/', re.S)
 INDEX_CSS = u"""
 /*soc:css*/
 .soc-top{position:absolute;top:clamp(14px,2.5vw,22px);left:50%;transform:translateX(-50%);z-index:19;display:flex;align-items:center;min-height:44px}
-.soc-top .soc{display:inline-flex;align-items:center;margin:0;gap:0;background:rgba(12,19,28,.5);border-radius:12px;padding:0 4px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.soc-top .soc{display:inline-flex;align-items:center;margin:0;gap:10px;background:rgba(12,19,28,.5);border-radius:12px;padding:0 4px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 .soc-top .soc a{color:var(--d);text-decoration:none;transition:filter .15s,opacity .15s}
 .socf a{color:var(--ink-3);text-decoration:none}
 .socf a svg{color:var(--d);transition:filter .15s,opacity .15s}
 [data-theme="light"] .soc-top .soc a,[data-theme="light"] .socf a svg{color:var(--c)}
-.soc-top .soc a{display:inline-flex;align-items:center;justify-content:center;width:38px;height:44px}
+.soc-top .soc a{display:inline-flex;align-items:center;justify-content:center;width:42px;height:44px}
+.soc-top .soc svg{display:block;width:30px;height:30px}
 .soc-top .soc a:hover,.soc-top .soc a:focus-visible,.socf a:hover svg,.socf a:focus-visible svg{filter:brightness(1.3)}
 [data-theme="light"] .soc-top .soc a:hover,[data-theme="light"] .soc-top .soc a:focus-visible,[data-theme="light"] .socf a:hover svg,[data-theme="light"] .socf a:focus-visible svg{filter:none;opacity:.7}
 .socf{margin:0 0 14px;display:flex;flex-wrap:wrap;align-items:center;gap:4px 16px}
 .socf b{font-weight:600}
 .socf a{display:inline-flex;align-items:center;gap:6px;min-height:36px}
-@media(max-width:560px){.soc-top .soc a{width:32px}.soc-top .soc{padding:0 2px}}
-@media(max-width:400px){.soc-top .soc a{width:28px}}
+@media(max-width:560px){.soc-top .soc a{width:40px}.soc-top .soc{padding:0 2px;gap:4px}.soc-top .soc svg{width:28px;height:28px}}
+@media(max-width:400px){.soc-top .soc a{width:40px}.soc-top .soc{gap:2px}.soc-top .soc svg{width:26px;height:26px}}
 [data-theme="light"] .soc-top .soc{background:rgba(255,255,255,.6)}
 @media print{.soc-top{display:none}}
 /*/soc:css*/
