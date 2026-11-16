@@ -5,8 +5,11 @@ Allow: /
 User-agent: Bingbot
 Allow: /
 
+User-agent: Yandex
 User-agent: YandexBot
 Allow: /
+# Старый /en/ - только заглушки-переадресации на dieselcodes.com; Яндексу не нужны. Google /en/ не закрыт.
+Disallow: /en/
 
 # ИИ-сборщики и SEO-сборщики - запрет на весь сайт.
 # Google-Extended не влияет на поиск Google, только на обучение моделей.

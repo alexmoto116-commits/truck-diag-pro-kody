@@ -813,6 +813,17 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
 document.title = 'Страница не найдена — codetruck.ru / Page not found';
 (function(){ var m = document.querySelector('meta[name="description"]'); if(m) m.setAttribute('content', 'Такой страницы нет. Введите код неисправности грузовика: расшифровка SPN/FMI и дилерских кодов. / Page not found: enter a truck fault code.'); })();
 </script>
+<script>
+/* Старый /en/ переехал на dieselcodes.com: сервер отвечает 404, людям показываем надпись (без переадресации). */
+(function(){
+  if(location.pathname.indexOf('/en/')!==0) return;
+  document.title = 'The English version has moved to DieselCodes';
+  var d = document.createElement('div');
+  d.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#070B12;color:#EEF3F9;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;font-family:system-ui,Segoe UI,Arial,sans-serif';
+  d.innerHTML = '<h1 style="font-size:clamp(28px,6vw,56px);margin:0 0 20px;line-height:1.15">The English version has moved to DieselCodes</h1><a href="https://dieselcodes.com/" rel="nofollow" style="font-size:clamp(20px,4vw,32px);color:#6FE3D3">dieselcodes.com</a>';
+  document.body.appendChild(d);
+})();
+</script>
 <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "177421bba4084e9fa25718d86f1781b0"}'></script><!-- End Cloudflare Web Analytics -->
 </body>
 </html>
