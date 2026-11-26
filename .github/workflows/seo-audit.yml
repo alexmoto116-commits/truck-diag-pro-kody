@@ -25,6 +25,8 @@ jobs:
         run: node scripts/test_legacy_404.cjs
       - name: Check RU index policy
         run: python3 scripts/audit_index_policy.py
+      - name: Test navigation link resolver
+        run: python3 -m unittest discover -s scripts -p 'test_navigation_audit.py'
       - name: Generate SEO audit report (non-blocking findings)
         if: always()
         run: python3 scripts/audit_static_seo.py --json seo-audit-results.json
