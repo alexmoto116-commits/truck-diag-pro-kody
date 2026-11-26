@@ -518,7 +518,7 @@ SPN_FIX = {
     792: {
         # A wheel-speed sensor fault does not establish that service brakes
         # are fully operational; inspect brake warnings and actual braking.
-        'lvl': 'base',
+        'lvl': 'short',
         'vline': {'ru': u'Проверьте тормозную систему'},
         'hz': {'ru': u'Решение по состоянию тормозов'},
         'urg': {'ru': u'Проверьте торможение и предупреждения ABS/EBS перед движением.'},
