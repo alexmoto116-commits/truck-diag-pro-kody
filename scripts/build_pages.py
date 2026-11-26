@@ -2705,6 +2705,8 @@ def build(en_spns=()):
                     % (_tier,
                        fx(spn, 'vline', 'ru') or (u'Ехать нельзя' if stop else (u'Ехать осторожно' if (sys_key == 'dpf' or spn in ABS_WARN_SPN) else u'Ехать можно')),
                        esc(fx(spn, 'hz', 'ru') or risk_model()['h'].get(worst_lvl, u''))))
+        if spn in ABS_WARN_SPN and body[-1] == u'<p class="vline t-warn"><b>Ехать осторожно</b><span class="hz">Хватит доехать до базы</span></p>':
+            body[-1] = u'<p class="vline t-warn"><b>Требуется проверка тормозной системы</b><span class="hz">Безопасность дальнейшего движения не подтверждена</span></p>'
         if own_std_critical(spn, per_spn.get(spn, {}), std_name(spn)):
             body.append(own_std_note(spn, makes, 'ru'))
 
