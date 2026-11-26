@@ -85,3 +85,20 @@ python scripts/audit_index_policy.py
 ```
 
 For DieselCodes, run the first two commands only. Run page-generation commands in a disposable copy or worktree after reviewing side effects; never regenerate into a production checkout blindly.
+
+## Repository-tree sitemap integrity check
+
+Performed a complete **repository file-tree ↔ sitemap location** cross-check using GitHub API (not a browser crawl):
+
+| Metric | CodeTruck | DieselCodes |
+| --- | ---: | ---: |
+| HTML files | 2,501 | 87 |
+| Unique HTML pages in XML sitemaps | 295 | 86 |
+| Sitemap targets missing from repository | 0 | 0 |
+| HTML files not named by sitemaps | 2,206 | 1 |
+
+The DieselCodes file outside sitemap is `404.html` (expected). CodeTruck's 2,206 unlisted files break down as 2,172 in `kody/`, 28 in `problemy/`, 3 in `otopiteli/`, plus `404.html` and two search-engine verification files. The `otopiteli/index.html` path is actually indexed via the main sitemap as directory `/otopiteli/`; the three unlisted standalone heater code pages have `noindex` in inspected source.
+
+Sampled missing-from-sitemap symptom pages (`ne-zavoditsya`, `glohnet-na-hodu`, `gorit-check-engine`, `upala-moshchnost`, `peregrev-dvigatelya`) all have `noindex`. These exclusions appear deliberate rather than evidence of broken site generation. Validate all 28 during the full offline script run before claiming exhaustive consistency.
+
+**CI status:** Draft-branch GitHub Actions workflows were added in both repositories. At the time of this check, no workflow runs had been reported for the draft branches. Tests have not been executed by GitHub Actions, and a direct git clone was blocked by the execution environment's DNS/network restrictions. The PRs remain draft.
