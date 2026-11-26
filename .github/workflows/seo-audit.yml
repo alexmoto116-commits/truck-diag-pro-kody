@@ -25,6 +25,8 @@ jobs:
         run: node scripts/test_legacy_404.cjs
       - name: Check RU index policy
         run: python3 scripts/audit_index_policy.py
+      - name: Test shared search URL restoration
+        run: node scripts/test_shared_search_url.cjs
       - name: Test navigation link resolver
         run: python3 -m unittest discover -s scripts -p 'test_navigation_audit.py'
       - name: Generate SEO audit report (non-blocking findings)
