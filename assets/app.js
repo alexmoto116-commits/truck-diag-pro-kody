@@ -4352,7 +4352,7 @@
           var qmid = /[?&]mid=([0-9]+)/.exec(location.search);
           if(qmid) midSel.value = qmid[1];
         }
-        input.value = decodeURIComponent(qq[1].replace(/\+/g, ' '));
+        input.value = new URLSearchParams(location.search).get('q') || '';
         run();
       }).catch(function(){});
     } else if(qb1){
