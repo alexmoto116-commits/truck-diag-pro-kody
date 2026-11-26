@@ -57,6 +57,11 @@ jobs:
         run: python3 -m unittest discover -s scripts -p 'test_navigation_audit.py'
       - name: Inventory retired English URLs (report only)
         run: python3 scripts/audit_retired_en_urls.py
+      - name: Test full-site diagnostic guidance report
+        run: python3 -m unittest discover -s scripts -p 'test_diagnostic_guidance_audit.py'
+      - name: Generate diagnostic guidance inventory (non-blocking)
+        if: always()
+        run: python3 scripts/audit_diagnostic_guidance.py --json diagnostic-audit-results.json --markdown diagnostic-audit-results.md
       - name: Generate SEO audit report (non-blocking findings)
         if: always()
         run: python3 scripts/audit_static_seo.py --json seo-audit-results.json
@@ -65,5 +70,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: seo-audit-truck-diag-pro-kody
-          path: seo-audit-results.json
+          path: |
+            seo-audit-results.json
+            diagnostic-audit-results.json
+            diagnostic-audit-results.md
           if-no-files-found: warn
