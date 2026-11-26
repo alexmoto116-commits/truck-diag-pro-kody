@@ -126,3 +126,11 @@ A follow-up private diagnosis confirmed that normalized keys for all 65 records 
 **Do not rebuild the KV index** for this issue. A Worker-input regression test was added as `scripts/test_pcode_worker_input.cjs` and wired into draft-branch CI. This checks representative input formats using the actual Worker parser, but has not been run on GitHub Actions yet.
 
 Next: validate the four complex Cummins ISX identifier forms privately, against the actual parser and the respective KV key behavior. Any output shared outside the local machine should be only aggregate counts, without dealer-code identifiers, descriptions, account IDs or credentials. If these cases are genuinely rejected, prepare a narrow worker parser fix and test it before deployment. No KV writes or deployments have been made.
+
+## Exact Cloudflare KV lookup risk — follow-up
+
+**Correction to preceding assessment:** The 65 Cummins entries are present in search-index shards **under normalized code terms**, but this alone does **not** establish that the Worker can retrieve their descriptions. Worker `searchByIndex()` obtains the term from the shard and then calls `env.PCODE_KV.get(kvKey(brand, code))`; `kvKey()` concatenates that normalized term into a *case-sensitive* KV key. `searchBruteForce()` also constructs keys from normalized input. If the stored dealer record uses a lowercase or otherwise noncanonical suffix **and no canonical equivalent key exists**, the search may return no text even though the index is correct.
+
+The latest private aggregate diagnosis reported 65 raw key names that differ from normalized form: ISB 6, ISL/ISC 45 and ISX 14. It did **not** test whether the canonical-named KV keys also exist for those records. Therefore neither claiming all 65 are reachable nor declaring them all broken is currently justified.
+
+A local read-only tool `codetruck-kv-lookup-check` was prepared to compare complete KV key-name inventory against the exact normalized keys referenced by index shards, exporting only aggregate counts by brand. **No production KV modifications or rebuild have been made.** Do not change index or write new values before this check. Four unusual ISX hyphenated forms need extra parser review once canonical-key existence is established.
