@@ -68,12 +68,36 @@ def parse_xml_sitemap(path):
     return urls, children, None
 
 
+SITE_HOSTS = {"codetruck.ru", "www.codetruck.ru"}
+
+
 def local_path_from_url(url):
     parsed = urlparse(url)
     rel = unquote(parsed.path).lstrip("/")
     if not rel or rel.endswith("/"):
         rel += "index.html"
     return ROOT / rel
+
+
+def local_link_target(source_file, href):
+    """Resolve relative and same-site absolute links; ignore external destinations.
+
+    Prevent protocol-relative and absolute links to other domains from being
+    falsely treated as local. Fragments and query strings do not name files.
+    """
+    parsed = urlparse(href.strip())
+    if parsed.scheme and parsed.scheme.lower() not in ("http", "https"):
+        return None
+    if parsed.netloc and (parsed.hostname or "").lower() not in SITE_HOSTS:
+        return None
+    if not parsed.path:
+        return None
+    path = unquote(parsed.path)
+    if parsed.scheme or parsed.netloc or path.startswith("/"):
+        dest = ROOT / path.lstrip("/")
+    else:
+        dest = source_file.parent / path
+    return dest
 
 
 def main():
@@ -121,11 +145,8 @@ def main():
         for href in data["links"]:
             if href.startswith(("#", "mailto:", "tel:", "javascript:", "data:")):
                 continue
-            u = urlparse(href)
-            if u.scheme or u.netloc:
-                continue
-            dest = (ROOT / u.path.lstrip("/")) if href.startswith("/") else (path.parent / u.path)
-            if u.path and not dest.exists() and not (dest / "index.html").exists():
+            dest = local_link_target(path, href)
+            if dest is not None and not dest.exists() and not (dest / "index.html").exists():
                 add("missing_internal_link", rel, href)
         for canonical in data["canonical"]:
             u = urlparse(canonical)
