@@ -2904,6 +2904,25 @@ def build(en_spns=()):
         if dealer_rows:
             sub += (u' Плюс отдельно ниже — %s %s в дилерском формате.'
                     % (n_codes(len(dealer_rows)), esc(bn)))
+        # Honest previews on high-priority make pages: the code database can
+        # contain far more entries than the set of linked public detail pages.
+        # This adjusts only editorial copy; counts, index policy and data stay unchanged.
+        if b == 'kamaz':
+            desc = (u'Коды КамАЗ: форматы SPN/FMI, K-line, EBS и блинк-коды. '
+                    u'Подборка подробных разборов, примеры и поиск по полному номеру ошибки.')
+            sub = (u'Справочник содержит <b>%s %s</b> из заводских таблиц разных блоков. '
+                   u'Ниже — доступные подробные разборы и примеры по системам, а не все коды базы. '
+                   u'Если номера нет в списке, введите полный код и FMI в поиске; перед выводом '
+                   u'о безопасности движения учитывайте симптомы и инструкции производителя.'
+                   % (n_codes(len(mine)), esc(bn)))
+        elif b == 'volvo':
+            desc = (u'Коды Volvo: SPN/FMI, MID/PID/SID и дилерский формат. '
+                    u'Различия систем диагностики, примеры кодов и поиск по номеру и марке.')
+            sub = (u'В справочнике есть <b>%s %s</b> в таблицах SPN/FMI и отдельно '
+                   u'%d записи в дилерском формате. Ниже — пояснения различий, '
+                   u'доступные разборы и примеры, а не полный перечень записей. '
+                   u'Для остальных кодов выберите Volvo в поиске и укажите номер целиком.'
+                   % (n_codes(len(mine)), esc(bn), len(dealer_rows or [])))
         brand_index.append((path, bn, total_n, 'spn'))
         extra.append(page(path, title, desc,
                           u'Коды ошибок %s' % bn, sub, secs, 'marki', brand=b))
