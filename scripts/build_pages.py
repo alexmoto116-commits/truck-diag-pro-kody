@@ -3054,6 +3054,11 @@ def build(en_spns=()):
             u'<i>что</i> неисправно, FMI — <i>что именно</i> с ним не так. Вторая '
             u'половина кода одинакова для всех марок, это стандарт J1939.</p>%s</section>'
             % fmi_table(sorted(((int(f), t) for f, t in db['fmi'].items())), urgent_fmi_for(None, urgent_fmi))]
+    secs.insert(0, u'<section><h2>Поиск по марке техники</h2>'
+                u'<p class="lead">Один и тот же номер ошибки может означать разные неисправности '
+                u'в разных блоках. Если известна марка грузовика, откройте '
+                u'<a href="/marki/">справочник кодов по маркам</a> и уточните систему, SPN и FMI.'
+                u'</p></section>')
     for key in SYS_ORDER_BRAND:
         bucket = by_sys.get(key)
         if not bucket:
@@ -3096,7 +3101,11 @@ def build(en_spns=()):
             % (os.path.basename(path), esc(name), cnt)
             for path, name, cnt, _ in sorted(rows, key=lambda r: r[1]))
 
-    secs = []
+    secs = [u'<section><h2>Если известен только SPN/FMI</h2>'
+            u'<p class="lead">Если сканер показывает SPN и FMI, но марка или блок пока не определены, '
+            u'начните с <a href="/kody/">каталога SPN/FMI и таблицы FMI</a>. '
+            u'После проверки номера уточните значение по блоку управления '
+            u'и руководству производителя.</p></section>']
     if veh:
         secs.append(u'<section><h2>Коды SPN/FMI по стандарту J1939</h2>'
                     u'<p class="lead">У этих марок код читается по стандарту: номер узла '
