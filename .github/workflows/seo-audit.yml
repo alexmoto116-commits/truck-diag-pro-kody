@@ -59,6 +59,13 @@ jobs:
         run: python3 scripts/audit_retired_en_urls.py
       - name: Test full-site diagnostic guidance report
         run: python3 -m unittest discover -s scripts -p 'test_diagnostic_guidance_audit.py'
+      - name: Regenerate pages for draft ABS verification
+        if: github.event_name == 'pull_request' && github.head_ref == 'fix/abs-diagnostic-guidance'
+        run: |
+          python3 scripts/build_pages.py
+          git diff --stat
+          git diff --exit-code -- assets/dtc.enc.js sitemap.xml sitemap-ru-kody.xml
+          python3 scripts/audit_index_policy.py
       - name: Generate diagnostic guidance inventory (non-blocking)
         if: always()
         run: python3 scripts/audit_diagnostic_guidance.py --json diagnostic-audit-results.json --markdown diagnostic-audit-results.md
