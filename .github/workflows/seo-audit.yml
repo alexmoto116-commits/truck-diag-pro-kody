@@ -37,6 +37,8 @@ jobs:
         run: python3 scripts/test_brand_catalog_scope.py
       - name: Check curated codes catalog copy
         run: python3 scripts/test_catalog_scope.py
+      - name: Check SPN 1761 and 792 content consistency
+        run: python3 scripts/test_spn1761_792_content.py
       - name: Check SPN 97 content consistency
         run: python3 scripts/test_spn97_content.py
       - name: Check SPN 91 content consistency
