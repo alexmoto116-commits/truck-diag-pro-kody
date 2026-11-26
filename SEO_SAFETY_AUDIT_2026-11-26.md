@@ -102,3 +102,17 @@ The DieselCodes file outside sitemap is `404.html` (expected). CodeTruck's 2,206
 Sampled missing-from-sitemap symptom pages (`ne-zavoditsya`, `glohnet-na-hodu`, `gorit-check-engine`, `upala-moshchnost`, `peregrev-dvigatelya`) all have `noindex`. These exclusions appear deliberate rather than evidence of broken site generation. Validate all 28 during the full offline script run before claiming exhaustive consistency.
 
 **CI status:** Draft-branch GitHub Actions workflows were added in both repositories. At the time of this check, no workflow runs had been reported for the draft branches. Tests have not been executed by GitHub Actions, and a direct git clone was blocked by the execution environment's DNS/network restrictions. The PRs remain draft.
+
+## Language-architecture clarification (user-confirmed, 2026-11-26)
+
+**CodeTruck.ru is Russian-only. DieselCodes.com is the separate English site.** The previous /en/ content on CodeTruck was removed, with visitor-facing redirection messaging pointing to DieselCodes. No plan to republish CodeTruck /en/ pages.
+
+Verified in CodeTruck's `master` GitHub tree: there are **zero paths under `en/`**. `scripts/build_pages.py` explicitly documents removal of English content on **2026-11-14** and says that the English content belongs to `dieselcodes.com`. CodeTruck's `robots.txt` still mentions old `/en/` redirect stubs; the repository tree does not contain such files. The actual live-server redirection/message behavior has NOT yet been verified.
+
+**Interpretation correction:** The **257** English SPN paths in `scripts/index_keep.json` are historic/orphaned allowlist entries, **not** 257 live or indexed CodeTruck English pages. Do not equate this list with current published English URL inventory.
+
+Action:
+- Audit whether the obsolete English entries can be cleaned from the allowlist without impacting current scripts or deployment.
+- Keep canonical, sitemap and content language Russian-only on CodeTruck.
+- Handle English SEO only on DieselCodes, avoid duplicating English pages at CodeTruck.
+- Check any real server redirects separately; if implementing permanent URL migration, map old URLs to relevant English equivalents on DieselCodes, rather than blindly redirecting every path to the homepage.
