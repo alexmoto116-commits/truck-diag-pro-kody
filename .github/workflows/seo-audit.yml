@@ -29,6 +29,8 @@ jobs:
         run: node scripts/test_legacy_404.cjs
       - name: Check RU index policy
         run: python3 scripts/audit_index_policy.py
+      - name: Check SPN 91 content consistency
+        run: python3 scripts/test_spn91_content.py
       - name: Test shared search URL restoration
         run: node scripts/test_shared_search_url.cjs
       - name: Test navigation link resolver
