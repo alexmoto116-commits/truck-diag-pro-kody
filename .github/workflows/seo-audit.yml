@@ -59,6 +59,32 @@ jobs:
         run: python3 scripts/audit_retired_en_urls.py
       - name: Test full-site diagnostic guidance report
         run: python3 -m unittest discover -s scripts -p 'test_diagnostic_guidance_audit.py'
+      - name: Regenerate pages for draft ABS verification
+        if: github.event_name == 'pull_request' && github.head_ref == 'fix/abs-diagnostic-guidance'
+        run: |
+          tmp=$(mktemp -d)
+          git archive HEAD | tar -x -C "$tmp"
+          (cd "$tmp" && python3 scripts/build_pages.py && python3 scripts/audit_diagnostic_guidance.py --json regenerated-diagnostic-audit.json --markdown regenerated-diagnostic-audit.md)
+          cp "$tmp"/regenerated-diagnostic-audit.* .
+          python3 - "$tmp" <<'PY'
+          import pathlib, sys, re, json
+          root = pathlib.Path(sys.argv[1])
+          rules = [
+              'обычные тормоза при этом действуют',
+              'обычные тормоза работают',
+              'Посреди трассы машина не заглохнет',
+          ]
+          rows = []
+          for old in sorted(pathlib.Path('kody').glob('spn-*.html')):
+              before = old.read_text(encoding='utf-8')
+              if not any(x in before for x in rules):
+                  continue
+              after = (root / old).read_text(encoding='utf-8')
+              rows.append({'path': str(old), 'remaining': [x for x in rules if x in after],
+                           'before_matches': [x for x in rules if x in before]})
+          pathlib.Path('publication-inventory.json').write_text(json.dumps(rows, ensure_ascii=False, indent=2), encoding='utf-8')
+          PY
+          git diff --exit-code
       - name: Generate diagnostic guidance inventory (non-blocking)
         if: always()
         run: python3 scripts/audit_diagnostic_guidance.py --json diagnostic-audit-results.json --markdown diagnostic-audit-results.md
@@ -74,4 +100,7 @@ jobs:
             seo-audit-results.json
             diagnostic-audit-results.json
             diagnostic-audit-results.md
+            regenerated-diagnostic-audit.json
+            regenerated-diagnostic-audit.md
+            publication-inventory.json
           if-no-files-found: warn
