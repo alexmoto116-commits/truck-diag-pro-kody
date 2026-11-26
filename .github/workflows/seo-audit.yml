@@ -17,6 +17,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Check diagnostic copy
         run: python3 scripts/check_diagnostic_copy.py
+      - name: Check retired-language notice links
+        run: python3 scripts/check_legacy_language_links.py
       - name: Check RU index policy
         run: python3 scripts/audit_index_policy.py
       - name: Generate SEO audit report (non-blocking findings)
