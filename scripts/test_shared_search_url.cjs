@@ -17,7 +17,7 @@ const inputs = [
   ['?q=%D0%9E%D1%88%D0%B8%D0%B1%D0%BA%D0%B0', 'Ошибка'],
   ['?q=100%25+FMI+1', '100% FMI 1'],
   ['?q=bad%ZZ+input', 'bad%ZZ input'],
-  ['?q=%E0%A4%A', '\\uFFFD%A'],
+  ['?q=%E0%A4%A', '\uFFFD%A'],
   ['?q=', '']
 ];
 for (const [query, want] of inputs) {
