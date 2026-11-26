@@ -162,7 +162,7 @@ def markdown(report):
     order = {"high": 0, "medium": 1, "review": 2}
     ranked = sorted(report["findings"], key=lambda x: (order[x["severity"]], x["rule"], x["path"]))
     for x in ranked[:MAX_EXAMPLES]:
-        lines.append(f"- **{x['severity']}** \\u2014 `{x['path']}` / `{x['rule']}`: {x['matched']}")
+        lines.append(f"- **{x['severity']}** — `{x['path']}` / `{x['rule']}`: {x['matched']}")
     if not ranked:
         lines.append("No matching patterns.")
     lines.append("")
