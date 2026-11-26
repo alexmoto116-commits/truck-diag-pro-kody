@@ -21,6 +21,8 @@ jobs:
         run: python3 scripts/check_diagnostic_copy.py
       - name: Check retired-language notice links
         run: python3 scripts/check_legacy_language_links.py
+      - name: Exercise legacy-language 404 rendering
+        run: node scripts/test_legacy_404.cjs
       - name: Check RU index policy
         run: python3 scripts/audit_index_policy.py
       - name: Generate SEO audit report (non-blocking findings)
