@@ -29,6 +29,8 @@ jobs:
         run: node scripts/test_legacy_404.cjs
       - name: Check RU index policy
         run: python3 scripts/audit_index_policy.py
+      - name: Check WABCO contextual links and scope
+        run: python3 scripts/test_wabco_context.py
       - name: Check code and make hub cross-links
         run: python3 scripts/test_hub_crosslinks.py
       - name: Check KamAZ and Volvo brand page scope
