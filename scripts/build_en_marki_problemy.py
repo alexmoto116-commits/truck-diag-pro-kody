@@ -512,6 +512,10 @@ def build():
             more = u' and others' if len(stop_codes) > 6 else u''
             parts.append(u'<p>Stop if the reading shows any of these codes: %s%s.</p>'
                          % (inline_en(stop_codes[:6]), more))
+        elif slug == 'ne-zavoditsya':
+            parts.append(u'<p>A no-start symptom does not establish whether the truck '
+                         u'is safe to operate. Read the actual fault codes and identify '
+                         u'the cause before making a driving decision.</p>')
         else:
             parts.append(u'<p>The reference does not mark any code in this group as a reason to stop.</p>')
         if rest:
@@ -825,20 +829,38 @@ def build():
         if rest:
             secs.append(u'<section><h2>Other codes for this system</h2>'
                         u'<ul class="near">%s</ul></section>' % code_links(rest))
-        if sys_key:
+        if sys_key and slug != 'ne-zavoditsya':
             sec = risk_section(sys_key, sorted(urgent_fmi), False, bp.urgent_fmi_for(None, urgent_fmi))
             if sec:
                 secs.append(sec)
+        if slug == 'ne-zavoditsya':
+            secs.append(u'<section><h2>If the engine will not start</h2>'
+                        u'<div class="risk t-warn"><span class="rkb">Do not attempt to continue a trip '
+                        u'with an engine that cannot start or remain running</span>'
+                        u'<p>Secure the truck in a safe location. Check whether the starter '
+                        u'cranks, then inspect accessible battery connections, fuses and fuel level. '
+                        u'Follow the manufacturer\'s cranking limits and avoid repeated starting attempts.</p>'
+                        u'<p>Do not open high-pressure fuel lines or work around energized or moving '
+                        u'parts without appropriate training. A code by itself is not permission to drive.</p>'
+                        u'</div></section>')
         act = i18n.get(ACT_KEY.get(adv, '')) if adv else None
-        if act:
+        if act and slug != 'ne-zavoditsya':
             secs.append(u'<section><h2>What to check on the spot</h2><p>%s</p></section>' % act)
-        secs.append(
-            u'<section><h2>Can I keep driving</h2><p>The answer depends on the code, not '
-            u'the light. A yellow light is a warning; a red one means do not move. But '
-            u'even under a yellow light there are faults that require stopping right '
-            u'away — low oil pressure, overheating, lost brake pressure. '
-            u'<a href="/en/">Enter the code</a> — the reference will tell you '
-            u'plainly whether to keep driving or stop.</p></section>')
+        if slug == 'ne-zavoditsya':
+            secs.append(u'<section><h2>Can I keep driving</h2>'
+                        u'<p>If the engine cannot start or repeatedly stalls, do not continue '
+                        u'until the fault is identified and corrected. Follow manufacturer guidance '
+                        u'for brake, steering, fuel-leak, overheating or oil-pressure warnings. '
+                        u'<a href="/en/">Look up the exact fault code</a> for further diagnostic '
+                        u'context, not as permission to drive.</p></section>')
+        else:
+            secs.append(
+                u'<section><h2>Can I keep driving</h2><p>The answer depends on the code, not '
+                u'the light. A yellow light is a warning; a red one means do not move. But '
+                u'even under a yellow light there are faults that require stopping right '
+                u'away — low oil pressure, overheating, lost brake pressure. '
+                u'<a href="/en/">Enter the code</a> — the reference will tell you '
+                u'plainly whether to keep driving or stop.</p></section>')
 
         rel = 'problemy/%s.html' % slug
         desc = intro if len(intro) <= 155 else intro[:155].rsplit(u' ', 1)[0] + u'…'

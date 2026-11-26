@@ -1,0 +1,45 @@
+name: SEO and safety audit
+
+on:
+  push:
+    branches:
+      - master
+      - audit/safety-copy-2026-11-26
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check Worker dealer-code input normalization
+        run: node scripts/test_pcode_worker_input.cjs
+      - name: Check diagnostic copy
+        run: python3 scripts/check_diagnostic_copy.py
+      - name: Check retired-language notice links
+        run: python3 scripts/check_legacy_language_links.py
+      - name: Exercise legacy-language 404 rendering
+        run: node scripts/test_legacy_404.cjs
+      - name: Check RU index policy
+        run: python3 scripts/audit_index_policy.py
+      - name: Test shared search URL restoration
+        run: node scripts/test_shared_search_url.cjs
+      - name: Test navigation link resolver
+        run: python3 -m unittest discover -s scripts -p 'test_navigation_audit.py'
+      - name: Generate SEO audit report (non-blocking findings)
+        if: always()
+        run: python3 scripts/audit_static_seo.py --json seo-audit-results.json
+      - name: Upload audit findings
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: seo-audit-truck-diag-pro-kody
+          path: seo-audit-results.json
+          if-no-files-found: warn
