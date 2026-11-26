@@ -12,6 +12,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 GENERATOR = ROOT / "scripts" / "build_pages.py"
+EN_GENERATOR = ROOT / "scripts" / "build_en_marki_problemy.py"
 NO_START = ROOT / "problemy" / "ne-zavoditsya.html"
 
 
@@ -22,6 +23,13 @@ def main() -> int:
     except SyntaxError as exc:
         errors.append(f"Generator has a Python syntax error: {exc}")
     generator = GENERATOR.read_text(encoding="utf-8")
+    try:
+        ast.parse(EN_GENERATOR.read_text(encoding="utf-8"), filename=str(EN_GENERATOR))
+    except SyntaxError as exc:
+        errors.append(f"English generator has a Python syntax error: {exc}")
+    en_generator = EN_GENERATOR.read_text(encoding="utf-8")
+    if "sys_key and slug != 'ne-zavoditsya'" not in en_generator:
+        errors.append("English generator no longer excludes no-start from generic risk section")
     page = NO_START.read_text(encoding="utf-8")
     if "slug != 'ne-zavoditsya'" not in generator:
         errors.append("Generator no longer excludes no-start from generic risk section")
