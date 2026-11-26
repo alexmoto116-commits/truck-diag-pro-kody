@@ -804,7 +804,7 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
   </ul>
 </nav>
 
-<div class="foot"><span class="foot-t">Справочник показывает, что означает код, а не ставит диагноз. Вопросы — <a href="mailto:alexdiag116@gmail.com" style="color:inherit">alexdiag116@gmail.com</a>. English and other former language versions: <a href="https://dieselcodes.com/" style="color:#6FE3D3">DieselCodes.com</a>.</span></div>
+<div class="foot"><span class="foot-t">Справочник показывает, что означает код, а не ставит диагноз. Вопросы — <a href="mailto:alexdiag116@gmail.com" style="color:inherit">alexdiag116@gmail.com</a>.</span></div>
 
 <script src="/assets/app.js"></script>
 <script>
@@ -813,58 +813,7 @@ h1 em{font-style:normal;color:var(--lamp);white-space:nowrap}
 document.title = 'Страница не найдена — codetruck.ru / Page not found';
 (function(){ var m = document.querySelector('meta[name="description"]'); if(m) m.setAttribute('content', 'Такой страницы нет. Введите код неисправности грузовика: расшифровка SPN/FMI и дилерских кодов. / Page not found: enter a truck fault code.'); })();
 </script>
-<script>
-/* Old translated paths are retired: show a clear, clickable link on the 404 page.
-   Keep the real HTTP 404 status; a hosting-level redirect is a separate SEO decision. */
-(function(){
-  var path = location.pathname || '/';
-  var matched = /^\/(en|pl|de|fr|es|it|pt|cs|sk|ro|hu|nl|tr|uk|bg|sr|hr|lt|lv|et|fi|sv|no|da)(?:\/|$)/i.exec(path);
-  if (!matched) return;
-  var lang = matched[1].toLowerCase();
-  var messages = {
-    en: ['The English version has moved', 'Open DieselCodes'],
-    pl: ['Ta wersja strony została przeniesiona', 'Przejdź do DieselCodes'],
-    de: ['Diese Sprachversion ist umgezogen', 'DieselCodes öffnen'],
-    fr: ['Cette version du site a été déplacée', 'Ouvrir DieselCodes'],
-    es: ['Esta versión del sitio se ha trasladado', 'Abrir DieselCodes'],
-    it: ['Questa versione del sito è stata trasferita', 'Apri DieselCodes'],
-    pt: ['Esta versão do site foi transferida', 'Abrir DieselCodes'],
-    cs: ['Tato jazyková verze webu byla přesunuta', 'Otevřít DieselCodes'],
-    sk: ['Táto jazyková verzia stránky sa presunula', 'Otvoriť DieselCodes'],
-    ro: ['Această versiune a site-ului a fost mutată', 'Deschide DieselCodes'],
-    hu: ['A weboldal ezen nyelvi változata átköltözött', 'DieselCodes megnyitása']
-  };
-  var msg = messages[lang] || ['This language version has moved', 'Open DieselCodes'];
-  document.title = msg[0] + ' — DieselCodes';
-  document.documentElement.lang = lang;
-  var d = document.createElement('main');
-  d.setAttribute('role','main');
-  d.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#070B12;color:#EEF3F9;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;font-family:system-ui,Segoe UI,Arial,sans-serif';
-  var h = document.createElement('h1');
-  h.textContent = msg[0];
-  h.style.cssText = 'font-size:clamp(26px,5vw,50px);margin:0 0 16px;line-height:1.2';
-  var p = document.createElement('p');
-  p.textContent = 'The truck fault-code reference is now available in English at dieselcodes.com';
-  p.style.cssText = 'font-size:clamp(15px,2.4vw,20px);line-height:1.5;max-width:620px;margin:0 0 28px;color:#B4C7D8';
-  var a = document.createElement('a');
-  a.href = 'https://dieselcodes.com/';
-  a.textContent = msg[1] + ' — dieselcodes.com';
-  a.style.cssText = 'display:inline-block;padding:16px 22px;background:#6FE3D3;color:#07141C;border-radius:12px;font-size:clamp(17px,2.5vw,23px);font-weight:700;text-decoration:none';
-  var fallback = document.createElement('p');
-  fallback.style.cssText = 'margin:18px 0 0;font-size:14px;color:#B4C7D8';
-  fallback.textContent = 'codetruck.ru — Русская версия';
-  var ru = document.createElement('a');
-  ru.href = 'https://codetruck.ru/';
-  ru.textContent = ' codetruck.ru';
-  ru.style.cssText = 'color:#6FE3D3';
-  fallback.appendChild(ru);
-  d.appendChild(h);
-  d.appendChild(p);
-  d.appendChild(a);
-  d.appendChild(fallback);
-  document.body.appendChild(d);
-})();
-</script>
+
 <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "177421bba4084e9fa25718d86f1781b0"}'></script><!-- End Cloudflare Web Analytics -->
 </body>
 </html>
