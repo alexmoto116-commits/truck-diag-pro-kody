@@ -116,3 +116,13 @@ Action:
 - Keep canonical, sitemap and content language Russian-only on CodeTruck.
 - Handle English SEO only on DieselCodes, avoid duplicating English pages at CodeTruck.
 - Check any real server redirects separately; if implementing permanent URL migration, map old URLs to relevant English equivalents on DieselCodes, rather than blindly redirecting every path to the homepage.
+
+## Dealer-code KV root cause — 2026-11-26
+
+Private, read-only local reports of Cloudflare `PCODE_KV` found 28,350 dealer records and all 64 search-index shards. Initial count of **65 `dealer_record_missing_from_direct_index`** was a **false positive due to comparing raw, non-normalized KV key suffixes to normalized index terms**.
+
+A follow-up private diagnosis confirmed that normalized keys for all 65 records are present in the search index, with no wrong-shard or cross-brand findings. Distribution: `cumminsisb` 6, `cumminsislisc` 45, `cumminsisx` 14. Of these, 61 raw identifiers differ in case only, and four Cummins ISX identifiers have a complex hyphenated form. Worker `cleanInput()` uppercases user input *before* `shapeOk()`, so raw lowercase in KV keys is not by itself evidence that real users will receive a 400 response.
+
+**Do not rebuild the KV index** for this issue. A Worker-input regression test was added as `scripts/test_pcode_worker_input.cjs` and wired into draft-branch CI. This checks representative input formats using the actual Worker parser, but has not been run on GitHub Actions yet.
+
+Next: validate the four complex Cummins ISX identifier forms privately, against the actual parser and the respective KV key behavior. Any output shared outside the local machine should be only aggregate counts, without dealer-code identifiers, descriptions, account IDs or credentials. If these cases are genuinely rejected, prepare a narrow worker parser fix and test it before deployment. No KV writes or deployments have been made.
