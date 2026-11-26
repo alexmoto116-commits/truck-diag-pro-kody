@@ -1,9 +1,13 @@
-name: SEO and safety audit (draft branch)
+name: SEO and safety audit
 
 on:
   push:
     branches:
+      - master
       - audit/safety-copy-2026-11-26
+  pull_request:
+    branches:
+      - master
   workflow_dispatch:
 
 permissions:
