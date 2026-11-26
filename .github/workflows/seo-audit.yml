@@ -62,10 +62,11 @@ jobs:
       - name: Regenerate pages for draft ABS verification
         if: github.event_name == 'pull_request' && github.head_ref == 'fix/abs-diagnostic-guidance'
         run: |
-          python3 scripts/build_pages.py
-          git diff --stat
-          git diff --exit-code -- assets/dtc.enc.js sitemap.xml sitemap-ru-kody.xml
-          python3 scripts/audit_index_policy.py
+          tmp=$(mktemp -d)
+          git archive HEAD | tar -x -C "$tmp"
+          (cd "$tmp" && python3 scripts/build_pages.py && python3 scripts/audit_diagnostic_guidance.py --json regenerated-diagnostic-audit.json --markdown regenerated-diagnostic-audit.md)
+          cp "$tmp"/regenerated-diagnostic-audit.* .
+          git diff --exit-code
       - name: Generate diagnostic guidance inventory (non-blocking)
         if: always()
         run: python3 scripts/audit_diagnostic_guidance.py --json diagnostic-audit-results.json --markdown diagnostic-audit-results.md
@@ -81,4 +82,6 @@ jobs:
             seo-audit-results.json
             diagnostic-audit-results.json
             diagnostic-audit-results.md
+            regenerated-diagnostic-audit.json
+            regenerated-diagnostic-audit.md
           if-no-files-found: warn
