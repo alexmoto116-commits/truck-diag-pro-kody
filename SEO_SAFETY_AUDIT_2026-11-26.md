@@ -51,3 +51,19 @@ Scope: read-only inspection of both GitHub repositories, plus **draft** changes 
 ## Boundaries
 
 No production site was deployed. No Google Search Console/analytics data was accessed. No repository-wide test run or live-browser render was performed during this review.
+
+## Follow-up audit (2026-11-26)
+
+- `scripts/index_keep.json` contains **288** SPN URLs: **31** RU (`kody/spn-*.html`) and **257** EN (`en/kody/spn-*.html`). These are explicit allowlists for indexing, NOT total numbers of pages in the code database. A mass noindex removal should **not** be performed without GSC evidence and manual content-quality review.
+- Checked `sitemap-ru-kody.xml`: it contains **31** URLs, matching the 31 RU entries on the allowlist. Checked `sitemap-ru-marki.xml`: **62** brand URLs. Checked `sitemap-ru-main.xml`: **5** URLs.
+- DieselCodes `sitemap.xml` currently contains **86** URL locations (46 with `/kody/`, 15 with `/marki/`, 7 with `/problemy/`, plus other sections). These are source-repository counts, not confirmed Google indexing.
+- The English symptom generator `scripts/build_en_marki_problemy.py` had the same no-start generic risk logic as the Russian generator. Its no-start special case has been corrected on the draft branch, so future generation does not reintroduce the specific contradiction.
+- Added a standalone read-only audit tool to both repositories at `scripts/audit_static_seo.py`. It checks static HTML titles, H1 counts, canonical targets, duplicate titles, broken local links, XML sitemap references, and sitemap/noindex mismatches. It runs locally on the complete checkout; output requires inspection before remediation. The tool has **not yet been executed against a full checkout**, so no result counts are claimed.
+- The two PRs remain **draft**; branch updates do not deploy production changes.
+
+### Recommended order
+
+1. Run `python scripts/audit_static_seo.py --json seo-audit-results.json` on each complete repo checkout and triage false positives (fragment anchors, redirects, externally hosted pages).
+2. Test the Python generators and render a sample RU/EN no-start page into a temporary build directory. Check for regressions before merging.
+3. Obtain GSC export for URLs with impressions; review which noindex SPN pages are content-rich enough to re-open, without lifting the allowlist globally.
+4. Review the risk-message mapping and output (HTML + FAQ structured data) for priority vehicle-control, braking, oil-pressure and overheating codes.
