@@ -2923,6 +2923,15 @@ def build(en_spns=()):
                    u'доступные разборы и примеры, а не полный перечень записей. '
                    u'Для остальных кодов выберите Volvo в поиске и укажите номер целиком.'
                    % (n_codes(len(mine)), esc(bn), len(dealer_rows or [])))
+        elif b == 'wabco':
+            desc = (u'Коды WABCO ABS/ESC: датчики колёс, клапаны ABS и ошибки CAN. '
+                    u'Подборка разборов SPN/FMI, проверка системы и поиск по коду.')
+            sub = (u'Справочник включает <b>%s %s</b>. На странице — доступные разборы '
+                   u'и примеры ошибок тормозной электроники, а не все записи базы. '
+                   u'Если кода нет в списке, введите его с FMI в поиск по WABCO. '
+                   u'Безопасность движения оценивайте по фактической работе тормозов '
+                   u'и инструкции производителя.'
+                   % (n_codes(len(mine)), esc(bn)))
         brand_index.append((path, bn, total_n, 'spn'))
         extra.append(page(path, title, desc,
                           u'Коды ошибок %s' % bn, sub, secs, 'marki', brand=b))
@@ -3078,6 +3087,21 @@ def build(en_spns=()):
             chunk = bucket[i:i + 120]
             secs.append(u'<section><h2>SPN %d — %d</h2><ul class="near">%s</ul></section>'
                         % (chunk[0], chunk[-1], code_links(chunk, prefix='')))
+
+    secs = [
+        section.replace(
+            '<h2>Тормоза — ',
+            '<h2>Тормоза — ',
+        ).replace(
+            '</h2><ul class="near">',
+            '</h2><p class="lead">Коды датчиков колёс и тормозной электроники '
+            'могут зависеть от блока управления. Для марки WABCO см. '
+            '<a href="/marki/wabco.html">разборы ошибок WABCO ABS/ESC</a> '
+            'и уточняйте FMI.</p><ul class="near">',
+            1,
+        ) if section.startswith('<section><h2>Тормоза — ') else section
+        for section in secs
+    ]
 
     extra.append(page(
         'kody/index.html',
