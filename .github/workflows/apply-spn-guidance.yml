@@ -1,0 +1,60 @@
+name: Apply targeted SPN guidance
+on:
+  push:
+    branches: [fix/abs-diagnostic-guidance]
+    paths: [.github/workflows/apply-spn-guidance.yml]
+permissions:
+  contents: write
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply exact text replacements
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          pairs = [
+              ('АБС на этом колесе или оси может не работать, обычные тормоза при этом действуют. На сухой дороге заметной разницы можно не почувствовать.', 'АБС на этом колесе или оси может не работать. По одному коду нельзя подтвердить исправность основной тормозной системы.'),
+              ('На скользкой дороге тормозите плавно и держите дистанцию больше обычной. Ремонт не откладывайте: загорелась красная лампа тормозов или педаль стала мягкой — остановитесь.', 'При красном предупреждении тормозной системы или ухудшении торможения безопасно остановитесь. Не откладывайте диагностику; возможность дальнейшего движения определяйте по инструкции производителя и результатам проверки тормозов.'),
+              ('Дозирование мочевины прервано, и блок это считает. Сначала лампа, потом срез момента, потом принудительное ограничение до скорости пешехода — ступени включаются по наработке, а не разом.', 'Неисправность системы SCR/AdBlue или контроля NOx может вызвать предупреждение и ограничение мощности или скорости. Условия и ступени ограничения зависят от двигателя, конкретного кода и требований производителя.'),
+              ('Посреди трассы машина не заглохнет, но запас времени тает с каждым часом работы. Планировать ремонт нужно сейчас, а не когда мощности уже не останется: эмулятор и «отключить мочевину» проблему не убирают, коды копятся дальше.', 'По одному коду нельзя гарантировать продолжение движения. Не откладывайте диагностику; при требовании остановки или опасной потере тяги безопасно остановитесь. Устраните причину неисправности по инструкции производителя, а не обходите систему SCR.'),
+          ]
+          old = 'АБС на этом колесе или оси может быть отключена, обычные тормоза работают. На скользкой дороге тормозить плавно. Исправить в ближайшее время.'
+          new = 'АБС на этом колесе или оси может быть отключена. По одному коду нельзя подтвердить исправность основной тормозной системы. При нарушении торможения или красном предупреждении безопасно остановитесь. Следуйте инструкции производителя; до проверки не считайте движение безопасным.'
+          pairs += [('Ехать можно осторожно.</b> '+old, 'Неисправность ABS требует проверки.</b> '+new), ('Ехать можно осторожно. '+old, 'Неисправность ABS требует проверки. '+new)]
+          changed = []
+          for p in sorted(Path('kody').glob('spn-*.html')):
+              before = p.read_bytes().decode('utf-8')
+              after = before
+              for a,b in pairs:
+                  after = after.replace(a,b)
+              if after != before:
+                  assert re.findall(r'<(?:meta|link)\b[^>]*>', before) == re.findall(r'<(?:meta|link)\b[^>]*>', after), p
+                  p.write_bytes(after.encode('utf-8'))
+                  changed.append(str(p))
+          print('Changed', len(changed), 'pages')
+          assert len(changed) == 113, changed
+          PY
+      - name: Validate index policy and diagnostic guidance
+        run: |
+          python3 scripts/audit_index_policy.py
+          python3 scripts/check_diagnostic_copy.py
+          python3 scripts/audit_diagnostic_guidance.py --json /tmp/guidance.json --markdown /tmp/guidance.md
+          head -40 /tmp/guidance.md
+          python3 - <<'PY'
+          from pathlib import Path
+          for p in Path('kody').glob('spn-*.html'):
+              s=p.read_text(encoding='utf-8')
+              assert not any(x in s for x in ('обычные тормоза при этом действуют','Посреди трассы машина не заглохнет','обычные тормоза работают')), p
+          PY
+      - name: Commit only SPN HTML to draft branch
+        run: |
+          test "$(git branch --show-current)" = fix/abs-diagnostic-guidance
+          git add -- kody/spn-*.html
+          git diff --cached --stat
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Apply targeted ABS and SCR guidance to published SPN HTML'
+          git push origin HEAD:fix/abs-diagnostic-guidance
