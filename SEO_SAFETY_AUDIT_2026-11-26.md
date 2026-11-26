@@ -67,3 +67,21 @@ No production site was deployed. No Google Search Console/analytics data was acc
 2. Test the Python generators and render a sample RU/EN no-start page into a temporary build directory. Check for regressions before merging.
 3. Obtain GSC export for URLs with impressions; review which noindex SPN pages are content-rich enough to re-open, without lifting the allowlist globally.
 4. Review the risk-message mapping and output (HTML + FAQ structured data) for priority vehicle-control, braking, oil-pressure and overheating codes.
+
+## Static source cross-check, follow-up
+
+- CodeTruck sitemap section counts: RU codes 31, makes 62, heaters 138, analyses 14, J1587 28, VAG heaters 17, main pages 5. All sampled entries were unique. No claim is made about Google index coverage.
+- DieselCodes sitemap includes 86 URLs. Sampled 10 English pages (home, directories, selected SPNs, symptoms and maker pages) each had one title, one H1, one canonical and no explicit `noindex`. Eight sampled pages had no missing local links when validated against the repository's 107-path tree. This was a **sample**, not a full-site crawl.
+- CodeTruck sampled SPN pages 91, 100, 102, 110 were indexable and SPN 1 carried `noindex`, consistent with the RU allowlist.
+- Added `scripts/audit_index_policy.py` to validate all RU SPN pages against the allowlist and `sitemap-ru-kody.xml` upon a local checkout. It **has not been executed** in the GitHub-connected environment.
+- Direct network checkout is blocked in the inspection environment; code and spot checks were obtained through the GitHub connector. Therefore full local execution, visual browser rendering, and CI validation remain pending.
+
+### Pre-merge commands
+
+```bash
+python scripts/check_diagnostic_copy.py
+python scripts/audit_static_seo.py --json seo-audit-results.json
+python scripts/audit_index_policy.py
+```
+
+For DieselCodes, run the first two commands only. Run page-generation commands in a disposable copy or worktree after reviewing side effects; never regenerate into a production checkout blindly.
