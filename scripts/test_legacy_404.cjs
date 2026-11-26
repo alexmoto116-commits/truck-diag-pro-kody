@@ -9,5 +9,5 @@ const html = fs.readFileSync(path.join(__dirname, '..', '404.html'), 'utf8');
 assert(!/dieselcodes(?:\.com)?/i.test(html), 'CodeTruck 404 must not link to other site');
 assert(/<meta\s+name="robots"\s+content="noindex"/i.test(html), '404 must stay noindex');
 assert(!/Old translated paths are retired/i.test(html), 'Old relocation script returned');
-assert(/<form\b/i.test(html), '404 must retain its search form');
+assert(/id="pf-code"/i.test(html), '404 must retain its code search input');
 console.log('PASS: standalone CodeTruck 404 with local navigation and no cross-site notice');
