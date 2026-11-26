@@ -1,0 +1,47 @@
+name: Apply ABS warning banners
+on:
+  push:
+    branches: [fix/abs-warning-banner]
+    paths: [.github/workflows/apply-abs-banner.yml]
+permissions:
+  contents: write
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Update only matching ABS banners
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          src=Path('assets/app.js').read_text(encoding='utf-8')
+          ids=set(map(int,re.findall(r'\d+',re.search(r'var\s+ABS_WARN_SPN\s*=\s*\[(.*?)\]\s*;',src,re.S).group(1))))
+          old='<p class="vline t-warn"><b>Ехать осторожно</b><span class="hz">Хватит доехать до базы</span></p>'
+          new='<p class="vline t-warn"><b>Требуется проверка тормозной системы</b><span class="hz">Безопасность дальнейшего движения не подтверждена</span></p>'
+          changed=[]
+          for p in sorted(Path('kody').glob('spn-*.html')):
+              if int(p.stem.split('-')[1]) not in ids: continue
+              s=p.read_bytes().decode('utf-8')
+              if old not in s: continue
+              assert s.count(old)==1,p
+              p.write_bytes(s.replace(old,new).encode('utf-8'))
+              changed.append(str(p))
+          assert 'kody/spn-790.html' in changed
+          print('Updated',len(changed), 'pages:',changed)
+          PY
+      - name: Validate
+        run: |
+          python3 scripts/audit_index_policy.py
+          python3 scripts/check_diagnostic_copy.py
+          python3 scripts/audit_diagnostic_guidance.py --json /tmp/banner-audit.json --markdown /tmp/banner-audit.md
+          head -40 /tmp/banner-audit.md
+      - name: Commit only matching HTML
+        run: |
+          test "$(git branch --show-current)" = fix/abs-warning-banner
+          git add -- kody/spn-*.html
+          git diff --cached --stat
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Align public ABS warning banners'
+          git push origin HEAD:fix/abs-warning-banner
